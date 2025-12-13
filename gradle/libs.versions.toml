@@ -4,7 +4,7 @@ compileSdk = "36"
 buildTool = "36.0.0"
 
 # Warning: compose-comiler 与 kotlin 版本是相关联的
-agp = "8.12.0"
+agp = "8.13.1"
 kotlin = "2.2.21"
 kotlin-ksp = "2.3.2"
 compose-bom = "2025.11.00"
@@ -13,7 +13,7 @@ androidx-room = "2.7.2"
 androidx-paging = "3.3.6"
 androidx-navigation = "2.8.9"
 androidx-lifecycle = "2.9.4"
-squareup-okhttp = "5.3.0"
+squareup-okhttp = "5.3.2"
 squareup-retrofit = "3.0.0"
 
 
@@ -103,10 +103,6 @@ tencent-mmkv = { group = "com.tencent", name = "mmkv-static", version = "2.2.4" 
 
 # coil : https://github.com/coil-kt/coil
 coil-bom = { group = "io.coil-kt.coil3", name = "coil-bom", version = "3.3.0" }
-coil = { group = "io.coil-kt.coil3", name = "coil" }
-coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif" }
-coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg" }
-# Compose 仅需要导入下面两项
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp" }
 
@@ -115,8 +111,6 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 zoomimage = { group = "io.github.panpf.zoomimage", name = "zoomimage-view-coil", version = "1.0.2" }
 # https://github.com/leavesCZY/Matisse
 matisse = { group = "com.github.leavesCZY", name = "Matisse", version = "2.2.2" }
-# ffmpegCommand : https://github.com/AnJoiner/FFmpegCommand
-ffmpegCommand = { group = "com.github.AnJoiner", name = "FFmpegCommand", version = "1.2.2-lite" }
 # https://github.com/biubiuqiu0/flow-event-bus
 flowEventBus = { group = "com.github.biubiuqiu0", name = "flow-event-bus", version = "0.0.2" }
 # XXPermissions : https://github.com/getActivity/XXPermissions

@@ -1,30 +1,26 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-  alias(libs.plugins.android.application)
+  alias(libs.plugins.android.library)
   alias(libs.plugins.jetbrains.kotlin)
   alias(libs.plugins.jetbrains.compose.compiler)
 }
 
 android {
-  namespace = "me.zhangls.notes"
+  namespace = "me.zhangls.theme"
   compileSdk = libs.versions.compileSdk.get().toInt()
   buildToolsVersion = libs.versions.buildTool.get()
 
   defaultConfig {
-    applicationId = "me.zhangls.notes"
     minSdk = libs.versions.minSdk.get().toInt()
-    targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    consumerProguardFiles("consumer-rules.pro")
   }
 
   buildTypes {
     release {
-      isMinifyEnabled = true
-      isShrinkResources = true
+      isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
@@ -49,15 +45,14 @@ dependencies {
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.extJunit)
   androidTestImplementation(libs.androidx.espresso)
-  debugImplementation(libs.squareup.leakCanary)
-
-  implementation(project(":theme"))
 
   implementation(libs.androidx.core)
   implementation(libs.androidx.appcompat)
   implementation(libs.google.material)
 
   // Compose
+  debugImplementation(libs.androidx.compose.uiTooling)
+  debugImplementation(libs.androidx.compose.uiManifest)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.runtime)
   implementation(libs.androidx.compose.ui)
