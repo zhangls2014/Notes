@@ -12,9 +12,12 @@ compose-bom = "2025.11.00"
 androidx-room = "2.7.2"
 androidx-paging = "3.3.6"
 androidx-navigation = "2.8.9"
-androidx-lifecycle = "2.9.4"
+androidx-lifecycle = "2.10.0"
+androidx-compose-hilt = "1.3.0"
+google-hilt = "2.57.2"
 squareup-okhttp = "5.3.2"
 squareup-retrofit = "3.0.0"
+jetbrians-serialization = "1.9.0"
 
 
 [plugins]
@@ -24,6 +27,7 @@ jetbrains-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin"
 jetbrains-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlin-ksp" }
+google-hilt = { id = "com.google.dagger.hilt.android", version.ref = "google-hilt" }
 
 
 [libraries]
@@ -43,20 +47,21 @@ androidx-compose-material-icons-core = { group = "androidx.compose.material", na
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-material-adapter-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation" }
 
-androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.1" }
+androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version = "1.11.0" }
 androidx-compose-constraintLayout = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version = "1.1.1" }
 androidx-compose-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-compose-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 
 ### test
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 androidx-runner = { group = "androidx.test", name = "runner", version = "1.6.2" }
-androidx-extJunit = { group = "androidx.test.ext", name = "junit", version = "1.2.1" }
-androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version = "3.6.1" }
+androidx-extJunit = { group = "androidx.test.ext", name = "junit", version = "1.3.0" }
+androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version = "3.7.0" }
 
 # androidx
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version = "1.7.1" }
 androidx-activity = { group = "androidx.activity", name = "activity", version = "1.11.0" }
-androidx-core = { group = "androidx.core", name = "core-ktx", version = "1.16.0" }
+androidx-core = { group = "androidx.core", name = "core-ktx", version = "1.17.0" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidx-navigation" }
@@ -71,29 +76,29 @@ androidx-room-coroutines = { group = "androidx.room", name = "room-coroutines", 
 
 ### google
 google-material = { group = "com.google.android.material", name = "material", version = "1.12.0" }
-# gson : https://github.com/google/gson
-google-gson = { group = "com.google.code.gson", name = "gson", version = "2.13.1" }
+google-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "google-hilt" }
+google-hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "google-hilt" }
 
 jetbrains-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.10.2" }
 jetbrains-kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.4.0" }
-jetbrains-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version = "1.9.0" }
-jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.9.0" }
+jetbrains-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "jetbrians-serialization" }
+jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "jetbrians-serialization" }
 
 # retrofit2 : https://github.com/square/retrofit
 squareup-retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "squareup-retrofit" }
-squareup-retrofit2-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "squareup-retrofit" }
+squareup-retrofit2-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "squareup-retrofit" }
 squareup-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "squareup-okhttp" }
 squareup-okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "squareup-okhttp" }
 squareup-okio = { group = "com.squareup.okio", name = "okio", version = "3.9.1" }
 # https://github.com/square/leakcanary
-squareup-leakCanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version = "2.12" }
+squareup-leakCanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version = "2.14" }
 
 # mavericks: https://github.com/airbnb/mavericks
 airbnb-mavericks = { group = "com.airbnb.android", name = "mavericks", version = "3.0.9" }
 # mavericksNavigation
-airbnb-mavericks-navigation = { group = "com.airbnb.android", name = "mavericks-navigation", version = "3.0.1" }
+airbnb-mavericks-navigation = { group = "com.airbnb.android", name = "mavericks-navigation", version = "3.0.12" }
 # mavericksCompose
-airbnb-mavericks-compose = { group = "com.airbnb.android", name = "mavericks-compose", version = "3.0.11" }
+airbnb-mavericks-compose = { group = "com.airbnb.android", name = "mavericks-compose", version = "3.0.12" }
 
 # tencent
 # weChatOpenSDK : https://developers.weixin.qq.com/doc/oplatform/Downloads/Android_Resource.html
