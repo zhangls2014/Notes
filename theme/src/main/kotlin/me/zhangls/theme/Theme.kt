@@ -8,6 +8,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 
@@ -87,6 +91,39 @@ private val darkScheme = darkColorScheme(
   surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
+/**
+ * 自定义颜色
+ */
+@Immutable
+data class CustomColors(
+  val common: CommonColor,
+)
+
+/**
+ * 通用颜色
+ */
+@Immutable
+data class CommonColor(
+  val tertiary: Color,
+)
+
+private val LightColorPalette = CustomColors(
+  common = CommonColor(
+    tertiary = tertiaryLight,
+  ),
+)
+
+private val DarkColorPalette = CustomColors(
+  common = CommonColor(
+    tertiary = tertiaryDark,
+  ),
+)
+
+// 自定义颜色
+val LocalCustomColors = staticCompositionLocalOf {
+  LightColorPalette
+}
+
 @Composable
 fun ComposeAppTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
@@ -104,5 +141,9 @@ fun ComposeAppTheme(
     else -> darkScheme
   }
 
-  MaterialTheme(colorScheme = colorScheme, content = content)
+  val colors = if (darkTheme) DarkColorPalette else LightColorPalette
+
+  CompositionLocalProvider(LocalCustomColors provides colors) {
+    MaterialTheme(colorScheme = colorScheme, content = content)
+  }
 }

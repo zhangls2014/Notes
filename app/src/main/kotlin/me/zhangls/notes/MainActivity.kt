@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
 
     setContent {
-      ComposeAppTheme(darkTheme = false, dynamicColor = false) {
+      ComposeAppTheme(dynamicColor = false) {
         AppNavHost()
       }
     }
