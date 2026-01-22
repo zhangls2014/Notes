@@ -1,8 +1,5 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.kotlin)
   alias(libs.plugins.jetbrains.compose.compiler)
 }
 
@@ -35,12 +32,6 @@ android {
   }
 }
 
-kotlin {
-  compilerOptions {
-    jvmTarget = JvmTarget.JVM_17
-  }
-}
-
 dependencies {
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.extJunit)
@@ -57,7 +48,6 @@ dependencies {
   implementation(libs.androidx.compose.runtime)
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.preview)
-  implementation(libs.androidx.compose.constraintLayout)
   implementation(libs.androidx.compose.material)
   implementation(libs.androidx.compose.material.icons.core)
   implementation(libs.androidx.compose.material.icons.extended)
