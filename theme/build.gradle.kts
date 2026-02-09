@@ -5,8 +5,11 @@ plugins {
 
 android {
   namespace = "me.zhangls.theme"
-  compileSdk = libs.versions.compileSdk.get().toInt()
   buildToolsVersion = libs.versions.buildTool.get()
+
+  compileSdk {
+    version = release(libs.versions.compileSdk.get().toInt())
+  }
 
   defaultConfig {
     minSdk = libs.versions.minSdk.get().toInt()
@@ -34,23 +37,16 @@ android {
 
 dependencies {
   testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.extJunit)
-  androidTestImplementation(libs.androidx.espresso)
+  androidTestImplementation(libs.bundles.androidx.test)
 
   implementation(libs.androidx.core)
   implementation(libs.androidx.appcompat)
   implementation(libs.google.material)
 
   // Compose
-  debugImplementation(libs.androidx.compose.uiTooling)
-  debugImplementation(libs.androidx.compose.uiManifest)
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.runtime)
-  implementation(libs.androidx.compose.ui)
-  implementation(libs.androidx.compose.ui.preview)
-  implementation(libs.androidx.compose.material)
-  implementation(libs.androidx.compose.material.icons.core)
-  implementation(libs.androidx.compose.material.icons.extended)
-  implementation(libs.androidx.compose.activity)
-  implementation(libs.androidx.compose.lifecycle)
+  val composeBom = platform(libs.androidx.compose.bom)
+  debugImplementation(composeBom)
+  debugImplementation(libs.bundles.androidx.compose.test)
+  implementation(composeBom)
+  implementation(libs.bundles.androidx.compose.basic)
 }

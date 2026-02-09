@@ -8,8 +8,11 @@ plugins {
 
 android {
   namespace = "me.zhangls.notes"
-  compileSdk = libs.versions.compileSdk.get().toInt()
   buildToolsVersion = libs.versions.buildTool.get()
+
+  compileSdk {
+    version = release(libs.versions.compileSdk.get().toInt())
+  }
 
   defaultConfig {
     applicationId = "me.zhangls.notes"
@@ -52,35 +55,28 @@ android {
 
 dependencies {
   testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.extJunit)
-  androidTestImplementation(libs.androidx.espresso)
+  androidTestImplementation(libs.bundles.androidx.test)
   debugImplementation(libs.squareup.leakCanary)
   // Module
   implementation(project(":theme"))
   implementation(project(":network"))
+  implementation(project(":framework"))
   // Core
   implementation(libs.androidx.core)
   implementation(libs.androidx.appcompat)
   implementation(libs.google.material)
   // Compose
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.runtime)
-  implementation(libs.androidx.compose.ui)
-  implementation(libs.androidx.compose.ui.preview)
-  implementation(libs.androidx.compose.material)
-  implementation(libs.androidx.compose.material.icons.core)
-  implementation(libs.androidx.compose.material.icons.extended)
-  implementation(libs.androidx.compose.activity)
-  implementation(libs.androidx.compose.lifecycle)
-  implementation(libs.androidx.compose.viewmodel)
+  val composeBom = platform(libs.androidx.compose.bom)
+  debugImplementation(composeBom)
+  debugImplementation(libs.bundles.androidx.compose.test)
+  implementation(composeBom)
+  implementation(libs.bundles.androidx.compose.basic)
+
   // DI
   implementation(libs.google.hilt.android)
   ksp(libs.google.hilt.android.compiler)
   // DataStore
   implementation(libs.androidx.datastore.preferences)
   // Navigation3
-  implementation(libs.androidx.navigation3.runtime)
-  implementation(libs.androidx.navigation3.ui)
-  implementation(libs.androidx.compose.material.adapter.navigation)
-  implementation(libs.androidx.compose.viewmodel.navigation3)
+  implementation(libs.bundles.androidx.compose.navigation3)
 }

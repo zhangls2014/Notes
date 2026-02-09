@@ -5,8 +5,11 @@ plugins {
 
 android {
   namespace = "me.zhangls.network"
-  compileSdk = libs.versions.compileSdk.get().toInt()
   buildToolsVersion = libs.versions.buildTool.get()
+
+  compileSdk {
+    version = release(libs.versions.compileSdk.get().toInt())
+  }
 
   defaultConfig {
     minSdk = libs.versions.minSdk.get().toInt()
@@ -30,8 +33,7 @@ android {
 
 dependencies {
   testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.extJunit)
-  androidTestImplementation(libs.androidx.espresso)
+  androidTestImplementation(libs.bundles.androidx.test)
 
   implementation(libs.androidx.core)
   implementation(libs.jetbrains.kotlinx.coroutines.android)
