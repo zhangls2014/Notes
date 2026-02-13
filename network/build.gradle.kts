@@ -33,7 +33,8 @@ android {
 
 dependencies {
   testImplementation(libs.junit)
-  androidTestImplementation(libs.bundles.androidx.test)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.espresso)
 
   implementation(libs.androidx.core)
   implementation(libs.jetbrains.kotlinx.coroutines.android)

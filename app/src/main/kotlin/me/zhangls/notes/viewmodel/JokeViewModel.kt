@@ -5,12 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import me.zhangls.network.NetworkError
+import me.zhangls.data.repository.SettingsRepository
+import me.zhangls.data.repository.UserRepository
 import me.zhangls.network.NetworkResult
-import me.zhangls.notes.data.network.NetworkGlobalNotifier
 import me.zhangls.notes.data.repository.JokesRepository
-import me.zhangls.notes.data.repository.SettingsRepository
-import me.zhangls.notes.data.repository.UserRepository
 import javax.inject.Inject
 
 /**
@@ -21,23 +19,12 @@ class JokeViewModel @Inject constructor(
   private val jokesRepository: JokesRepository,
   private val userRepository: UserRepository,
   private val settingsRepository: SettingsRepository,
-  private val networkGlobalNotifier: NetworkGlobalNotifier,
 ): ViewModel() {
   private val appId = ""
   private val appSecret = ""
 
 
   init {
-    viewModelScope.launch {
-      networkGlobalNotifier.events.collectLatest {
-        when (it) {
-          is NetworkError.NoConnection -> println("network global notifier ==> no connection")
-          is NetworkError.TokenExpired -> println("network global notifier ==> token expired")
-          is NetworkError.Unauthorized -> println("network global notifier ==> unauthorized")
-          else -> {}
-        }
-      }
-    }
     viewModelScope.launch {
       userRepository.userFlow.collectLatest {
         println("user ==> $it")

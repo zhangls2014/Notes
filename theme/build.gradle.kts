@@ -37,16 +37,19 @@ android {
 
 dependencies {
   testImplementation(libs.junit)
-  androidTestImplementation(libs.bundles.androidx.test)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.espresso)
 
   implementation(libs.androidx.core)
   implementation(libs.androidx.appcompat)
   implementation(libs.google.material)
 
   // Compose
-  val composeBom = platform(libs.androidx.compose.bom)
-  debugImplementation(composeBom)
-  debugImplementation(libs.bundles.androidx.compose.test)
-  implementation(composeBom)
-  implementation(libs.bundles.androidx.compose.basic)
+  implementation(platform(libs.androidx.compose.bom))
+  implementation(libs.androidx.compose.ui.preview)
+  implementation(libs.androidx.compose.material)
+  implementation(libs.androidx.compose.material.icons.extended)
+  implementation(libs.androidx.compose.activity)
+  implementation(libs.androidx.compose.lifecycle)
+  implementation(libs.androidx.compose.viewmodel)
 }

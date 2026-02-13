@@ -136,9 +136,9 @@ fun ComposeAppTheme(
       if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     }
 
-    darkTheme -> lightScheme
+    darkTheme -> darkScheme
 
-    else -> darkScheme
+    else -> lightScheme
   }
 
   val colors = if (darkTheme) DarkColorPalette else LightColorPalette

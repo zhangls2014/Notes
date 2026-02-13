@@ -55,28 +55,32 @@ android {
 
 dependencies {
   testImplementation(libs.junit)
-  androidTestImplementation(libs.bundles.androidx.test)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.espresso)
   debugImplementation(libs.squareup.leakCanary)
+
   // Module
   implementation(project(":theme"))
   implementation(project(":network"))
   implementation(project(":framework"))
+  implementation(project(":data"))
+  implementation(project(":login"))
+
   // Core
   implementation(libs.androidx.core)
   implementation(libs.androidx.appcompat)
   implementation(libs.google.material)
+
   // Compose
-  val composeBom = platform(libs.androidx.compose.bom)
-  debugImplementation(composeBom)
-  debugImplementation(libs.bundles.androidx.compose.test)
-  implementation(composeBom)
-  implementation(libs.bundles.androidx.compose.basic)
+  implementation(platform(libs.androidx.compose.bom))
+  implementation(libs.androidx.compose.ui.preview)
+  implementation(libs.androidx.compose.material)
+  implementation(libs.androidx.compose.material.icons.extended)
+  implementation(libs.androidx.compose.activity)
+  implementation(libs.androidx.compose.lifecycle)
+  implementation(libs.androidx.compose.viewmodel)
 
   // DI
   implementation(libs.google.hilt.android)
   ksp(libs.google.hilt.android.compiler)
-  // DataStore
-  implementation(libs.androidx.datastore.preferences)
-  // Navigation3
-  implementation(libs.bundles.androidx.compose.navigation3)
 }

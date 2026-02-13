@@ -58,18 +58,23 @@ object NetworkModule {
 
   @Provides
   @Singleton
+  @NetworkJson
   fun provideJson(): Json = Json {
     ignoreUnknownKeys = true
     explicitNulls = false
     encodeDefaults = true
   }
 
+  @Qualifier
+  @Retention(AnnotationRetention.BINARY)
+  annotation class NetworkJson
+
   @Provides
   @Singleton
   fun provideRetrofit(
     @BaseUrl baseUrl: String,
     client: OkHttpClient,
-    json: Json
+    @NetworkJson json: Json
   ): Retrofit = Retrofit.Builder()
     .baseUrl(baseUrl)
     .client(client)

@@ -2,7 +2,7 @@ package me.zhangls.notes
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import me.zhangls.notes.util.AESUtils
+import me.zhangls.data.util.AESUtils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

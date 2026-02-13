@@ -23,3 +23,6 @@ rootProject.name = "Notes"
 include(":app")
 include(":theme")
 include(":network")
+include(":framework")
+include(":login")
+include(":data")
