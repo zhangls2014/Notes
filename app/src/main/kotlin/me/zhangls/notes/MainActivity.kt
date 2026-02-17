@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
 import me.zhangls.notes.navigation.AppNavHost
 import me.zhangls.theme.ComposeAppTheme
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
     }
 
     super.onCreate(savedInstanceState)
+    WindowCompat.setDecorFitsSystemWindows(window, false)
 
     setContent {
       ComposeAppTheme(dynamicColor = false) {

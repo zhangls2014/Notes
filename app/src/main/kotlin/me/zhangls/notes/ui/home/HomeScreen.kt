@@ -1,55 +1,30 @@
 package me.zhangls.notes.ui.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.activity.compose.LocalActivity
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.window.layout.FoldingFeature
+import com.google.accompanist.adaptive.calculateDisplayFeatures
 
 /**
  * @author zhangls
  */
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun HomeScreen(viewmodel: HomeViewModel = hiltViewModel(), onHomeResult: (HomeResult) -> Unit) {
-  Column(
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center,
-    modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
-  ) {
-    val state = viewmodel.state.collectAsState()
+  val activity = LocalActivity.current ?: return
+  calculateWindowSizeClass(activity)
+  val displayFeatures = calculateDisplayFeatures(activity)
 
-    LaunchedEffect(Unit) {
-      viewmodel.effect.collect {
-        when (it) {
-          is HomeResult -> onHomeResult(it)
-        }
-      }
-    }
-
-
-    Text(text = state.value.greeting, modifier = Modifier.padding(16.dp))
-
-    Button(onClick = { viewmodel.sendIntent(HomeIntent.Logout) }) {
-      Text(text = "Back to Login")
-    }
-
-    Button(onClick = { viewmodel.sendIntent(HomeIntent.Detail) }) {
-      Text(text = "Nav to Detail")
-    }
-  }
+  /**
+   * We are using display's folding features to map the device postures a fold is in.
+   * In the state of folding device If it's half fold in BookPosture we want to avoid content
+   * at the crease/hinge
+   */
+  displayFeatures.filterIsInstance<FoldingFeature>().firstOrNull()
 }
 
 @Preview
