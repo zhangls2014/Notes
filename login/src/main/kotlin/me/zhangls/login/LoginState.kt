@@ -1,10 +1,12 @@
 package me.zhangls.login
 
+import kotlinx.serialization.Serializable
 import me.zhangls.framework.mvi.MviState
 
 /**
  * @author zhangls
  */
+@Serializable
 data class LoginState(
   // 账户
   val account: String = "",

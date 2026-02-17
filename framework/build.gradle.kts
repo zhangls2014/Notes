@@ -34,7 +34,8 @@ dependencies {
   androidTestImplementation(libs.androidx.test.espresso)
 
   implementation(libs.androidx.core)
-  implementation(libs.androidx.lifecycle.viewmodel)
+  implementation(libs.androidx.lifecycle.viewmodel.ktx)
+  implementation(libs.androidx.lifecycle.viewmodel.savedstate)
   implementation(libs.jetbrains.kotlinx.coroutines.android)
 
   // Compose

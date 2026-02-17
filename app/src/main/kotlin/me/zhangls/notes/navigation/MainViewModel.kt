@@ -1,5 +1,6 @@
 package me.zhangls.notes.navigation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -13,7 +14,12 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
   private val userRepository: UserRepository,
-) : MviViewModel<MainState, MainIntent>(MainState(null)) {
+  savedStateHandle: SavedStateHandle
+) : MviViewModel<MainState, MainIntent>(
+  initialState = MainState(null),
+  stateSerializer = MainState.serializer(),
+  savedStateHandle = savedStateHandle
+) {
   override fun handleIntent(intent: MainIntent) {
   }
 

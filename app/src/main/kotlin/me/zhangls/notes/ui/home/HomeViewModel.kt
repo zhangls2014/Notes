@@ -1,5 +1,6 @@
 package me.zhangls.notes.ui.home
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -12,9 +13,13 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+  savedStateHandle: SavedStateHandle,
   private val userRepository: UserRepository
-) : MviViewModel<HomeState, HomeIntent>(HomeState(greeting = "")) {
-
+) : MviViewModel<HomeState, HomeIntent>(
+  initialState = HomeState(greeting = ""),
+  stateSerializer = HomeState.serializer(),
+  savedStateHandle = savedStateHandle
+) {
   init {
     viewModelScope.launch {
       userRepository.userFlow.collect {

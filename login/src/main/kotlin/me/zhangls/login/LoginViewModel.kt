@@ -1,5 +1,6 @@
 package me.zhangls.login
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -14,9 +15,13 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
+  savedStateHandle: SavedStateHandle,
   private val userRepository: UserRepository
-) : MviViewModel<LoginState, LoginIntent>(LoginState()) {
-
+) : MviViewModel<LoginState, LoginIntent>(
+  initialState = LoginState(),
+  stateSerializer = LoginState.serializer(),
+  savedStateHandle = savedStateHandle
+) {
   override fun handleIntent(intent: LoginIntent) {
     when (intent) {
       LoginIntent.Login -> {
@@ -60,3 +65,4 @@ class LoginViewModel @Inject constructor(
     }
   }
 }
+
