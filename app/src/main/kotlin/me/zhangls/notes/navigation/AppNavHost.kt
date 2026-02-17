@@ -28,20 +28,33 @@ import me.zhangls.notes.ui.detail.DetailScreen
 import me.zhangls.notes.ui.home.HomeDestination
 import me.zhangls.notes.ui.home.HomeResult
 import me.zhangls.notes.ui.home.HomeScreen
-import me.zhangls.notes.ui.splash.SplashDestination
-import me.zhangls.notes.ui.splash.SplashScreen
 
 /**
  * @author zhangls
  */
 @Composable
 fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
-  // 返回堆栈
-  val backStack = rememberNavBackStack(SplashDestination)
   // 待处理的目标页面
   var pendingDestination by remember { mutableStateOf<Destination?>(null) }
+  // 返回堆栈
+  val backStack = rememberNavBackStack()
   // 登录状态
   val state by viewmodel.state.collectAsState()
+  // 是否登录
+  var isLogin by remember { mutableStateOf(false) }
+
+  if (state.isLogin != null) {
+    isLogin = state.isLogin ?: false
+
+    // 回退栈为空，则根据登录状态添加首屏
+    if (backStack.isEmpty()) {
+      val firstDest = if (isLogin) HomeDestination else LoginDestination
+      backStack.add(firstDest)
+    }
+  } else {
+    // 登录状态未知，不显示 UI
+    return
+  }
 
   NavDisplay(
     backStack = backStack,
@@ -60,24 +73,13 @@ fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
       slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
     },
     entryProvider = entryProvider {
-      entry<SplashDestination> {
-        SplashScreen {
-          val dest = if (state.isLogin) HomeDestination else LoginDestination
-          backStack.handle(
-            effect = NavEffect.Replace(dest),
-            isLogin = state.isLogin,
-            onIntercept = { pendingDestination = it }
-          )
-        }
-      }
-
       entry<HomeDestination> {
-        HomeScreen {
-          when (it) {
+        HomeScreen { result ->
+          when (result) {
             is HomeResult.Detail -> {
               backStack.handle(
-                effect = NavEffect.Navigate(DetailDestination(it.id)),
-                isLogin = state.isLogin,
+                effect = NavEffect.Navigate(DetailDestination(result.id)),
+                isLogin = isLogin,
                 onIntercept = { pendingDestination = it }
               )
             }
@@ -85,7 +87,7 @@ fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
             HomeResult.Logout -> {
               backStack.handle(
                 effect = NavEffect.Restart(LoginDestination),
-                isLogin = state.isLogin,
+                isLogin = isLogin,
                 onIntercept = { pendingDestination = it }
               )
             }
@@ -98,19 +100,21 @@ fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
           if (it == LoginResult.Success) {
             pendingDestination?.let { dest ->
               pendingDestination = null
+              // 登录成功，且跳转目标页面不为空，则跳转到目标页面
               backStack.handle(NavEffect.Replace(dest), isLogin = true)
             } ?: run {
-              backStack.handle(NavEffect.Popup())
+              // 登录成功，且跳转目标页面为空，则跳转到主页
+              backStack.handle(NavEffect.Replace(HomeDestination), isLogin = true)
             }
           }
         }
       }
 
       entry<DetailDestination> { dest ->
-        DetailScreen(dest) {
+        DetailScreen(dest) { effect ->
           backStack.handle(
-            effect = it,
-            isLogin = state.isLogin,
+            effect = effect,
+            isLogin = isLogin,
             onIntercept = { pendingDestination = it }
           )
         }
@@ -121,7 +125,7 @@ fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
 
 private fun NavBackStack<NavKey>.handle(
   effect: NavEffect,
-  isLogin: Boolean = false,
+  isLogin: Boolean,
   onIntercept: (Destination) -> Unit = {}
 ) {
   when (effect) {

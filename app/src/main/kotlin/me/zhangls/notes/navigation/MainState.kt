@@ -6,4 +6,4 @@ import me.zhangls.framework.mvi.MviState
 /**
  * @author zhangls
  */
-data class MainState(val isLogin: Boolean) : MviState
+data class MainState(val isLogin: Boolean?) : MviState
