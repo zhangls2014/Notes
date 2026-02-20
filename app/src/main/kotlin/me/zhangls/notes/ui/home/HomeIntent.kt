@@ -5,7 +5,4 @@ import me.zhangls.framework.mvi.MviIntent
 /**
  * @author zhangls
  */
-sealed class HomeIntent : MviIntent {
-  object Logout : HomeIntent()
-  object Detail : HomeIntent()
-}
+sealed class HomeIntent : MviIntent

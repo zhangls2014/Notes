@@ -33,18 +33,5 @@ class HomeViewModel @Inject constructor(
   }
 
   override fun handleIntent(intent: HomeIntent) {
-    when (intent) {
-      HomeIntent.Detail -> {
-        val id = (0..100).random()
-        sendEffect(HomeResult.Detail(id))
-      }
-
-      is HomeIntent.Logout -> {
-        viewModelScope.launch {
-          userRepository.update(null)
-          sendEffect(HomeResult.Logout)
-        }
-      }
-    }
   }
 }

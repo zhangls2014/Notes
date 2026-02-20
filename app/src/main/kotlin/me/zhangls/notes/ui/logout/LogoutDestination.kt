@@ -1,0 +1,16 @@
+package me.zhangls.notes.ui.logout
+
+import kotlinx.serialization.Serializable
+import me.zhangls.framework.nav.Destination
+import me.zhangls.framework.nav.RequireLogin
+
+/**
+ * @author zhangls
+ */
+/**
+ * 返回堆栈的键，每个页面都需要定义一个对应的键。
+ *
+ * @author zhangls
+ */
+@Serializable
+data object LogoutDestination : Destination, RequireLogin

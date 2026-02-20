@@ -21,15 +21,15 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import me.zhangls.theme.component.CenteredTopAppBar
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun HomeScreen(isNavigationBar: Boolean) {
+fun HomeScreen(isNavigationBar: Boolean, onClick: () -> Unit) {
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int>()
   val scope = rememberCoroutineScope()
 
@@ -47,22 +47,14 @@ fun HomeScreen(isNavigationBar: Boolean) {
     detailPane = {
       AnimatedPane {
         scaffoldNavigator.currentDestination?.contentKey?.let {
-          DetailPane(index = it) {
-            scope.launch {
-              scaffoldNavigator.navigateBack()
-            }
-          }
+          DetailPane(index = it, navigate = onClick)
         }
       }
     },
     extraPane = {
       AnimatedPane {
         scaffoldNavigator.currentDestination?.contentKey?.let {
-          DetailPane(index = it) {
-            scope.launch {
-              scaffoldNavigator.navigateBack()
-            }
-          }
+          DetailPane(index = it, navigate = onClick)
         }
       }
     }
@@ -93,13 +85,20 @@ fun ListPane(isNavigationBar: Boolean, onClick: (Int) -> Unit) {
 
 @Composable
 fun DetailPane(index: Int, navigate: () -> Unit) {
-  Scaffold(
-    topBar = {
-      CenteredTopAppBar(title = "Detail Pane", navigate = navigate)
-    }
-  ) {
-    Card(modifier = Modifier.padding(it)) {
-      Text(text = "Detail pane content ==> $index")
+  Scaffold {
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(it)
+    ) {
+      Card {
+        Box(modifier = Modifier
+          .padding(16.dp)
+          .clickable { navigate() }) {
+          Text(text = "Detail pane content ==> $index")
+        }
+      }
     }
   }
 }
@@ -107,5 +106,5 @@ fun DetailPane(index: Int, navigate: () -> Unit) {
 @Preview(showSystemUi = true)
 @Composable
 private fun HomeScreenPreview() {
-  HomeScreen(isNavigationBar = false)
+  HomeScreen(isNavigationBar = false, onClick = {})
 }

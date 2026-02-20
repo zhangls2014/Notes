@@ -25,10 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.launch
 import me.zhangls.notes.R
 import me.zhangls.notes.ui.favorites.FavoritesScreen
-import me.zhangls.notes.ui.home.HomeResult
 import me.zhangls.notes.ui.home.HomeScreen
 import me.zhangls.notes.ui.profile.ProfileScreen
-import me.zhangls.theme.ComposeAppTheme
 
 /**
  * @author zhangls
@@ -53,7 +51,7 @@ private fun isNavigationBar(type: NavigationSuiteType): Boolean {
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-fun MainScreen(onMainResult: (HomeResult) -> Unit) {
+fun MainScreen(onMainResult: (MainResult) -> Unit) {
   val adaptiveInfo = currentWindowAdaptiveInfo()
   val scope = rememberCoroutineScope()
   val pagerState = rememberPagerState(initialPage = 0, pageCount = { MainTab.entries.size })
@@ -84,7 +82,7 @@ fun MainScreen(onMainResult: (HomeResult) -> Unit) {
       userScrollEnabled = false
     ) {
       when (MainTab.entries[it]) {
-        MainTab.HOME -> HomeScreen(isNavigationBar.value)
+        MainTab.HOME -> HomeScreen(isNavigationBar.value, onClick = { onMainResult(MainResult.Logout) })
         MainTab.FAVORITES -> FavoritesScreen(isNavigationBar.value)
         MainTab.PROFILE -> ProfileScreen()
       }
@@ -95,7 +93,5 @@ fun MainScreen(onMainResult: (HomeResult) -> Unit) {
 @Preview
 @Composable
 private fun MainContentPreview() {
-  ComposeAppTheme {
-    MainScreen(onMainResult = {})
-  }
+  MainScreen(onMainResult = {})
 }
