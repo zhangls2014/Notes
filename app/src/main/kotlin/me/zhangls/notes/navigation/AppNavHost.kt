@@ -23,11 +23,9 @@ import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.LoginDestination
 import me.zhangls.login.LoginResult
 import me.zhangls.login.LoginScreen
-import me.zhangls.notes.ui.detail.DetailDestination
-import me.zhangls.notes.ui.detail.DetailScreen
 import me.zhangls.notes.ui.home.HomeDestination
 import me.zhangls.notes.ui.home.HomeResult
-import me.zhangls.notes.ui.home.HomeScreen
+import me.zhangls.notes.ui.main.MainScreen
 
 /**
  * @author zhangls
@@ -74,14 +72,9 @@ fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
     },
     entryProvider = entryProvider {
       entry<HomeDestination> {
-        HomeScreen { result ->
+        MainScreen { result ->
           when (result) {
             is HomeResult.Detail -> {
-              backStack.handle(
-                effect = NavEffect.Navigate(DetailDestination(result.id)),
-                isLogin = isLogin,
-                onIntercept = { pendingDestination = it }
-              )
             }
 
             HomeResult.Logout -> {
@@ -107,16 +100,6 @@ fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
               backStack.handle(NavEffect.Replace(HomeDestination), isLogin = true)
             }
           }
-        }
-      }
-
-      entry<DetailDestination> { dest ->
-        DetailScreen(dest) { effect ->
-          backStack.handle(
-            effect = effect,
-            isLogin = isLogin,
-            onIntercept = { pendingDestination = it }
-          )
         }
       }
     }

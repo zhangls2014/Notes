@@ -73,17 +73,20 @@ dependencies {
   implementation(libs.google.material)
 
   // Compose
+  debugImplementation(platform(libs.androidx.compose.bom))
+  debugImplementation(libs.androidx.compose.ui.tooling)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.ui.preview)
-  implementation(libs.androidx.compose.material)
   implementation(libs.androidx.compose.material.icons.extended)
-  implementation(libs.androidx.compose.material.window.size)
+  implementation(libs.androidx.compose.material3)
+  implementation(libs.androidx.compose.material3.window.size)
+  implementation(libs.androidx.compose.material3.adaptive)
+  implementation(libs.androidx.compose.material3.adaptive.layout)
+  implementation(libs.androidx.compose.material3.adaptive.navigation)
+  implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
   implementation(libs.androidx.compose.activity)
   implementation(libs.androidx.compose.lifecycle)
   implementation(libs.androidx.compose.viewmodel)
-  implementation(libs.androidx.compose.material.adapter.navigation)
-  // 折叠屏自适应库
-  implementation(libs.google.accompanist.adaptive)
 
   // DI
   implementation(libs.google.hilt.android)
