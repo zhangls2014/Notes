@@ -2,4 +2,7 @@
   <string name="login_action_login">登录</string>
   <string name="login_hint_login_account">请输入账户</string>
   <string name="login_hint_login_password">请输入密码</string>
+  <string name="login_hint_login_password_too_short">密码不能少于 8 位</string>
+  <string name="login_hint_login_password_weak_type">密码至少包含字母、数字、特殊符号中的两种</string>
+  <string name="login_msg_login_success">登录成功</string>
 </resources>

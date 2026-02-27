@@ -1,6 +1,5 @@
 package me.zhangls.login
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -47,7 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import me.zhangls.framework.ext.withDebounce
-import me.zhangls.framework.mvi.ToastEffect
+import me.zhangls.login.domain.AccountError
+import me.zhangls.login.domain.PasswordError
 
 /**
  * @author zhangls
@@ -55,14 +54,12 @@ import me.zhangls.framework.mvi.ToastEffect
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LoginScreen(viewmodel: LoginViewModel = hiltViewModel(), onLoginResult: (LoginResult) -> Unit) {
-  val context = LocalContext.current
   val keyboardController = LocalSoftwareKeyboardController.current
   val state by viewmodel.state.collectAsState()
 
   LaunchedEffect(Unit) {
     viewmodel.effect.collect { effect ->
       when (effect) {
-        is ToastEffect -> Toast.makeText(context, effect.message, effect.duration()).show()
         is LoginResult -> onLoginResult(effect)
       }
     }
@@ -79,7 +76,7 @@ fun LoginScreen(viewmodel: LoginViewModel = hiltViewModel(), onLoginResult: (Log
     ) {
       AccountInput(
         account = state.account,
-        accountError = state.accountError.orEmpty(),
+        accountError = state.accountError,
         onAccountChange = { viewmodel.sendIntent(LoginIntent.UpdateAccount(it)) },
         onClearAccount = { viewmodel.sendIntent(LoginIntent.ClearAccount) }
       )
@@ -87,7 +84,7 @@ fun LoginScreen(viewmodel: LoginViewModel = hiltViewModel(), onLoginResult: (Log
       PasswordInput(
         modifier = Modifier.padding(top = 16.dp),
         password = state.password,
-        passwordError = state.passwordError.orEmpty(),
+        passwordError = state.passwordError,
         passwordVisible = state.passwordVisible,
         onPasswordChange = { viewmodel.sendIntent(LoginIntent.UpdatePassword(it)) },
         onPasswordVisibleChange = { viewmodel.sendIntent(LoginIntent.UpdatePasswordVisible(it)) },
@@ -112,23 +109,29 @@ fun LoginScreen(viewmodel: LoginViewModel = hiltViewModel(), onLoginResult: (Log
       }
     }
   }
+
+  // TODO Material Compose 1.5.0 发布 LoadingIndicator 后再实现加载框
 }
 
 @Composable
 private fun AccountInput(
   modifier: Modifier = Modifier,
   account: String,
-  accountError: String,
+  accountError: AccountError?,
   onAccountChange: (String) -> Unit,
   onClearAccount: () -> Unit
 ) {
   val focusManager = LocalFocusManager.current
+  val inputError = when (accountError) {
+    is AccountError.Empty -> stringResource(id = R.string.login_hint_login_account)
+    null -> ""
+  }
 
   TextField(
     value = account,
     onValueChange = { onAccountChange(it) },
     singleLine = true,
-    isError = accountError.isNotEmpty(),
+    isError = inputError.isNotEmpty(),
     textStyle = TextStyle.Default.copy(fontSize = 14.sp, fontFamily = FontFamily.Monospace),
     placeholder = { Text(text = stringResource(id = R.string.login_hint_login_account)) },
     modifier = modifier
@@ -146,7 +149,7 @@ private fun AccountInput(
     },
     supportingText = {
       Text(
-        text = accountError,
+        text = inputError,
         fontSize = 12.sp,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.padding(horizontal = 36.dp)
@@ -161,17 +164,24 @@ private fun AccountInput(
 private fun PasswordInput(
   modifier: Modifier = Modifier,
   password: String,
-  passwordError: String,
+  passwordError: PasswordError?,
   passwordVisible: Boolean,
   onPasswordChange: (String) -> Unit,
   onPasswordVisibleChange: (Boolean) -> Unit,
   onLogin: () -> Unit
 ) {
+  val inputError = when (passwordError) {
+    is PasswordError.Empty -> stringResource(id = R.string.login_hint_login_password)
+    is PasswordError.TooShort -> stringResource(id = R.string.login_hint_login_password_too_short)
+    is PasswordError.WeakType -> stringResource(id = R.string.login_hint_login_password_weak_type)
+    null -> ""
+  }
+
   TextField(
     value = password,
     onValueChange = { onPasswordChange(it) },
     singleLine = true,
-    isError = passwordError.isNotEmpty(),
+    isError = inputError.isNotEmpty(),
     textStyle = TextStyle.Default.copy(fontSize = 14.sp, fontFamily = FontFamily.Monospace),
     placeholder = { Text(text = stringResource(id = R.string.login_hint_login_password)) },
     modifier = modifier
@@ -192,7 +202,7 @@ private fun PasswordInput(
     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
     supportingText = {
       Text(
-        text = passwordError,
+        text = inputError,
         fontSize = 12.sp,
         minLines = 2,
         color = MaterialTheme.colorScheme.error,

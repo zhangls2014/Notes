@@ -3,11 +3,13 @@ package me.zhangls.login
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
-import me.zhangls.framework.mvi.ToastEffect
+import me.zhangls.framework.mvi.ToastGlobalNotifier
+import me.zhangls.login.domain.LoginValidator
 import javax.inject.Inject
 
 /**
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
   savedStateHandle: SavedStateHandle,
-  private val userRepository: UserRepository
+  private val userRepository: UserRepository,
+  private val toastGlobalNotifier: ToastGlobalNotifier
 ) : MviViewModel<LoginState, LoginIntent>(
   initialState = LoginState(),
   stateSerializer = LoginState.serializer(),
@@ -25,43 +28,54 @@ class LoginViewModel @Inject constructor(
   override fun handleIntent(intent: LoginIntent) {
     when (intent) {
       LoginIntent.Login -> {
-        viewModelScope.launch {
-          val user = withState {
-            UserModel(id = (0..100).random().toString(), nickname = account, accessToken = "123456")
-          }
-          userRepository.update(user)
+        if (LoginValidator.validateAll(state.value.account, state.value.password).not()) {
+          dispatch(LoginAction.ValidationResult)
+          return
         }
-        sendEffect(ToastEffect("登录成功"))
-        sendEffect(LoginResult.Success)
+
+        login()
       }
 
       is LoginIntent.UpdateAccount -> {
-        updateState {
-          copy(
-            account = intent.account,
-            accountError = if (intent.account.length < 6) "账户长度不能小于6位" else null,
-            isInputValid = intent.account.length >= 6 && state.value.password.length >= 6
-          )
-        }
+        dispatch(LoginAction.UpdateAccount(intent.account))
       }
 
       is LoginIntent.ClearAccount -> {
-        updateState { copy(account = "", accountError = null, isInputValid = false) }
+        dispatch(LoginAction.ClearAccount)
       }
 
       is LoginIntent.UpdatePassword -> {
-        updateState {
-          copy(
-            password = intent.password,
-            passwordError = if (intent.password.length < 6) "密码长度不能小于6位" else null,
-            isInputValid = intent.password.length >= 6 && state.value.account.length >= 6
-          )
-        }
+        dispatch(LoginAction.UpdatePassword(intent.password))
       }
 
       is LoginIntent.UpdatePasswordVisible -> {
-        updateState { copy(passwordVisible = intent.visible) }
+        dispatch(LoginAction.UpdatePasswordVisible(intent.visible))
       }
+    }
+  }
+
+  private fun dispatch(action: LoginAction) {
+    updateState {
+      LoginReducer.reduce(this, action)
+    }
+  }
+
+  /**
+   * 模拟登录保存
+   */
+  private fun login() {
+    viewModelScope.launch {
+      dispatch(LoginAction.Loading(true))
+
+      delay(1000)
+      val user = withState {
+        UserModel(id = (0..100).random().toString(), nickname = account, accessToken = "123456")
+      }
+      userRepository.update(user)
+
+      dispatch(LoginAction.Loading(false))
+      toastGlobalNotifier.showToast(resId = R.string.login_msg_login_success)
+      sendEffect(LoginResult.Success)
     }
   }
 }
