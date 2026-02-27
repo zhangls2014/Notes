@@ -1,4 +1,4 @@
-package me.zhangls.notes.navigation
+package me.zhangls.notes
 
 import me.zhangls.framework.mvi.MviIntent
 

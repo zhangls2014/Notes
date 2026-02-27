@@ -1,5 +1,7 @@
 plugins {
   alias(libs.plugins.android.library)
+  alias(libs.plugins.google.ksp)
+  alias(libs.plugins.google.hilt)
 }
 
 android {
@@ -47,4 +49,8 @@ dependencies {
   api(libs.androidx.navigation3.runtime)
   api(libs.androidx.navigation3.ui)
   api(libs.androidx.compose.viewmodel.navigation3)
+
+  // DI
+  implementation(libs.google.hilt.android)
+  ksp(libs.google.hilt.android.compiler)
 }

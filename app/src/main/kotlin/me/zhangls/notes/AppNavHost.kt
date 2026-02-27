@@ -1,4 +1,4 @@
-package me.zhangls.notes.navigation
+package me.zhangls.notes
 
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -35,7 +34,7 @@ import me.zhangls.notes.ui.main.MainScreen
  * @author zhangls
  */
 @Composable
-fun AppNavHost(viewmodel: MainViewModel = hiltViewModel()) {
+fun AppNavHost(viewmodel: MainViewModel) {
   // 待处理的目标页面
   var pendingDestination by remember { mutableStateOf<Destination?>(null) }
   // 返回堆栈

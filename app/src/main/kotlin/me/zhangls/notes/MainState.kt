@@ -1,4 +1,4 @@
-package me.zhangls.notes.navigation
+package me.zhangls.notes
 
 import kotlinx.serialization.Serializable
 import me.zhangls.framework.mvi.MviState
