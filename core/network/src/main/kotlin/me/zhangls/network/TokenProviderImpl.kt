@@ -1,6 +1,5 @@
-package me.zhangls.notes.data.network
+package me.zhangls.network
 
-import me.zhangls.network.TokenProvider
 import javax.inject.Inject
 
 /**

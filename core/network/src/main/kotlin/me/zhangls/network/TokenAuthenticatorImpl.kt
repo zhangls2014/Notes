@@ -1,4 +1,4 @@
-package me.zhangls.notes.data.network
+package me.zhangls.network
 
 import okhttp3.Authenticator
 import okhttp3.Request

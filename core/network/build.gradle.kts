@@ -1,6 +1,8 @@
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.jetbrains.serialization)
+  alias(libs.plugins.google.ksp)
+  alias(libs.plugins.google.hilt)
 }
 
 android {
@@ -43,4 +45,8 @@ dependencies {
   api(libs.squareup.retrofit2)
   api(libs.squareup.retrofit2.kotlinx.serialization)
   api(libs.squareup.okhttp.logging)
+
+  // DI
+  implementation(libs.google.hilt.android)
+  ksp(libs.google.hilt.android.compiler)
 }

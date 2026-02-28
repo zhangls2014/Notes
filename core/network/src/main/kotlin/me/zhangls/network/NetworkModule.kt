@@ -1,4 +1,4 @@
-package me.zhangls.notes.data.network
+package me.zhangls.network
 
 import dagger.Module
 import dagger.Provides
@@ -7,11 +7,9 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntKey
 import dagger.multibindings.IntoMap
 import kotlinx.serialization.json.Json
-import me.zhangls.notes.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
@@ -29,14 +27,6 @@ object NetworkModule {
   @IntoMap
   @IntKey(1)
   fun provideAuthInterceptor(tokenProvider: TokenProviderImpl): Interceptor = AuthInterceptor(tokenProvider)
-
-  @Provides
-  @Singleton
-  @IntoMap
-  @IntKey(2)
-  fun provideLogInterceptor(): Interceptor = HttpLoggingInterceptor().apply {
-    level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
-  }
 
   @Provides
   @Singleton
@@ -93,9 +83,4 @@ object NetworkModule {
   @Qualifier
   @Retention(AnnotationRetention.BINARY)
   annotation class BaseUrl
-
-  @Provides
-  @Singleton
-  @BaseUrl
-  fun provideBaseUrl(): String = BuildConfig.BASE_URL
 }

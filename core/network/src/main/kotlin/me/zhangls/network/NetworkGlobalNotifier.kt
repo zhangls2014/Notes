@@ -1,12 +1,7 @@
-package me.zhangls.notes.data.network
+package me.zhangls.network
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
-import me.zhangls.network.NetworkError
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,7 +12,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class NetworkGlobalNotifier @Inject constructor() {
-  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
   private val _events = MutableSharedFlow<NetworkError>(replay = 0, extraBufferCapacity = 1)
   val events = _events.asSharedFlow()
 
@@ -35,8 +29,6 @@ class NetworkGlobalNotifier @Inject constructor() {
   }
 
   private fun emit(error: NetworkError) {
-    scope.launch {
-      _events.emit(error)
-    }
+    _events.tryEmit(error)
   }
 }
