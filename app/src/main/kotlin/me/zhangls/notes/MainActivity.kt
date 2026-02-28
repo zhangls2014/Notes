@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
         LaunchedEffect(viewmodel.toast) {
           viewmodel.toast.collect {
-            toastState.showToast(getString(it.resId))
+            toastState.showToast(it.resId)
           }
         }
       }
