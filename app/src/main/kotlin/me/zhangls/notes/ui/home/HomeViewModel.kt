@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
+import me.zhangls.framework.mvi.ToastGlobalNotifier
 import javax.inject.Inject
 
 /**
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
   savedStateHandle: SavedStateHandle,
-  private val userRepository: UserRepository
+  private val userRepository: UserRepository,
+  private val toastGlobalNotifier: ToastGlobalNotifier
 ) : MviViewModel<HomeState, HomeIntent>(
   initialState = HomeState(greeting = ""),
   stateSerializer = HomeState.serializer(),
@@ -33,5 +35,10 @@ class HomeViewModel @Inject constructor(
   }
 
   override fun handleIntent(intent: HomeIntent) {
+    when (intent) {
+      is HomeIntent.ShowToast -> {
+        toastGlobalNotifier.showToast(intent.resId)
+      }
+    }
   }
 }

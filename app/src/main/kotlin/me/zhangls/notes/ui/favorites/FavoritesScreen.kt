@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun FavoritesScreen(isNavigationBar: Boolean) {
+fun FavoritesScreen() {
   val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator()
   val scope = rememberCoroutineScope()
   val backNavigationBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange
@@ -84,5 +84,5 @@ fun FavoritesScreen(isNavigationBar: Boolean) {
 @Preview(showSystemUi = true)
 @Composable
 private fun FavoritesScreenPreview() {
-  FavoritesScreen(true)
+  FavoritesScreen()
 }

@@ -82,8 +82,11 @@ fun MainScreen(onMainResult: (MainResult) -> Unit) {
       userScrollEnabled = false
     ) {
       when (MainTab.entries[it]) {
-        MainTab.HOME -> HomeScreen(isNavigationBar.value, onClick = { onMainResult(MainResult.Logout) })
-        MainTab.FAVORITES -> FavoritesScreen(isNavigationBar.value)
+        MainTab.HOME -> HomeScreen(
+          isNavigationBar = isNavigationBar.value,
+          onClick = { onMainResult(MainResult.Logout) })
+
+        MainTab.FAVORITES -> FavoritesScreen()
         MainTab.PROFILE -> ProfileScreen()
       }
     }

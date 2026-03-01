@@ -35,13 +35,16 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
+    val uri = intent.data
+    val destination = parseDeepLink(uri)
+
     setContent {
       ComposeAppTheme(dynamicColor = false) {
         val viewmodel: MainViewModel = hiltViewModel()
         val toastState = rememberToastState()
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          AppNavHost(viewmodel)
+          AppNavHost(viewmodel = viewmodel, deepLinkDestination = destination)
           ToastHost(toastState)
         }
 

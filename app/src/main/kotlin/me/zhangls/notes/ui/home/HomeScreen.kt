@@ -25,11 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun HomeScreen(isNavigationBar: Boolean, onClick: () -> Unit) {
+fun HomeScreen(viewmodel: HomeViewModel = hiltViewModel(), isNavigationBar: Boolean, onClick: () -> Unit) {
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Int>()
   val scope = rememberCoroutineScope()
 
@@ -74,8 +75,8 @@ fun ListPane(isNavigationBar: Boolean, onClick: (Int) -> Unit) {
         Text(
           text = "Item $it",
           modifier = Modifier
+            .clickable(onClick = { onClick(it) })
             .fillMaxWidth()
-            .clickable { onClick(it) }
             .padding(16.dp)
         )
       }
@@ -93,9 +94,11 @@ fun DetailPane(index: Int, navigate: () -> Unit) {
         .padding(it)
     ) {
       Card {
-        Box(modifier = Modifier
-          .padding(16.dp)
-          .clickable { navigate() }) {
+        Box(
+          modifier = Modifier
+            .clickable { navigate() }
+            .padding(16.dp)
+        ) {
           Text(text = "Detail pane content ==> $index")
         }
       }

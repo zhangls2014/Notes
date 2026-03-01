@@ -5,4 +5,6 @@ import me.zhangls.framework.mvi.MviIntent
 /**
  * @author zhangls
  */
-sealed class HomeIntent : MviIntent
+sealed class HomeIntent : MviIntent {
+  data class ShowToast(val resId: Int) : HomeIntent()
+}

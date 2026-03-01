@@ -9,16 +9,16 @@ kotlin = "2.2.21"
 kotlin-ksp = "2.3.4"
 compose-bom = "2026.02.00"
 
-androidx-room = "2.7.2"
+androidx-room = "2.8.3"
 androidx-paging = "3.3.6"
 androidx-datastore = "1.2.0"
 androidx-navigation3 = "1.0.0"
 androidx-lifecycle = "2.10.0"
-androidx-activity = "1.12.2"
-google-hilt = "2.59"
+androidx-activity = "1.12.3"
+google-hilt = "2.59.2"
 squareup-okhttp = "5.3.2"
 squareup-retrofit = "3.0.0"
-jetbrians-serialization = "1.9.0"
+jetbrians-serialization = "1.10.0"
 
 
 [plugins]
@@ -79,7 +79,7 @@ androidx-room-paging = { group = "androidx.room", name = "room-paging", version.
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "androidx-datastore" }
 
 ### google
-google-material = { group = "com.google.android.material", name = "material", version = "1.12.0" }
+google-material = { group = "com.google.android.material", name = "material", version = "1.13.0" }
 google-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "google-hilt" }
 google-hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "google-hilt" }
 
@@ -102,9 +102,12 @@ squareup-leakCanary = { group = "com.squareup.leakcanary", name = "leakcanary-an
 tencent-wechat = { group = "com.tencent.mm.opensdk", name = "wechat-sdk-android-without-mta", version = "6.8.0" }
 
 # coil : https://github.com/coil-kt/coil
-coil-bom = { group = "io.coil-kt.coil3", name = "coil-bom", version = "3.3.0" }
+coil-bom = { group = "io.coil-kt.coil3", name = "coil-bom", version = "3.4.0" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp" }
+
+# lottie : https://github.com/airbnb/lottie/blob/master/android-compose.md
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version = "6.7.1" }
 
 ### other
 # https://github.com/SherlockGougou/BigImageViewPager
@@ -120,4 +123,4 @@ getActivity-toaster = { group = "com.github.getActivity", name = "Toaster", vers
 # compressor : https://github.com/zetbaitsu/Compressor
 compressor = { group = "id.zelory", name = "compressor", version = "3.0.1" }
 utilcodex = { group = "com.blankj", name = "utilcodex", version = "1.31.1" }
-slf4j = { group = "org.slf4j", name = "slf4j-api", version = "2.0.16" }
+slf4j = { group = "org.slf4j", name = "slf4j-api", version = "2.0.17" }
