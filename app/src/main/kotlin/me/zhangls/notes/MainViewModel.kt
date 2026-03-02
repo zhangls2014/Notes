@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
@@ -18,7 +20,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
   savedStateHandle: SavedStateHandle,
   toastGlobalNotifier: ToastGlobalNotifier,
-  private val userRepository: UserRepository,
+  userRepository: UserRepository,
+  settingsRepository: SettingsRepository
 ) : MviViewModel<MainState, MainIntent>(
   initialState = MainState(null),
   stateSerializer = MainState.serializer(),
@@ -35,8 +38,13 @@ class MainViewModel @Inject constructor(
 
   init {
     viewModelScope.launch {
-      userRepository.userFlow.collect {
+      userRepository.userFlow.collectLatest {
         updateState { copy(isLogin = it != null) }
+      }
+    }
+    viewModelScope.launch {
+      settingsRepository.settingsFlow.collectLatest {
+        updateState { copy(dynamicColor = it.dynamicColor, darkTheme = it.darkTheme) }
       }
     }
   }

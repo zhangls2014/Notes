@@ -2,6 +2,7 @@ package me.zhangls.data.repository
 
 import androidx.datastore.core.DataStore
 import kotlinx.coroutines.flow.Flow
+import me.zhangls.data.model.DarkThemeConfig
 import me.zhangls.data.model.SettingsModel
 import javax.inject.Inject
 import javax.inject.Named
@@ -20,9 +21,15 @@ class SettingsRepository @Inject constructor(
     dataStore.updateData { settings }
   }
 
-  suspend fun updateDarkMode(isDarkMode: Boolean?) {
+  suspend fun updateDarkTheme(darkThemeConfig: DarkThemeConfig) {
     dataStore.updateData {
-      it.copy(isDarkMode = isDarkMode)
+      it.copy(darkTheme = darkThemeConfig)
+    }
+  }
+
+  suspend fun updateDynamicColor(useDynamicColor: Boolean) {
+    dataStore.updateData {
+      it.copy(dynamicColor = useDynamicColor)
     }
   }
 }

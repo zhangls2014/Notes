@@ -4,10 +4,10 @@ compileSdk = "36"
 buildTool = "36.0.0"
 
 # Warning: compose-comiler 与 kotlin 版本是相关联的
-agp = "9.0.0"
-kotlin = "2.2.21"
-kotlin-ksp = "2.3.4"
-compose-bom = "2026.02.00"
+agp = "9.0.1"
+kotlin = "2.3.10"
+kotlin-ksp = "2.3.6"
+compose-bom = "2026.02.01"
 
 androidx-room = "2.8.3"
 androidx-paging = "3.3.6"
@@ -109,18 +109,16 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 # lottie : https://github.com/airbnb/lottie/blob/master/android-compose.md
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version = "6.7.1" }
 
+# Compose Preference : https://github.com/zhanghai/ComposePreference
+compose-preference = { group = "me.zhanghai.compose.preference", name = "preference", version = "2.1.1" }
+
 ### other
 # https://github.com/SherlockGougou/BigImageViewPager
 zoomimage = { group = "io.github.panpf.zoomimage", name = "zoomimage-view-coil", version = "1.0.2" }
 # https://github.com/leavesCZY/Matisse
 matisse = { group = "com.github.leavesCZY", name = "Matisse", version = "2.2.2" }
-# https://github.com/biubiuqiu0/flow-event-bus
-flowEventBus = { group = "com.github.biubiuqiu0", name = "flow-event-bus", version = "0.0.2" }
 # XXPermissions : https://github.com/getActivity/XXPermissions
 getActivity-permissions = { group = "com.github.getActivity", name = "XXPermissions", version = "18.3" }
-# ToastUtils : https://github.com/getActivity/Toaster
-getActivity-toaster = { group = "com.github.getActivity", name = "Toaster", version = "13.0" }
 # compressor : https://github.com/zetbaitsu/Compressor
 compressor = { group = "id.zelory", name = "compressor", version = "3.0.1" }
-utilcodex = { group = "com.blankj", name = "utilcodex", version = "1.31.1" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version = "2.0.17" }

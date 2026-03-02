@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_label_settings">设置</string>
+  <string name="settings_label_dynamic_color">动态主题色</string>
+  <string name="settings_msg_dynamic_color_on">主题色跟随壁纸变化</string>
+  <string name="settings_msg_dynamic_color_off">内置主题色</string>
+  <string name="settings_label_dark_theme">深色主题</string>
+  <string name="settings_label_dark_theme_follow_system">跟随系统</string>
+  <string name="settings_label_dark_theme_light">浅色</string>
+  <string name="settings_label_dark_theme_dark">深色</string>
+</resources>

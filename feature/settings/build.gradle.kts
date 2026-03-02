@@ -1,13 +1,12 @@
 plugins {
-  alias(libs.plugins.android.application)
+  alias(libs.plugins.android.library)
   alias(libs.plugins.jetbrains.serialization)
   alias(libs.plugins.jetbrains.compose.compiler)
   alias(libs.plugins.google.ksp)
-  alias(libs.plugins.google.hilt)
 }
 
 android {
-  namespace = "me.zhangls.notes"
+  namespace = "me.zhangls.settings"
   buildToolsVersion = libs.versions.buildTool.get()
 
   compileSdk {
@@ -15,19 +14,15 @@ android {
   }
 
   defaultConfig {
-    applicationId = "me.zhangls.notes"
     minSdk = libs.versions.minSdk.get().toInt()
-    targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    consumerProguardFiles("consumer-rules.pro")
   }
 
   buildTypes {
     release {
-      isMinifyEnabled = true
-      isShrinkResources = true
+      isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
@@ -39,17 +34,6 @@ android {
 
   buildFeatures {
     compose = true
-    buildConfig = true
-  }
-
-  val flavorEnv = "environment"
-  flavorDimensions.add(flavorEnv)
-
-  productFlavors {
-    create("dev") {
-      dimension = flavorEnv
-      buildConfigField("String", "BASE_URL", "\"https://www.mxnzp.com/\"")
-    }
   }
 }
 
@@ -57,39 +41,25 @@ dependencies {
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.espresso)
-  debugImplementation(libs.squareup.leakCanary)
 
-  // Module
   implementation(project(":core:data"))
   implementation(project(":core:theme"))
-  implementation(project(":core:network"))
   implementation(project(":core:framework"))
-  implementation(project(":feature:login"))
-  implementation(project(":feature:settings"))
-
-  // Core
-  implementation(libs.androidx.core)
-  implementation(libs.androidx.core.splashscreen)
-  implementation(libs.androidx.appcompat)
-  implementation(libs.google.material)
 
   // Compose
-  debugImplementation(platform(libs.androidx.compose.bom))
-  debugImplementation(libs.androidx.compose.ui.tooling)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.ui.preview)
-  implementation(libs.androidx.compose.material.icons.extended)
   implementation(libs.androidx.compose.material3)
-  implementation(libs.androidx.compose.material3.window.size)
-  implementation(libs.androidx.compose.material3.adaptive)
-  implementation(libs.androidx.compose.material3.adaptive.layout)
-  implementation(libs.androidx.compose.material3.adaptive.navigation)
-  implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
+  implementation(libs.androidx.compose.material.icons.extended)
   implementation(libs.androidx.compose.activity)
   implementation(libs.androidx.compose.lifecycle)
   implementation(libs.androidx.compose.viewmodel)
 
   // DI
   implementation(libs.google.hilt.android)
+  implementation(libs.androidx.hilt.navigation.compose)
   ksp(libs.google.hilt.android.compiler)
+
+  // Preference 框架
+  implementation(libs.compose.preference)
 }

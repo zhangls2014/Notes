@@ -1,6 +1,7 @@
 package me.zhangls.notes
 
 import kotlinx.serialization.Serializable
+import me.zhangls.data.model.DarkThemeConfig
 import me.zhangls.framework.mvi.MviState
 
 
@@ -8,4 +9,8 @@ import me.zhangls.framework.mvi.MviState
  * @author zhangls
  */
 @Serializable
-data class MainState(val isLogin: Boolean?) : MviState
+data class MainState(
+  val isLogin: Boolean?,
+  val dynamicColor: Boolean = false,
+  val darkTheme: DarkThemeConfig = DarkThemeConfig.LIGHT,
+) : MviState

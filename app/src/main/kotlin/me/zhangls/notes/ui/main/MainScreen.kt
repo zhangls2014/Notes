@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import me.zhangls.notes.R
 import me.zhangls.notes.ui.favorites.FavoritesScreen
 import me.zhangls.notes.ui.home.HomeScreen
-import me.zhangls.notes.ui.profile.ProfileScreen
+import me.zhangls.settings.SettingsScreen
 
 /**
  * @author zhangls
@@ -34,7 +34,7 @@ import me.zhangls.notes.ui.profile.ProfileScreen
 private enum class MainTab(val label: Int, val icon: ImageVector) {
   HOME(R.string.app_label_home, Icons.Rounded.Home),
   FAVORITES(R.string.app_label_favorites, Icons.Rounded.Favorite),
-  PROFILE(R.string.app_label_settings, Icons.Rounded.AccountCircle),
+  SETTINGS(R.string.app_label_settings, Icons.Rounded.Settings),
 }
 
 /**
@@ -87,7 +87,7 @@ fun MainScreen(onMainResult: (MainResult) -> Unit) {
           onClick = { onMainResult(MainResult.Logout) })
 
         MainTab.FAVORITES -> FavoritesScreen()
-        MainTab.PROFILE -> ProfileScreen()
+        MainTab.SETTINGS -> SettingsScreen()
       }
     }
   }

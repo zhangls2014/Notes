@@ -5,15 +5,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import me.zhangls.data.model.DarkThemeConfig
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.component.ToastHost
 import me.zhangls.theme.component.rememberToastState
@@ -39,10 +43,16 @@ class MainActivity : ComponentActivity() {
     val destination = parseDeepLink(uri)
 
     setContent {
-      ComposeAppTheme(dynamicColor = false) {
-        val viewmodel: MainViewModel = hiltViewModel()
-        val toastState = rememberToastState()
+      val viewmodel: MainViewModel = hiltViewModel()
+      val toastState = rememberToastState()
+      val state by viewmodel.state.collectAsState()
+      val darkTheme = when (state.darkTheme) {
+        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+        DarkThemeConfig.LIGHT -> false
+        DarkThemeConfig.DARK -> true
+      }
 
+      ComposeAppTheme(darkTheme = darkTheme, dynamicColor = state.dynamicColor) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
           AppNavHost(viewmodel = viewmodel, deepLinkDestination = destination)
           ToastHost(toastState)
