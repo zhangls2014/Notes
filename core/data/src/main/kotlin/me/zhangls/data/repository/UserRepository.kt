@@ -16,7 +16,12 @@ class UserRepository @Inject constructor(
 ) {
   val userFlow: Flow<UserModel?> = dataStore.data
 
-  suspend fun update(user: UserModel?) {
+  suspend fun update(user: UserModel) {
     dataStore.updateData { user }
   }
+
+  suspend fun clear() {
+    dataStore.updateData { null }
+  }
+
 }

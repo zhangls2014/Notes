@@ -2,11 +2,15 @@ package me.zhangls.settings
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -14,10 +18,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
+import me.zhangls.framework.mvi.DialogEffect
+import me.zhangls.framework.mvi.DialogResult
+import me.zhangls.settings.SettingsIntent.ClickSettings
+import me.zhangls.settings.SettingsIntent.DialogCallback
+import me.zhangls.settings.SettingsIntent.UpdateSettings
 import me.zhangls.settings.domain.Preference
 import me.zhangls.theme.component.CenteredTopAppBar
+import me.zhangls.theme.component.SimpleDialog
 
 /**
  * @author zhangls
@@ -25,11 +36,13 @@ import me.zhangls.theme.component.CenteredTopAppBar
 @Composable
 fun SettingsScreen(viewmodel: SettingsViewModel = hiltViewModel(), onResult: (SettingsResult) -> Unit = {}) {
   val state by viewmodel.state.collectAsStateWithLifecycle()
+  var dialogEffect by remember { mutableStateOf<DialogEffect?>(null) }
 
   LaunchedEffect(viewmodel) {
     viewmodel.effect.collect { effect ->
       when (effect) {
         is SettingsResult -> onResult(effect)
+        is DialogEffect -> dialogEffect = effect
       }
     }
   }
@@ -49,19 +62,44 @@ fun SettingsScreen(viewmodel: SettingsViewModel = hiltViewModel(), onResult: (Se
           when (val preference = state.preferences[it]) {
             is Preference.Switch -> {
               SwitchItem(preference = preference) { preference, result ->
-                viewmodel.handleIntent(SettingsIntent.UpdateSettings(preference, result))
+                viewmodel.handleIntent(UpdateSettings(preference, result))
               }
             }
 
             is Preference.Alert<*> -> {
               AlertItem(preference = preference) { preference, result ->
-                viewmodel.handleIntent(SettingsIntent.UpdateSettings(preference, result))
+                viewmodel.handleIntent(UpdateSettings(preference, result))
+              }
+            }
+
+            is Preference.Text -> {
+              TextItem(preference = preference) { preference ->
+                viewmodel.handleIntent(ClickSettings(preference))
               }
             }
           }
         }
       }
     }
+  }
+
+  dialogEffect?.let { dialog ->
+    SimpleDialog(
+      title = stringResource(dialog.title),
+      content = stringResource(dialog.message),
+      confirmText = stringResource(dialog.confirm),
+      confirm = {
+        dialogEffect = null
+        val result = DialogResult.Confirm(dialog.dialogId)
+        viewmodel.handleIntent(DialogCallback(result))
+      },
+      dismissText = dialog.dismiss?.let { stringResource(it) },
+      dismiss = {
+        dialogEffect = null
+        val result = DialogResult.Dismiss(dialog.dialogId)
+        viewmodel.handleIntent(DialogCallback(result))
+      }
+    )
   }
 }
 
@@ -99,6 +137,27 @@ private fun <T> AlertItem(
     modifier = modifier,
     valueToText = { AnnotatedString(optionTextMap[it] ?: "") },
     title = { Text(text = stringResource(preference.title)) },
+    summary = preference.summary?.let {
+      { Text(text = stringResource(it)) }
+    },
+  )
+}
+
+@Composable
+private fun TextItem(
+  modifier: Modifier = Modifier,
+  preference: Preference.Text,
+  onClick: (String) -> Unit
+) {
+  Preference(
+    title = {
+      Text(
+        text = stringResource(preference.title),
+        color = MaterialTheme.colorScheme.error
+      )
+    },
+    modifier = modifier,
+    onClick = { onClick(preference.key) },
     summary = preference.summary?.let {
       { Text(text = stringResource(it)) }
     },

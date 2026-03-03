@@ -7,4 +7,5 @@ import me.zhangls.framework.mvi.MviEffect
  */
 sealed interface SettingsResult : MviEffect {
   data object Done : SettingsResult
+  data object Logout : SettingsResult
 }

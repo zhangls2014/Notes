@@ -8,4 +8,9 @@
   <string name="settings_label_dark_theme_follow_system">跟随系统</string>
   <string name="settings_label_dark_theme_light">浅色</string>
   <string name="settings_label_dark_theme_dark">深色</string>
+  <string name="settings_label_logout">退出登录</string>
+  <string name="settings_dialog_label_logout">提示</string>
+  <string name="settings_dialog_action_cancel">取消</string>
+  <string name="settings_dialog_action_logout">退出登录</string>
+  <string name="settings_dialog_content_logout">确定要退出登录吗？</string>
 </resources>

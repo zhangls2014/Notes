@@ -18,7 +18,8 @@ abstract class MviViewModel<S : MviState, I : MviIntent>(
   initialState: S,
   stateSerializer: KSerializer<S>,
   savedStateHandle: SavedStateHandle,
-  savedKey: String = "state"
+  // 当保存的 key 为 null 时，则不保存
+  savedKey: String? = "state"
 ) : ViewModel() {
   private val _intent = MutableSharedFlow<I>(extraBufferCapacity = 64)
 
@@ -39,10 +40,12 @@ abstract class MviViewModel<S : MviState, I : MviIntent>(
       }
     }
 
-    // 订阅 StateFlow 自动保存到 SavedStateHandle
-    viewModelScope.launch {
-      state.collect {
-        savedState = it
+    if (savedKey != null) {
+      // 订阅 StateFlow 自动保存到 SavedStateHandle
+      viewModelScope.launch {
+        state.collect {
+          savedState = it
+        }
       }
     }
   }

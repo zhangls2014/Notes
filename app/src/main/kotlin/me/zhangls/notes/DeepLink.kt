@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.deeplink.DeepLinkRequest
-import me.zhangls.notes.ui.favorites.FavoritesDestination
+import me.zhangls.main.favorites.FavoritesDestination
 
 /**
  * @author zhangls

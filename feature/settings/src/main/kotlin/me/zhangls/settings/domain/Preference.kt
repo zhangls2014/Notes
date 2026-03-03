@@ -9,6 +9,13 @@ sealed interface Preference<T> {
   val title: Int
   val summary: Int?
 
+  data class Text(
+    override val key: String,
+    override val value: Unit = Unit,
+    override val title: Int,
+    override val summary: Int?,
+  ) : Preference<Unit>
+
   data class Switch(
     override val key: String,
     override val value: Boolean,

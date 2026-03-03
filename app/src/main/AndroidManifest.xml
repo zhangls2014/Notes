@@ -10,7 +10,7 @@
     android:supportsRtl="true"
     android:theme="@style/Theme.Notes">
     <activity
-      android:name=".MainActivity"
+      android:name=".ui.MainActivity"
       android:exported="true"
       android:theme="@style/Theme.App.Starting"
       android:windowSoftInputMode="adjustResize">

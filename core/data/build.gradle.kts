@@ -47,4 +47,10 @@ dependencies {
   // Json 序列化
   api(libs.jetbrains.kotlinx.serialization.core)
   api(libs.jetbrains.kotlinx.serialization.json)
+
+  // database
+  api(libs.androidx.room.runtime)
+  api(libs.androidx.room.ktx)
+  api(libs.androidx.room.paging)
+  ksp(libs.androidx.room.compiler)
 }

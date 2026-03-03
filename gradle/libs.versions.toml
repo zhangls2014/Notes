@@ -9,12 +9,12 @@ kotlin = "2.3.10"
 kotlin-ksp = "2.3.6"
 compose-bom = "2026.02.01"
 
-androidx-room = "2.8.3"
+androidx-room = "2.8.4"
 androidx-paging = "3.3.6"
 androidx-datastore = "1.2.0"
 androidx-navigation3 = "1.0.0"
 androidx-lifecycle = "2.10.0"
-androidx-activity = "1.12.3"
+androidx-activity = "1.12.4"
 google-hilt = "2.59.2"
 squareup-okhttp = "5.3.2"
 squareup-retrofit = "3.0.0"
@@ -74,6 +74,7 @@ androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime-kt
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "androidx-paging" }
 androidx-paging-compose-android = { group = "androidx.paging", name = "paging-compose-android", version.ref = "androidx-paging" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidx-room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidx-room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
 androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "androidx-room" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "androidx-datastore" }

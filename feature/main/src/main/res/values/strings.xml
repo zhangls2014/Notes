@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="main_label_home">首页</string>
+  <string name="main_label_favorites">收藏</string>
+  <string name="main_label_settings">设置</string>
+</resources>
