@@ -7,4 +7,5 @@ import me.zhangls.framework.mvi.MviEffect
  */
 sealed interface MainResult : MviEffect {
   data object Logout : MainResult
+  data class NavigateToEmailDetail(val emailId: Long) : MainResult
 }

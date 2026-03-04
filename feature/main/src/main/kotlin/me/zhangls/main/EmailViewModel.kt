@@ -1,4 +1,4 @@
-package me.zhangls.main.home
+package me.zhangls.main
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -29,17 +29,22 @@ import javax.inject.Inject
  * @author zhangls
  */
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class EmailViewModel @Inject constructor(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
   private val toastGlobalNotifier: ToastGlobalNotifier
-) : MviViewModel<HomeState, HomeIntent>(
-  initialState = HomeState(),
-  stateSerializer = HomeState.serializer(),
+) : MviViewModel<EmailState, EmailIntent>(
+  initialState = EmailState(),
+  stateSerializer = EmailState.serializer(),
   savedStateHandle = savedStateHandle,
 ) {
   // 首页邮件列表，缓存分页数据
   val emailPaging = emailsRepository.getEmailPaging()
+    .flowOn(Dispatchers.IO)
+    .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
+    .cachedIn(viewModelScope)
+
+  val emailFavoritePaging = emailsRepository.getEmailFavoritePaging()
     .flowOn(Dispatchers.IO)
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
     .cachedIn(viewModelScope)
@@ -68,7 +73,7 @@ class HomeViewModel @Inject constructor(
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
 
   fun getEmail(emailId: Long): Flow<EmailConvertModel?> {
-    return emailsRepository.getEmailById(emailId)
+    return emailsRepository.getEmail(emailId)
       .flowOn(Dispatchers.IO)
       .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
   }
@@ -81,12 +86,13 @@ class HomeViewModel @Inject constructor(
     }
   }
 
-  override fun handleIntent(intent: HomeIntent) {
+  override fun handleIntent(intent: EmailIntent) {
     when (intent) {
-      is HomeIntent.ShowToast -> {
+      is EmailIntent.ShowToast -> {
         toastGlobalNotifier.showToast(intent.resId)
       }
-      is HomeIntent.UpdateSelectedEmail -> {
+
+      is EmailIntent.UpdateSelectedEmail -> {
         updateState {
           val newSelectedItems = if (selectedItems.contains(intent.emailId)) {
             selectedItems - intent.emailId
@@ -97,9 +103,16 @@ class HomeViewModel @Inject constructor(
         }
       }
 
-      is HomeIntent.UpdateSearchText -> {
+      is EmailIntent.UpdateSearchText -> {
         currentQuery.value = intent.text.toString()
         updateState { copy(searchText = intent.text) }
+      }
+
+      is EmailIntent.UpdateFavorite -> {
+        viewModelScope.launch {
+          val entity = emailsRepository.getEmailById(intent.emailId) ?: return@launch
+          emailsRepository.insertEmail(entity.copy(isImportant = entity.isImportant.not()))
+        }
       }
     }
   }

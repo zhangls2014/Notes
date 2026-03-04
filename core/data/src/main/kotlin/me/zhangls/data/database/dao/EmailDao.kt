@@ -22,9 +22,16 @@ interface EmailDao {
   @Query("SELECT * FROM email WHERE id = :emailId")
   fun getEmail(emailId: Long): Flow<EmailConvertModel?>
 
+  @Query("SELECT * FROM email WHERE id = :emailId")
+  suspend fun getEmailById(emailId: Long): EmailEntity?
+
   @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId IS NULL")
   fun getEmailPaging(): PagingSource<Int, EmailConvertModel>
+
+  @Transaction
+  @Query("SELECT * FROM email WHERE parentEmailId IS NULL AND isImportant == 1")
+  fun getEmailFavoritePaging(): PagingSource<Int, EmailConvertModel>
 
   @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId = :parentEmailId")

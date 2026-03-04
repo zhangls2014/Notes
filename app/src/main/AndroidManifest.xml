@@ -33,7 +33,7 @@
         <data android:scheme="https" />
         <data android:host="notes.zhangls.me" />
         <data android:path="/home" />
-        <data android:path="/favorites" />
+        <data android:path="/email" />
       </intent-filter>
     </activity>
   </application>

@@ -4,16 +4,16 @@ import android.net.Uri
 import androidx.core.net.toUri
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.deeplink.DeepLinkRequest
-import me.zhangls.main.favorites.FavoritesDestination
+import me.zhangls.main.detail.EmailDetailDestination
 
 /**
  * @author zhangls
  */
-private const val URL_FAVORITES = "https://notes.zhangls.me/favorites?id=xx&token=xxxx"
+private const val URL_EMAIL = "https://notes.zhangls.me/email?id=xx&token=xxxx"
 private const val URL_HOME = "https://notes.zhangls.me/home"
 
 private val deepLinkPatterns = listOf(
-  URL_FAVORITES.toUri()
+  URL_EMAIL.toUri()
 )
 
 internal fun parseDeepLink(uri: Uri?): DeepLinkDestination? {
@@ -33,7 +33,7 @@ private fun deepLinkMatcher(request: DeepLinkRequest, pattern: Uri): DeepLinkDes
 
   if (request.path == pattern.path) {
     return when (pattern.toString()) {
-      URL_FAVORITES -> FavoritesDestination
+      URL_EMAIL -> EmailDetailDestination(emailId = request.queries["id"]?.toLong() ?: return null)
       else -> null
     }
   }

@@ -20,6 +20,7 @@ import androidx.navigation3.ui.NavDisplay
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.Destination
 import me.zhangls.framework.nav.NavEffect
+import me.zhangls.framework.nav.NavEffect.Restart
 import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.LoginDestination
 import me.zhangls.login.LoginResult
@@ -27,8 +28,8 @@ import me.zhangls.login.LoginScreen
 import me.zhangls.main.MainDestination
 import me.zhangls.main.MainResult
 import me.zhangls.main.MainScreen
-import me.zhangls.main.favorites.FavoritesDestination
-import me.zhangls.main.favorites.FavoritesScreen
+import me.zhangls.main.detail.EmailDetailDestination
+import me.zhangls.main.detail.EmailDetailScreen
 
 /**
  * @author zhangls
@@ -84,7 +85,15 @@ fun AppNavHost(viewmodel: MainViewModel, deepLinkDestination: DeepLinkDestinatio
         MainScreen { result ->
           when (result) {
             MainResult.Logout -> {
-              backStack.handle(effect = NavEffect.Restart(LoginDestination), isLogin = false)
+              backStack.handle(effect = Restart(LoginDestination), isLogin = false)
+            }
+
+            is MainResult.NavigateToEmailDetail -> {
+              backStack.handle(
+                NavEffect.Navigate(EmailDetailDestination(result.emailId)),
+                isLogin = isLogin,
+                onIntercept = { pendingDestination = it }
+              )
             }
           }
         }
@@ -105,8 +114,10 @@ fun AppNavHost(viewmodel: MainViewModel, deepLinkDestination: DeepLinkDestinatio
         }
       }
 
-      entry<FavoritesDestination> {
-        FavoritesScreen()
+      entry<EmailDetailDestination> {
+        EmailDetailScreen(it.emailId) {
+          backStack.handle(effect = NavEffect.Popup(), isLogin = isLogin)
+        }
       }
     }
   )
@@ -127,7 +138,7 @@ private fun NavBackStack<NavKey>.handle(
       navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
     }
 
-    is NavEffect.Restart -> {
+    is Restart -> {
       clear()
       navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
     }

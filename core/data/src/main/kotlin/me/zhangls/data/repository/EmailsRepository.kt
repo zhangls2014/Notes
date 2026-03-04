@@ -9,6 +9,7 @@ import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
 import me.zhangls.data.database.entity.AccountEntity
 import me.zhangls.data.database.entity.EmailConvertModel
+import me.zhangls.data.database.entity.EmailEntity
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.model.toEntity
 import javax.inject.Inject
@@ -36,14 +37,29 @@ class EmailsRepository @Inject constructor(
     return accountDao.getAccount()
   }
 
-  fun getEmailById(id: Long): Flow<EmailConvertModel?> {
+  fun getEmail(id: Long): Flow<EmailConvertModel?> {
     return emailDao.getEmail(id)
+  }
+
+  suspend fun getEmailById(id: Long): EmailEntity? {
+    return emailDao.getEmailById(id)
+  }
+
+  suspend fun insertEmail(entity: EmailEntity) {
+    emailDao.insert(entity)
   }
 
   fun getEmailPaging(): Flow<PagingData<EmailConvertModel>> {
     return Pager(
       config = PagingConfig(pageSize = 5),
       pagingSourceFactory = { emailDao.getEmailPaging() }
+    ).flow
+  }
+
+  fun getEmailFavoritePaging(): Flow<PagingData<EmailConvertModel>> {
+    return Pager(
+      config = PagingConfig(pageSize = 5),
+      pagingSourceFactory = { emailDao.getEmailFavoritePaging() }
     ).flow
   }
 

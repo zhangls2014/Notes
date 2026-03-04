@@ -1,4 +1,4 @@
-package me.zhangls.main.home
+package me.zhangls.main.compose
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,18 +21,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,97 +36,64 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.LazyPagingItems
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.framework.ext.withDebounce
-import me.zhangls.main.R
+import me.zhangls.main.EmailIntent
+import me.zhangls.main.EmailViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmailList(
-  isBottomNavigationBar: Boolean,
-  viewmodel: HomeViewModel,
+internal fun EmailList(
+  contentPadding: PaddingValues = PaddingValues(0.dp),
+  emailItems: LazyPagingItems<EmailConvertModel>,
+  viewmodel: EmailViewModel,
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
 ) {
-  val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
   val emailListState = rememberLazyListState()
-  val emailItems = viewmodel.emailPaging.collectAsLazyPagingItems()
   val state by viewmodel.state.collectAsStateWithLifecycle()
 
-  Scaffold(
-    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    topBar = {
-      EmailSearchBar(
-        isBottomNavigationBar = isBottomNavigationBar,
-        scrollBehavior = scrollBehavior,
-        viewmodel = viewmodel,
-        onResultClick = navigateToDetail
-      )
-    },
-    floatingActionButton = {
-      if (isBottomNavigationBar) {
-        ExtendedFloatingActionButton(
-          text = { Text(text = stringResource(id = R.string.main_action_new_email)) },
-          icon = {
-            Icon(
-              imageVector = Icons.Rounded.Edit,
-              contentDescription = stringResource(id = R.string.main_action_new_email)
-            )
-          },
-          onClick = {},
-          containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-          contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-          expanded = emailListState.lastScrolledBackward || emailListState.canScrollBackward.not(),
+  LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding, state = emailListState) {
+    if (emailItems.loadState.refresh == LoadState.Loading) {
+      item {
+        Text(
+          text = "Waiting for items to load from the backend",
+          modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally),
         )
       }
     }
-  ) { padding ->
-    Box(modifier = Modifier.fillMaxSize()) {
-      LazyColumn(contentPadding = padding, state = emailListState) {
-        if (emailItems.loadState.refresh == LoadState.Loading) {
-          item {
-            Text(
-              text = "Waiting for items to load from the backend",
-              modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentWidth(Alignment.CenterHorizontally),
-            )
-          }
-        }
 
-        items(count = emailItems.itemCount) { index ->
-          val item = emailItems[index] ?: return@items
-          EmailItem(
-            model = item,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            isOpened = item.email.id == openedEmailId,
-            isSelected = state.selectedItems.contains(item.email.id),
-            navigateToDetail = navigateToDetail,
-            toggleSelection = { viewmodel.sendIntent(HomeIntent.UpdateSelectedEmail(it)) },
-          )
-        }
+    items(count = emailItems.itemCount, key = { emailItems[it]!!.email.id }) { index ->
+      val item = emailItems[index] ?: return@items
+      EmailItem(
+        model = item,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        isOpened = item.email.id == openedEmailId,
+        isSelected = state.selectedItems.contains(item.email.id),
+        navigateToDetail = navigateToDetail,
+        toggleSelection = { viewmodel.sendIntent(EmailIntent.UpdateSelectedEmail(it)) },
+        onFavoriteClick = { viewmodel.sendIntent(EmailIntent.UpdateFavorite(item.email.id)) },
+      )
+    }
 
-        if (emailItems.loadState.append == LoadState.Loading) {
-          item {
-            CircularProgressIndicator(
-              modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentWidth(Alignment.CenterHorizontally)
-            )
-          }
-        }
+    if (emailItems.loadState.append == LoadState.Loading) {
+      item {
+        CircularProgressIndicator(
+          modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+        )
       }
     }
   }
@@ -208,7 +172,7 @@ fun EmailItem(
             .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         ) {
           Icon(
-            imageVector = Icons.Rounded.StarOutline,
+            imageVector = if (email.isImportant) Icons.Rounded.Star else Icons.Rounded.StarOutline,
             contentDescription = "Favorite",
             tint = MaterialTheme.colorScheme.outline,
           )

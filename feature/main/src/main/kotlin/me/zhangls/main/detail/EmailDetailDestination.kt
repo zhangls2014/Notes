@@ -1,4 +1,4 @@
-package me.zhangls.main.favorites
+package me.zhangls.main.detail
 
 import kotlinx.serialization.Serializable
 import me.zhangls.framework.deeplink.DeepLinkDestination
@@ -10,4 +10,4 @@ import me.zhangls.framework.nav.RequireLogin
  * @author zhangls
  */
 @Serializable
-data object FavoritesDestination : DeepLinkDestination, RequireLogin
+data class EmailDetailDestination(val emailId: Long) : DeepLinkDestination, RequireLogin

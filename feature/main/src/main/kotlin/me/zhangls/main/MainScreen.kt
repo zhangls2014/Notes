@@ -22,8 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import me.zhangls.main.favorites.FavoritesScreen
+import me.zhangls.main.home.FavoritesScreen
 import me.zhangls.main.home.HomeScreen
 import me.zhangls.settings.SettingsResult
 import me.zhangls.settings.SettingsScreen
@@ -59,6 +60,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
   val isBottomNavigationBar = remember(customLayoutType) {
     mutableStateOf(isBottomNavigationBar(customLayoutType))
   }
+  val viewmodel: EmailViewModel = hiltViewModel()
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {
@@ -82,9 +84,13 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
       userScrollEnabled = false
     ) {
       when (MainTab.entries[it]) {
-        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar.value)
+        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar.value, viewmodel = viewmodel)
+        MainTab.FAVORITES -> {
+          FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar.value, viewmodel = viewmodel) { emailId ->
+            onResult(MainResult.NavigateToEmailDetail(emailId))
+          }
+        }
 
-        MainTab.FAVORITES -> FavoritesScreen()
         MainTab.SETTINGS -> SettingsScreen { result ->
           when (result) {
             SettingsResult.Done -> {}

@@ -1,4 +1,4 @@
-package me.zhangls.main.home
+package me.zhangls.main.compose
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,6 +42,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
+import me.zhangls.main.EmailIntent
+import me.zhangls.main.EmailViewModel
 import me.zhangls.main.R
 
 /**
@@ -49,10 +51,10 @@ import me.zhangls.main.R
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmailSearchBar(
+internal fun EmailSearchBar(
   isBottomNavigationBar: Boolean,
   scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
-  viewmodel: HomeViewModel,
+  viewmodel: EmailViewModel,
   onResultClick: (Long) -> Unit = {}
 ) {
   val state by viewmodel.state.collectAsStateWithLifecycle()
@@ -109,7 +111,7 @@ fun EmailSearchBar(
   }
 
   LaunchedEffect(textFieldState.text) {
-    viewmodel.handleIntent(HomeIntent.UpdateSearchText(textFieldState.text))
+    viewmodel.handleIntent(EmailIntent.UpdateSearchText(textFieldState.text))
   }
 
   TopSearchBar(
@@ -146,7 +148,7 @@ private fun SearchResults(
 ) {
   if (searchResults.itemCount > 0) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
-      items(count = searchResults.itemCount) {
+      items(count = searchResults.itemCount, key = { searchResults[it]!!.email.id }) {
         val email = searchResults[it] ?: return@items
         val sender = email.sender.toDomain()
         ListItem(

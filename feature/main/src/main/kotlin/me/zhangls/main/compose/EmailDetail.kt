@@ -1,4 +1,4 @@
-package me.zhangls.main.home
+package me.zhangls.main.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +32,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.framework.ext.withDebounce
+import me.zhangls.main.EmailIntent
+import me.zhangls.main.EmailViewModel
 import me.zhangls.main.R
 import me.zhangls.theme.component.CenteredTopAppBar
 
@@ -38,11 +41,10 @@ import me.zhangls.theme.component.CenteredTopAppBar
  * @author zhangls
  */
 @Composable
-fun EmailDetail(
-  isBottomNavigationBar: Boolean,
+internal fun EmailDetail(
   emailId: Long,
-  viewmodel: HomeViewModel,
-  onBackPressed: () -> Unit = {}
+  viewmodel: EmailViewModel,
+  onBackPressed: (() -> Unit)?
 ) {
   val model by viewmodel.getEmail(emailId).collectAsStateWithLifecycle(null)
   val threads = viewmodel.getThreadEmails(emailId).collectAsLazyPagingItems()
@@ -50,26 +52,30 @@ fun EmailDetail(
   Scaffold(
     topBar = {
       model?.email?.subject?.let {
-        CenteredTopAppBar(title = it, navigate = if (isBottomNavigationBar) onBackPressed else null)
+        CenteredTopAppBar(title = it, navigate = onBackPressed)
       }
     }
   ) { padding ->
     LazyColumn(contentPadding = padding) {
       item {
         model?.let {
-          ThreadItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+          ThreadItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
+            viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
+          }
         }
       }
-      items(threads.itemCount) {
+      items(count = threads.itemCount, key = { threads[it]!!.email.id }) {
         val item = threads[it] ?: return@items
-        ThreadItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+        ThreadItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
+          viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
+        }
       }
     }
   }
 }
 
 @Composable
-fun ThreadItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavoriteClick: () -> Unit = {}) {
+fun ThreadItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
   val sender = model.sender.toDomain()
   val email = model.email
 
@@ -105,13 +111,13 @@ fun ThreadItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavori
           )
         }
         IconButton(
-          onClick = { onFavoriteClick() }.withDebounce(),
+          onClick = { onFavoriteClick(email.id) }.withDebounce(),
           modifier = Modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainer),
         ) {
           Icon(
-            imageVector = Icons.Rounded.StarOutline,
+            imageVector = if (email.isImportant) Icons.Rounded.Star else Icons.Rounded.StarOutline,
             contentDescription = "Favorite",
             tint = MaterialTheme.colorScheme.outline,
           )
