@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.jetbrains.serialization)
@@ -5,6 +7,15 @@ plugins {
   alias(libs.plugins.google.ksp)
   alias(libs.plugins.google.hilt)
 }
+
+val localProperties: Provider<Properties> = providers
+  .fileContents(rootProject.layout.projectDirectory.file("local.properties"))
+  .asText
+  .map { content ->
+    val props = Properties()
+    props.load(content.reader())
+    props
+  }
 
 android {
   namespace = "me.zhangls.notes"
@@ -24,10 +35,23 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  signingConfigs {
+    create("release") {
+      storeFile = file(path = localProperties.map { it.getProperty("signing.path") }.getOrElse(""))
+      storePassword = localProperties.map { it.getProperty("signing.storePassword") }.getOrElse("")
+      keyAlias = localProperties.map { it.getProperty("signing.keyAlias") }.getOrElse("")
+      keyPassword = localProperties.map { it.getProperty("signing.keyPassword") }.getOrElse("")
+    }
+  }
+
   buildTypes {
+    debug {
+      signingConfig = signingConfigs.getByName("release")
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    }
     release {
       isMinifyEnabled = true
-      isShrinkResources = true
+      signingConfig = signingConfigs.getByName("release")
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
