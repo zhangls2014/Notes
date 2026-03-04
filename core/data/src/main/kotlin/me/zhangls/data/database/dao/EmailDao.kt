@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.database.entity.EmailEntity
 
@@ -18,10 +19,18 @@ interface EmailDao {
   suspend fun insert(emails: List<EmailEntity>)
 
   @Transaction
+  @Query("SELECT * FROM email WHERE id = :emailId")
+  fun getEmail(emailId: Long): Flow<EmailConvertModel?>
+
+  @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId IS NULL")
   fun getEmailPaging(): PagingSource<Int, EmailConvertModel>
 
   @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId = :parentEmailId")
   fun getThreadEmails(parentEmailId: Long): PagingSource<Int, EmailConvertModel>
+
+  @Transaction
+  @Query("SELECT * FROM email WHERE subject LIKE '%' || :keywords || '%' COLLATE NOCASE")
+  fun searchEmails(keywords: String): PagingSource<Int, EmailConvertModel>
 }

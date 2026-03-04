@@ -40,7 +40,7 @@ private enum class MainTab(val label: Int, val icon: ImageVector) {
 /**
  * 判断当前 [NavigationSuiteScaffold] 类型是否是底部导航栏
  */
-private fun isNavigationBar(type: NavigationSuiteType): Boolean {
+private fun isBottomNavigationBar(type: NavigationSuiteType): Boolean {
   val navigationBarArray = arrayOf(
     NavigationSuiteType.ShortNavigationBarCompact,
     NavigationSuiteType.ShortNavigationBarMedium,
@@ -56,8 +56,8 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
   val scope = rememberCoroutineScope()
   val pagerState = rememberPagerState(initialPage = 0, pageCount = { MainTab.entries.size })
   val customLayoutType = NavigationSuiteScaffoldDefaults.navigationSuiteType(adaptiveInfo)
-  val isNavigationBar = remember(customLayoutType) {
-    mutableStateOf(isNavigationBar(customLayoutType))
+  val isBottomNavigationBar = remember(customLayoutType) {
+    mutableStateOf(isBottomNavigationBar(customLayoutType))
   }
 
   NavigationSuiteScaffold(
@@ -82,10 +82,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
       userScrollEnabled = false
     ) {
       when (MainTab.entries[it]) {
-        MainTab.HOME -> HomeScreen(
-          isNavigationBar = isNavigationBar.value,
-          onClick = {}
-        )
+        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar.value)
 
         MainTab.FAVORITES -> FavoritesScreen()
         MainTab.SETTINGS -> SettingsScreen { result ->

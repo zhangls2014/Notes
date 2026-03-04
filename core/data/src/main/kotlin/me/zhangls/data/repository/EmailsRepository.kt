@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
+import me.zhangls.data.database.entity.AccountEntity
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.model.toEntity
@@ -31,6 +32,14 @@ class EmailsRepository @Inject constructor(
     }
   }
 
+  fun getOwnerAccount(): Flow<AccountEntity?> {
+    return accountDao.getAccount()
+  }
+
+  fun getEmailById(id: Long): Flow<EmailConvertModel?> {
+    return emailDao.getEmail(id)
+  }
+
   fun getEmailPaging(): Flow<PagingData<EmailConvertModel>> {
     return Pager(
       config = PagingConfig(pageSize = 5),
@@ -38,10 +47,17 @@ class EmailsRepository @Inject constructor(
     ).flow
   }
 
-  fun getThreadEmails(parentEmailId: Long): Flow<PagingData<EmailConvertModel>> {
+  fun getThreadEmailsById(parentEmailId: Long): Flow<PagingData<EmailConvertModel>> {
     return Pager(
       config = PagingConfig(pageSize = 5),
       pagingSourceFactory = { emailDao.getThreadEmails(parentEmailId) }
+    ).flow
+  }
+
+  fun searchEmails(keywords: String): Flow<PagingData<EmailConvertModel>> {
+    return Pager(
+      config = PagingConfig(pageSize = 5),
+      pagingSourceFactory = { emailDao.searchEmails(keywords) }
     ).flow
   }
 }

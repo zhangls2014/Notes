@@ -1,7 +1,9 @@
 package me.zhangls.data.model
 
+import kotlinx.serialization.Serializable
 import me.zhangls.data.database.entity.AccountEntity
 
+@Serializable
 data class AccountModel(
   val id: Long,
   val firstName: String,
