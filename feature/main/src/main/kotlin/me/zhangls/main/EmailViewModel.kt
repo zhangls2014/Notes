@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
-import me.zhangls.data.model.toDomain
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
@@ -81,7 +80,7 @@ class EmailViewModel @Inject constructor(
   init {
     viewModelScope.launch {
       ownerAccount.collectLatest {
-        updateState { copy(ownerAccount = it?.toDomain()) }
+        dispatch(EmailAction.UpdateOwnerAccount(it))
       }
     }
   }
@@ -93,19 +92,12 @@ class EmailViewModel @Inject constructor(
       }
 
       is EmailIntent.UpdateSelectedEmail -> {
-        updateState {
-          val newSelectedItems = if (selectedItems.contains(intent.emailId)) {
-            selectedItems - intent.emailId
-          } else {
-            selectedItems + intent.emailId
-          }
-          copy(selectedItems = newSelectedItems)
-        }
+        dispatch(EmailAction.UpdateSelectedEmail(intent.emailId))
       }
 
       is EmailIntent.UpdateSearchText -> {
         currentQuery.value = intent.text.toString()
-        updateState { copy(searchText = intent.text) }
+        dispatch(EmailAction.UpdateSearchText(intent.text.toString()))
       }
 
       is EmailIntent.UpdateFavorite -> {
@@ -119,7 +111,7 @@ class EmailViewModel @Inject constructor(
         withState {
           viewModelScope.launch {
             emailsRepository.updateIsFavorite(selectedItems, true)
-            updateState { copy(selectedItems = emptySet()) }
+            dispatch(EmailAction.ClearSelectedEmail)
           }
         }
       }
@@ -128,7 +120,7 @@ class EmailViewModel @Inject constructor(
         withState {
           viewModelScope.launch {
             emailsRepository.updateIsFavorite(selectedItems, false)
-            updateState { copy(selectedItems = emptySet()) }
+            dispatch(EmailAction.ClearSelectedEmail)
           }
         }
       }
@@ -137,14 +129,18 @@ class EmailViewModel @Inject constructor(
         withState {
           viewModelScope.launch {
             emailsRepository.deleteEmails(selectedItems)
-            updateState { copy(selectedItems = emptySet()) }
+            dispatch(EmailAction.ClearSelectedEmail)
           }
         }
       }
 
       EmailIntent.ClearSelectedEmail -> {
-        updateState { copy(selectedItems = emptySet()) }
+        dispatch(EmailAction.ClearSelectedEmail)
       }
     }
+  }
+
+  private fun dispatch(action: EmailAction) {
+    updateState { EmailReducer.reduce(this, action) }
   }
 }
