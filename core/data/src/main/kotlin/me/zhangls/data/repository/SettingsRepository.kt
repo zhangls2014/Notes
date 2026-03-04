@@ -2,8 +2,8 @@ package me.zhangls.data.repository
 
 import androidx.datastore.core.DataStore
 import kotlinx.coroutines.flow.Flow
-import me.zhangls.data.model.DarkThemeConfig
 import me.zhangls.data.model.SettingsModel
+import me.zhangls.data.type.DarkThemeConfig
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton

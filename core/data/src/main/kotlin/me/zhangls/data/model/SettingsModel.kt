@@ -1,6 +1,7 @@
 package me.zhangls.data.model
 
 import kotlinx.serialization.Serializable
+import me.zhangls.data.type.DarkThemeConfig
 
 /**
  * @author zhangls

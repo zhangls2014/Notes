@@ -17,7 +17,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import me.zhangls.data.model.DarkThemeConfig
+import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.notes.parseDeepLink
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.component.ToastHost

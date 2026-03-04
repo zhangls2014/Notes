@@ -24,11 +24,11 @@ import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.LoginDestination
 import me.zhangls.login.LoginResult
 import me.zhangls.login.LoginScreen
+import me.zhangls.main.MainDestination
 import me.zhangls.main.MainResult
 import me.zhangls.main.MainScreen
 import me.zhangls.main.favorites.FavoritesDestination
 import me.zhangls.main.favorites.FavoritesScreen
-import me.zhangls.main.home.HomeDestination
 
 /**
  * @author zhangls
@@ -51,7 +51,7 @@ fun AppNavHost(viewmodel: MainViewModel, deepLinkDestination: DeepLinkDestinatio
 
     // 回退栈为空，则根据登录状态添加首屏
     if (backStack.isEmpty()) {
-      val firstDest = deepLinkDestination ?: if (isLogin) HomeDestination else LoginDestination
+      val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination
       backStack.handle(
         NavEffect.Navigate(firstDest),
         isLogin = isLogin,
@@ -80,7 +80,7 @@ fun AppNavHost(viewmodel: MainViewModel, deepLinkDestination: DeepLinkDestinatio
       slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
     },
     entryProvider = entryProvider {
-      entry<HomeDestination> {
+      entry<MainDestination> {
         MainScreen { result ->
           when (result) {
             MainResult.Logout -> {
@@ -99,7 +99,7 @@ fun AppNavHost(viewmodel: MainViewModel, deepLinkDestination: DeepLinkDestinatio
               backStack.handle(NavEffect.Replace(dest), isLogin = true)
             } ?: run {
               // 登录成功，且跳转目标页面为空，则跳转到主页
-              backStack.handle(NavEffect.Replace(HomeDestination), isLogin = true)
+              backStack.handle(NavEffect.Replace(MainDestination), isLogin = true)
             }
           }
         }

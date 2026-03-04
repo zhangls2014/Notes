@@ -1,7 +1,7 @@
 package me.zhangls.notes.ui
 
 import kotlinx.serialization.Serializable
-import me.zhangls.data.model.DarkThemeConfig
+import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.framework.mvi.MviState
 
 

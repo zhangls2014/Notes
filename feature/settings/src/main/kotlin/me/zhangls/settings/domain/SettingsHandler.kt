@@ -1,9 +1,9 @@
 package me.zhangls.settings.domain
 
-import me.zhangls.data.model.DarkThemeConfig
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
+import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.framework.mvi.DialogEffect
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.framework.mvi.MviEffect

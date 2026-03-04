@@ -1,4 +1,4 @@
-package me.zhangls.data.model
+package me.zhangls.data.type
 
 import kotlinx.serialization.Serializable
 
