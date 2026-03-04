@@ -34,7 +34,7 @@ google-hilt = { id = "com.google.dagger.hilt.android", version.ref = "google-hil
 [libraries]
 ### Compose
 # bom 组合
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom-alpha", version.ref = "compose-bom" }
 # test
 androidx-compose-ui-junit = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }

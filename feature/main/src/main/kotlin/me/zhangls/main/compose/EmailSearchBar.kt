@@ -3,7 +3,6 @@ package me.zhangls.main.compose
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -103,7 +102,6 @@ internal fun EmailSearchBar(
           ProfileImage(
             drawableResource = ownerAccount.avatar,
             description = stringResource(id = R.string.main_action_owner_info),
-            modifier = Modifier.size(32.dp),
           )
         }
       },

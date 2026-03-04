@@ -49,6 +49,20 @@ class EmailsRepository @Inject constructor(
     emailDao.insert(entity)
   }
 
+  suspend fun updateIsFavorite(emailIds: Set<Long>, isImportant: Boolean) {
+    emailIds.forEach { emailDao.updateIsImportant(it, isImportant) }
+  }
+
+  suspend fun deleteEmails(emailIds: Set<Long>) {
+    emailIds.forEach {
+      val threads = emailDao.getThreadEmailsByParentId(it) ?: return@forEach
+      threads.forEach { thread ->
+        emailDao.deleteById(thread.id)
+      }
+      emailDao.deleteById(it)
+    }
+  }
+
   fun getEmailPaging(): Flow<PagingData<EmailConvertModel>> {
     return Pager(
       config = PagingConfig(pageSize = 5),

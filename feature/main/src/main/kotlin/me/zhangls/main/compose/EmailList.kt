@@ -3,9 +3,7 @@ package me.zhangls.main.compose
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -32,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,12 +51,13 @@ import me.zhangls.main.EmailViewModel
 @Composable
 internal fun EmailList(
   contentPadding: PaddingValues = PaddingValues(0.dp),
+  emailListState: LazyListState,
   emailItems: LazyPagingItems<EmailConvertModel>,
   viewmodel: EmailViewModel,
+  isFavorite: Boolean = false,
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
 ) {
-  val emailListState = rememberLazyListState()
   val state by viewmodel.state.collectAsStateWithLifecycle()
 
   LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding, state = emailListState) {
@@ -79,8 +77,9 @@ internal fun EmailList(
       EmailItem(
         model = item,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        isMultiSelect = if (isFavorite) false else state.selectedItems.isNotEmpty(),
         isOpened = item.email.id == openedEmailId,
-        isSelected = state.selectedItems.contains(item.email.id),
+        isSelected = if (isFavorite) false else state.selectedItems.contains(item.email.id),
         navigateToDetail = navigateToDetail,
         toggleSelection = { viewmodel.sendIntent(EmailIntent.UpdateSelectedEmail(it)) },
         onFavoriteClick = { viewmodel.sendIntent(EmailIntent.UpdateFavorite(item.email.id)) },
@@ -103,6 +102,7 @@ internal fun EmailList(
 fun EmailItem(
   model: EmailConvertModel,
   modifier: Modifier = Modifier,
+  isMultiSelect: Boolean = false,
   isOpened: Boolean = false,
   isSelected: Boolean = false,
   navigateToDetail: (Long) -> Unit,
@@ -117,7 +117,9 @@ fun EmailItem(
       .semantics { selected = isSelected }
       .clip(CardDefaults.shape)
       .combinedClickable(
-        onClick = { navigateToDetail(email.id) },
+        onClick = {
+          if (isMultiSelect) toggleSelection(email.id) else navigateToDetail(email.id)
+        },
         onLongClick = { toggleSelection(email.id) },
       )
       .clip(CardDefaults.shape),
@@ -133,20 +135,11 @@ fun EmailItem(
         .padding(20.dp),
     ) {
       Row(modifier = Modifier.fillMaxWidth()) {
-        val clickModifier = Modifier.clickable(
-          interactionSource = remember { MutableInteractionSource() },
-          indication = null,
-        ) { toggleSelection(email.id) }
-
         AnimatedContent(targetState = isSelected, label = "avatar") {
           if (it) {
-            SelectedProfileImage(clickModifier)
+            SelectedProfileImage()
           } else {
-            ProfileImage(
-              sender.avatar,
-              sender.fullName,
-              clickModifier,
-            )
+            ProfileImage(drawableResource = sender.avatar, description = sender.fullName)
           }
         }
 
@@ -195,9 +188,9 @@ fun EmailItem(
 }
 
 @Composable
-fun ProfileImage(drawableResource: Int, description: String, modifier: Modifier = Modifier) {
+fun ProfileImage(drawableResource: Int, description: String) {
   Image(
-    modifier = modifier
+    modifier = Modifier
       .size(40.dp)
       .clip(CircleShape),
     painter = painterResource(id = drawableResource),
@@ -207,9 +200,9 @@ fun ProfileImage(drawableResource: Int, description: String, modifier: Modifier 
 }
 
 @Composable
-fun SelectedProfileImage(modifier: Modifier = Modifier) {
+fun SelectedProfileImage() {
   Box(
-    modifier
+    modifier = Modifier
       .size(40.dp)
       .clip(CircleShape)
       .background(MaterialTheme.colorScheme.primary),

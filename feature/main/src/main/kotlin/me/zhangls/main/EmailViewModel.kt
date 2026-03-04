@@ -114,6 +114,37 @@ class EmailViewModel @Inject constructor(
           emailsRepository.insertEmail(entity.copy(isImportant = entity.isImportant.not()))
         }
       }
+
+      is EmailIntent.MultiFavorite -> {
+        withState {
+          viewModelScope.launch {
+            emailsRepository.updateIsFavorite(selectedItems, true)
+            updateState { copy(selectedItems = emptySet()) }
+          }
+        }
+      }
+
+      is EmailIntent.MultiCancelFavorite -> {
+        withState {
+          viewModelScope.launch {
+            emailsRepository.updateIsFavorite(selectedItems, false)
+            updateState { copy(selectedItems = emptySet()) }
+          }
+        }
+      }
+
+      is EmailIntent.MultiDelete -> {
+        withState {
+          viewModelScope.launch {
+            emailsRepository.deleteEmails(selectedItems)
+            updateState { copy(selectedItems = emptySet()) }
+          }
+        }
+      }
+
+      EmailIntent.ClearSelectedEmail -> {
+        updateState { copy(selectedItems = emptySet()) }
+      }
     }
   }
 }
