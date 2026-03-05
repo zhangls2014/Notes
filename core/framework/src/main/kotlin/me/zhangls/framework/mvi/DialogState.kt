@@ -1,16 +1,18 @@
 package me.zhangls.framework.mvi
 
+import kotlinx.serialization.Serializable
 
 /**
  * @author zhangls
  */
-data class DialogEffect(
+@Serializable
+data class DialogState(
   val dialogId: String,
   val title: Int,
   val message: Int,
   val confirm: Int,
   val dismiss: Int? = null,
-) : MviEffect
+)
 
 sealed interface DialogResult {
   val dialogId: String

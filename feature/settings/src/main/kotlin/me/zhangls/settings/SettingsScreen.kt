@@ -8,9 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -21,7 +18,6 @@ import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
-import me.zhangls.framework.mvi.DialogEffect
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.settings.SettingsIntent.ClickSettings
 import me.zhangls.settings.SettingsIntent.DialogCallback
@@ -36,13 +32,11 @@ import me.zhangls.theme.component.SimpleDialog
 @Composable
 fun SettingsScreen(viewmodel: SettingsViewModel = hiltViewModel(), onResult: (SettingsResult) -> Unit = {}) {
   val state by viewmodel.state.collectAsStateWithLifecycle()
-  var dialogEffect by remember { mutableStateOf<DialogEffect?>(null) }
 
   LaunchedEffect(viewmodel) {
     viewmodel.effect.collect { effect ->
       when (effect) {
         is SettingsResult -> onResult(effect)
-        is DialogEffect -> dialogEffect = effect
       }
     }
   }
@@ -83,19 +77,17 @@ fun SettingsScreen(viewmodel: SettingsViewModel = hiltViewModel(), onResult: (Se
     }
   }
 
-  dialogEffect?.let { dialog ->
+  state.dialog?.let { dialog ->
     SimpleDialog(
       title = stringResource(dialog.title),
       content = stringResource(dialog.message),
       confirmText = stringResource(dialog.confirm),
       confirm = {
-        dialogEffect = null
         val result = DialogResult.Confirm(dialog.dialogId)
         viewmodel.handleIntent(DialogCallback(result))
       },
       dismissText = dialog.dismiss?.let { stringResource(it) },
       dismiss = {
-        dialogEffect = null
         val result = DialogResult.Dismiss(dialog.dialogId)
         viewmodel.handleIntent(DialogCallback(result))
       }

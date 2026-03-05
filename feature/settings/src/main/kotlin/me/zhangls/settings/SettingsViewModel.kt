@@ -36,7 +36,7 @@ class SettingsViewModel @Inject constructor(
         .map { handler.mapToPreferences(it) }
         .collectLatest {
           updateState {
-            SettingsState(preferences = it)
+            copy(preferences = it)
           }
         }
     }
@@ -51,12 +51,17 @@ class SettingsViewModel @Inject constructor(
       }
 
       is SettingsIntent.ClickSettings -> {
-        handler.checkClickSettings(intent.key) {
-          sendEffect(it)
+        handler.checkClickSettings(intent.key)?.let { dialog ->
+          updateState {
+            copy(dialog = dialog)
+          }
         }
       }
 
       is SettingsIntent.DialogCallback -> {
+        updateState {
+          copy(dialog = null)
+        }
         viewModelScope.launch {
           handler.handleDialogCallback(intent.result) {
             sendEffect(it)
@@ -66,4 +71,3 @@ class SettingsViewModel @Inject constructor(
     }
   }
 }
-

@@ -4,7 +4,7 @@ import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.data.type.DarkThemeConfig
-import me.zhangls.framework.mvi.DialogEffect
+import me.zhangls.framework.mvi.DialogState
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.framework.mvi.MviEffect
 import me.zhangls.settings.R
@@ -75,16 +75,17 @@ class SettingsHandler(
     }
   }
 
-  fun checkClickSettings(key: String, callback: (MviEffect) -> Unit) {
+  fun checkClickSettings(key: String): DialogState? {
     when (key) {
       KEY_LOGOUT -> {
-        callback(createLogoutDialog())
+        return createLogoutDialog()
       }
     }
+    return null
   }
 
-  private fun createLogoutDialog(): DialogEffect {
-    return DialogEffect(
+  private fun createLogoutDialog(): DialogState {
+    return DialogState(
       dialogId = DIALOG_ID_LOGOUT,
       title = R.string.settings_dialog_label_logout,
       message = R.string.settings_dialog_content_logout,

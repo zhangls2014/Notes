@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.android.library)
+  alias(libs.plugins.jetbrains.serialization)
   alias(libs.plugins.google.ksp)
   alias(libs.plugins.google.hilt)
 }
@@ -39,6 +40,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.savedstate)
   implementation(libs.jetbrains.kotlinx.coroutines.android)
+  implementation(libs.jetbrains.kotlinx.serialization.core)
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))
