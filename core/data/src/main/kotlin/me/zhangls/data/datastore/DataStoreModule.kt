@@ -3,6 +3,7 @@ package me.zhangls.data.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import dagger.Module
 import dagger.Provides
@@ -25,6 +26,7 @@ object DataStoreModule {
   @Singleton
   @Named("SettingsDataStore")
   fun provideSettingsModel(@ApplicationContext context: Context): DataStore<SettingsModel> = DataStoreFactory.create(
+    corruptionHandler = ReplaceFileCorruptionHandler { SettingsModel() },
     serializer = SettingsSerializer(),
     produceFile = { context.dataStoreFile("settings.json") }
   )
@@ -33,6 +35,7 @@ object DataStoreModule {
   @Singleton
   @Named("UserDataStore")
   fun provideUserModel(@ApplicationContext context: Context): DataStore<UserModel?> = DataStoreFactory.create(
+    corruptionHandler = ReplaceFileCorruptionHandler { null },
     serializer = UserSerializer(),
     produceFile = { context.dataStoreFile("user.json") }
   )
