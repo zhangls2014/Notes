@@ -4,7 +4,9 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.room.Transaction
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
+import me.zhangls.data.database.AppDatabase
 import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
 import me.zhangls.data.database.entity.AccountEntity
@@ -15,20 +17,23 @@ import me.zhangls.data.model.toEntity
 import javax.inject.Inject
 
 class EmailsRepository @Inject constructor(
+  private val database: AppDatabase,
   private val accountDao: AccountDao,
   private val emailDao: EmailDao
 ) {
   @Transaction
   suspend fun insertEmails(emails: List<EmailModel>) {
-    emails.forEach { email ->
-      accountDao.insert(email.sender.toEntity())
-      accountDao.insert(email.recipients.map { it.toEntity() })
-      emailDao.insert(email.toEntity(null))
-    }
+    database.withTransaction {
+      emails.forEach { email ->
+        accountDao.insert(email.sender.toEntity())
+        accountDao.insert(email.recipients.map { it.toEntity() })
+        emailDao.insert(email.toEntity(null))
+      }
 
-    emails.forEach { email ->
-      email.threads.forEach { thread ->
-        emailDao.insert(thread.toEntity(email.id))
+      emails.forEach { email ->
+        email.threads.forEach { thread ->
+          emailDao.insert(thread.toEntity(email.id))
+        }
       }
     }
   }
@@ -50,16 +55,18 @@ class EmailsRepository @Inject constructor(
   }
 
   suspend fun updateIsFavorite(emailIds: Set<Long>, isImportant: Boolean) {
-    emailIds.forEach { emailDao.updateIsImportant(it, isImportant) }
+    emailDao.updateIsImportant(emailIds, isImportant)
   }
 
   suspend fun deleteEmails(emailIds: Set<Long>) {
-    emailIds.forEach {
-      val threads = emailDao.getThreadEmailsByParentId(it) ?: return@forEach
-      threads.forEach { thread ->
-        emailDao.deleteById(thread.id)
+    database.withTransaction {
+      emailIds.forEach {
+        val threads = emailDao.getThreadEmailsByParentId(it)
+        threads.forEach { thread ->
+          emailDao.deleteById(thread.id)
+        }
+        emailDao.deleteById(it)
       }
-      emailDao.deleteById(it)
     }
   }
 
