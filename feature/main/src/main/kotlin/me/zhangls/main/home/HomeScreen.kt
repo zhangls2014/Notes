@@ -24,6 +24,7 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,12 +57,14 @@ fun HomeScreen(viewmodel: EmailViewModel, isBottomNavigationBar: Boolean) {
   }
   val emailItems = viewmodel.emailPaging.collectAsLazyPagingItems()
   val state by viewmodel.state.collectAsStateWithLifecycle()
-  val items = listOf(
-    ActionItem(Icons.Rounded.Star, R.string.main_action_favorite),
-    ActionItem(Icons.Rounded.StarOutline, R.string.main_action_cancel_favorite),
-    ActionItem(Icons.Rounded.Delete, R.string.main_action_delete),
-    ActionItem(Icons.Rounded.Cancel, R.string.main_action_cancel),
-  )
+  val items = remember {
+    listOf(
+      ActionItem(Icons.Rounded.Star, R.string.main_action_favorite),
+      ActionItem(Icons.Rounded.StarOutline, R.string.main_action_cancel_favorite),
+      ActionItem(Icons.Rounded.Delete, R.string.main_action_delete),
+      ActionItem(Icons.Rounded.Cancel, R.string.main_action_cancel),
+    )
+  }
 
   NavigableListDetailPaneScaffold(
     navigator = scaffoldNavigator,

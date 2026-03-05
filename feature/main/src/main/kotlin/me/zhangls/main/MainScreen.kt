@@ -15,7 +15,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -57,21 +56,18 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
   val scope = rememberCoroutineScope()
   val pagerState = rememberPagerState(initialPage = 0, pageCount = { MainTab.entries.size })
   val customLayoutType = NavigationSuiteScaffoldDefaults.navigationSuiteType(adaptiveInfo)
-  val isBottomNavigationBar = remember(customLayoutType) {
-    mutableStateOf(isBottomNavigationBar(customLayoutType))
-  }
+  val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
   val viewmodel: EmailViewModel = hiltViewModel()
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {
-      MainTab.entries.forEach {
+      MainTab.entries.forEachIndexed { index, tab ->
         item(
-          icon = { Icon(imageVector = it.icon, contentDescription = stringResource(it.label)) },
-          label = { Text(stringResource(it.label)) },
-          selected = pagerState.currentPage == MainTab.entries.indexOf(it),
+          icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
+          label = { Text(stringResource(tab.label)) },
+          selected = pagerState.currentPage == index,
           onClick = {
-            val currentTab = MainTab.entries.indexOf(it)
-            scope.launch { pagerState.animateScrollToPage(currentTab) }
+            scope.launch { pagerState.animateScrollToPage(index) }
           }
         )
       }
@@ -84,9 +80,9 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
       userScrollEnabled = false
     ) {
       when (MainTab.entries[it]) {
-        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar.value, viewmodel = viewmodel)
+        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar, viewmodel = viewmodel)
         MainTab.FAVORITES -> {
-          FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar.value, viewmodel = viewmodel) { emailId ->
+          FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar, viewmodel = viewmodel) { emailId ->
             onResult(MainResult.NavigateToEmailDetail(emailId))
           }
         }

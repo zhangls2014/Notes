@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -39,6 +40,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
@@ -109,8 +112,13 @@ internal fun EmailSearchBar(
     )
   }
 
-  LaunchedEffect(textFieldState.text) {
-    viewmodel.handleIntent(EmailIntent.UpdateSearchText(textFieldState.text))
+  LaunchedEffect(viewmodel) {
+    snapshotFlow { textFieldState.text.toString() }
+      .debounce(300)
+      .distinctUntilChanged()
+      .collect {
+        viewmodel.handleIntent(EmailIntent.UpdateSearchText(it))
+      }
   }
 
   TopSearchBar(
