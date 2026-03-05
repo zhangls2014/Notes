@@ -12,6 +12,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -40,12 +41,13 @@ data class ActionItem(
 
 @Composable
 fun ActionItem(item: ActionItem, onClick: (ActionItem) -> Unit) {
+  val actionClick = remember(item, onClick) { { onClick(item) }.withDebounce() }
   TooltipBox(
     positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
     tooltip = { PlainTooltip { Text(stringResource(item.text)) } },
     state = rememberTooltipState(),
   ) {
-    IconButton(onClick = { onClick(item) }.withDebounce()) {
+    IconButton(onClick = actionClick) {
       Icon(imageVector = item.icon, contentDescription = stringResource(item.text))
     }
   }

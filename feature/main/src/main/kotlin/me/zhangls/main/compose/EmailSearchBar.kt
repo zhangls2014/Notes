@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
@@ -146,7 +147,7 @@ private fun SearchResults(
 ) {
   if (searchResults.itemCount > 0) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
-      items(count = searchResults.itemCount, key = { searchResults[it]!!.email.id }) {
+      items(count = searchResults.itemCount, key = searchResults.itemKey { it.email.id }) {
         val email = searchResults[it] ?: return@items
         val sender = email.sender.toDomain()
         ListItem(

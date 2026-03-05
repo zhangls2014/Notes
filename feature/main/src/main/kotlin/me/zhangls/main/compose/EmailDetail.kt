@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -29,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.framework.ext.withDebounce
@@ -46,8 +48,10 @@ internal fun EmailDetail(
   viewmodel: EmailViewModel,
   onBackPressed: (() -> Unit)?
 ) {
-  val model by viewmodel.getEmail(emailId).collectAsStateWithLifecycle(null)
-  val threads = viewmodel.getThreadEmails(emailId).collectAsLazyPagingItems()
+  val emailFlow = remember(viewmodel, emailId) { viewmodel.getEmail(emailId) }
+  val threadFlow = remember(viewmodel, emailId) { viewmodel.getThreadEmails(emailId) }
+  val model by emailFlow.collectAsStateWithLifecycle(null)
+  val threads = threadFlow.collectAsLazyPagingItems()
 
   Scaffold(
     topBar = {
@@ -64,7 +68,7 @@ internal fun EmailDetail(
           }
         }
       }
-      items(count = threads.itemCount, key = { threads[it]!!.email.id }) {
+      items(count = threads.itemCount, key = threads.itemKey { it.email.id }) {
         val item = threads[it] ?: return@items
         ThreadItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
           viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
@@ -78,6 +82,9 @@ internal fun EmailDetail(
 fun ThreadItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
   val sender = model.sender.toDomain()
   val email = model.email
+  val favoriteClick = remember(email.id, onFavoriteClick) {
+    { onFavoriteClick(email.id) }.withDebounce()
+  }
 
   Card(
     modifier = modifier,
@@ -111,7 +118,7 @@ fun ThreadItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavori
           )
         }
         IconButton(
-          onClick = { onFavoriteClick(email.id) }.withDebounce(),
+          onClick = favoriteClick,
           modifier = Modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainer),
@@ -157,8 +164,9 @@ private fun ReplayButton(
   textResId: Int = R.string.main_action_email_reply,
   onClick: () -> Unit = {}
 ) {
+  val replayClick = remember(textResId, onClick) { onClick.withDebounce() }
   Button(
-    onClick = onClick.withDebounce(),
+    onClick = replayClick,
     modifier = modifier,
     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceBright),
   ) {

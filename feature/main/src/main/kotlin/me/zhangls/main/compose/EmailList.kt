@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.framework.ext.withDebounce
@@ -72,7 +74,7 @@ internal fun EmailList(
       }
     }
 
-    items(count = emailItems.itemCount, key = { emailItems[it]!!.email.id }) { index ->
+    items(count = emailItems.itemCount, key = emailItems.itemKey { it.email.id }) { index ->
       val item = emailItems[index] ?: return@items
       EmailItem(
         model = item,
@@ -111,6 +113,9 @@ fun EmailItem(
 ) {
   val sender = model.sender.toDomain()
   val email = model.email
+  val favoriteClick = remember(email.id, onFavoriteClick) {
+    { onFavoriteClick() }.withDebounce()
+  }
 
   Card(
     modifier = modifier
@@ -159,7 +164,7 @@ fun EmailItem(
           )
         }
         IconButton(
-          onClick = { onFavoriteClick() }.withDebounce(),
+          onClick = favoriteClick,
           modifier = Modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh),

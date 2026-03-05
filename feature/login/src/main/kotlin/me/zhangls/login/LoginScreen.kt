@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -56,6 +57,12 @@ import me.zhangls.login.domain.PasswordError
 fun LoginScreen(viewmodel: LoginViewModel = hiltViewModel(), onLoginResult: (LoginResult) -> Unit) {
   val keyboardController = LocalSoftwareKeyboardController.current
   val state by viewmodel.state.collectAsState()
+  val loginClick = remember(keyboardController, viewmodel) {
+    {
+      keyboardController?.hide()
+      viewmodel.sendIntent(LoginIntent.Login)
+    }.withDebounce()
+  }
 
   LaunchedEffect(Unit) {
     viewmodel.effect.collect { effect ->
@@ -95,10 +102,7 @@ fun LoginScreen(viewmodel: LoginViewModel = hiltViewModel(), onLoginResult: (Log
       )
 
       Button(
-        onClick = {
-          keyboardController?.hide()
-          viewmodel.sendIntent(LoginIntent.Login)
-        }.withDebounce(),
+        onClick = loginClick,
         enabled = state.isInputValid,
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
