@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -43,7 +44,7 @@ fun AppNavHost(viewmodel: MainViewModel, deepLinkDestination: DeepLinkDestinatio
   // 弹窗场景
   val dialogStrategy = remember { DialogSceneStrategy<NavKey>() }
   // 登录状态
-  val state by viewmodel.state.collectAsState()
+  val state by viewmodel.state.collectAsStateWithLifecycle()
   // 是否登录
   var isLogin by remember { mutableStateOf(false) }
 

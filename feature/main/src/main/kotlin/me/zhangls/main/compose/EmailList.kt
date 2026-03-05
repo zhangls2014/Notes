@@ -29,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +39,6 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
@@ -55,13 +53,12 @@ internal fun EmailList(
   contentPadding: PaddingValues = PaddingValues(0.dp),
   emailListState: LazyListState,
   emailItems: LazyPagingItems<EmailConvertModel>,
+  selectedItems: Set<Long>,
   viewmodel: EmailViewModel,
   isFavorite: Boolean = false,
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
 ) {
-  val state by viewmodel.state.collectAsStateWithLifecycle()
-
   LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding, state = emailListState) {
     if (emailItems.loadState.refresh == LoadState.Loading) {
       item {
@@ -79,9 +76,9 @@ internal fun EmailList(
       EmailItem(
         model = item,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        isMultiSelect = if (isFavorite) false else state.selectedItems.isNotEmpty(),
+        isMultiSelect = if (isFavorite) false else selectedItems.isNotEmpty(),
         isOpened = item.email.id == openedEmailId,
-        isSelected = if (isFavorite) false else state.selectedItems.contains(item.email.id),
+        isSelected = if (isFavorite) false else selectedItems.contains(item.email.id),
         navigateToDetail = navigateToDetail,
         toggleSelection = { viewmodel.sendIntent(EmailIntent.UpdateSelectedEmail(it)) },
         onFavoriteClick = { viewmodel.sendIntent(EmailIntent.UpdateFavorite(item.email.id)) },

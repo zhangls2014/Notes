@@ -31,6 +31,7 @@ internal fun FavoritesScreen(
     contentPadding = padding,
     emailListState = emailListState,
     emailItems = emailItems,
+    selectedItems = emptySet(),
     viewmodel = viewmodel,
     isFavorite = true,
     openedEmailId = null,

@@ -121,6 +121,7 @@ fun HomeScreen(viewmodel: EmailViewModel, isBottomNavigationBar: Boolean) {
           contentPadding = it,
           emailListState = emailListState,
           emailItems = emailItems,
+          selectedItems = state.selectedItems,
           viewmodel = viewmodel,
           openedEmailId = scaffoldNavigator.currentDestination?.contentKey,
           navigateToDetail = navigateToDetail

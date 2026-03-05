@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.notes.parseDeepLink
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
     setContent {
       val viewmodel: MainViewModel = hiltViewModel()
       val toastState = rememberToastState()
-      val state by viewmodel.state.collectAsState()
+      val state by viewmodel.state.collectAsStateWithLifecycle()
       val darkTheme = when (state.darkTheme) {
         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
         DarkThemeConfig.LIGHT -> false
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
           ToastHost(toastState)
         }
 
-        LaunchedEffect(viewmodel.toast) {
+        LaunchedEffect(Unit) {
           viewmodel.toast.collect {
             toastState.showToast(it.resId)
           }
