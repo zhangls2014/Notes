@@ -35,9 +35,7 @@ class SettingsViewModel @Inject constructor(
       settingsRepository.settingsFlow
         .map { handler.mapToPreferences(it) }
         .collectLatest {
-          updateState {
-            copy(preferences = it)
-          }
+          dispatch(SettingsAction.UpdatePreferences(it))
         }
     }
   }
@@ -52,16 +50,12 @@ class SettingsViewModel @Inject constructor(
 
       is SettingsIntent.ClickSettings -> {
         handler.checkClickSettings(intent.key)?.let { dialog ->
-          updateState {
-            copy(dialog = dialog)
-          }
+          dispatch(SettingsAction.ShowDialog(dialog))
         }
       }
 
       is SettingsIntent.DialogCallback -> {
-        updateState {
-          copy(dialog = null)
-        }
+        dispatch(SettingsAction.DismissDialog)
         viewModelScope.launch {
           handler.handleDialogCallback(intent.result) {
             sendEffect(it)
@@ -69,5 +63,9 @@ class SettingsViewModel @Inject constructor(
         }
       }
     }
+  }
+
+  private fun dispatch(action: SettingsAction) {
+    updateState { SettingsReducer.reduce(this, action) }
   }
 }
