@@ -136,7 +136,7 @@ fun EmailItem(
         .fillMaxWidth()
         .padding(20.dp),
     ) {
-      Row(modifier = Modifier.fillMaxWidth()) {
+      Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         AnimatedContent(targetState = isSelected, label = "avatar") {
           if (it) {
             SelectedProfileImage()
