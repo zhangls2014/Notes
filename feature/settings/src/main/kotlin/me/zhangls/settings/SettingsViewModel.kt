@@ -10,6 +10,7 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.settings.domain.SettingsHandler
+import me.zhangls.settings.domain.SettingsHandler.ClickAction
 import javax.inject.Inject
 
 /**
@@ -49,17 +50,17 @@ class SettingsViewModel @Inject constructor(
       }
 
       is SettingsIntent.ClickSettings -> {
-        handler.checkClickSettings(intent.key)?.let { dialog ->
-          dispatch(SettingsAction.ShowDialog(dialog))
+        when (val action = handler.checkClickSettings(intent.key)) {
+          ClickAction.None -> {}
+          is ClickAction.ShowDialog -> dispatch(SettingsAction.ShowDialog(action.dialog))
+          is ClickAction.EmitEffect -> sendEffect(action.effect)
         }
       }
 
       is SettingsIntent.DialogCallback -> {
         dispatch(SettingsAction.DismissDialog)
         viewModelScope.launch {
-          handler.handleDialogCallback(intent.result) {
-            sendEffect(it)
-          }
+          handler.handleDialogCallback(intent.result)?.let { sendEffect(it) }
         }
       }
     }

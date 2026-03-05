@@ -17,6 +17,14 @@ class SettingsHandler(
   private val userRepository: UserRepository,
   private val settingsRepository: SettingsRepository,
 ) {
+  sealed interface ClickAction {
+    data object None : ClickAction
+
+    data class ShowDialog(val dialog: DialogState) : ClickAction
+
+    data class EmitEffect(val effect: MviEffect) : ClickAction
+  }
+
   companion object {
     private const val KEY_DYNAMIC_COLOR = "dynamicColor"
     private const val KEY_DARK_THEME = "darkTheme"
@@ -75,13 +83,13 @@ class SettingsHandler(
     }
   }
 
-  fun checkClickSettings(key: String): DialogState? {
+  fun checkClickSettings(key: String): ClickAction {
     when (key) {
       KEY_LOGOUT -> {
-        return createLogoutDialog()
+        return ClickAction.ShowDialog(createLogoutDialog())
       }
     }
-    return null
+    return ClickAction.None
   }
 
   private fun createLogoutDialog(): DialogState {
@@ -94,16 +102,18 @@ class SettingsHandler(
     )
   }
 
-  suspend fun handleDialogCallback(result: DialogResult, callback: (MviEffect) -> Unit) {
-    when (result) {
+  suspend fun handleDialogCallback(result: DialogResult): MviEffect? {
+    return when (result) {
       is DialogResult.Confirm -> {
         if (result.dialogId == DIALOG_ID_LOGOUT) {
           userRepository.clear()
-          callback(SettingsResult.Logout)
+          SettingsResult.Logout
+        } else {
+          null
         }
       }
 
-      is DialogResult.Dismiss -> {}
+      is DialogResult.Dismiss -> null
     }
   }
 }
