@@ -1,4 +1,3 @@
-import java.time.LocalDate
 import java.util.Properties
 
 plugins {
@@ -85,7 +84,7 @@ android {
 }
 
 baselineProfile {
-  automaticGenerationDuringBuild = true
+  automaticGenerationDuringBuild = false
   saveInSrc = true
 }
 
