@@ -1,3 +1,4 @@
+import java.time.LocalDate
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,7 @@ plugins {
   alias(libs.plugins.jetbrains.compose.compiler)
   alias(libs.plugins.google.ksp)
   alias(libs.plugins.google.hilt)
+  alias(libs.plugins.androidx.baselineprofile)
 }
 
 val localProperties: Provider<Properties> = providers
@@ -28,9 +30,13 @@ android {
   defaultConfig {
     applicationId = "me.zhangls.notes"
     minSdk = libs.versions.minSdk.get().toInt()
-    targetSdk = 36
+    targetSdk = libs.versions.targetSdk.get().toInt()
     versionCode = 1
     versionName = "1.0"
+
+    ndk {
+      abiFilters.add("arm64-v8a")
+    }
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -51,6 +57,7 @@ android {
     }
     release {
       isMinifyEnabled = true
+      isShrinkResources = true
       signingConfig = signingConfigs.getByName("release")
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
@@ -77,6 +84,11 @@ android {
   }
 }
 
+baselineProfile {
+  automaticGenerationDuringBuild = true
+  saveInSrc = true
+}
+
 dependencies {
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.test.ext.junit)
@@ -91,6 +103,10 @@ dependencies {
   implementation(project(":feature:main"))
   implementation(project(":feature:login"))
   implementation(project(":feature:settings"))
+
+  // BaselineProfile
+  baselineProfile(project(":baselineprofile"))
+  implementation(libs.androidx.profileinstaller)
 
   // Core
   implementation(libs.androidx.core)
