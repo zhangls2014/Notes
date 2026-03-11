@@ -2,6 +2,7 @@ package me.zhangls.main
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
@@ -74,12 +75,8 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
     },
     layoutType = customLayoutType,
   ) {
-    HorizontalPager(
-      state = pagerState,
-      modifier = Modifier.fillMaxSize(),
-      userScrollEnabled = false
-    ) {
-      when (MainTab.entries[it]) {
+    val pageContent = @Composable { page: Int ->
+      when (MainTab.entries[page]) {
         MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar, viewmodel = viewmodel)
         MainTab.FAVORITES -> {
           FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar, viewmodel = viewmodel) { emailId ->
@@ -93,6 +90,24 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
             SettingsResult.Logout -> onResult(MainResult.Logout)
           }
         }
+      }
+    }
+
+    if (isBottomNavigationBar) {
+      HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        userScrollEnabled = false,
+      ) {
+        pageContent(it)
+      }
+    } else {
+      VerticalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        userScrollEnabled = false,
+      ) {
+        pageContent(it)
       }
     }
   }
