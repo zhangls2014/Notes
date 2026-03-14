@@ -8,6 +8,10 @@
   <string name="settings_label_dark_theme_follow_system">跟随系统</string>
   <string name="settings_label_dark_theme_light">浅色</string>
   <string name="settings_label_dark_theme_dark">深色</string>
+  <string name="settings_label_font_size">字体大小</string>
+  <string name="settings_label_font_size_standard">标准</string>
+  <string name="settings_label_font_size_medium">中</string>
+  <string name="settings_label_font_size_large">大</string>
   <string name="settings_label_logout">退出登录</string>
   <string name="settings_dialog_label_logout">提示</string>
   <string name="settings_dialog_action_cancel">取消</string>

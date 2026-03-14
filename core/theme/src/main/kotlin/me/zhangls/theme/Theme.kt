@@ -13,6 +13,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 
 
 private val lightScheme = lightColorScheme(
@@ -128,6 +130,7 @@ val LocalCustomColors = staticCompositionLocalOf {
 fun ComposeAppTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicColor: Boolean = false,
+  fontScale: Float = 1F,
   content: @Composable () -> Unit
 ) {
   val colorScheme = when {
@@ -142,8 +145,12 @@ fun ComposeAppTheme(
   }
 
   val colors = if (darkTheme) DarkColorPalette else LightColorPalette
+  val density = LocalDensity.current
 
-  CompositionLocalProvider(LocalCustomColors provides colors) {
+  CompositionLocalProvider(
+    LocalCustomColors provides colors,
+    LocalDensity provides Density(density = density.density, fontScale = fontScale)
+  ) {
     MaterialTheme(colorScheme = colorScheme, content = content)
   }
 }

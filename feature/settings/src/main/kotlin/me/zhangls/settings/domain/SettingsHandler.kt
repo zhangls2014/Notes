@@ -4,8 +4,9 @@ import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.data.type.DarkThemeConfig
-import me.zhangls.framework.mvi.DialogState
+import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.framework.mvi.DialogResult
+import me.zhangls.framework.mvi.DialogState
 import me.zhangls.framework.mvi.MviEffect
 import me.zhangls.settings.R
 import me.zhangls.settings.SettingsResult
@@ -28,6 +29,7 @@ class SettingsHandler(
   companion object {
     private const val KEY_DYNAMIC_COLOR = "dynamicColor"
     private const val KEY_DARK_THEME = "darkTheme"
+    private const val KEY_FONT_SIZE = "fontSize"
     private const val KEY_LOGOUT = "logout"
 
     private const val DIALOG_ID_LOGOUT = "dialog_id_logout"
@@ -62,6 +64,22 @@ class SettingsHandler(
         )
       ),
 
+      Preference.Alert(
+        key = KEY_FONT_SIZE,
+        value = settings.fontSize,
+        title = R.string.settings_label_font_size,
+        summary = when (settings.fontSize) {
+          FontSizeConfig.STANDARD -> R.string.settings_label_font_size_standard
+          FontSizeConfig.MEDIUM -> R.string.settings_label_font_size_medium
+          FontSizeConfig.LARGE -> R.string.settings_label_font_size_large
+        },
+        options = listOf(
+          Preference.Option(R.string.settings_label_font_size_standard, FontSizeConfig.STANDARD),
+          Preference.Option(R.string.settings_label_font_size_medium, FontSizeConfig.MEDIUM),
+          Preference.Option(R.string.settings_label_font_size_large, FontSizeConfig.LARGE)
+        )
+      ),
+
       // 退出登录
       Preference.Text(
         key = KEY_LOGOUT,
@@ -79,6 +97,10 @@ class SettingsHandler(
 
       KEY_DARK_THEME -> {
         settingsRepository.updateDarkTheme(result as DarkThemeConfig)
+      }
+
+      KEY_FONT_SIZE -> {
+        settingsRepository.updateFontSize(result as FontSizeConfig)
       }
     }
   }

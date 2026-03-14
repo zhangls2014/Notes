@@ -9,7 +9,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,9 +23,6 @@ import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.component.ToastHost
 import me.zhangls.theme.component.rememberToastState
 
-/**
- * @author zhangls
- */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,8 +49,9 @@ class MainActivity : ComponentActivity() {
         DarkThemeConfig.LIGHT -> false
         DarkThemeConfig.DARK -> true
       }
+      val fontScale = state.fontSize.value
 
-      ComposeAppTheme(darkTheme = darkTheme, dynamicColor = state.dynamicColor) {
+      ComposeAppTheme(darkTheme = darkTheme, dynamicColor = state.dynamicColor, fontScale = fontScale) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
           AppNavHost(viewmodel = viewmodel, deepLinkDestination = destination)
           ToastHost(toastState)

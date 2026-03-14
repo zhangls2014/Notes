@@ -44,7 +44,7 @@ class MainViewModel @Inject constructor(
     }
     viewModelScope.launch {
       settingsRepository.settingsFlow.collectLatest {
-        updateState { copy(dynamicColor = it.dynamicColor, darkTheme = it.darkTheme) }
+        updateState { copy(dynamicColor = it.dynamicColor, darkTheme = it.darkTheme, fontSize = it.fontSize) }
       }
     }
   }

@@ -8,7 +8,7 @@ buildTool = "36.0.0"
 agp = "9.1.0"
 kotlin = "2.3.10"
 kotlin-ksp = "2.3.6"
-compose-bom = "2026.02.01"
+compose-bom = "2026.03.00"
 
 androidx-room = "2.8.4"
 androidx-paging = "3.4.1"

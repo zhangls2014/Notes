@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.type.DarkThemeConfig
+import me.zhangls.data.type.FontSizeConfig
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -30,6 +31,12 @@ class SettingsRepository @Inject constructor(
   suspend fun updateDynamicColor(useDynamicColor: Boolean) {
     dataStore.updateData {
       it.copy(dynamicColor = useDynamicColor)
+    }
+  }
+
+  suspend fun updateFontSize(fontSizeConfig: FontSizeConfig) {
+    dataStore.updateData {
+      it.copy(fontSize = fontSizeConfig)
     }
   }
 }
