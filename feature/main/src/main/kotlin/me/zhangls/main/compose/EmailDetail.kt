@@ -3,7 +3,10 @@ package me.zhangls.main.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -46,6 +50,8 @@ import me.zhangls.theme.component.CenteredTopAppBar
 @Composable
 internal fun EmailDetail(
   emailId: Long,
+  isFavorite: Boolean,
+  isBottomNavigationBar: Boolean,
   viewmodel: EmailViewModel,
   onBackPressed: (() -> Unit)?
 ) {
@@ -61,17 +67,28 @@ internal fun EmailDetail(
       }
     }
   ) { padding ->
-    LazyColumn(contentPadding = padding) {
+    val contentPadding = if (isFavorite) {
+      padding
+    } else {
+      PaddingValues(
+        top = padding.calculateTopPadding(),
+        bottom = padding.calculateBottomPadding(),
+        start = if (isBottomNavigationBar) padding.calculateStartPadding(LayoutDirection.Ltr) else 0.dp,
+        end = padding.calculateEndPadding(LayoutDirection.Ltr)
+      )
+    }
+
+    LazyColumn(contentPadding = contentPadding) {
       item {
         model?.let {
-          ThreadItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
+          EmailDetailItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
             viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
           }
         }
       }
       items(count = threads.itemCount, key = threads.itemKey { it.email.id }) {
         val item = threads[it] ?: return@items
-        ThreadItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
+        EmailDetailItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
           viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
         }
       }
@@ -80,7 +97,7 @@ internal fun EmailDetail(
 }
 
 @Composable
-fun ThreadItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
+fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
   val sender = model.sender.toDomain()
   val email = model.email
   val favoriteClick = remember(email.id, onFavoriteClick) {

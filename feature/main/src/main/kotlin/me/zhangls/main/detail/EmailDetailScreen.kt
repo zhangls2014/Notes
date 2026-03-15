@@ -15,6 +15,8 @@ fun EmailDetailScreen(
 ) {
   EmailDetail(
     emailId = emailId,
+    isFavorite = true,
+    isBottomNavigationBar = true,
     viewmodel = viewmodel,
     onBackPressed = onBackPressed
   )

@@ -1,11 +1,5 @@
 package me.zhangls.main.home
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.exclude
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import me.zhangls.main.EmailViewModel
@@ -18,19 +12,10 @@ internal fun FavoritesScreen(
   viewmodel: EmailViewModel,
   navigateToDetail: (Long) -> Unit
 ) {
-  val padding = if (isBottomNavigationBar) {
-    WindowInsets.systemBars.exclude(WindowInsets.navigationBars).asPaddingValues()
-  } else {
-    WindowInsets.systemBars.asPaddingValues()
-  }
-  val emailListState = rememberLazyListState()
-
   EmailList(
-    contentPadding = padding,
-    emailListState = emailListState,
-    selectedItems = emptySet(),
     viewmodel = viewmodel,
     isFavorite = true,
+    isBottomNavigationBar = isBottomNavigationBar,
     openedEmailId = null,
     navigateToDetail = navigateToDetail,
   )

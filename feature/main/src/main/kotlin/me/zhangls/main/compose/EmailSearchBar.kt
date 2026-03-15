@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExpandedDockedSearchBar
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TopSearchBar
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -71,6 +72,7 @@ internal fun EmailSearchBar(
     SearchBarDefaults.InputField(
       searchBarState = searchBarState,
       textFieldState = textFieldState,
+      readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
       onSearch = {
         textFieldState.clearText()
         scope.launch { searchBarState.animateToCollapsed() }
@@ -112,6 +114,14 @@ internal fun EmailSearchBar(
     )
   }
 
+  LaunchedEffect(searchBarState.currentValue) {
+    scope.launch {
+      if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+        searchBarState.animateToCollapsed()
+      }
+    }
+  }
+
   LaunchedEffect(viewmodel) {
     snapshotFlow { textFieldState.text.toString() }
       .debounce(300)
@@ -121,10 +131,15 @@ internal fun EmailSearchBar(
       }
   }
 
-  TopSearchBar(
+  AppBarWithSearch(
     scrollBehavior = scrollBehavior,
     state = searchBarState,
     inputField = inputField,
+    colors = SearchBarDefaults.appBarWithSearchColors(
+      scrolledSearchBarContainerColor = Color.Unspecified,
+      appBarContainerColor = Color.Transparent,
+      scrolledAppBarContainerColor = Color.Unspecified,
+    ),
   )
 
   if (isBottomNavigationBar) {

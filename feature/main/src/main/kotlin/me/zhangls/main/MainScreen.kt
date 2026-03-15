@@ -13,9 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -24,6 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import me.zhangls.main.home.FavoritesScreen
 import me.zhangls.main.home.HomeScreen
@@ -79,13 +78,26 @@ private fun NavigationPager(
   }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun MainScreen(onResult: (MainResult) -> Unit) {
   val adaptiveInfo = currentWindowAdaptiveInfo()
   val scope = rememberCoroutineScope()
   val pagerState = rememberPagerState(initialPage = 0, pageCount = { MainTab.entries.size })
-  val customLayoutType = NavigationSuiteScaffoldDefaults.navigationSuiteType(adaptiveInfo)
+  val customLayoutType = with(adaptiveInfo.windowSizeClass) {
+    if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_LARGE_LOWER_BOUND)) {
+      NavigationSuiteType.WideNavigationRailExpanded
+    } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
+      NavigationSuiteType.WideNavigationRailCollapsed
+    } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+      if (minWidthDp > minHeightDp) {
+        NavigationSuiteType.WideNavigationRailCollapsed
+      } else {
+        NavigationSuiteType.ShortNavigationBarMedium
+      }
+    } else {
+      NavigationSuiteType.ShortNavigationBarCompact
+    }
+  }
   val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
   val viewmodel: EmailViewModel = hiltViewModel()
 
@@ -113,7 +125,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
           }
         }
 
-        MainTab.SETTINGS -> SettingsScreen { result ->
+        MainTab.SETTINGS -> SettingsScreen(isBottomNavigationBar = isBottomNavigationBar) { result ->
           if (result == SettingsResult.Logout) {
             onResult(MainResult.Logout)
           }

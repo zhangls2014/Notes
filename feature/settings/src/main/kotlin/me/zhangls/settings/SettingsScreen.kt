@@ -1,5 +1,7 @@
 package me.zhangls.settings
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhanghai.compose.preference.ListPreference
@@ -30,7 +33,11 @@ import me.zhangls.theme.component.SimpleDialog
  * @author zhangls
  */
 @Composable
-fun SettingsScreen(viewmodel: SettingsViewModel = hiltViewModel(), onResult: (SettingsResult) -> Unit = {}) {
+fun SettingsScreen(
+  isBottomNavigationBar: Boolean,
+  viewmodel: SettingsViewModel = hiltViewModel(),
+  onResult: (SettingsResult) -> Unit = {}
+) {
   val state by viewmodel.state.collectAsStateWithLifecycle()
 
   LaunchedEffect(viewmodel) {
@@ -46,8 +53,18 @@ fun SettingsScreen(viewmodel: SettingsViewModel = hiltViewModel(), onResult: (Se
       CenteredTopAppBar(title = stringResource(R.string.settings_label_settings))
     }
   ) { padding ->
+    val contentPadding = if (isBottomNavigationBar) {
+      padding
+    } else {
+      PaddingValues(
+        top = padding.calculateTopPadding(),
+        bottom = padding.calculateBottomPadding(),
+        end = padding.calculateEndPadding(LayoutDirection.Ltr)
+      )
+    }
+
     ProvidePreferenceLocals {
-      LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = padding) {
+      LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding) {
         items(
           count = state.preferences.size,
           key = { index -> state.preferences[index].key },
@@ -159,5 +176,5 @@ private fun TextItem(
 @Preview
 @Composable
 fun SettingsScreenPreview() {
-  SettingsScreen(onResult = {})
+  SettingsScreen(true, onResult = {})
 }
