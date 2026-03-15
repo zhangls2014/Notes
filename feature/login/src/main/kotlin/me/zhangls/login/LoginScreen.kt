@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.framework.ext.withDebounce
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
+import me.zhangls.login.domain.text
 
 /**
  * @author zhangls
@@ -126,10 +127,7 @@ private fun AccountInput(
   onClearAccount: () -> Unit
 ) {
   val focusManager = LocalFocusManager.current
-  val inputError = when (accountError) {
-    is AccountError.Empty -> stringResource(id = R.string.login_hint_login_account)
-    null -> ""
-  }
+  val inputError = accountError.text()
 
   TextField(
     value = account,
@@ -174,12 +172,7 @@ private fun PasswordInput(
   onPasswordVisibleChange: (Boolean) -> Unit,
   onLogin: () -> Unit
 ) {
-  val inputError = when (passwordError) {
-    is PasswordError.Empty -> stringResource(id = R.string.login_hint_login_password)
-    is PasswordError.TooShort -> stringResource(id = R.string.login_hint_login_password_too_short)
-    is PasswordError.WeakType -> stringResource(id = R.string.login_hint_login_password_weak_type)
-    null -> ""
-  }
+  val inputError = passwordError.text()
 
   TextField(
     value = password,
