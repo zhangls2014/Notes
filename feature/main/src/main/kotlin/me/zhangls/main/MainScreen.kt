@@ -2,6 +2,7 @@ package me.zhangls.main
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -50,6 +51,34 @@ private fun isBottomNavigationBar(type: NavigationSuiteType): Boolean {
   return navigationBarArray.contains(type)
 }
 
+/**
+ * 根据导航类型创建合适的 Pager
+ */
+@Composable
+private fun NavigationPager(
+  isBottomNavigationBar: Boolean,
+  pagerState: PagerState,
+  pageContent: @Composable (page: Int) -> Unit
+) {
+  if (isBottomNavigationBar) {
+    HorizontalPager(
+      state = pagerState,
+      modifier = Modifier.fillMaxSize(),
+      userScrollEnabled = false,
+    ) {
+      pageContent(it)
+    }
+  } else {
+    VerticalPager(
+      state = pagerState,
+      modifier = Modifier.fillMaxSize(),
+      userScrollEnabled = false,
+    ) {
+      pageContent(it)
+    }
+  }
+}
+
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun MainScreen(onResult: (MainResult) -> Unit) {
@@ -85,31 +114,18 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
         }
 
         MainTab.SETTINGS -> SettingsScreen { result ->
-          when (result) {
-            SettingsResult.Done -> {}
-            SettingsResult.Logout -> onResult(MainResult.Logout)
+          if (result == SettingsResult.Logout) {
+            onResult(MainResult.Logout)
           }
         }
       }
     }
 
-    if (isBottomNavigationBar) {
-      HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = false,
-      ) {
-        pageContent(it)
-      }
-    } else {
-      VerticalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = false,
-      ) {
-        pageContent(it)
-      }
-    }
+    NavigationPager(
+      isBottomNavigationBar = isBottomNavigationBar,
+      pagerState = pagerState,
+      pageContent = pageContent
+    )
   }
 }
 

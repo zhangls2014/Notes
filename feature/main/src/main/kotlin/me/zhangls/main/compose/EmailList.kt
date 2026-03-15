@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -23,9 +22,10 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +40,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
@@ -48,34 +48,41 @@ import me.zhangls.framework.ext.withDebounce
 import me.zhangls.main.EmailIntent
 import me.zhangls.main.EmailViewModel
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun EmailList(
   contentPadding: PaddingValues = PaddingValues(0.dp),
   emailListState: LazyListState,
-  emailItems: LazyPagingItems<EmailConvertModel>,
   selectedItems: Set<Long>,
   viewmodel: EmailViewModel,
   isFavorite: Boolean = false,
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
 ) {
+  val emailItems = viewmodel.emailPaging.collectAsLazyPagingItems()
+
   LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding, state = emailListState) {
     if (emailItems.loadState.refresh == LoadState.Loading) {
+      item { Loading(modifier = Modifier.fillParentMaxSize()) }
+    }
+    if (emailItems.loadState.refresh is LoadState.NotLoading && emailItems.itemCount == 0) {
       item {
-        Text(
-          text = "Waiting for items to load from the backend",
-          modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentWidth(Alignment.CenterHorizontally),
-        )
+        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+          Text(text = "No emails!")
+        }
       }
+    }
+    if (emailItems.loadState.prepend == LoadState.Loading) {
+      item { Loading(modifier = Modifier.fillParentMaxWidth()) }
     }
 
     items(count = emailItems.itemCount, key = emailItems.itemKey { it.email.id }) { index ->
       val item = emailItems[index] ?: return@items
       EmailItem(
         model = item,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier
+          .padding(horizontal = 16.dp, vertical = 8.dp)
+          .animateItem(),
         isMultiSelect = if (isFavorite) false else selectedItems.isNotEmpty(),
         isOpened = item.email.id == openedEmailId,
         isSelected = if (isFavorite) false else selectedItems.contains(item.email.id),
@@ -86,14 +93,16 @@ internal fun EmailList(
     }
 
     if (emailItems.loadState.append == LoadState.Loading) {
-      item {
-        CircularProgressIndicator(
-          modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentWidth(Alignment.CenterHorizontally)
-        )
-      }
+      item { Loading(modifier = Modifier.fillParentMaxWidth()) }
     }
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun Loading(modifier: Modifier) {
+  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    LoadingIndicator()
   }
 }
 

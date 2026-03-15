@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import me.zhangls.main.EmailIntent
 import me.zhangls.main.EmailViewModel
@@ -47,7 +46,7 @@ import me.zhangls.main.compose.EmailSearchBar
   ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun HomeScreen(viewmodel: EmailViewModel, isBottomNavigationBar: Boolean) {
+fun HomeScreen(isBottomNavigationBar: Boolean, viewmodel: EmailViewModel) {
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
   val scope = rememberCoroutineScope()
   val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
@@ -55,7 +54,6 @@ fun HomeScreen(viewmodel: EmailViewModel, isBottomNavigationBar: Boolean) {
   val navigateToDetail: (Long) -> Unit = {
     scope.launch { scaffoldNavigator.navigateTo(pane = ListDetailPaneScaffoldRole.Detail, contentKey = it) }
   }
-  val emailItems = viewmodel.emailPaging.collectAsLazyPagingItems()
   val state by viewmodel.state.collectAsStateWithLifecycle()
   val items = remember {
     listOf(
@@ -123,7 +121,6 @@ fun HomeScreen(viewmodel: EmailViewModel, isBottomNavigationBar: Boolean) {
         EmailList(
           contentPadding = it,
           emailListState = emailListState,
-          emailItems = emailItems,
           selectedItems = state.selectedItems,
           viewmodel = viewmodel,
           openedEmailId = scaffoldNavigator.currentDestination?.contentKey,
@@ -132,13 +129,19 @@ fun HomeScreen(viewmodel: EmailViewModel, isBottomNavigationBar: Boolean) {
       }
     },
     detailPane = {
-      scaffoldNavigator.currentDestination?.contentKey?.let {
+      val emailId = scaffoldNavigator.currentDestination?.contentKey
+      val onBackPressed: (() -> Unit)? = if (isBottomNavigationBar) {
+        {
+          scope.launch { scaffoldNavigator.navigateBack() }
+        }
+      } else null
+
+      if (emailId != null) {
         EmailDetail(
-          emailId = it, viewmodel = viewmodel, if (isBottomNavigationBar) {
-            { scope.launch { scaffoldNavigator.navigateBack() } }
-          } else {
-            null
-          })
+          emailId = emailId,
+          viewmodel = viewmodel,
+          onBackPressed = onBackPressed
+        )
       }
     }
   )
