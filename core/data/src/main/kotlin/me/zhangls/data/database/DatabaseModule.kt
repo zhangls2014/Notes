@@ -1,7 +1,6 @@
 package me.zhangls.data.database
 
 import android.content.Context
-import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,8 +16,7 @@ object DatabaseModule {
   @Provides
   @Singleton
   fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-    return Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
-      .build()
+    return getDatabase(context)
   }
 
   @Provides

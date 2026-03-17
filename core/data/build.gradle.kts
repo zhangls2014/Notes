@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.jetbrains.serialization)
   alias(libs.plugins.google.ksp)
+  alias(libs.plugins.androidx.room)
 }
 
 android {
@@ -32,9 +33,8 @@ android {
   }
 }
 
-ksp {
-  arg("room.schemaLocation", "$projectDir/schemas")
-  arg("room.generateKotlin", "true")
+room3 {
+  schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
@@ -55,7 +55,6 @@ dependencies {
 
   // database
   api(libs.androidx.room.runtime)
-  api(libs.androidx.room.ktx)
   api(libs.androidx.room.paging)
   ksp(libs.androidx.room.compiler)
 }

@@ -3,8 +3,8 @@ package me.zhangls.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.room.Transaction
-import androidx.room.withTransaction
+import androidx.room3.Transaction
+import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.database.AppDatabase
 import me.zhangls.data.database.dao.AccountDao
@@ -23,7 +23,7 @@ class EmailsRepository @Inject constructor(
 ) {
   @Transaction
   suspend fun insertEmails(emails: List<EmailModel>) {
-    database.withTransaction {
+    database.withWriteTransaction {
       emails.forEach { email ->
         accountDao.insert(email.sender.toEntity())
         accountDao.insert(email.recipients.map { it.toEntity() })
@@ -59,7 +59,7 @@ class EmailsRepository @Inject constructor(
   }
 
   suspend fun deleteEmails(emailIds: Set<Long>) {
-    database.withTransaction {
+    database.withWriteTransaction {
       emailIds.forEach {
         val threads = emailDao.getThreadEmailsByParentId(it)
         threads.forEach { thread ->

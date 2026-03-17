@@ -1,8 +1,11 @@
 package me.zhangls.data.database
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
+import android.content.Context
+import androidx.room3.Database
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
+import androidx.room3.TypeConverters
+import kotlinx.coroutines.Dispatchers
 import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
 import me.zhangls.data.database.entity.AccountEntity
@@ -22,4 +25,10 @@ import me.zhangls.data.database.entity.EmailEntity
 abstract class AppDatabase : RoomDatabase() {
   abstract fun accountDao(): AccountDao
   abstract fun emailDao(): EmailDao
+}
+
+internal fun getDatabase(context: Context): AppDatabase {
+  return Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+    .setQueryCoroutineContext(Dispatchers.IO)
+    .build()
 }

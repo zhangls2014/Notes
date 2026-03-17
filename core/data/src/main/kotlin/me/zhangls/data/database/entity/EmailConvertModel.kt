@@ -1,7 +1,7 @@
 package me.zhangls.data.database.entity
 
-import androidx.room.Embedded
-import androidx.room.Relation
+import androidx.room3.Embedded
+import androidx.room3.Relation
 
 data class EmailConvertModel(
   @Embedded val email: EmailEntity,

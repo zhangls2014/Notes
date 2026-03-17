@@ -2,7 +2,7 @@
 
 package me.zhangls.data.database
 
-import androidx.room.TypeConverter
+import androidx.room3.TypeConverter
 import me.zhangls.data.type.MailboxType
 
 class Converters {

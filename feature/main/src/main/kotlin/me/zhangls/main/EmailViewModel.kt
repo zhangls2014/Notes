@@ -7,6 +7,7 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,7 +58,7 @@ class EmailViewModel @Inject constructor(
 
   private val currentQuery = MutableStateFlow("")
 
-  @OptIn(ExperimentalCoroutinesApi::class)
+  @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
   val searchResults = currentQuery
     .debounce(300)
     .map { it.trim() }
