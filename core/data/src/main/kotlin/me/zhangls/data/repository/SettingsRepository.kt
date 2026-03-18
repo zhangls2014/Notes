@@ -5,15 +5,14 @@ import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
-import javax.inject.Inject
-import javax.inject.Named
-import javax.inject.Singleton
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Singleton
 
 /**
  * @author zhangls
  */
 @Singleton
-class SettingsRepository @Inject constructor(
+class SettingsRepository(
   @Named("SettingsDataStore") private val dataStore: DataStore<SettingsModel>
 ) {
   val settingsFlow: Flow<SettingsModel> = dataStore.data

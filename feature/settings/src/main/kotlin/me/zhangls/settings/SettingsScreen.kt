@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.Preference
@@ -28,6 +27,7 @@ import me.zhangls.settings.SettingsIntent.UpdateSettings
 import me.zhangls.settings.domain.Preference
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * @author zhangls
@@ -35,7 +35,7 @@ import me.zhangls.theme.component.SimpleDialog
 @Composable
 fun SettingsScreen(
   isBottomNavigationBar: Boolean,
-  viewmodel: SettingsViewModel = hiltViewModel(),
+  viewmodel: SettingsViewModel = koinViewModel(),
   onResult: (SettingsResult) -> Unit = {}
 ) {
   val state by viewmodel.state.collectAsStateWithLifecycle()

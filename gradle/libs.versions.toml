@@ -2,26 +2,28 @@
 minSdk = "28"
 compileSdk = "36"
 targetSdk = "36"
-buildTool = "36.0.0"
+buildTool = "36.1.0"
 
 # Warning: compose-comiler 与 kotlin 版本是相关联的
 agp = "9.1.0"
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 kotlin-ksp = "2.3.6"
 compose-bom = "2026.03.00"
+koin-bom = "4.2.0"
 
+androidx-test = "1.7.0"
 androidx-room = "3.0.0-alpha01"
-androidx-paging = "3.4.1"
-androidx-datastore = "1.3.0-alpha06"
+androidx-paging = "3.4.2"
+androidx-datastore = "1.3.0-alpha07"
 androidx-navigation3 = "1.0.1"
 androidx-lifecycle = "2.10.0"
-androidx-activity = "1.12.4"
-google-hilt = "2.59.2"
+androidx-activity = "1.13.0"
 squareup-okhttp = "5.3.2"
 squareup-retrofit = "3.0.0"
 jetbrians-serialization = "1.10.0"
+jetbrians-compose = "1.10.2"
 benchmarkMacroJunit4 = "1.4.1"
-baselineprofile = "1.5.0-alpha03"
+baselineprofile = "1.5.0-alpha04"
 profileinstaller = "1.4.1"
 
 
@@ -32,10 +34,10 @@ android-fusedlibrary = { id = "com.android.fused-library", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 androidx-room = { id = "androidx.room3", version.ref = "androidx-room" }
-jetbrains-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-jetbrains-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+jetbrains-kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlin-ksp" }
-google-hilt = { id = "com.google.dagger.hilt.android", version.ref = "google-hilt" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version = "0.4.1" }
 
 
 [libraries]
@@ -64,6 +66,8 @@ androidx-compose-viewmodel-navigation3 = { group = "androidx.lifecycle", name = 
 
 ### test
 junit = { group = "junit", name = "junit", version = "4.13.2" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version = "1.3.0" }
 androidx-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version = "3.7.0" }
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version = "2.3.0" }
@@ -71,14 +75,11 @@ androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchm
 
 # androidx
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version = "1.7.1" }
-androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
-androidx-core = { group = "androidx.core", name = "core-ktx", version = "1.17.0" }
-androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.2.0" }
+androidx-core = { group = "androidx.core", name = "core-ktx", version = "1.18.0" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "androidx-lifecycle" }
 androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "androidx-navigation3" }
 androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "androidx-navigation3" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.3.0" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "androidx-paging" }
 androidx-room-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "androidx-room" }
 androidx-room-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "androidx-room" }
@@ -86,11 +87,7 @@ androidx-room-paging = { group = "androidx.room3", name = "room3-paging", versio
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore", version.ref = "androidx-datastore" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 
-### google
-google-material = { group = "com.google.android.material", name = "material", version = "1.13.0" }
-google-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "google-hilt" }
-google-hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "google-hilt" }
-
+### JetBrains
 jetbrains-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.10.2" }
 jetbrains-kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.4.0" }
 jetbrains-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "jetbrians-serialization" }
@@ -99,15 +96,9 @@ jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name =
 # retrofit2 : https://github.com/square/retrofit
 squareup-retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "squareup-retrofit" }
 squareup-retrofit2-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "squareup-retrofit" }
-squareup-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "squareup-okhttp" }
 squareup-okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "squareup-okhttp" }
-squareup-okio = { group = "com.squareup.okio", name = "okio", version = "3.16.4" }
 # https://github.com/square/leakcanary
 squareup-leakCanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version = "2.14" }
-
-# tencent
-# weChatOpenSDK : https://developers.weixin.qq.com/doc/oplatform/Downloads/Android_Resource.html
-tencent-wechat = { group = "com.tencent.mm.opensdk", name = "wechat-sdk-android-without-mta", version = "6.8.0" }
 
 # coil : https://github.com/coil-kt/coil
 coil-bom = { group = "io.coil-kt.coil3", name = "coil-bom", version = "3.4.0" }
@@ -118,4 +109,13 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version = "6.7.1" }
 
 # Compose Preference : https://github.com/zhanghai/ComposePreference
-compose-preference = { group = "me.zhanghai.compose.preference", name = "preference", version = "2.1.1" }
+compose-preference = { group = "me.zhanghai.compose.preference", name = "preference", version = "2.2.0" }
+
+### Koin
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
+koin-core = { group = "io.insert-koin", name = "koin-core" }
+koin-android = { group = "io.insert-koin", name = "koin-android" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose" }
+koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel" }
+koin-compose-navigation3 = { group = "io.insert-koin", name = "koin-compose-navigation3" }
+koin-annotations = { group = "io.insert-koin", name = "koin-annotations" }

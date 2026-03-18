@@ -1,11 +1,13 @@
 package me.zhangls.network
 
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
+
 
 /**
  * @author zhangls
  */
-class TokenProviderImpl @Inject constructor() : TokenProvider {
+@Factory
+class TokenProviderImpl : TokenProvider {
   override fun refreshToken(): String? = null
 
   override fun getAccessToken(): String? = null

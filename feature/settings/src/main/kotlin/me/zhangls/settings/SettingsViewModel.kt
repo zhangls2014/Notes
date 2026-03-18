@@ -2,7 +2,6 @@ package me.zhangls.settings
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -11,13 +10,13 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.settings.domain.SettingsHandler
 import me.zhangls.settings.domain.SettingsHandler.ClickAction
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 /**
  * @author zhangls
  */
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+@KoinViewModel
+class SettingsViewModel(
   savedStateHandle: SavedStateHandle,
   userRepository: UserRepository,
   settingsRepository: SettingsRepository,

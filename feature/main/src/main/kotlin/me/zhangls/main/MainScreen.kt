@@ -21,13 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import me.zhangls.main.home.FavoritesScreen
 import me.zhangls.main.home.HomeScreen
 import me.zhangls.settings.SettingsResult
 import me.zhangls.settings.SettingsScreen
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * @author zhangls
@@ -99,7 +99,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
     }
   }
   val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
-  val viewmodel: EmailViewModel = hiltViewModel()
+  val viewmodel: EmailViewModel = koinViewModel()
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {

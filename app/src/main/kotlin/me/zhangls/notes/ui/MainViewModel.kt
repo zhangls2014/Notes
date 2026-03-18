@@ -2,7 +2,6 @@ package me.zhangls.notes.ui
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.shareIn
@@ -11,13 +10,13 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 /**
  * @author zhangls
  */
-@HiltViewModel
-class MainViewModel @Inject constructor(
+@KoinViewModel
+class MainViewModel(
   savedStateHandle: SavedStateHandle,
   toastGlobalNotifier: ToastGlobalNotifier,
   userRepository: UserRepository,

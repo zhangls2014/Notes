@@ -1,8 +1,9 @@
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.serialization)
+  alias(libs.plugins.jetbrains.kotlin.serialization)
   alias(libs.plugins.google.ksp)
   alias(libs.plugins.androidx.room)
+  alias(libs.plugins.koin.compiler)
 }
 
 android {
@@ -43,8 +44,10 @@ dependencies {
   androidTestImplementation(libs.androidx.test.espresso)
 
   // DI
-  implementation(libs.google.hilt.android)
-  ksp(libs.google.hilt.android.compiler)
+  implementation(platform(libs.koin.bom))
+  implementation(libs.koin.core)
+  implementation(libs.koin.annotations)
+  implementation(libs.koin.android)
 
   // DataStore
   api(libs.androidx.datastore.preferences)

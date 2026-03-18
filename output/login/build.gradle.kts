@@ -10,8 +10,8 @@ androidFusedLibrary {
 }
 
 dependencies {
-  include(project(":core:data"))
-  include(project(":core:theme"))
-  include(project(":core:framework"))
-  include(project(":feature:login"))
+  include(projects.core.data)
+  include(projects.core.theme)
+  include(projects.core.framework)
+  include(projects.feature.login)
 }

@@ -1,10 +1,13 @@
+rootProject.name = "Notes"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
   repositories {
     google {
-      content {
-        includeGroupByRegex("com.android.*")
-        includeGroupByRegex("com.google.*")
-        includeGroupByRegex("androidx.*")
+      mavenContent {
+        includeGroupAndSubgroups("androidx")
+        includeGroupAndSubgroups("com.android")
+        includeGroupAndSubgroups("com.google")
       }
     }
     mavenCentral()
@@ -14,12 +17,17 @@ pluginManagement {
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
-    google()
+    google {
+      mavenContent {
+        includeGroupAndSubgroups("androidx")
+        includeGroupAndSubgroups("com.android")
+        includeGroupAndSubgroups("com.google")
+      }
+    }
     mavenCentral()
   }
 }
 
-rootProject.name = "Notes"
 include(":app")
 include(":core:data")
 include(":core:theme")

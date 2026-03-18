@@ -4,12 +4,13 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
 
 /**
  * @author zhangls
  */
-class TokenAuthenticatorImpl @Inject constructor(
+@Factory
+class TokenAuthenticatorImpl(
   private val tokenProvider: TokenProviderImpl,
   private val networkGlobalNotifier: NetworkGlobalNotifier
 ) : Authenticator {

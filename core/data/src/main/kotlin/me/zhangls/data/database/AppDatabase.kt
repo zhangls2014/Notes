@@ -27,7 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun emailDao(): EmailDao
 }
 
-internal fun getDatabase(context: Context): AppDatabase {
+internal fun createDatabase(context: Context): AppDatabase {
   return Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
     .setQueryCoroutineContext(Dispatchers.IO)
     .build()

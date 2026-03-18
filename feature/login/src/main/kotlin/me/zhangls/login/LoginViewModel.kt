@@ -2,7 +2,6 @@ package me.zhangls.login
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.UserModel
@@ -10,13 +9,13 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
 import me.zhangls.login.domain.LoginValidator
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 /**
  * @author zhangls
  */
-@HiltViewModel
-class LoginViewModel @Inject constructor(
+@KoinViewModel
+class LoginViewModel(
   savedStateHandle: SavedStateHandle,
   private val userRepository: UserRepository,
   private val toastGlobalNotifier: ToastGlobalNotifier

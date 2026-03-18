@@ -2,10 +2,10 @@ import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.jetbrains.serialization)
-  alias(libs.plugins.jetbrains.compose.compiler)
+  alias(libs.plugins.jetbrains.kotlin.serialization)
+  alias(libs.plugins.jetbrains.kotlin.compose.compiler)
   alias(libs.plugins.google.ksp)
-  alias(libs.plugins.google.hilt)
+  alias(libs.plugins.koin.compiler)
   alias(libs.plugins.androidx.baselineprofile)
 }
 
@@ -88,6 +88,12 @@ baselineProfile {
   saveInSrc = true
 }
 
+koinCompiler {
+  userLogs = true
+  compileSafety = false
+  unsafeDslChecks = false
+}
+
 dependencies {
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.test.ext.junit)
@@ -95,23 +101,21 @@ dependencies {
   debugImplementation(libs.squareup.leakCanary)
 
   // Module
-  implementation(project(":core:data"))
-  implementation(project(":core:theme"))
-  implementation(project(":core:network"))
-  implementation(project(":core:framework"))
-  implementation(project(":feature:main"))
-  implementation(project(":feature:login"))
-  implementation(project(":feature:settings"))
+  implementation(projects.core.data)
+  implementation(projects.core.theme)
+  implementation(projects.core.network)
+  implementation(projects.core.framework)
+  implementation(projects.feature.main)
+  implementation(projects.feature.login)
+  implementation(projects.feature.settings)
 
   // BaselineProfile
-  baselineProfile(project(":baselineprofile"))
+  baselineProfile(projects.baselineprofile)
   implementation(libs.androidx.profileinstaller)
 
   // Core
   implementation(libs.androidx.core)
-  implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.appcompat)
-  implementation(libs.google.material)
 
   // Compose
   debugImplementation(platform(libs.androidx.compose.bom))
@@ -126,6 +130,5 @@ dependencies {
   implementation(libs.androidx.compose.viewmodel)
 
   // DI
-  implementation(libs.google.hilt.android)
-  ksp(libs.google.hilt.android.compiler)
+  implementation(libs.koin.android)
 }

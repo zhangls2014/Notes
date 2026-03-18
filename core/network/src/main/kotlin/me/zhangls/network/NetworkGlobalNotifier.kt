@@ -2,8 +2,7 @@ package me.zhangls.network
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Singleton
 
 /**
  * 网络请求全局通知器
@@ -11,7 +10,7 @@ import javax.inject.Singleton
  * @author zhangls
  */
 @Singleton
-class NetworkGlobalNotifier @Inject constructor() {
+class NetworkGlobalNotifier {
   private val _events = MutableSharedFlow<NetworkError>(replay = 0, extraBufferCapacity = 1)
   val events = _events.asSharedFlow()
 

@@ -1,8 +1,9 @@
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.serialization)
-  alias(libs.plugins.jetbrains.compose.compiler)
+  alias(libs.plugins.jetbrains.kotlin.serialization)
+  alias(libs.plugins.jetbrains.kotlin.compose.compiler)
   alias(libs.plugins.google.ksp)
+  alias(libs.plugins.koin.compiler)
 }
 
 android {
@@ -42,9 +43,9 @@ dependencies {
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.espresso)
 
-  implementation(project(":core:data"))
-  implementation(project(":core:theme"))
-  implementation(project(":core:framework"))
+  implementation(projects.core.data)
+  implementation(projects.core.theme)
+  implementation(projects.core.framework)
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))
@@ -54,9 +55,4 @@ dependencies {
   implementation(libs.androidx.compose.activity)
   implementation(libs.androidx.compose.lifecycle)
   implementation(libs.androidx.compose.viewmodel)
-
-  // DI
-  implementation(libs.google.hilt.android)
-  implementation(libs.androidx.hilt.navigation.compose)
-  ksp(libs.google.hilt.android.compiler)
 }

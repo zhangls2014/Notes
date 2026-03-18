@@ -3,11 +3,10 @@ package me.zhangls.framework.mvi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Singleton
 
 @Singleton
-class ToastGlobalNotifier @Inject constructor() {
+class ToastGlobalNotifier {
   companion object {
     // 缓存 Toast 的数量
     private const val TOAST_BUFFER_SIZE = 16

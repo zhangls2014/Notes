@@ -12,23 +12,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.AndroidEntryPoint
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.notes.parseDeepLink
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.component.ToastHost
 import me.zhangls.theme.component.rememberToastState
+import org.koin.compose.viewmodel.koinViewModel
 
-@AndroidEntryPoint
+
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    // SplashScreen
-    installSplashScreen()
-    // EdgeToEdge
     enableEdgeToEdge()
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       window.isNavigationBarContrastEnforced = false
@@ -41,7 +36,7 @@ class MainActivity : ComponentActivity() {
     val destination = parseDeepLink(uri)
 
     setContent {
-      val viewmodel: MainViewModel = hiltViewModel()
+      val viewmodel: MainViewModel = koinViewModel()
       val toastState = rememberToastState()
       val state by viewmodel.state.collectAsStateWithLifecycle()
       val darkTheme = when (state.darkTheme) {

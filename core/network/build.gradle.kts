@@ -1,8 +1,8 @@
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.serialization)
+  alias(libs.plugins.jetbrains.kotlin.serialization)
   alias(libs.plugins.google.ksp)
-  alias(libs.plugins.google.hilt)
+  alias(libs.plugins.koin.compiler)
 }
 
 android {
@@ -33,6 +33,11 @@ android {
   }
 }
 
+koinCompiler {
+  // 0.4.1 版本，@Provided 注解无效，导致编译失败。所以暂时先禁用
+  compileSafety = false
+}
+
 dependencies {
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.test.ext.junit)
@@ -47,6 +52,7 @@ dependencies {
   api(libs.squareup.okhttp.logging)
 
   // DI
-  implementation(libs.google.hilt.android)
-  ksp(libs.google.hilt.android.compiler)
+  api(platform(libs.koin.bom))
+  api(libs.koin.core)
+  api(libs.koin.annotations)
 }

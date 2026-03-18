@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -23,13 +22,13 @@ import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 /**
  * @author zhangls
  */
-@HiltViewModel
-class EmailViewModel @Inject constructor(
+@KoinViewModel
+class EmailViewModel(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
   private val toastGlobalNotifier: ToastGlobalNotifier

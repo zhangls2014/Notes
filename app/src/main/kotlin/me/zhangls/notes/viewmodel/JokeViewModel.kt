@@ -2,20 +2,19 @@ package me.zhangls.notes.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.network.NetworkResult
 import me.zhangls.notes.data.repository.JokesRepository
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 /**
  * @author zhangls
  */
-@HiltViewModel
-class JokeViewModel @Inject constructor(
+@KoinViewModel
+class JokeViewModel(
   private val jokesRepository: JokesRepository,
   private val userRepository: UserRepository,
   private val settingsRepository: SettingsRepository,

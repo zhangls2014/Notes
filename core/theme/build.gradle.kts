@@ -1,6 +1,6 @@
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.compose.compiler)
+  alias(libs.plugins.jetbrains.kotlin.compose.compiler)
 }
 
 android {
@@ -42,7 +42,6 @@ dependencies {
 
   implementation(libs.androidx.core)
   implementation(libs.androidx.appcompat)
-  implementation(libs.google.material)
 
   // Compose
   debugImplementation(platform(libs.androidx.compose.bom))

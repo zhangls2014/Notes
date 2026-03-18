@@ -14,9 +14,10 @@ import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.database.entity.EmailEntity
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.model.toEntity
-import javax.inject.Inject
+import org.koin.core.annotation.Factory
 
-class EmailsRepository @Inject constructor(
+@Factory
+class EmailsRepository(
   private val database: AppDatabase,
   private val accountDao: AccountDao,
   private val emailDao: EmailDao
