@@ -19,13 +19,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Cancel
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,6 +56,13 @@ import me.zhangls.framework.ext.withDebounce
 import me.zhangls.main.EmailIntent
 import me.zhangls.main.EmailViewModel
 import me.zhangls.main.R
+import me.zhangls.main.icon.Cancel
+import me.zhangls.main.icon.Check
+import me.zhangls.main.icon.Delete
+import me.zhangls.main.icon.Edit
+import me.zhangls.main.icon.Star
+import me.zhangls.main.icon.StarFill
+import me.zhangls.theme.icon.Icons
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -83,8 +83,8 @@ internal fun EmailList(
   val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
   val items = remember {
     listOf(
-      ActionItem(Icons.Rounded.Star, R.string.main_action_favorite),
-      ActionItem(Icons.Rounded.StarOutline, R.string.main_action_cancel_favorite),
+      ActionItem(Icons.Rounded.StarFill, R.string.main_action_favorite),
+      ActionItem(Icons.Rounded.Star, R.string.main_action_cancel_favorite),
       ActionItem(Icons.Rounded.Delete, R.string.main_action_delete),
       ActionItem(Icons.Rounded.Cancel, R.string.main_action_cancel),
     )
@@ -274,7 +274,7 @@ fun EmailListItem(
             .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         ) {
           Icon(
-            imageVector = if (email.isImportant) Icons.Rounded.Star else Icons.Rounded.StarOutline,
+            imageVector = if (email.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
             contentDescription = "Favorite",
             tint = MaterialTheme.colorScheme.outline,
           )

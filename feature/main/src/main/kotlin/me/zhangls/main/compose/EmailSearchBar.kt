@@ -6,10 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExpandedDockedSearchBar
 import androidx.compose.material3.ExpandedFullScreenSearchBar
@@ -49,6 +45,10 @@ import me.zhangls.data.model.toDomain
 import me.zhangls.main.EmailIntent
 import me.zhangls.main.EmailViewModel
 import me.zhangls.main.R
+import me.zhangls.main.icon.MoreVert
+import me.zhangls.main.icon.Search
+import me.zhangls.theme.icon.ArrowBackIosNew
+import me.zhangls.theme.icon.Icons
 
 /**
  * @author zhangls
@@ -98,12 +98,12 @@ internal fun EmailSearchBar(
             }
           }
         } else {
-          Icon(Icons.Default.Search, contentDescription = null)
+          Icon(Icons.Rounded.Search, contentDescription = null)
         }
       },
       trailingIcon = {
         if (ownerAccount == null) {
-          Icon(Icons.Default.MoreVert, contentDescription = null)
+          Icon(Icons.Rounded.MoreVert, contentDescription = null)
         } else {
           ProfileImage(
             drawableResource = ownerAccount.avatar,

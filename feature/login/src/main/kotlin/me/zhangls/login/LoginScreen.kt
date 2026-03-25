@@ -1,9 +1,9 @@
 package me.zhangls.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,12 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,12 +42,19 @@ import me.zhangls.framework.ext.withDebounce
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
 import me.zhangls.login.domain.text
+import me.zhangls.login.icon.AccountCircle
+import me.zhangls.login.icon.AppLogo
+import me.zhangls.login.icon.Clear
+import me.zhangls.login.icon.Lock
+import me.zhangls.login.icon.Visibility
+import me.zhangls.login.icon.VisibilityOff
+import me.zhangls.theme.component.ContainedLoadingIndicator
+import me.zhangls.theme.icon.Icons
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * @author zhangls
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (LoginResult) -> Unit) {
   val keyboardController = LocalSoftwareKeyboardController.current
@@ -82,7 +83,10 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
         .verticalScroll(state = rememberScrollState())
         .padding(padding)
     ) {
+      Image(imageVector = AppLogo, contentDescription = null)
+
       AccountInput(
+        modifier = Modifier.padding(top = 40.dp),
         account = state.account,
         accountError = state.accountError,
         onAccountChange = { viewmodel.sendIntent(LoginIntent.UpdateAccount(it)) },
@@ -115,7 +119,9 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
     }
   }
 
-  // TODO Material Compose 1.5.0 发布 LoadingIndicator 后再实现加载框
+  if (state.isLoading) {
+    ContainedLoadingIndicator()
+  }
 }
 
 @Composable
@@ -143,7 +149,7 @@ private fun AccountInput(
     trailingIcon = {
       if (account.isNotEmpty()) {
         Icon(
-          imageVector = Icons.Default.Clear,
+          imageVector = Icons.Rounded.Clear,
           contentDescription = null,
           modifier = Modifier.clickable { onClearAccount() }
         )

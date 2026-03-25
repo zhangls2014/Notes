@@ -1,8 +1,6 @@
 package me.zhangls.theme.component
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import me.zhangls.theme.R
+import me.zhangls.theme.icon.ArrowBackIosNew
+import me.zhangls.theme.icon.Icons
 
 /**
  * 标题居中的 [CenterAlignedTopAppBar]，通过在右侧添加一个空白不可用的 [IconButton] 来实现标题居中

@@ -5,10 +5,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -25,8 +21,12 @@ import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import me.zhangls.main.home.FavoritesScreen
 import me.zhangls.main.home.HomeScreen
+import me.zhangls.main.icon.Favorite
+import me.zhangls.main.icon.Home
+import me.zhangls.main.icon.Settings
 import me.zhangls.settings.SettingsResult
 import me.zhangls.settings.SettingsScreen
+import me.zhangls.theme.icon.Icons
 import org.koin.compose.viewmodel.koinViewModel
 
 /**

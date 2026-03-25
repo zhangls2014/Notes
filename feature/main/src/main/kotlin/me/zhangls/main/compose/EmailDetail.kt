@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,7 +39,10 @@ import me.zhangls.framework.ext.withDebounce
 import me.zhangls.main.EmailIntent
 import me.zhangls.main.EmailViewModel
 import me.zhangls.main.R
+import me.zhangls.main.icon.Star
+import me.zhangls.main.icon.StarFill
 import me.zhangls.theme.component.CenteredTopAppBar
+import me.zhangls.theme.icon.Icons
 
 /**
  * @author zhangls
@@ -142,7 +142,7 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
             .background(MaterialTheme.colorScheme.surfaceContainer),
         ) {
           Icon(
-            imageVector = if (email.isImportant) Icons.Rounded.Star else Icons.Rounded.StarOutline,
+            imageVector = if (email.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
             contentDescription = "Favorite",
             tint = MaterialTheme.colorScheme.outline,
           )
