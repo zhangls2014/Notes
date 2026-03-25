@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="theme_action_navigate_before">Back</string>
+  <string name="theme_action_navigate_before">返回</string>
 </resources>

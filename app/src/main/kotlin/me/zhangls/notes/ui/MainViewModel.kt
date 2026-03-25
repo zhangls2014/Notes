@@ -43,7 +43,14 @@ class MainViewModel(
     }
     viewModelScope.launch {
       settingsRepository.settingsFlow.collectLatest {
-        updateState { copy(dynamicColor = it.dynamicColor, darkTheme = it.darkTheme, fontSize = it.fontSize) }
+        updateState {
+          copy(
+            dynamicColor = it.dynamicColor,
+            darkTheme = it.darkTheme,
+            fontSize = it.fontSize,
+            appLanguage = it.appLanguage
+          )
+        }
       }
     }
   }

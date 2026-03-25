@@ -1,6 +1,7 @@
 package me.zhangls.notes.ui
 
 import kotlinx.serialization.Serializable
+import me.zhangls.data.type.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.framework.mvi.MviState
@@ -15,4 +16,5 @@ data class MainState(
   val dynamicColor: Boolean = false,
   val darkTheme: DarkThemeConfig = DarkThemeConfig.LIGHT,
   val fontSize: FontSizeConfig = FontSizeConfig.STANDARD,
+  val appLanguage: AppLanguage? = null,
 ) : MviState

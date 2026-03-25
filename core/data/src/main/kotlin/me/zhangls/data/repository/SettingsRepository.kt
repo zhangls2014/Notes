@@ -3,6 +3,7 @@ package me.zhangls.data.repository
 import androidx.datastore.core.DataStore
 import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.model.SettingsModel
+import me.zhangls.data.type.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 import org.koin.core.annotation.Named
@@ -36,6 +37,12 @@ class SettingsRepository(
   suspend fun updateFontSize(fontSizeConfig: FontSizeConfig) {
     dataStore.updateData {
       it.copy(fontSize = fontSizeConfig)
+    }
+  }
+
+  suspend fun updateAppLanguage(appLanguage: AppLanguage) {
+    dataStore.updateData {
+      it.copy(appLanguage = appLanguage)
     }
   }
 }

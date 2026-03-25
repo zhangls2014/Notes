@@ -3,6 +3,7 @@ package me.zhangls.settings.domain
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
+import me.zhangls.data.type.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.framework.mvi.DialogResult
@@ -30,6 +31,7 @@ class SettingsHandler(
     private const val KEY_DYNAMIC_COLOR = "dynamicColor"
     private const val KEY_DARK_THEME = "darkTheme"
     private const val KEY_FONT_SIZE = "fontSize"
+    private const val KEY_APP_LANGUAGE = "appLanguage"
     private const val KEY_LOGOUT = "logout"
 
     private const val DIALOG_ID_LOGOUT = "dialog_id_logout"
@@ -80,6 +82,22 @@ class SettingsHandler(
         )
       ),
 
+      Preference.Alert(
+        key = KEY_APP_LANGUAGE,
+        value = settings.appLanguage,
+        title = R.string.settings_label_language,
+        summary = when (settings.appLanguage) {
+          AppLanguage.FOLLOW_SYSTEM -> R.string.settings_label_language_follow_system
+          AppLanguage.ENGLISH -> R.string.settings_label_language_english
+          AppLanguage.CHINESE -> R.string.settings_label_language_chinese
+        },
+        options = listOf(
+          Preference.Option(R.string.settings_label_language_follow_system, AppLanguage.FOLLOW_SYSTEM),
+          Preference.Option(R.string.settings_label_language_english, AppLanguage.ENGLISH),
+          Preference.Option(R.string.settings_label_language_chinese, AppLanguage.CHINESE)
+        )
+      ),
+
       // 退出登录
       Preference.Text(
         key = KEY_LOGOUT,
@@ -101,6 +119,10 @@ class SettingsHandler(
 
       KEY_FONT_SIZE -> {
         settingsRepository.updateFontSize(result as FontSizeConfig)
+      }
+
+      KEY_APP_LANGUAGE -> {
+        settingsRepository.updateAppLanguage(result as AppLanguage)
       }
     }
   }

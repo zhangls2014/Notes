@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="main_label_home">首页</string>
-  <string name="main_label_favorites">收藏</string>
-  <string name="main_label_settings">设置</string>
-  <string name="main_action_new_email">新建邮件</string>
-  <string name="main_action_email_reply">回复</string>
-  <string name="main_action_email_reply_all">回复全部</string>
-  <string name="main_hint_search">搜索</string>
-  <string name="main_action_search_collapsed">关闭搜索</string>
-  <string name="main_action_owner_info">个人信息</string>
-  <string name="main_msg_no_item_found">未找到任何内容</string>
-  <string name="main_msg_no_search_history">没有任何搜索历史</string>
-  <string name="main_action_favorite">收藏</string>
-  <string name="main_action_cancel_favorite">取消收藏</string>
-  <string name="main_action_delete">删除</string>
-  <string name="main_action_cancel">取消</string>
+  <string name="main_label_home">Home</string>
+  <string name="main_label_favorites">Favorites</string>
+  <string name="main_label_settings">Settings</string>
+  <string name="main_action_new_email">New email</string>
+  <string name="main_action_email_reply">Reply</string>
+  <string name="main_action_email_reply_all">Reply all</string>
+  <string name="main_hint_search">Search</string>
+  <string name="main_action_search_collapsed">Close search</string>
+  <string name="main_action_owner_info">Profile</string>
+  <string name="main_msg_no_item_found">No items found</string>
+  <string name="main_msg_no_search_history">No search history</string>
+  <string name="main_action_favorite">Favorite</string>
+  <string name="main_action_cancel_favorite">Unfavorite</string>
+  <string name="main_action_delete">Delete</string>
+  <string name="main_action_cancel">Cancel</string>
 </resources>
