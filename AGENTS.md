@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## 项目概述
 
-这是一个 Android 应用，使用 Kotlin、Jetpack Compose、Hilt 和模块化架构。应用主要功能是邮件管理，包含首页、收藏页和设置页。
+这是一个 Android 应用，使用 Kotlin、Jetpack Compose、Koin 和模块化架构。应用主要功能是邮件管理，包含首页、收藏页和设置页。
 
 ## 构建和运行
 
@@ -72,7 +72,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## 注意事项
 
-- 项目使用 Hilt 进行依赖注入
+- 项目使用 Koin 进行依赖注入
 - 使用 Jetpack Compose 进行 UI 构建
 - 采用 MVI (Model-View-Intent) 架构模式
 - 数据通过分页加载，支持无限滚动
