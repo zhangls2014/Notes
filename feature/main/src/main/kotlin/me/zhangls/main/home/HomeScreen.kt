@@ -5,6 +5,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
@@ -27,6 +28,8 @@ fun HomeScreen(isBottomNavigationBar: Boolean, viewmodel: EmailViewModel) {
   val navigateToDetail: (Long) -> Unit = {
     scope.launch { scaffoldNavigator.navigateTo(pane = ListDetailPaneScaffoldRole.Detail, contentKey = it) }
   }
+  val scaffoldValue = scaffoldNavigator.scaffoldValue
+  val showBack = scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Hidden
 
   NavigableListDetailPaneScaffold(
     navigator = scaffoldNavigator,
@@ -44,7 +47,7 @@ fun HomeScreen(isBottomNavigationBar: Boolean, viewmodel: EmailViewModel) {
     },
     detailPane = {
       val emailId = scaffoldNavigator.currentDestination?.contentKey
-      val onBackPressed: (() -> Unit)? = if (isBottomNavigationBar) {
+      val onBackPressed: (() -> Unit)? = if (showBack) {
         {
           scope.launch { scaffoldNavigator.navigateBack() }
         }

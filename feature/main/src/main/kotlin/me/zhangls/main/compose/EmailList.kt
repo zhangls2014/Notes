@@ -142,16 +142,12 @@ internal fun EmailList(
       }
     },
   ) { padding ->
-    val contentPadding = if (isFavorite) {
-      padding
-    } else {
-      PaddingValues(
-        top = padding.calculateTopPadding(),
-        bottom = padding.calculateBottomPadding(),
-        start = if (isBottomNavigationBar) padding.calculateStartPadding(LayoutDirection.Ltr) else 0.dp,
-        end = padding.calculateEndPadding(LayoutDirection.Ltr)
-      )
-    }
+    val contentPadding = PaddingValues(
+      top = padding.calculateTopPadding(),
+      bottom = padding.calculateBottomPadding(),
+      start = if (isBottomNavigationBar) padding.calculateStartPadding(LayoutDirection.Ltr) else 0.dp,
+      end = padding.calculateEndPadding(LayoutDirection.Ltr)
+    )
 
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding, state = emailListState) {
       if (emailItems.loadState.refresh == LoadState.Loading) {
