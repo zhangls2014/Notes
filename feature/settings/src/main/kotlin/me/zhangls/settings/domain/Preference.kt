@@ -1,5 +1,7 @@
 package me.zhangls.settings.domain
 
+import androidx.compose.ui.graphics.vector.ImageVector
+
 /**
  * @author zhangls
  */
@@ -8,12 +10,14 @@ sealed interface Preference<T> {
   val value: T
   val title: Int
   val summary: Int?
+  val icon: ImageVector?
 
   data class Text(
     override val key: String,
     override val value: Unit = Unit,
     override val title: Int,
     override val summary: Int?,
+    override val icon: ImageVector?,
   ) : Preference<Unit>
 
   data class Switch(
@@ -21,6 +25,7 @@ sealed interface Preference<T> {
     override val value: Boolean,
     override val title: Int,
     override val summary: Int?,
+    override val icon: ImageVector?,
   ) : Preference<Boolean>
 
   data class Alert<T>(
@@ -28,7 +33,8 @@ sealed interface Preference<T> {
     override val value: T,
     override val title: Int,
     override val summary: Int?,
-    val options: List<Option<T>>
+    val options: List<Option<T>>,
+    override val icon: ImageVector?,
   ) : Preference<T>
 
   /**

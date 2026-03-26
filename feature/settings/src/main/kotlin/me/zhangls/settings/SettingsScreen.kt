@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -126,6 +127,11 @@ private fun SwitchItem(
     summary = preference.summary?.let {
       { Text(text = stringResource(it)) }
     },
+    icon = {
+      preference.icon?.let {
+        Icon(imageVector = it, contentDescription = null)
+      }
+    }
   )
 }
 
@@ -149,6 +155,11 @@ private fun <T> AlertItem(
     summary = preference.summary?.let {
       { Text(text = stringResource(it)) }
     },
+    icon = {
+      preference.icon?.let {
+        Icon(imageVector = it, contentDescription = null)
+      }
+    }
   )
 }
 
@@ -170,6 +181,11 @@ private fun TextItem(
     summary = preference.summary?.let {
       { Text(text = stringResource(it)) }
     },
+    icon = {
+      preference.icon?.let {
+        Icon(imageVector = it, contentDescription = null)
+      }
+    }
   )
 }
 

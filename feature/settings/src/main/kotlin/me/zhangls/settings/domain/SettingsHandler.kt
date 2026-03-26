@@ -11,6 +11,11 @@ import me.zhangls.framework.mvi.DialogState
 import me.zhangls.framework.mvi.MviEffect
 import me.zhangls.settings.R
 import me.zhangls.settings.SettingsResult
+import me.zhangls.settings.icon.DarkMode
+import me.zhangls.settings.icon.FormatSize
+import me.zhangls.settings.icon.Language
+import me.zhangls.settings.icon.Palette
+import me.zhangls.theme.icon.Icons
 
 /**
  * @author zhangls
@@ -47,7 +52,8 @@ class SettingsHandler(
           R.string.settings_msg_dynamic_color_on
         } else {
           R.string.settings_msg_dynamic_color_off
-        }
+        },
+        icon = Icons.Rounded.Palette,
       ),
 
       Preference.Alert(
@@ -63,7 +69,8 @@ class SettingsHandler(
           Preference.Option(R.string.settings_label_dark_theme_follow_system, DarkThemeConfig.FOLLOW_SYSTEM),
           Preference.Option(R.string.settings_label_dark_theme_light, DarkThemeConfig.LIGHT),
           Preference.Option(R.string.settings_label_dark_theme_dark, DarkThemeConfig.DARK)
-        )
+        ),
+        icon = Icons.Rounded.DarkMode,
       ),
 
       Preference.Alert(
@@ -79,7 +86,8 @@ class SettingsHandler(
           Preference.Option(R.string.settings_label_font_size_standard, FontSizeConfig.STANDARD),
           Preference.Option(R.string.settings_label_font_size_medium, FontSizeConfig.MEDIUM),
           Preference.Option(R.string.settings_label_font_size_large, FontSizeConfig.LARGE)
-        )
+        ),
+        icon = Icons.Rounded.FormatSize,
       ),
 
       Preference.Alert(
@@ -95,14 +103,16 @@ class SettingsHandler(
           Preference.Option(R.string.settings_label_language_follow_system, AppLanguage.FOLLOW_SYSTEM),
           Preference.Option(R.string.settings_label_language_english, AppLanguage.ENGLISH),
           Preference.Option(R.string.settings_label_language_chinese, AppLanguage.CHINESE)
-        )
+        ),
+        icon = Icons.Rounded.Language
       ),
 
       // 退出登录
       Preference.Text(
         key = KEY_LOGOUT,
         title = R.string.settings_label_logout,
-        summary = null
+        summary = null,
+        icon = null,
       )
     )
   }
