@@ -9,8 +9,10 @@ import me.zhangls.data.database.AppDatabase
 import me.zhangls.data.database.createDatabase
 import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
+import me.zhangls.data.datastore.CommonSerializer
 import me.zhangls.data.datastore.SettingsSerializer
 import me.zhangls.data.datastore.UserSerializer
+import me.zhangls.data.model.CommonModel
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.model.UserModel
 import org.koin.core.annotation.ComponentScan
@@ -48,4 +50,12 @@ fun provideUserModel(context: Context): DataStore<UserModel?> = DataStoreFactory
   corruptionHandler = ReplaceFileCorruptionHandler { null },
   serializer = UserSerializer(),
   produceFile = { context.dataStoreFile("user.json") }
+)
+
+@Factory
+@Named("CommonDataStore")
+fun provideCommonModel(context: Context): DataStore<CommonModel> = DataStoreFactory.create(
+  corruptionHandler = ReplaceFileCorruptionHandler { CommonModel() },
+  serializer = CommonSerializer(),
+  produceFile = { context.dataStoreFile("common.json") }
 )

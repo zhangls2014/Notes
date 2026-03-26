@@ -5,8 +5,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import me.zhangls.data.repository.CommonRepository
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.notes.data.local.LocalEmailsDataProvider
+import me.zhangls.notes.util.appVersionCode
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -21,6 +23,7 @@ class NotesApp : Application() {
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   private val emailsRepository: EmailsRepository by inject()
+  private val commonRepository: CommonRepository by inject()
 
   override fun onCreate() {
     super.onCreate()
@@ -38,7 +41,18 @@ class NotesApp : Application() {
 
   private fun initData() {
     scope.launch {
-      emailsRepository.insertEmails(LocalEmailsDataProvider.allEmails)
+      commonRepository.commonFlow.collect {
+        if (it.launchCount == 0L) {
+          emailsRepository.insertEmails(LocalEmailsDataProvider.allEmails)
+        }
+        if (it.lastVersionCode != appVersionCode()) {
+          // TODO 版本更新后的第一次启动
+        }
+      }
+    }
+    scope.launch {
+      commonRepository.increaseLaunchCount()
+      commonRepository.updateVersionCode(appVersionCode())
     }
   }
 }

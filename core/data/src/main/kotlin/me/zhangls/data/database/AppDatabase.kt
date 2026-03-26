@@ -28,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
 }
 
 internal fun createDatabase(context: Context): AppDatabase {
-  return Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+  return Room.databaseBuilder(context, AppDatabase::class.java, "notes")
     .setQueryCoroutineContext(Dispatchers.IO)
     .build()
 }
