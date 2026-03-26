@@ -1,6 +1,7 @@
 package me.zhangls.login
 
 import kotlinx.serialization.Serializable
+import me.zhangls.data.type.AppLanguage
 import me.zhangls.framework.mvi.MviState
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
@@ -25,5 +26,7 @@ data class LoginState(
   // 输入账户密码格式是否正确
   val isInputValid: Boolean = false,
   // 登录中
-  val isLoading: Boolean = false
+  val isLoading: Boolean = false,
+  // 应用语言
+  val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM,
 ) : MviState

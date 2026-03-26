@@ -149,7 +149,7 @@ fun ComposeAppTheme(
 
   CompositionLocalProvider(
     LocalCustomColors provides colors,
-    LocalDensity provides Density(density = density.density, fontScale = fontScale)
+    LocalDensity provides Density(density = density.density, fontScale = fontScale),
   ) {
     MaterialTheme(colorScheme = colorScheme, content = content)
   }

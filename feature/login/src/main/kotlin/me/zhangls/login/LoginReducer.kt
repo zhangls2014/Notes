@@ -40,6 +40,10 @@ object LoginReducer {
           copy(passwordVisible = action.visible)
         }
 
+        is LoginAction.UpdateLanguage -> {
+          copy(appLanguage = action.language)
+        }
+
         is LoginAction.Loading -> {
           copy(isLoading = action.visible)
         }

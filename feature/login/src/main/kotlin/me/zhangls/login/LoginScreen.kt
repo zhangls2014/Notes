@@ -3,25 +3,36 @@ package me.zhangls.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -38,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.zhangls.data.type.AppLanguage
 import me.zhangls.framework.ext.withDebounce
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
@@ -48,6 +60,7 @@ import me.zhangls.login.icon.Clear
 import me.zhangls.login.icon.Lock
 import me.zhangls.login.icon.Visibility
 import me.zhangls.login.icon.VisibilityOff
+import me.zhangls.settings.domain.SettingsHandler
 import me.zhangls.theme.component.ContainedLoadingIndicator
 import me.zhangls.theme.icon.Icons
 import org.koin.compose.viewmodel.koinViewModel
@@ -76,51 +89,107 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
   Scaffold { padding ->
     Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center,
       modifier = Modifier
         .fillMaxSize()
         .verticalScroll(state = rememberScrollState())
-        .padding(padding)
     ) {
-      Image(imageVector = AppLogo, contentDescription = null)
-
-      AccountInput(
-        modifier = Modifier.padding(top = 40.dp),
-        account = state.account,
-        accountError = state.accountError,
-        onAccountChange = { viewmodel.sendIntent(LoginIntent.UpdateAccount(it)) },
-        onClearAccount = { viewmodel.sendIntent(LoginIntent.ClearAccount) }
-      )
-
-      PasswordInput(
-        modifier = Modifier.padding(top = 16.dp),
-        password = state.password,
-        passwordError = state.passwordError,
-        passwordVisible = state.passwordVisible,
-        onPasswordChange = { viewmodel.sendIntent(LoginIntent.UpdatePassword(it)) },
-        onPasswordVisibleChange = { viewmodel.sendIntent(LoginIntent.UpdatePasswordVisible(it)) },
-        onLogin = {
-          keyboardController?.hide()
-          viewmodel.sendIntent(LoginIntent.Login)
-        }
-      )
-
-      Button(
-        onClick = loginClick,
-        enabled = state.isInputValid,
-        shape = RoundedCornerShape(24.dp),
+      LanguageButton(
+        language = state.appLanguage,
         modifier = Modifier
-          .fillMaxWidth()
-          .padding(start = 32.dp, end = 32.dp, top = 32.dp)
+          .align(alignment = Alignment.End)
+          .padding(end = 16.dp, top = padding.calculateTopPadding() + 16.dp),
+        onLanguageChange = { viewmodel.sendIntent(LoginIntent.UpdateLanguage(it)) }
+      )
+
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(vertical = 32.dp)
       ) {
-        Text(text = stringResource(id = R.string.login_action_login), fontSize = 16.sp)
+        Image(imageVector = AppLogo, contentDescription = null)
+
+        AccountInput(
+          modifier = Modifier.padding(top = 40.dp),
+          account = state.account,
+          accountError = state.accountError,
+          onAccountChange = { viewmodel.sendIntent(LoginIntent.UpdateAccount(it)) },
+          onClearAccount = { viewmodel.sendIntent(LoginIntent.ClearAccount) }
+        )
+
+        PasswordInput(
+          modifier = Modifier.padding(top = 16.dp),
+          password = state.password,
+          passwordError = state.passwordError,
+          passwordVisible = state.passwordVisible,
+          onPasswordChange = { viewmodel.sendIntent(LoginIntent.UpdatePassword(it)) },
+          onPasswordVisibleChange = { viewmodel.sendIntent(LoginIntent.UpdatePasswordVisible(it)) },
+          onLogin = {
+            keyboardController?.hide()
+            viewmodel.sendIntent(LoginIntent.Login)
+          }
+        )
+
+        Button(
+          onClick = loginClick,
+          enabled = state.isInputValid,
+          shape = RoundedCornerShape(24.dp),
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 32.dp, end = 32.dp, top = 32.dp)
+        ) {
+          Text(text = stringResource(id = R.string.login_action_login), fontSize = 16.sp)
+        }
       }
     }
   }
 
   if (state.isLoading) {
     ContainedLoadingIndicator()
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLanguageChange: (AppLanguage) -> Unit) {
+  val preference = SettingsHandler.languagePreference(language)
+  val title = if (language == AppLanguage.FOLLOW_SYSTEM) {
+    preference.title
+  } else {
+    preference.options.first { it.value == language }.label
+  }
+  var expanded by remember { mutableStateOf(false) }
+
+  Box(modifier = modifier) {
+    OutlinedButton(
+      onClick = { expanded = expanded.not() },
+    ) {
+      preference.icon?.let {
+        Icon(imageVector = it, contentDescription = null)
+        Spacer(modifier = Modifier.width(8.dp))
+      }
+      Text(text = stringResource(title))
+    }
+
+    DropdownMenuPopup(
+      expanded = expanded,
+      onDismissRequest = { expanded = false }
+    ) {
+      DropdownMenuGroup(
+        shapes = MenuDefaults.groupShapes(),
+      ) {
+        preference.options.forEachIndexed { index, option ->
+          DropdownMenuItem(
+            text = { Text(text = stringResource(option.label)) },
+            shapes = MenuDefaults.itemShapes(),
+            checked = option.value == language,
+            onCheckedChange = {
+              expanded = false
+              onLanguageChange(option.value)
+            },
+          )
+        }
+      }
+    }
   }
 }
 

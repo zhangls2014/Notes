@@ -3,8 +3,10 @@ package me.zhangls.login
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.UserModel
+import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
@@ -18,12 +20,21 @@ import org.koin.core.annotation.KoinViewModel
 class LoginViewModel(
   savedStateHandle: SavedStateHandle,
   private val userRepository: UserRepository,
+  private val settingsRepository: SettingsRepository,
   private val toastGlobalNotifier: ToastGlobalNotifier
 ) : MviViewModel<LoginState, LoginIntent>(
   initialState = LoginState(),
   stateSerializer = LoginState.serializer(),
   savedStateHandle = savedStateHandle
 ) {
+  init {
+    viewModelScope.launch {
+      settingsRepository.settingsFlow.collectLatest {
+        dispatch(LoginAction.UpdateLanguage(it.appLanguage))
+      }
+    }
+  }
+
   override fun handleIntent(intent: LoginIntent) {
     when (intent) {
       LoginIntent.Login -> {
@@ -49,6 +60,13 @@ class LoginViewModel(
 
       is LoginIntent.UpdatePasswordVisible -> {
         dispatch(LoginAction.UpdatePasswordVisible(intent.visible))
+      }
+
+      is LoginIntent.UpdateLanguage -> {
+        dispatch(LoginAction.UpdateLanguage(intent.language))
+        viewModelScope.launch {
+          settingsRepository.updateAppLanguage(intent.language)
+        }
       }
     }
   }
@@ -78,4 +96,3 @@ class LoginViewModel(
     }
   }
 }
-

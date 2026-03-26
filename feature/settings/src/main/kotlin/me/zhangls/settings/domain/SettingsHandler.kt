@@ -40,27 +40,28 @@ class SettingsHandler(
     private const val KEY_LOGOUT = "logout"
 
     private const val DIALOG_ID_LOGOUT = "dialog_id_logout"
-  }
 
-  fun mapToPreferences(settings: SettingsModel): List<Preference<*>> {
-    return listOf(
-      Preference.Switch(
+
+    fun dynamicColorPreference(dynamicColor: Boolean): Preference.Switch {
+      return Preference.Switch(
         key = KEY_DYNAMIC_COLOR,
-        value = settings.dynamicColor,
+        value = dynamicColor,
         title = R.string.settings_label_dynamic_color,
-        summary = if (settings.dynamicColor) {
+        summary = if (dynamicColor) {
           R.string.settings_msg_dynamic_color_on
         } else {
           R.string.settings_msg_dynamic_color_off
         },
         icon = Icons.Rounded.Palette,
-      ),
+      )
+    }
 
-      Preference.Alert(
+    fun darkThemePreference(darkTheme: DarkThemeConfig): Preference.Alert<DarkThemeConfig> {
+      return Preference.Alert(
         key = KEY_DARK_THEME,
-        value = settings.darkTheme,
+        value = darkTheme,
         title = R.string.settings_label_dark_theme,
-        summary = when (settings.darkTheme) {
+        summary = when (darkTheme) {
           DarkThemeConfig.FOLLOW_SYSTEM -> R.string.settings_label_dark_theme_follow_system
           DarkThemeConfig.LIGHT -> R.string.settings_label_dark_theme_light
           DarkThemeConfig.DARK -> R.string.settings_label_dark_theme_dark
@@ -71,13 +72,15 @@ class SettingsHandler(
           Preference.Option(R.string.settings_label_dark_theme_dark, DarkThemeConfig.DARK)
         ),
         icon = Icons.Rounded.DarkMode,
-      ),
+      )
+    }
 
-      Preference.Alert(
+    fun fontSizePreference(fontSize: FontSizeConfig): Preference.Alert<FontSizeConfig> {
+      return Preference.Alert(
         key = KEY_FONT_SIZE,
-        value = settings.fontSize,
+        value = fontSize,
         title = R.string.settings_label_font_size,
-        summary = when (settings.fontSize) {
+        summary = when (fontSize) {
           FontSizeConfig.STANDARD -> R.string.settings_label_font_size_standard
           FontSizeConfig.MEDIUM -> R.string.settings_label_font_size_medium
           FontSizeConfig.LARGE -> R.string.settings_label_font_size_large
@@ -88,13 +91,15 @@ class SettingsHandler(
           Preference.Option(R.string.settings_label_font_size_large, FontSizeConfig.LARGE)
         ),
         icon = Icons.Rounded.FormatSize,
-      ),
+      )
+    }
 
-      Preference.Alert(
+    fun languagePreference(appLanguage: AppLanguage): Preference.Alert<AppLanguage> {
+      return Preference.Alert(
         key = KEY_APP_LANGUAGE,
-        value = settings.appLanguage,
+        value = appLanguage,
         title = R.string.settings_label_language,
-        summary = when (settings.appLanguage) {
+        summary = when (appLanguage) {
           AppLanguage.FOLLOW_SYSTEM -> R.string.settings_label_language_follow_system
           AppLanguage.ENGLISH -> R.string.settings_label_language_english
           AppLanguage.CHINESE -> R.string.settings_label_language_chinese
@@ -105,15 +110,27 @@ class SettingsHandler(
           Preference.Option(R.string.settings_label_language_chinese, AppLanguage.CHINESE)
         ),
         icon = Icons.Rounded.Language
-      ),
+      )
+    }
 
-      // 退出登录
-      Preference.Text(
+    fun logoutPreference(): Preference.Text {
+      return Preference.Text(
         key = KEY_LOGOUT,
         title = R.string.settings_label_logout,
         summary = null,
         icon = null,
       )
+    }
+  }
+
+  fun mapToPreferences(settings: SettingsModel): List<Preference<*>> {
+    return listOf(
+      dynamicColorPreference(settings.dynamicColor),
+      darkThemePreference(settings.darkTheme),
+      fontSizePreference(settings.fontSize),
+      languagePreference(settings.appLanguage),
+      // 退出登录
+      logoutPreference()
     )
   }
 

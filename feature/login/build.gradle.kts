@@ -46,6 +46,7 @@ dependencies {
   implementation(projects.core.data)
   implementation(projects.core.theme)
   implementation(projects.core.framework)
+  implementation(projects.feature.settings)
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))
