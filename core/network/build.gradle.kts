@@ -1,58 +1,61 @@
 plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.kotlin.serialization)
-  alias(libs.plugins.google.ksp)
-  alias(libs.plugins.koin.compiler)
+  alias(kmp.plugins.jetbrains.kotlin.serialization)
+  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
+  alias(kmp.plugins.android.kmp.library)
+  alias(kmp.plugins.android.lint)
+  alias(kmp.plugins.google.ksp)
+  alias(kmp.plugins.koin.compiler)
 }
 
-android {
-  namespace = "me.zhangls.network"
-  buildToolsVersion = libs.versions.buildTool.get()
+kotlin {
+  android {
+    namespace = "me.zhangls.network"
+    buildToolsVersion = kmp.versions.android.buildTools.get()
 
-  compileSdk {
-    version = release(libs.versions.compileSdk.get().toInt())
+    compileSdk = kmp.versions.android.compileSdk.get().toInt()
+    minSdk = kmp.versions.android.minSdk.get().toInt()
   }
 
-  defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
-
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+  listOf(
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach { iosTarget ->
+    iosTarget.binaries.framework {
+      baseName = "networkKit"
+      isStatic = true
     }
   }
 
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+  sourceSets {
+    commonMain.dependencies {
+      implementation(project.dependencies.platform(kmp.ktor.bom))
+      implementation(kmp.ktor.client.core)
+      implementation(kmp.ktor.client.cio)
+      implementation(kmp.ktor.client.auth)
+      implementation(kmp.ktor.client.logging)
+      implementation(kmp.ktor.client.content.negotiation)
+      implementation(kmp.ktor.serialization.kotlinx.json)
+
+      implementation(kmp.jetbrains.kotlinx.coroutines.core)
+      implementation(kmp.jetbrains.kotlinx.serialization.core)
+      implementation(kmp.jetbrains.kotlinx.serialization.json)
+
+      // DI
+      implementation(project.dependencies.platform(kmp.koin.bom))
+      implementation(kmp.koin.core)
+      implementation(kmp.koin.annotations)
+    }
+    androidMain.dependencies {
+      implementation(kmp.ktor.client.okhttp)
+      implementation(kmp.jetbrains.kotlinx.coroutines.android)
+    }
+    iosMain.dependencies {
+      implementation(kmp.ktor.client.darwin)
+    }
   }
 }
 
 koinCompiler {
-  // 0.4.1 版本，@Provided 注解无效，导致编译失败。所以暂时先禁用
+  // TODO 0.4.1 版本，@Provided 注解无效，导致编译失败。所以暂时先禁用
   compileSafety = false
-}
-
-dependencies {
-  testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.androidx.test.espresso)
-
-  implementation(libs.androidx.core)
-  implementation(libs.jetbrains.kotlinx.coroutines.android)
-  api(libs.jetbrains.kotlinx.serialization.core)
-  api(libs.jetbrains.kotlinx.serialization.json)
-  api(libs.squareup.retrofit2)
-  api(libs.squareup.retrofit2.kotlinx.serialization)
-  api(libs.squareup.okhttp.logging)
-
-  // DI
-  api(platform(libs.koin.bom))
-  api(libs.koin.core)
-  api(libs.koin.annotations)
 }

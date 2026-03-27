@@ -1,63 +1,62 @@
 plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.kotlin.serialization)
-  alias(libs.plugins.google.ksp)
-  alias(libs.plugins.androidx.room)
-  alias(libs.plugins.koin.compiler)
+  alias(kmp.plugins.jetbrains.kotlin.serialization)
+  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
+  alias(kmp.plugins.android.kmp.library)
+  alias(kmp.plugins.android.lint)
+  alias(kmp.plugins.androidx.room)
+  alias(kmp.plugins.google.ksp)
+  alias(kmp.plugins.koin.compiler)
 }
 
-android {
-  namespace = "me.zhangls.data"
-  buildToolsVersion = libs.versions.buildTool.get()
+kotlin {
+  android {
+    namespace = "me.zhangls.data"
+    buildToolsVersion = kmp.versions.android.buildTools.get()
 
-  compileSdk {
-    version = release(libs.versions.compileSdk.get().toInt())
+    compileSdk = kmp.versions.android.compileSdk.get().toInt()
+    minSdk = kmp.versions.android.minSdk.get().toInt()
   }
 
-  defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
-
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+  listOf(
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach { iosTarget ->
+    iosTarget.binaries.framework {
+      baseName = "dataKit"
+      isStatic = true
     }
   }
 
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+  sourceSets {
+    commonMain {
+      dependencies {
+        // DataStore
+        api(kmp.androidx.datastore.preferences)
+
+        // Json 序列化
+        api(kmp.jetbrains.kotlinx.serialization.core)
+        api(kmp.jetbrains.kotlinx.serialization.json)
+
+        // database
+        implementation(kmp.androidx.room.runtime)
+        implementation(kmp.androidx.room.paging)
+        implementation(kmp.androidx.sqlite.bundled)
+
+        // Koin
+        implementation(project.dependencies.platform(kmp.koin.bom))
+        implementation(kmp.koin.core)
+        implementation(kmp.koin.annotations)
+      }
+    }
   }
+}
+
+dependencies {
+  add("kspAndroid", kmp.androidx.room.compiler)
+  add("kspIosArm64", kmp.androidx.room.compiler)
+  add("kspIosSimulatorArm64", kmp.androidx.room.compiler)
 }
 
 room3 {
   schemaDirectory("$projectDir/schemas")
-}
-
-dependencies {
-  testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.androidx.test.espresso)
-
-  // DI
-  implementation(platform(libs.koin.bom))
-  implementation(libs.koin.core)
-  implementation(libs.koin.annotations)
-  implementation(libs.koin.android)
-
-  // DataStore
-  api(libs.androidx.datastore.preferences)
-
-  // Json 序列化
-  api(libs.jetbrains.kotlinx.serialization.core)
-  api(libs.jetbrains.kotlinx.serialization.json)
-
-  // database
-  api(libs.androidx.room.runtime)
-  api(libs.androidx.room.paging)
-  ksp(libs.androidx.room.compiler)
 }

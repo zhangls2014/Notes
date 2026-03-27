@@ -1,61 +1,63 @@
 plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.kotlin.serialization)
-  alias(libs.plugins.google.ksp)
-  alias(libs.plugins.koin.compiler)
+  alias(kmp.plugins.jetbrains.kotlin.serialization)
+  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
+  alias(kmp.plugins.android.kmp.library)
+  alias(kmp.plugins.android.lint)
+  alias(kmp.plugins.google.ksp)
+  alias(kmp.plugins.koin.compiler)
 }
 
-android {
-  namespace = "me.zhangls.framework"
-  buildToolsVersion = libs.versions.buildTool.get()
-  compileSdk {
-    version = release(libs.versions.compileSdk.get().toInt())
+kotlin {
+  android {
+    namespace = "me.zhangls.framework"
+    buildToolsVersion = kmp.versions.android.buildTools.get()
+
+    compileSdk = kmp.versions.android.compileSdk.get().toInt()
+    minSdk = kmp.versions.android.minSdk.get().toInt()
   }
 
-  defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
-
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+  listOf(
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach { iosTarget ->
+    iosTarget.binaries.framework {
+      baseName = "frameworkKit"
+      isStatic = true
     }
   }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+
+  sourceSets {
+    commonMain {
+      dependencies {
+        api(kmp.androidx.lifecycle.viewmodel.compose)
+        api(kmp.androidx.lifecycle.runtime.compose)
+
+        api(kmp.jetbrains.kotlinx.serialization.core)
+        api(kmp.jetbrains.kotlinx.serialization.json)
+        api(kmp.jetbrains.kotlinx.coroutines.core)
+        api(kmp.jetbrains.kotlinx.collections.immutable)
+        api(kmp.jetbrains.navigation3.ui)
+
+        api(kmp.jetbrains.compose.components.resources)
+
+        api(project.dependencies.platform(kmp.koin.bom))
+        api(kmp.koin.core)
+        api(kmp.koin.annotations)
+        api(kmp.koin.compose)
+        api(kmp.koin.compose.viewmodel)
+      }
+    }
+
+    androidMain {
+      dependencies {
+        api(kmp.jetbrains.kotlinx.coroutines.android)
+      }
+    }
   }
 }
 
 dependencies {
-  testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.androidx.test.espresso)
-
-  implementation(libs.androidx.core)
-  implementation(libs.androidx.lifecycle.viewmodel.ktx)
-  implementation(libs.androidx.lifecycle.viewmodel.savedstate)
-  implementation(libs.jetbrains.kotlinx.coroutines.android)
-  implementation(libs.jetbrains.kotlinx.serialization.core)
-
-  // Compose
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.runtime)
-
-  // Navigation3
-  api(libs.androidx.navigation3.runtime)
-  api(libs.androidx.navigation3.ui)
-  api(libs.androidx.compose.viewmodel.navigation3)
-
-  // DI
-  api(platform(libs.koin.bom))
-  api(libs.koin.core)
-  api(libs.koin.annotations)
-  api(libs.koin.compose)
-  api(libs.koin.compose.viewmodel)
-  api(libs.koin.compose.navigation3)
+  add("kspAndroid", kmp.androidx.room.compiler)
+  add("kspIosArm64", kmp.androidx.room.compiler)
+  add("kspIosSimulatorArm64", kmp.androidx.room.compiler)
 }

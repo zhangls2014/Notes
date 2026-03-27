@@ -1,73 +1,80 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.kotlin.serialization)
-  alias(libs.plugins.jetbrains.kotlin.compose.compiler)
-  alias(libs.plugins.google.ksp)
-  alias(libs.plugins.koin.compiler)
+  alias(kmp.plugins.jetbrains.kotlin.serialization)
+  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
+  alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
+  alias(kmp.plugins.jetbrains.compose)
+  alias(kmp.plugins.android.kmp.library)
+  alias(kmp.plugins.google.ksp)
+  alias(kmp.plugins.koin.compiler)
 }
 
-android {
-  namespace = "me.zhangls.main"
-  buildToolsVersion = libs.versions.buildTool.get()
+kotlin {
+  android {
+    namespace = "me.zhangls.main"
+    buildToolsVersion = kmp.versions.android.buildTools.get()
 
-  compileSdk {
-    version = release(libs.versions.compileSdk.get().toInt())
-  }
+    compileSdk = kmp.versions.android.compileSdk.get().toInt()
+    minSdk = kmp.versions.android.minSdk.get().toInt()
 
-  defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_21
+    }
 
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
-
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    androidResources {
+      enable = true
     }
   }
 
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+  listOf(
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach { iosTarget ->
+    iosTarget.binaries.framework {
+      baseName = "settingsKit"
+      isStatic = true
+    }
   }
 
-  buildFeatures {
-    compose = true
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation(projects.core.data)
+        implementation(projects.core.theme)
+        implementation(projects.core.network)
+        implementation(projects.core.framework)
+        implementation(projects.feature.settings)
+
+        implementation(kmp.jetbrains.compose.runtime)
+        implementation(kmp.jetbrains.compose.foundation)
+        implementation(kmp.jetbrains.compose.ui)
+        implementation(kmp.jetbrains.compose.ui.tooling.preview)
+        implementation(kmp.jetbrains.compose.components.resources)
+        implementation(kmp.jetbrains.compose.material3)
+
+        // 自适应布局
+        implementation(kmp.jetbrains.compose.material3.window.size)
+        implementation(kmp.jetbrains.compose.material3.adaptive)
+        implementation(kmp.jetbrains.compose.material3.adaptive.layout)
+        implementation(kmp.jetbrains.compose.material3.adaptive.navigation)
+        implementation(kmp.jetbrains.compose.material3.adaptive.navigation.suite)
+
+        // Paging3
+        implementation(kmp.androidx.paging.compose)
+
+        // Coil
+        implementation(kmp.coil.compose)
+        implementation(kmp.coil.network.ktor)
+
+        implementation(kmp.calf.file.picker)
+      }
+    }
+
+    androidMain {
+      dependencies {
+        implementation(kmp.androidx.activity.compose)
+      }
+    }
   }
-}
-
-dependencies {
-  testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.androidx.test.espresso)
-
-  implementation(projects.core.data)
-  implementation(projects.core.theme)
-  implementation(projects.core.framework)
-  implementation(projects.feature.settings)
-
-  // Compose
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.ui.preview)
-  implementation(libs.androidx.compose.material3)
-  implementation(libs.androidx.compose.activity)
-  implementation(libs.androidx.compose.lifecycle)
-  implementation(libs.androidx.compose.viewmodel)
-
-  // 自适应布局
-  implementation(libs.androidx.compose.material3.window.size)
-  implementation(libs.androidx.compose.material3.adaptive)
-  implementation(libs.androidx.compose.material3.adaptive.layout)
-  implementation(libs.androidx.compose.material3.adaptive.navigation)
-  implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-
-  // Paging3
-  implementation(libs.androidx.paging.compose)
-
-  // Coil
-  implementation(platform(libs.coil.bom))
-  implementation(libs.coil.compose)
-  implementation(libs.coil.network.okhttp)
 }

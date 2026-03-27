@@ -26,9 +26,17 @@ dependencyResolutionManagement {
     }
     mavenCentral()
   }
+
+  versionCatalogs {
+    create("kmp") {
+      from(files("gradle/kmp.versions.toml"))
+    }
+  }
 }
 
-include(":app")
+include(":androidApp")
+include(":iosApp")
+include(":composeApp")
 include(":core:data")
 include(":core:theme")
 include(":core:network")
@@ -36,5 +44,5 @@ include(":core:framework")
 include(":feature:main")
 include(":feature:login")
 include(":feature:settings")
-include(":output:login")
-include(":baselineprofile")
+include(":android:output:login")
+include(":android:baselineprofile")
