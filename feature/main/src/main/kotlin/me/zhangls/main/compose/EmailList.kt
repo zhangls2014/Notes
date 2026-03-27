@@ -106,19 +106,19 @@ internal fun EmailList(
           EmailActionBar(modifier = Modifier.statusBarsPadding(), items = items) {
             when (it.text) {
               R.string.main_action_favorite -> {
-                viewmodel.handleIntent(EmailIntent.MultiFavorite)
+                viewmodel.sendIntent(EmailIntent.MultiFavorite)
               }
 
               R.string.main_action_cancel_favorite -> {
-                viewmodel.handleIntent(EmailIntent.MultiCancelFavorite)
+                viewmodel.sendIntent(EmailIntent.MultiCancelFavorite)
               }
 
               R.string.main_action_delete -> {
-                viewmodel.handleIntent(EmailIntent.MultiDelete)
+                viewmodel.sendIntent(EmailIntent.MultiDelete)
               }
 
               R.string.main_action_cancel -> {
-                viewmodel.handleIntent(EmailIntent.ClearSelectedEmail)
+                viewmodel.sendIntent(EmailIntent.ClearSelectedEmail)
               }
             }
           }

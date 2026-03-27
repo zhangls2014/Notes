@@ -50,7 +50,7 @@ abstract class MviViewModel<S : MviState, I : MviIntent>(
     }
   }
 
-  abstract fun handleIntent(intent: I)
+  protected abstract fun handleIntent(intent: I)
 
   fun sendIntent(intent: I) {
     _intent.tryEmit(intent)

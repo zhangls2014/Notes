@@ -127,7 +127,7 @@ internal fun EmailSearchBar(
       .debounce(300)
       .distinctUntilChanged()
       .collect {
-        viewmodel.handleIntent(EmailIntent.UpdateSearchText(it))
+        viewmodel.sendIntent(EmailIntent.UpdateSearchText(it))
       }
   }
 

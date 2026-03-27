@@ -74,19 +74,19 @@ fun SettingsScreen(
           when (val preference = state.preferences[it]) {
             is Preference.Switch -> {
               SwitchItem(preference = preference) { preference, result ->
-                viewmodel.handleIntent(UpdateSettings(preference, result))
+                viewmodel.sendIntent(UpdateSettings(preference, result))
               }
             }
 
             is Preference.Alert<*> -> {
               AlertItem(preference = preference) { preference, result ->
-                viewmodel.handleIntent(UpdateSettings(preference, result))
+                viewmodel.sendIntent(UpdateSettings(preference, result))
               }
             }
 
             is Preference.Text -> {
               TextItem(preference = preference) { preference ->
-                viewmodel.handleIntent(ClickSettings(preference))
+                viewmodel.sendIntent(ClickSettings(preference))
               }
             }
           }
@@ -102,12 +102,12 @@ fun SettingsScreen(
       confirmText = stringResource(dialog.confirm),
       confirm = {
         val result = DialogResult.Confirm(dialog.dialogId)
-        viewmodel.handleIntent(DialogCallback(result))
+        viewmodel.sendIntent(DialogCallback(result))
       },
       dismissText = dialog.dismiss?.let { stringResource(it) },
       dismiss = {
         val result = DialogResult.Dismiss(dialog.dialogId)
-        viewmodel.handleIntent(DialogCallback(result))
+        viewmodel.sendIntent(DialogCallback(result))
       }
     )
   }
