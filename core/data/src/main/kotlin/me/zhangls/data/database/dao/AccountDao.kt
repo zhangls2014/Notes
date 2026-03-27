@@ -3,8 +3,6 @@ package me.zhangls.data.database.dao
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
-import androidx.room3.Query
-import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.database.entity.AccountEntity
 
 @Dao
@@ -14,7 +12,4 @@ interface AccountDao {
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insert(accounts: List<AccountEntity>)
-
-  @Query("SELECT * FROM account ORDER BY id ASC LIMIT 1")
-  fun getAccount(): Flow<AccountEntity?>
 }

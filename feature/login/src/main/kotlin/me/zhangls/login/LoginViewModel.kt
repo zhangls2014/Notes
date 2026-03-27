@@ -86,7 +86,7 @@ class LoginViewModel(
 
       delay(1000)
       val user = withState {
-        UserModel(id = (0..100).random().toString(), nickname = account, accessToken = "123456")
+        UserModel(id = (0..100).random().toString(), nickname = account, accessToken = "123456", avatar = null)
       }
       userRepository.update(user)
 

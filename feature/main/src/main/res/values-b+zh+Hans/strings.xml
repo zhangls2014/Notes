@@ -15,4 +15,5 @@
   <string name="main_action_cancel_favorite">取消收藏</string>
   <string name="main_action_delete">删除</string>
   <string name="main_action_cancel">取消</string>
+  <string name="main_msg_save_avatar_failed">头像保存失败</string>
 </resources>

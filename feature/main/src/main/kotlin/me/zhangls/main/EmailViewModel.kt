@@ -20,9 +20,13 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.repository.EmailsRepository
+import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.mvi.ToastGlobalNotifier
+import me.zhangls.main.domain.AvatarSaver
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * @author zhangls
@@ -31,12 +35,13 @@ import org.koin.core.annotation.KoinViewModel
 class EmailViewModel(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
-  private val toastGlobalNotifier: ToastGlobalNotifier
+  private val userRepository: UserRepository,
+  private val toastGlobalNotifier: ToastGlobalNotifier,
 ) : MviViewModel<EmailState, EmailIntent>(
   initialState = EmailState(),
   stateSerializer = EmailState.serializer(),
   savedStateHandle = savedStateHandle,
-) {
+), KoinComponent {
   // 首页邮件列表，缓存分页数据
   val emailPaging = emailsRepository.getEmailPaging()
     .flowOn(Dispatchers.IO)
@@ -67,20 +72,18 @@ class EmailViewModel(
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
     .cachedIn(viewModelScope)
 
-  private val ownerAccount = emailsRepository.getOwnerAccount()
-    .flowOn(Dispatchers.IO)
-    .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
-
   fun getEmail(emailId: Long): Flow<EmailConvertModel?> {
     return emailsRepository.getEmail(emailId)
       .flowOn(Dispatchers.IO)
       .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000))
   }
 
+  private val avatarSaver: AvatarSaver by inject()
+
   init {
     viewModelScope.launch {
-      ownerAccount.collectLatest {
-        dispatch(EmailAction.UpdateOwnerAccount(it))
+      userRepository.userFlow.collectLatest {
+        dispatch(EmailAction.UpdateUser(it))
       }
     }
   }
@@ -136,6 +139,22 @@ class EmailViewModel(
 
       EmailIntent.ClearSelectedEmail -> {
         dispatch(EmailAction.ClearSelectedEmail)
+      }
+
+      is EmailIntent.UpdateSelectedAvatar -> {
+        viewModelScope.launch {
+          val path = avatarSaver.save(intent.avatar)
+          if (path == null) {
+            toastGlobalNotifier.showToast(R.string.main_msg_save_avatar_failed)
+          } else {
+            withState {
+              user?.avatar?.let {
+                avatarSaver.delete(it)
+              }
+            }
+            userRepository.updateAvatar(avatar = path)
+          }
+        }
       }
     }
   }

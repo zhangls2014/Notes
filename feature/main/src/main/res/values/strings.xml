@@ -15,4 +15,5 @@
   <string name="main_action_cancel_favorite">Unfavorite</string>
   <string name="main_action_delete">Delete</string>
   <string name="main_action_cancel">Cancel</string>
+  <string name="main_msg_save_avatar_failed">Save avatar failed</string>
 </resources>

@@ -1,7 +1,7 @@
 package me.zhangls.main
 
 import kotlinx.serialization.Serializable
-import me.zhangls.data.model.AccountModel
+import me.zhangls.data.model.UserModel
 import me.zhangls.framework.mvi.MviState
 
 /**
@@ -10,6 +10,6 @@ import me.zhangls.framework.mvi.MviState
 @Serializable
 data class EmailState(
   val selectedItems: Set<Long> = emptySet(),
-  val ownerAccount: AccountModel? = null,
+  val user: UserModel? = null,
   val searchText: CharSequence = "",
 ) : MviState

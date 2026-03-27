@@ -1,9 +1,15 @@
 package me.zhangls.main.compose
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
@@ -29,7 +35,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -37,15 +46,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
+import me.zhangls.data.model.UserModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.main.EmailIntent
 import me.zhangls.main.EmailViewModel
 import me.zhangls.main.R
-import me.zhangls.main.icon.MoreVert
 import me.zhangls.main.icon.Search
 import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Icons
@@ -62,7 +72,6 @@ internal fun EmailSearchBar(
   onResultClick: (Long) -> Unit = {}
 ) {
   val state by viewmodel.state.collectAsStateWithLifecycle()
-  val ownerAccount = state.ownerAccount
   val searchResults = viewmodel.searchResults.collectAsLazyPagingItems()
 
   val textFieldState = rememberTextFieldState()
@@ -102,13 +111,10 @@ internal fun EmailSearchBar(
         }
       },
       trailingIcon = {
-        if (ownerAccount == null) {
-          Icon(Icons.Rounded.MoreVert, contentDescription = null)
-        } else {
-          ProfileImage(
-            drawableResource = ownerAccount.avatar,
-            description = stringResource(id = R.string.main_action_owner_info),
-          )
+        state.user?.also {
+          ProfileImage(it) { uri ->
+            viewmodel.sendIntent(EmailIntent.UpdateSelectedAvatar(uri))
+          }
         }
       },
     )
@@ -159,6 +165,27 @@ internal fun EmailSearchBar(
       }
     }
   }
+}
+
+@Composable
+private fun ProfileImage(user: UserModel, onImageSelected: (Uri) -> Unit) {
+  val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+    uri?.let {
+      onImageSelected(it)
+    }
+  }
+
+  AsyncImage(
+    modifier = Modifier
+      .size(40.dp)
+      .clip(CircleShape)
+      .clickable { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+    model = user.avatar,
+    placeholder = painterResource(R.drawable.main_ic_default_avatar),
+    error = painterResource(R.drawable.main_ic_default_avatar),
+    contentScale = ContentScale.Crop,
+    contentDescription = stringResource(id = R.string.main_action_owner_info),
+  )
 }
 
 

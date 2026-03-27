@@ -18,10 +18,6 @@ class SettingsRepository(
 ) {
   val settingsFlow: Flow<SettingsModel> = dataStore.data
 
-  suspend fun update(settings: SettingsModel) {
-    dataStore.updateData { settings }
-  }
-
   suspend fun updateDarkTheme(darkThemeConfig: DarkThemeConfig) {
     dataStore.updateData {
       it.copy(darkTheme = darkThemeConfig)

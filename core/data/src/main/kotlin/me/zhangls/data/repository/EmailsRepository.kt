@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.database.AppDatabase
 import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
-import me.zhangls.data.database.entity.AccountEntity
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.database.entity.EmailEntity
 import me.zhangls.data.model.EmailModel
@@ -37,10 +36,6 @@ class EmailsRepository(
         }
       }
     }
-  }
-
-  fun getOwnerAccount(): Flow<AccountEntity?> {
-    return accountDao.getAccount()
   }
 
   fun getEmail(id: Long): Flow<EmailConvertModel?> {

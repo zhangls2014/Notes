@@ -1,6 +1,6 @@
 package me.zhangls.main
 
-import me.zhangls.data.database.entity.AccountEntity
+import me.zhangls.data.model.UserModel
 import me.zhangls.framework.mvi.MviAction
 
 /**
@@ -8,7 +8,7 @@ import me.zhangls.framework.mvi.MviAction
  */
 sealed interface EmailAction : MviAction {
   data object ClearSelectedEmail : EmailAction
-  data class UpdateOwnerAccount(val account: AccountEntity?) : EmailAction
+  data class UpdateUser(val user: UserModel?) : EmailAction
   data class UpdateSelectedEmail(val emailId: Long) : EmailAction
   data class UpdateSearchText(val text: String) : EmailAction
 }

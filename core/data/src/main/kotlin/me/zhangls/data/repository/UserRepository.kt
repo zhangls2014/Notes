@@ -19,6 +19,12 @@ class UserRepository(
     dataStore.updateData { user }
   }
 
+  suspend fun updateAvatar(avatar: String) {
+    dataStore.updateData {
+      it?.copy(avatar = avatar)
+    }
+  }
+
   suspend fun clear() {
     dataStore.updateData { null }
   }

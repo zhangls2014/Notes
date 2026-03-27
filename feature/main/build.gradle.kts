@@ -65,4 +65,9 @@ dependencies {
 
   // Paging3
   implementation(libs.androidx.paging.compose)
+
+  // Coil
+  implementation(platform(libs.coil.bom))
+  implementation(libs.coil.compose)
+  implementation(libs.coil.network.okhttp)
 }

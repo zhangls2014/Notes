@@ -18,12 +18,16 @@ import java.security.GeneralSecurityException
  */
 class CommonSerializer : Serializer<CommonModel> {
   override val defaultValue: CommonModel = CommonModel()
+  private val json = Json {
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+  }
 
   override suspend fun readFrom(input: InputStream): CommonModel {
     return try {
       val encrypted = input.readBytes().decodeToString()
       val decrypted = AESUtils.decrypt(KeystoreKeys.AES_ALIAS_DATASTORE, encrypted)
-      Json.decodeFromString<CommonModel>(decrypted)
+      json.decodeFromString<CommonModel>(decrypted)
     } catch (throwable: Throwable) {
       when (throwable) {
         is SerializationException,
@@ -36,7 +40,7 @@ class CommonSerializer : Serializer<CommonModel> {
   }
 
   override suspend fun writeTo(t: CommonModel, output: OutputStream) {
-    val encrypted = AESUtils.encrypt(KeystoreKeys.AES_ALIAS_DATASTORE, Json.encodeToString(t))
+    val encrypted = AESUtils.encrypt(KeystoreKeys.AES_ALIAS_DATASTORE, json.encodeToString(t))
     withContext(Dispatchers.IO) {
       output.write(encrypted.encodeToByteArray())
     }

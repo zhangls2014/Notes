@@ -1,5 +1,6 @@
 package me.zhangls.main
 
+import android.net.Uri
 import me.zhangls.framework.mvi.MviIntent
 
 /**
@@ -10,6 +11,7 @@ sealed class EmailIntent : MviIntent {
   data class UpdateFavorite(val emailId: Long) : EmailIntent()
   data class UpdateSelectedEmail(val emailId: Long) : EmailIntent()
   data class UpdateSearchText(val text: CharSequence) : EmailIntent()
+  data class UpdateSelectedAvatar(val avatar: Uri) : EmailIntent()
   data object MultiFavorite : EmailIntent()
   data object MultiCancelFavorite : EmailIntent()
   data object MultiDelete : EmailIntent()
