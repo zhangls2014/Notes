@@ -1,14 +1,14 @@
 # 摘星（Notes）
 
-一个基于 **Kotlin + Jetpack Compose + 多模块架构** 的 Android 应用示例，聚焦于以下能力：
+一个基于 **Kotlin Multiplatform (KMP) + Compose Multiplatform + 模块化架构** 的跨平台应用示例，覆盖 Android 与 iOS，聚焦于以下能力：
 
-- 模块化拆分（`app / core / feature / output`）
+- 模块化拆分（`androidApp / iosApp / composeApp / core / feature / android/output`）
 - MVI 状态管理
 - Navigation3 导航与登录拦截
-- Room + Paging3 邮件列表/详情
-- DataStore（JSON）+ Android Keystore（AES）本地数据加密
-- Retrofit + OkHttp 网络层统一封装
-- Hilt 依赖注入
+- 邮件列表分页展示（使用 Paging3）
+- DataStore（JSON）本地数据存储（Android 端支持 Android Keystore 加密）
+- Ktor 网络层统一封装（Android/ iOS 引擎）
+- Koin 依赖注入
 - 自适应布局（Material3 Adaptive）
 
 ---
@@ -21,8 +21,8 @@
 - [核心功能](#核心功能)
 - [快速开始](#快速开始)
 - [构建与运行](#构建与运行)
-- [Deep Link 调试](#deep-link-调试)
-- [Fused Library 打包（实验）](#fused-library-打包实验)
+- [Deep Link 调试（Android）](#deep-link-调试android)
+- [Fused Library 打包（Android 实验）](#fused-library-打包android-实验)
 - [数据与安全](#数据与安全)
 - [当前实现边界](#当前实现边界)
 - [常见问题](#常见问题)
@@ -33,23 +33,29 @@
 
 ```text
 Notes
-├── app                 # 应用入口、全局导航、全局状态、注入聚合
+├── androidApp           # Android 入口应用
+├── iosApp               # iOS 入口应用（Xcode 工程）
+├── composeApp           # 共享应用入口与跨平台 UI/导航
 ├── core
-│   ├── framework       # MVI 基类、导航协议、全局 Effect
-│   ├── data            # Room、DataStore、Repository、加密工具
-│   ├── network         # Retrofit/OkHttp、鉴权、错误映射
-│   └── theme           # Compose 主题与通用组件
+│   ├── framework        # MVI 基类、导航协议、全局 Effect
+│   ├── data             # 数据层（多平台实现）
+│   ├── network          # Ktor 网络层（多平台实现）
+│   └── theme            # Compose 主题与通用组件
 ├── feature
-│   ├── login           # 登录功能（MVI）
-│   ├── main            # 首页/收藏/邮件详情（Paging + 自适应）
-│   └── settings        # 设置页（偏好项映射 + 退出登录）
-└── output
-    └── login           # Fused Library 实验打包模块
+│   ├── login            # 登录功能（MVI）
+│   ├── main             # 首页/收藏/邮件详情
+│   └── settings         # 设置页（偏好项映射 + 退出登录）
+└── android
+    ├── output
+    │   └── login         # Fused Library 实验打包模块（Android）
+    └── baselineprofile   # Android 基线配置文件
 ```
 
 `settings.gradle.kts` 中启用模块：
 
-- `:app`
+- `:androidApp`
+- `:iosApp`
+- `:composeApp`
 - `:core:data`
 - `:core:theme`
 - `:core:network`
@@ -57,23 +63,24 @@ Notes
 - `:feature:main`
 - `:feature:login`
 - `:feature:settings`
-- `:output:login`
+- `:android:output:login`
+- `:android:baselineprofile`
 
 ---
 
 ## 技术栈
 
-### Android / Kotlin
+### KMP / 工程
 
-- AGP: `9.0.1`
-- Kotlin: `2.3.10`
-- JDK: `17`
-- compileSdk: `36`
-- minSdk: `28`
+- AGP: `9.1.0`
+- Kotlin: `2.3.20`
+- JDK: `21`
+- Android compileSdk: `36`
+- Android minSdk: `28`
 
 ### UI
 
-- Jetpack Compose（BOM: `2026.02.01`）
+- Compose Multiplatform（`org.jetbrains.compose`）
 - Material3 + Material3 Adaptive
 - Navigation3（`androidx.navigation3`）
 
@@ -81,19 +88,18 @@ Notes
 
 - MVI（自定义 `MviViewModel`）
 - Kotlin Coroutines + Flow
-- Hilt DI
+- Koin DI
 
 ### 数据层
 
-- Room (`2.8.4`) + Paging3 (`3.3.6`)
-- DataStore (`1.2.0`) + Kotlinx Serialization (`1.10.0`)
-- Android Keystore + AES/GCM
+- Room + Paging3
+- DataStore + Kotlinx Serialization
+- Android Keystore + AES/GCM（Android）
 
 ### 网络层
 
-- Retrofit (`3.0.0`)
-- OkHttp (`5.3.2`)
-- kotlinx serialization converter
+- Ktor Client（OkHttp / Darwin 引擎）
+- kotlinx serialization
 
 ---
 
@@ -101,10 +107,12 @@ Notes
 
 ### 1) 分层与职责
 
-- `app`：组装所有模块，承接全局导航、主题、登录态和 Deep Link 入口。
+- `androidApp`：Android 入口与平台集成。
+- `iosApp`：iOS 入口（Xcode 工程）。
+- `composeApp`：共享应用入口、跨平台 UI 与导航。
 - `feature:*`：按业务功能拆分 UI + ViewModel + Intent/Action/State。
-- `core:data`：本地数据源、模型与仓储。
-- `core:network`：网络客户端、拦截器、错误统一处理。
+- `core:data`：本地数据源、模型与仓储，多平台实现。
+- `core:network`：Ktor 客户端、拦截器、错误统一处理。
 - `core:framework`：MVI 与导航协议复用。
 - `core:theme`：主题、Toast、Dialog、TopBar 等通用 UI。
 
@@ -179,11 +187,12 @@ Repository -> Room/DataStore/Network -> Flow<PagingData/Model>
 ### 环境要求
 
 - Android Studio（建议最新稳定版）
-- JDK 17
+- Xcode（建议最新稳定版）
+- JDK 21
 - Android SDK / Build Tools 36
 - 可用 Android 模拟器或真机（Android 9+）
 
-### 本地配置
+### 本地配置（Android）
 
 在项目根目录创建或更新 `local.properties`：
 
@@ -199,12 +208,32 @@ signing.keyPassword=***
 
 说明：
 
-- 当前 `app/build.gradle.kts` 中 `debug` 与 `release` 都绑定 `release` 签名配置。
+- 当前 `androidApp/build.gradle.kts` 中 `debug` 与 `release` 都绑定 `release` 签名配置。
 - 如果本地不需要签名打包，可自行调整 `buildTypes.debug.signingConfig`。
 
 ---
 
-## Deep Link 调试
+## 构建与运行
+
+### 构建项目
+
+```bash
+./gradlew build
+```
+
+### 运行 Android
+
+```bash
+./gradlew :androidApp:installDebug
+```
+
+### 运行 iOS
+
+使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。
+
+---
+
+## Deep Link 调试（Android）
 
 通过 ADB 触发邮件详情页（若未登录会先走登录拦截，登录成功后回跳）：
 
@@ -217,12 +246,12 @@ adb shell am start \
 
 ---
 
-## Fused Library 打包（实验）
+## Fused Library 打包（Android 实验）
 
-项目包含 `:output:login` 模块（`com.android.fused-library`），用于融合导出登录相关能力。
+项目包含 `:android:output:login` 模块（`com.android.fused-library`），用于融合导出登录相关能力。
 
 ```bash
-./gradlew :output:login:assemble
+./gradlew :android:output:login:assemble
 ```
 
 注意：该能力目前在 Android 官方仍属实验性质，仓库内也已标注“仅供测试”。
@@ -233,12 +262,12 @@ adb shell am start \
 
 ### 本地数据
 
-- Room：`AccountEntity`、`EmailEntity`，并启用 schema 导出。
+- Android 端使用 Room：`AccountEntity`、`EmailEntity`，并启用 schema 导出。
 - DataStore：
   - `settings.json` -> `SettingsModel`
   - `user.json` -> `UserModel?`
 
-### 加密策略
+### 加密策略（Android）
 
 - DataStore 序列化读写前后使用 `AESUtils` 处理。
 - 密钥由 Android Keystore 管理（`AES/GCM/NoPadding`）。
@@ -255,8 +284,6 @@ adb shell am start \
 
 以下内容是当前代码中的真实状态，便于二次开发时快速判断：
 
-- Room 使用 `inMemoryDatabaseBuilder`，应用重启后数据库数据会重置。
-- `NotesApp` 每次启动都会向数据库插入本地邮件样例数据。
 - `TokenProviderImpl` 的 `getAccessToken/refreshToken` 仍为占位实现（返回 `null`）。
 - `JokeViewModel` 中 `appId/appSecret` 为空，网络示例默认不可用。
 - 测试代码目前多为模板样例（`ExampleUnitTest` / `ExampleInstrumentedTest`）。
@@ -267,7 +294,7 @@ adb shell am start \
 
 ### 1. 为什么启动后总是有初始邮件？
 
-`NotesApp.onCreate()` 会调用 `initData()`，将 `LocalEmailsDataProvider` 数据写入仓储。
+`NotesApp.onCreate()`（Android）会调用 `initData()`，将 `LocalEmailsDataProvider` 数据写入仓储。
 
 ### 2. 为什么我明明配置了账号仍可能回到登录页？
 
@@ -276,6 +303,3 @@ adb shell am start \
 ### 3. 为什么打包时提示签名配置问题？
 
 因为当前 `debug/release` 都依赖 `local.properties` 中的签名字段，需保证路径与密码有效。
-
----
-
