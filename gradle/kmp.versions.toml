@@ -22,6 +22,7 @@ google-ksp = "2.3.6"
 coil = "3.4.0"
 calf = "0.10.0"
 baselineprofile = "1.5.0-alpha05"
+detekt = "2.0.0-alpha.2"
 
 
 [plugins]
@@ -40,6 +41,7 @@ jetbrains-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", ve
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "google-ksp" }
 koin-compiler = { id = "io.insert-koin.compiler.plugin", version = "0.4.1" }
 buildKonfig = { id = "com.codingfeline.buildkonfig", version = "0.17.1" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 
 
 [libraries]
@@ -118,3 +120,6 @@ compose-preference = { group = "me.zhanghai.compose.preference", name = "prefere
 
 # Calf : https://github.com/MohamedRejeb/Calf
 calf-file-picker = { group = "com.mohamedrejeb.calf", name = "calf-file-picker", version.ref = "calf" }
+
+# Detekt :
+detekt-formatting = { group = "dev.detekt", name = "detekt-rules-ktlint-wrapper", version.ref = "detekt" }

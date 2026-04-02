@@ -1,3 +1,5 @@
+import dev.detekt.gradle.Detekt
+
 plugins {
   alias(kmp.plugins.android.application) apply false
   alias(kmp.plugins.android.library) apply false
@@ -16,4 +18,23 @@ plugins {
   alias(kmp.plugins.koin.compiler) apply false
 
   alias(kmp.plugins.buildKonfig) apply false
+  alias(kmp.plugins.detekt)
+}
+
+detekt {
+  toolVersion = kmp.versions.detekt.get()
+  config.setFrom(file("config/detekt/detekt.yml"))
+  buildUponDefaultConfig = true
+  allRules = true
+}
+
+tasks.withType<Detekt>().configureEach {
+  reports {
+    html.required.set(true)
+    markdown.required.set(true)
+  }
+}
+
+dependencies {
+  detektPlugins(kmp.detekt.formatting)
 }
