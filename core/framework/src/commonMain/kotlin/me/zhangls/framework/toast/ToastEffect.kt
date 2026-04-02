@@ -2,7 +2,7 @@ package me.zhangls.framework.toast
 
 import me.zhangls.framework.mvi.MviEffect
 import org.jetbrains.compose.resources.StringResource
-import kotlin.time.TimeSource
+import kotlin.time.Clock
 
 
 /**
@@ -10,5 +10,5 @@ import kotlin.time.TimeSource
  */
 data class ToastEffect(
   val resId: StringResource,
-  val timestamp: Long = TimeSource.Monotonic.markNow().elapsedNow().inWholeMilliseconds
+  val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 ) : MviEffect

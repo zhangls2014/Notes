@@ -8,7 +8,7 @@ import me.zhangls.data.database.AppDatabaseFactory
 import me.zhangls.data.database.create
 import me.zhangls.data.database.dao.AccountDao
 import me.zhangls.data.database.dao.EmailDao
-import me.zhangls.data.datastore.AppDataStoreFactory
+import me.zhangls.data.util.AppFileManager
 import okio.Path.Companion.toPath
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
@@ -31,6 +31,6 @@ fun provideAccountDao(database: AppDatabase): AccountDao = database.accountDao()
 fun provideEmailDao(database: AppDatabase): EmailDao = database.emailDao()
 
 @Singleton
-fun provideDataStore(factory: AppDataStoreFactory): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath {
-  factory.getDataStorePath("notes.preferences_pb").toPath()
+fun provideDataStore(manager: AppFileManager): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath {
+  manager.getDataStorePath("notes.preferences_pb").toPath()
 }

@@ -1,7 +1,7 @@
 package me.zhangls.main
 
 import kotlinx.serialization.Serializable
-import me.zhangls.framework.nav.Destination
+import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.RequireLogin
 
 /**
@@ -10,4 +10,4 @@ import me.zhangls.framework.nav.RequireLogin
  * @author zhangls
  */
 @Serializable
-data object MainDestination : Destination, RequireLogin
+data object MainDestination : DeepLinkDestination, RequireLogin

@@ -1,6 +1,5 @@
 package me.zhangls.settings.domain
 
-import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.data.type.AppLanguage
@@ -142,17 +141,6 @@ class SettingsHandler(
         icon = null,
       )
     }
-  }
-
-  fun mapToPreferences(settings: SettingsModel): List<Preference<*>> {
-    return listOf(
-      dynamicColorPreference(settings.dynamicColor),
-      darkThemePreference(settings.darkTheme),
-      fontSizePreference(settings.fontSize),
-      languagePreference(settings.appLanguage),
-      // 退出登录
-      logoutPreference()
-    )
   }
 
   suspend fun <T> updateSettings(key: String, result: T) {

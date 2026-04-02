@@ -9,7 +9,7 @@ import me.zhangls.data.type.FontSizeConfig
 @Serializable
 data class SettingsModel(
   val dynamicColor: Boolean = false,
-  val darkTheme: DarkThemeConfig = DarkThemeConfig.LIGHT,
+  val darkTheme: DarkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
   val fontSize: FontSizeConfig = FontSizeConfig.STANDARD,
   val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM
 )

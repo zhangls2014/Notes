@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.UserRepository
@@ -145,14 +146,18 @@ class EmailViewModel(
       is EmailIntent.UpdateSelectedAvatar -> {
         viewModelScope.launch {
           val avatar = intent.avatar ?: return@launch
-          val path = avatarSaver.save(avatar)
+          val path = withContext(Dispatchers.IO) {
+            avatarSaver.save(avatar)
+          }
           if (path == null) {
             toastGlobalNotifier.showToast(Res.string.main_msg_save_avatar_failed)
           } else {
             withState {
               user?.avatar?.let {
                 // 删除旧的头像
-                avatarSaver.delete(it)
+                launch(Dispatchers.IO) {
+                  avatarSaver.delete(it)
+                }
               }
             }
             userRepository.updateAvatar(avatar = path)

@@ -16,4 +16,5 @@
   <string name="main_action_delete">Delete</string>
   <string name="main_action_cancel">Cancel</string>
   <string name="main_msg_save_avatar_failed">Save avatar failed</string>
+  <string name="main_msg_new_email_clicked">Coming soon</string>
 </resources>

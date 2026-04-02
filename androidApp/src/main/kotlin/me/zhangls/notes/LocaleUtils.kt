@@ -6,7 +6,7 @@ import me.zhangls.data.type.AppLanguage
 fun AppLanguage.toLocales(): LocaleListCompat {
   return when (this) {
     AppLanguage.FOLLOW_SYSTEM -> LocaleListCompat.getEmptyLocaleList()
-    AppLanguage.ENGLISH -> LocaleListCompat.forLanguageTags("en")
-    AppLanguage.CHINESE -> LocaleListCompat.forLanguageTags("zh-Hans-CN,zh-CN,zh")
+    AppLanguage.ENGLISH -> LocaleListCompat.forLanguageTags("en-CN")
+    AppLanguage.CHINESE -> LocaleListCompat.forLanguageTags("zh-Hans-CN")
   }
 }

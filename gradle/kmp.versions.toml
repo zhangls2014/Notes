@@ -20,7 +20,7 @@ koin-bom = "4.2.0"
 kotlin = "2.3.20"
 google-ksp = "2.3.6"
 coil = "3.4.0"
-calf = "0.10.0"
+calf = "0.11.0"
 baselineprofile = "1.5.0-alpha05"
 detekt = "2.0.0-alpha.2"
 
@@ -39,7 +39,7 @@ jetbrains-kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose"
 jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "google-ksp" }
-koin-compiler = { id = "io.insert-koin.compiler.plugin", version = "0.4.1" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version = "0.6.2" }
 buildKonfig = { id = "com.codingfeline.buildkonfig", version = "0.17.1" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 
@@ -79,7 +79,7 @@ jetbrains-compose-material3-window-size = { group = "org.jetbrains.compose.mater
 jetbrains-compose-material3-adaptive-navigation-suite = { group = "org.jetbrains.compose.material3", name = "material3-adaptive-navigation-suite", version.ref = "jetbrains-compose-material3" }
 jetbrains-compose-material3-adaptive = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive", version.ref = "jetbrains-compose-material3-adaptive" }
 jetbrains-compose-material3-adaptive-layout = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive-layout", version.ref = "jetbrains-compose-material3-adaptive" }
-jetbrains-compose-material3-adaptive-navigation = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "jetbrains-compose-material3-adaptive" }
+jetbrains-compose-material3-adaptive-navigation = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "jetbrains-compose-material3-adaptive" }
 jetbrains-compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "jetbrains-compose" }
 jetbrains-compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "jetbrains-compose" }
 jetbrains-compose-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "jetbrains-compose" }
@@ -110,6 +110,7 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 ### Koin
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
 koin-core = { group = "io.insert-koin", name = "koin-core" }
+koin-android = { group = "io.insert-koin", name = "koin-android" }
 koin-compose = { group = "io.insert-koin", name = "koin-compose" }
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel" }
 koin-annotations = { group = "io.insert-koin", name = "koin-annotations" }
@@ -121,5 +122,4 @@ compose-preference = { group = "me.zhanghai.compose.preference", name = "prefere
 # Calf : https://github.com/MohamedRejeb/Calf
 calf-file-picker = { group = "com.mohamedrejeb.calf", name = "calf-file-picker", version.ref = "calf" }
 
-# Detekt :
 detekt-formatting = { group = "dev.detekt", name = "detekt-rules-ktlint-wrapper", version.ref = "detekt" }

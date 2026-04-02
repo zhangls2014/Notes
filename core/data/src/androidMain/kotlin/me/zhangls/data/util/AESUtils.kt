@@ -14,7 +14,7 @@ import javax.crypto.spec.GCMParameterSpec
  *
  * @author zhangls
  */
-actual object AESUtils {
+object AESUtils {
   private const val ANDROID_KEYSTORE = "AndroidKeyStore"
   private const val TRANSFORMATION = "AES/GCM/NoPadding"
   private const val IV_LENGTH = 12
@@ -47,7 +47,7 @@ actual object AESUtils {
    * 加密
    * 返回 Base64(IV + CipherText)
    */
-  actual fun encrypt(alias: String, plainText: String): String {
+  fun encrypt(alias: String, plainText: String): String {
     val cipher = Cipher.getInstance(TRANSFORMATION)
     val secretKey = getSecretKey(alias)
 
@@ -65,7 +65,7 @@ actual object AESUtils {
   /**
    * 解密
    */
-  actual fun decrypt(alias: String, cipherText: String): String {
+  fun decrypt(alias: String, cipherText: String): String {
     val decoded = Base64.decode(cipherText, Base64.NO_WRAP)
     val iv = decoded.copyOfRange(0, IV_LENGTH)
     val encrypted = decoded.copyOfRange(IV_LENGTH, decoded.size)

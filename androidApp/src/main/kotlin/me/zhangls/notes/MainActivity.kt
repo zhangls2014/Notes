@@ -8,18 +8,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
-import me.zhangls.entry.ui.App
+import me.zhangls.entry.App
 
 
 class MainActivity : AppCompatActivity() {
+  private var deepLinkUrl by mutableStateOf<String?>(null)
+
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
 
-    // TODO DeepLink 解析
-    intent.data
+    deepLinkUrl = intent?.dataString
 
     setContent {
       val context = LocalContext.current
@@ -42,8 +46,16 @@ class MainActivity : AppCompatActivity() {
           } else {
             null
           })
-        }
+        },
+        deepLinkUrl = deepLinkUrl,
+        onDeepLinkConsumed = { deepLinkUrl = null }
       )
     }
+  }
+
+  override fun onNewIntent(intent: android.content.Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    deepLinkUrl = intent.dataString
   }
 }

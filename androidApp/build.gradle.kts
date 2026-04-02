@@ -37,6 +37,10 @@ kotlin {
     // Core
     implementation(kmp.androidx.core)
     implementation(kmp.androidx.appcompat)
+
+    // Koin
+    implementation(platform(kmp.koin.bom))
+    implementation(kmp.koin.android)
   }
 }
 

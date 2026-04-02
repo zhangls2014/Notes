@@ -66,6 +66,7 @@ import notes.feature.main.generated.resources.main_action_cancel_favorite
 import notes.feature.main.generated.resources.main_action_delete
 import notes.feature.main.generated.resources.main_action_favorite
 import notes.feature.main.generated.resources.main_action_new_email
+import notes.feature.main.generated.resources.main_msg_new_email_clicked
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -141,7 +142,7 @@ internal fun EmailList(
               contentDescription = stringResource(Res.string.main_action_new_email)
             )
           },
-          onClick = {},
+          onClick = { viewmodel.sendIntent(EmailIntent.ShowToast(Res.string.main_msg_new_email_clicked)) },
           expanded = emailListState.lastScrolledBackward || emailListState.canScrollBackward.not(),
         )
       }
@@ -149,7 +150,7 @@ internal fun EmailList(
   ) { padding ->
     val contentPadding = PaddingValues(
       top = padding.calculateTopPadding(),
-      bottom = padding.calculateBottomPadding(),
+      bottom = if (isBottomNavigationBar) 0.dp else padding.calculateBottomPadding(),
       start = if (isBottomNavigationBar) padding.calculateStartPadding(LayoutDirection.Ltr) else 0.dp,
       end = padding.calculateEndPadding(LayoutDirection.Ltr)
     )

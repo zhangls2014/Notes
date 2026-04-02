@@ -3,17 +3,17 @@ package me.zhangls.data.database
 import android.content.Context
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
+import me.zhangls.data.util.AppFileManager
 import org.koin.core.annotation.Factory
 
 
 @Factory
-actual class AppDatabaseFactory(private val context: Context) {
+actual class AppDatabaseFactory(private val context: Context, private val manager: AppFileManager) {
   actual fun getDatabaseBuilder(databaseName: String): RoomDatabase.Builder<AppDatabase> {
-    val appContext = context.applicationContext
-    val dbFile = appContext.getDatabasePath(databaseName)
+    val filepath = manager.getDatabasePath(databaseName)
     return Room.databaseBuilder<AppDatabase>(
-      context = appContext,
-      name = dbFile.absolutePath
+      context = context.applicationContext,
+      name = filepath
     )
   }
 }

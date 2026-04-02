@@ -41,11 +41,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
-import com.mohamedrejeb.calf.core.LocalPlatformContext
-import com.mohamedrejeb.calf.io.getPath
+import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -70,7 +70,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * @author zhangls
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 internal fun EmailSearchBar(
   isBottomNavigationBar: Boolean,
@@ -176,14 +176,11 @@ internal fun EmailSearchBar(
 }
 
 @Composable
-private fun ProfileImage(user: UserModel, onImageSelected: (String?) -> Unit) {
-  val context = LocalPlatformContext.current
+private fun ProfileImage(user: UserModel, onImageSelected: (KmpFile?) -> Unit) {
   val launcher = rememberFilePickerLauncher(
     type = FilePickerFileType.Image,
     selectionMode = FilePickerSelectionMode.Single,
-    onResult = {
-      onImageSelected(it.firstOrNull()?.getPath(context))
-    }
+    onResult = { onImageSelected(it.firstOrNull()) }
   )
 
   AsyncImage(

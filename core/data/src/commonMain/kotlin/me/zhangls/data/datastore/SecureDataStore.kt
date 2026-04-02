@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import me.zhangls.data.util.AESUtils
-import me.zhangls.data.util.KeystoreKeys
 
 
 class SecureDataStore<T>(
@@ -29,14 +27,14 @@ class SecureDataStore<T>(
 
   fun read(): Flow<T?> {
     return dataStore.data
-      .map { it[key]?.decrypted() }
+      .map { it[key]?.decode() }
       .distinctUntilChanged()
   }
 
   suspend fun updateData(transform: (t: T?) -> T?) {
     dataStore.edit { prefs ->
-      val oldValue = prefs[key]?.decrypted() ?: defaultValue
-      val newValue = transform(oldValue)?.encrypted()
+      val oldValue = prefs[key]?.decode() ?: defaultValue
+      val newValue = transform(oldValue)?.encode()
       if (newValue == null) {
         prefs.remove(key)
       } else {
@@ -45,13 +43,11 @@ class SecureDataStore<T>(
     }
   }
 
-  private fun String.decrypted(): T {
-    val decrypted = AESUtils.decrypt(KeystoreKeys.AES_ALIAS_DATASTORE, this)
-    return json.decodeFromString(serializer, decrypted)
+  private fun String.decode(): T {
+    return json.decodeFromString(serializer, this)
   }
 
-  private fun T.encrypted(): String {
-    val plainText = json.encodeToString(serializer, this)
-    return AESUtils.encrypt(KeystoreKeys.AES_ALIAS_DATASTORE, plainText)
+  private fun T.encode(): String {
+    return json.encodeToString(serializer, this)
   }
 }

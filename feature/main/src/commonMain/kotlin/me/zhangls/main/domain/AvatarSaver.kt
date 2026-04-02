@@ -1,5 +1,6 @@
 package me.zhangls.main.domain
 
+import com.mohamedrejeb.calf.io.KmpFile
 import org.koin.core.annotation.Factory
 
 /**
@@ -7,7 +8,7 @@ import org.koin.core.annotation.Factory
  */
 @Factory
 expect class AvatarSaver {
-  fun save(avatar: String): String?
+  suspend fun save(avatar: KmpFile): String?
 
-  fun delete(path: String)
+  suspend fun delete(path: String)
 }

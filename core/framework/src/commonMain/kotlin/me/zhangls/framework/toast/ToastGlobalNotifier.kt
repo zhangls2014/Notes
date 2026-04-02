@@ -14,7 +14,7 @@ class ToastGlobalNotifier {
     private const val TOAST_BUFFER_SIZE = 16
 
     // 相同 Toast 的显示间隔
-    private const val TOAST_INTERVAL = 2_000_000_000L
+    private const val TOAST_INTERVAL = 2_000L
   }
 
   private val _toast = MutableSharedFlow<ToastEffect>(

@@ -10,6 +10,7 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.settings.domain.SettingsHandler
 import me.zhangls.settings.domain.SettingsHandler.ClickAction
+import me.zhangls.settings.domain.mapToPreferences
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -33,7 +34,7 @@ class SettingsViewModel(
     // SettingsModel 转换为 List<Preference>
     viewModelScope.launch {
       settingsRepository.settingsFlow
-        .map { handler.mapToPreferences(it) }
+        .map { it.mapToPreferences() }
         .collectLatest {
           dispatch(SettingsAction.UpdatePreferences(it))
         }

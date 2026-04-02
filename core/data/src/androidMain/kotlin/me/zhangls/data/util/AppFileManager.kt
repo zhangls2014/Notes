@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.provider.OpenableColumns
+import androidx.datastore.dataStoreFile
 import org.koin.core.annotation.Singleton
 import java.io.File
 
@@ -11,63 +12,72 @@ import java.io.File
  * 文件管理类，所有的文件获取都通过该类
  */
 @Singleton
-class AppFileManager(private val context: Context) {
+actual class AppFileManager(private val context: Context) {
+
+  actual fun getDatabasePath(filename: String): String {
+    return context.getDatabasePath(filename).absolutePath
+  }
+
+  actual fun getDataStorePath(filename: String): String {
+    return context.dataStoreFile(filename).absolutePath
+  }
+
   /**
    * 图片存储目录（私有目录）
    */
-  fun getImageDir(): File {
+  actual fun getImageDir(): String {
     return File(getPrivateDir(), Environment.DIRECTORY_PICTURES)
       .apply {
         if (exists().not()) mkdirs()
-      }
+      }.absolutePath
   }
 
   /**
    * 私有目录
    */
-  private fun getPrivateDir(): File {
+  private fun getPrivateDir(): String {
     val dir = context.filesDir
     return dir.apply {
       if (exists().not()) mkdirs()
-    }
+    }.absolutePath
   }
 
   /**
    * 图片存储目录（私有目录）
    */
-  fun getCacheImageDir(): File {
+  fun getCacheImageDir(): String {
     return File(getCacheDir(), Environment.DIRECTORY_PICTURES)
       .apply {
         if (exists().not()) mkdirs()
-      }
+      }.absolutePath
   }
 
   /**
    * 缓存目录
    */
-  private fun getCacheDir(): File {
+  private fun getCacheDir(): String {
     val dir = context.cacheDir
     return dir.apply {
       if (exists().not()) mkdirs()
-    }
+    }.absolutePath
   }
 
   /**
    * 根据文件名生成目标文件
    */
-  fun createImageFile(fileName: String): File {
-    return File(getImageDir(), fileName).apply {
+  actual fun createImageFile(filename: String): String {
+    return File(getImageDir(), filename).apply {
       if (exists().not()) createNewFile()
-    }
+    }.absolutePath
   }
 
   /**
    * 根据文件名生成目标文件
    */
-  fun createCacheImageFile(fileName: String): File {
-    return File(getCacheImageDir(), fileName).apply {
+  fun createCacheImageFile(filename: String): String {
+    return File(getCacheImageDir(), filename).apply {
       if (exists().not()) createNewFile()
-    }
+    }.absolutePath
   }
 
   fun getFileName(uri: Uri): String? {
@@ -109,14 +119,21 @@ class AppFileManager(private val context: Context) {
   /**
    * 将 Uri 对应的文件复制到目标文件
    */
-  fun copyUriToFile(destUri: Uri, targetFile: File): Boolean {
+  fun copyUriToFile(srcUri: Uri, destPath: String): Boolean {
     return try {
-      context.contentResolver.openInputStream(destUri)?.use { input ->
-        input.copyTo(targetFile.outputStream())
+      context.contentResolver.openInputStream(srcUri)?.use { input ->
+        input.copyTo(File(destPath).outputStream())
       }
       true
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       false
+    }
+  }
+
+  actual fun deleteFile(path: String) {
+    val file = File(path)
+    if (file.exists()) {
+      file.delete()
     }
   }
 }
