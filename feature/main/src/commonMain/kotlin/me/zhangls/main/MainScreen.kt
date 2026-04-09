@@ -18,11 +18,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
-import me.zhangls.main.home.FavoritesScreen
-import me.zhangls.main.home.HomeScreen
 import me.zhangls.main.icon.Favorite
 import me.zhangls.main.icon.Home
 import me.zhangls.main.icon.Settings
+import me.zhangls.main.waterfall.FavoritesScreen
+import me.zhangls.main.waterfall.HomeScreen
 import me.zhangls.settings.SettingsResult
 import me.zhangls.settings.SettingsScreen
 import me.zhangls.theme.icon.Icons
@@ -32,7 +32,6 @@ import notes.feature.main.generated.resources.main_label_home
 import notes.feature.main.generated.resources.main_label_settings
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * @author zhangls
@@ -104,7 +103,6 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
     }
   }
   val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
-  val viewmodel: EmailViewModel = koinViewModel()
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {
@@ -123,9 +121,9 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
   ) {
     val pageContent = @Composable { page: Int ->
       when (MainTab.entries[page]) {
-        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar, viewmodel = viewmodel)
+        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar)
         MainTab.FAVORITES -> {
-          FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar, viewmodel = viewmodel) { emailId ->
+          FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar) { emailId ->
             onResult(MainResult.NavigateToEmailDetail(emailId))
           }
         }

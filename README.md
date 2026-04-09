@@ -92,7 +92,7 @@ Notes
 
 ### 数据层
 
-- Room + Paging3
+- Room3 + Paging3
 - DataStore + Kotlinx Serialization
 - Android Keystore + AES/GCM（Android）
 

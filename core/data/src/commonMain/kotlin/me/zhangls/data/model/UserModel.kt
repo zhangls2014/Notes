@@ -12,4 +12,5 @@ data class UserModel(
   val accessToken: String,
   val refreshToken: String = "",
   val avatar: String? = null,
+  val emailSearchHistory: List<String> = emptyList(),
 )

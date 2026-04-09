@@ -2,8 +2,8 @@ package me.zhangls.main.detail
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
-import me.zhangls.main.EmailViewModel
 import me.zhangls.main.compose.EmailDetail
+import me.zhangls.main.waterfall.EmailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)

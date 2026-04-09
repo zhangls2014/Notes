@@ -37,8 +37,6 @@ fun App(
   }
   val fontScale = state.fontSize.value
 
-  println("deepLink ==> $deepLinkDestination")
-
   LaunchedEffect(state.appLanguage) {
     state.appLanguage?.also {
       onLanguageChanged(it)

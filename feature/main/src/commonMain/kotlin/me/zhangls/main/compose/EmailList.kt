@@ -1,7 +1,6 @@
 package me.zhangls.main.compose
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -38,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,24 +47,22 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
-import me.zhangls.main.EmailIntent
-import me.zhangls.main.EmailViewModel
 import me.zhangls.main.icon.Cancel
-import me.zhangls.main.icon.Check
 import me.zhangls.main.icon.Delete
 import me.zhangls.main.icon.Edit
 import me.zhangls.main.icon.Star
 import me.zhangls.main.icon.StarFill
+import me.zhangls.main.search.EmailSearchBar
+import me.zhangls.main.waterfall.EmailIntent
+import me.zhangls.main.waterfall.EmailViewModel
 import me.zhangls.theme.icon.Icons
 import notes.feature.main.generated.resources.Res
-import notes.feature.main.generated.resources.allDrawableResources
 import notes.feature.main.generated.resources.main_action_cancel
 import notes.feature.main.generated.resources.main_action_cancel_favorite
 import notes.feature.main.generated.resources.main_action_delete
 import notes.feature.main.generated.resources.main_action_favorite
 import notes.feature.main.generated.resources.main_action_new_email
 import notes.feature.main.generated.resources.main_msg_new_email_clicked
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -105,7 +100,6 @@ internal fun EmailList(
           EmailSearchBar(
             isBottomNavigationBar = isBottomNavigationBar,
             scrollBehavior = scrollBehavior,
-            viewmodel = viewmodel,
             onResultClick = navigateToDetail
           )
         } else {
@@ -292,38 +286,5 @@ fun EmailListItem(
         overflow = TextOverflow.Ellipsis,
       )
     }
-  }
-}
-
-@Composable
-fun ProfileImage(drawableKey: String, description: String) {
-  val drawableResource = Res.allDrawableResources.getValue(drawableKey)
-
-  Image(
-    modifier = Modifier
-      .size(40.dp)
-      .clip(CircleShape),
-    painter = painterResource(drawableResource),
-    contentScale = ContentScale.Crop,
-    contentDescription = description,
-  )
-}
-
-@Composable
-fun SelectedProfileImage() {
-  Box(
-    modifier = Modifier
-      .size(40.dp)
-      .clip(CircleShape)
-      .background(MaterialTheme.colorScheme.primary),
-  ) {
-    Icon(
-      imageVector = Icons.Rounded.Check,
-      contentDescription = null,
-      modifier = Modifier
-        .size(24.dp)
-        .align(Alignment.Center),
-      tint = MaterialTheme.colorScheme.onPrimary,
-    )
   }
 }

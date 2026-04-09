@@ -1,17 +1,18 @@
-package me.zhangls.main.home
+package me.zhangls.main.waterfall
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
-import me.zhangls.main.EmailViewModel
 import me.zhangls.main.compose.EmailList
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun FavoritesScreen(
   isBottomNavigationBar: Boolean,
-  viewmodel: EmailViewModel,
   navigateToDetail: (Long) -> Unit
 ) {
+  val viewmodel: EmailViewModel = koinViewModel()
+
   EmailList(
     viewmodel = viewmodel,
     isFavorite = true,

@@ -1,4 +1,4 @@
-package me.zhangls.main
+package me.zhangls.main.waterfall
 
 
 object EmailReducer {

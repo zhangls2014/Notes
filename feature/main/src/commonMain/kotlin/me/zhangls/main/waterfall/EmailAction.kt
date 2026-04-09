@@ -1,4 +1,4 @@
-package me.zhangls.main
+package me.zhangls.main.waterfall
 
 import me.zhangls.data.model.UserModel
 import me.zhangls.framework.mvi.MviAction

@@ -31,11 +31,12 @@ class MainActivity : AppCompatActivity() {
       App(
         onDarkThemeChanged = {
           val lightBars = it.not()
-          val controller = WindowInsetsControllerCompat(window, window.decorView)
-          // 状态栏图标颜色（亮色图标 = 深色背景）
-          controller.isAppearanceLightStatusBars = lightBars
-          // 导航栏图标颜色
-          controller.isAppearanceLightNavigationBars = lightBars
+          WindowInsetsControllerCompat(window, window.decorView).run {
+            // 状态栏图标颜色（亮色图标 = 深色背景）
+            isAppearanceLightStatusBars = lightBars
+            // 导航栏图标颜色
+            isAppearanceLightNavigationBars = lightBars
+          }
         },
         onLanguageChanged = {
           AppCompatDelegate.setApplicationLocales(it.toLocales())

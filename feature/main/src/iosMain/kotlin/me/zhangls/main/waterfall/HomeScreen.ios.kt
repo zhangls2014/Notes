@@ -1,4 +1,4 @@
-package me.zhangls.main.home
+package me.zhangls.main.waterfall
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -9,13 +9,14 @@ import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-import me.zhangls.main.EmailViewModel
 import me.zhangls.main.compose.EmailDetail
 import me.zhangls.main.compose.EmailList
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-actual fun HomeScreen(isBottomNavigationBar: Boolean, viewmodel: EmailViewModel) {
+actual fun HomeScreen(isBottomNavigationBar: Boolean) {
+  val viewmodel: EmailViewModel = koinViewModel()
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
   val scope = rememberCoroutineScope()
   val navigateToDetail: (Long) -> Unit = {

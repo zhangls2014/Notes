@@ -1,4 +1,4 @@
-package me.zhangls.main
+package me.zhangls.main.waterfall
 
 import kotlinx.serialization.Serializable
 import me.zhangls.data.model.UserModel

@@ -1,4 +1,4 @@
-package me.zhangls.main.domain
+package me.zhangls.main.search.domain
 
 import com.mohamedrejeb.calf.io.KmpFile
 import me.zhangls.data.util.AppFileManager

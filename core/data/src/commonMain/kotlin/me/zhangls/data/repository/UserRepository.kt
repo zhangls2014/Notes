@@ -21,6 +21,11 @@ class UserRepository(prefsDataStore: DataStore<Preferences>) {
   )
   val userFlow: Flow<UserModel?> = dataStore.read()
 
+
+  companion object {
+    private const val SEARCH_HISTORY_LIMIT = 10
+  }
+
   suspend fun getUser(): UserModel? = userFlow.lastOrNull()
 
   suspend fun update(user: UserModel) {
@@ -30,6 +35,30 @@ class UserRepository(prefsDataStore: DataStore<Preferences>) {
   suspend fun updateAvatar(avatar: String) {
     dataStore.updateData {
       it?.copy(avatar = avatar)
+    }
+  }
+
+  suspend fun updateEmailSearchHistory(keyword: String) {
+    val normalized = keyword.trim()
+    if (normalized.isEmpty()) return
+
+    dataStore.updateData {
+      val user = it ?: return@updateData null
+      val newHistory = buildList {
+        add(normalized)
+        addAll(user.emailSearchHistory.filterNot { history -> history == normalized })
+      }.take(SEARCH_HISTORY_LIMIT)
+      user.copy(emailSearchHistory = newHistory)
+    }
+  }
+
+  suspend fun deleteEmailSearchHistory(keyword: String) {
+    val normalized = keyword.trim()
+    if (normalized.isEmpty()) return
+
+    dataStore.updateData {
+      val user = it ?: return@updateData null
+      user.copy(emailSearchHistory = user.emailSearchHistory.filterNot { history -> history == normalized })
     }
   }
 
