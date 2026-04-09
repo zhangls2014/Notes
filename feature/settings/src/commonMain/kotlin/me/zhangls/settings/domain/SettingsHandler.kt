@@ -10,6 +10,7 @@ import me.zhangls.framework.mvi.DialogState
 import me.zhangls.framework.mvi.MviEffect
 import me.zhangls.settings.SettingsResult
 import me.zhangls.settings.icon.DarkMode
+import me.zhangls.settings.icon.ExitToApp
 import me.zhangls.settings.icon.FormatSize
 import me.zhangls.settings.icon.Language
 import me.zhangls.settings.icon.Palette
@@ -138,7 +139,7 @@ class SettingsHandler(
         key = KEY_LOGOUT,
         title = Res.string.settings_label_logout,
         summary = null,
-        icon = null,
+        icon = Icons.Rounded.ExitToApp,
       )
     }
   }
