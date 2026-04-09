@@ -12,7 +12,7 @@ plugins {
 
 kotlin {
   android {
-    namespace = "me.zhangls.main"
+    namespace = "me.zhangls.email"
     buildToolsVersion = kmp.versions.android.buildTools.get()
 
     compileSdk = kmp.versions.android.compileSdk.get().toInt()
@@ -32,7 +32,7 @@ kotlin {
     iosSimulatorArm64()
   ).forEach { iosTarget ->
     iosTarget.binaries.framework {
-      baseName = "mainKit"
+      baseName = "emailKit"
       isStatic = true
     }
   }
@@ -42,10 +42,7 @@ kotlin {
       dependencies {
         implementation(projects.core.data)
         implementation(projects.core.theme)
-        implementation(projects.core.network)
         implementation(projects.core.framework)
-        implementation(projects.feature.email)
-        implementation(projects.feature.settings)
 
         implementation(kmp.jetbrains.compose.runtime)
         implementation(kmp.jetbrains.compose.foundation)
@@ -60,6 +57,21 @@ kotlin {
         implementation(kmp.jetbrains.compose.material3.adaptive.layout)
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation)
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation.suite)
+
+        // Paging3
+        implementation(kmp.androidx.paging.compose)
+
+        // Coil
+        implementation(kmp.coil.compose)
+        implementation(kmp.coil.network.ktor)
+
+        implementation(kmp.calf.file.picker)
+      }
+    }
+
+    androidMain {
+      dependencies {
+        implementation(kmp.androidx.activity.compose)
       }
     }
   }

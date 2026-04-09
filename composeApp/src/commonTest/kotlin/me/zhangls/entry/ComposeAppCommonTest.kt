@@ -1,7 +1,7 @@
 package me.zhangls.entry
 
+import me.zhangls.email.detail.EmailDetailDestination
 import me.zhangls.main.MainDestination
-import me.zhangls.main.detail.EmailDetailDestination
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

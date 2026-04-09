@@ -15,8 +15,10 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.plus
+import me.zhangls.email.detail.EmailDetailDestination
+import me.zhangls.email.emailNavEntry
+import me.zhangls.email.emailNavModule
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.Destination
 import me.zhangls.framework.nav.NavEffect
@@ -24,12 +26,12 @@ import me.zhangls.framework.nav.NavEffect.Restart
 import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.LoginDestination
 import me.zhangls.login.LoginResult
-import me.zhangls.login.LoginScreen
+import me.zhangls.login.loginNavEntry
+import me.zhangls.login.loginNavModule
 import me.zhangls.main.MainDestination
 import me.zhangls.main.MainResult
-import me.zhangls.main.MainScreen
-import me.zhangls.main.detail.EmailDetailDestination
-import me.zhangls.main.detail.EmailDetailScreen
+import me.zhangls.main.mainNavEntry
+import me.zhangls.main.mainNavModule
 
 /**
  * @author zhangls
@@ -44,13 +46,7 @@ fun AppNavHost(
   var pendingDestination by remember { mutableStateOf<Destination?>(null) }
   //
   val config = SavedStateConfiguration {
-    serializersModule = SerializersModule {
-      polymorphic(NavKey::class) {
-        subclass(LoginDestination::class, LoginDestination.serializer())
-        subclass(MainDestination::class, MainDestination.serializer())
-        subclass(EmailDetailDestination::class, EmailDetailDestination.serializer())
-      }
-    }
+    serializersModule = mainNavModule + loginNavModule + emailNavModule
   }
   // 返回堆栈
   val backStack = rememberNavBackStack(config)
@@ -59,25 +55,19 @@ fun AppNavHost(
   // 是否登录
   var isLogin by remember { mutableStateOf(false) }
 
+  val navHandler = NavHandler(backStack = backStack, isLogin = { isLogin }, onIntercept = { pendingDestination = it })
+
   if (state.isLogin != null) {
     isLogin = state.isLogin ?: false
 
     // 回退栈为空，则根据登录状态添加首屏
     if (backStack.isEmpty()) {
       val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination
-      backStack.handle(
-        NavEffect.Navigate(firstDest),
-        isLogin = isLogin,
-        onIntercept = { pendingDestination = it }
-      )
+      navHandler(NavEffect.Navigate(firstDest))
 
       if (deepLinkDestination != null) onDeepLinkConsumed()
     } else if (deepLinkDestination != null) {
-      backStack.handle(
-        NavEffect.Navigate(deepLinkDestination),
-        isLogin = isLogin,
-        onIntercept = { pendingDestination = it }
-      )
+      navHandler(NavEffect.Navigate(deepLinkDestination))
       onDeepLinkConsumed()
     }
   } else {
@@ -98,97 +88,94 @@ fun AppNavHost(
       slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
     },
     entryProvider = entryProvider {
-      entry<MainDestination> {
-        MainScreen { result ->
-          when (result) {
-            MainResult.Logout -> {
-              backStack.handle(effect = Restart(LoginDestination), isLogin = false)
-            }
+      mainNavEntry { result ->
+        when (result) {
+          MainResult.Logout -> {
+            navHandler(Restart(LoginDestination))
+          }
 
-            is MainResult.NavigateToEmailDetail -> {
-              backStack.handle(
-                NavEffect.Navigate(EmailDetailDestination(result.emailId)),
-                isLogin = isLogin,
-                onIntercept = { pendingDestination = it }
-              )
-            }
+          is MainResult.NavigateToEmailDetail -> {
+            navHandler(
+              NavEffect.Navigate(EmailDetailDestination(result.emailId)),
+            )
           }
         }
       }
 
-      entry<LoginDestination> {
-        LoginScreen {
-          if (it == LoginResult.Success) {
-            pendingDestination?.let { dest ->
-              pendingDestination = null
-              // 登录成功，且跳转目标页面不为空，则跳转到目标页面
-              backStack.handle(NavEffect.Replace(dest), isLogin = true)
-            } ?: run {
-              // 登录成功，且跳转目标页面为空，则跳转到主页
-              backStack.handle(NavEffect.Replace(MainDestination), isLogin = true)
-            }
+      loginNavEntry {
+        if (it == LoginResult.Success) {
+          pendingDestination?.let { dest ->
+            pendingDestination = null
+            // 登录成功，且跳转目标页面不为空，则跳转到目标页面
+            navHandler(NavEffect.Replace(dest), isLogin = true)
+          } ?: run {
+            // 登录成功，且跳转目标页面为空，则跳转到主页
+            navHandler(NavEffect.Replace(MainDestination), isLogin = true)
           }
         }
       }
 
-      entry<EmailDetailDestination> {
-        EmailDetailScreen(it.emailId) {
-          backStack.handle(effect = NavEffect.Popup(), isLogin = isLogin)
-        }
+      emailNavEntry {
+        navHandler(it)
       }
     }
   )
 }
 
-private fun NavBackStack<NavKey>.handle(
-  effect: NavEffect,
-  isLogin: Boolean,
-  onIntercept: (Destination) -> Unit = {}
+
+private class NavHandler(
+  private val backStack: NavBackStack<NavKey>,
+  private val isLogin: () -> Boolean,
+  private val onIntercept: (Destination) -> Unit
 ) {
-  when (effect) {
-    is NavEffect.Navigate -> {
-      navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
-    }
+  operator fun invoke(effect: NavEffect, isLogin: Boolean? = null) {
+    backStack.handle(effect, isLogin ?: this.isLogin(), onIntercept)
+  }
 
-    is NavEffect.Replace -> {
-      removeLastOrNull()
-      navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
-    }
+  fun NavBackStack<NavKey>.handle(
+    effect: NavEffect,
+    isLogin: Boolean,
+    onIntercept: (Destination) -> Unit = {}
+  ) {
+    when (effect) {
+      is NavEffect.Navigate -> {
+        navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
+      }
 
-    is Restart -> {
-      clear()
-      navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
-    }
-
-    is NavEffect.Popup -> {
-      if (size > 1) {
+      is NavEffect.Replace -> {
         removeLastOrNull()
-      } else {
-        if (isLogin) {
-          if (firstOrNull() != MainDestination) {
-            add(0, MainDestination)
-            removeLastOrNull()
-          }
+        navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
+      }
+
+      is Restart -> {
+        clear()
+        navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
+      }
+
+      is NavEffect.Popup -> {
+        if (size > 1) {
+          removeLastOrNull()
         } else {
-          if (firstOrNull() != LoginDestination) {
-            add(0, LoginDestination)
+          val target = if (isLogin) MainDestination else LoginDestination
+          if (firstOrNull() != target) {
+            add(0, target)
             removeLastOrNull()
           }
         }
       }
     }
   }
-}
 
-private fun NavBackStack<NavKey>.navCheck(
-  target: Destination,
-  isLogin: Boolean = false,
-  onIntercept: (Destination) -> Unit
-) {
-  if (target is RequireLogin && !isLogin) {
-    onIntercept(target)
-    add(LoginDestination)
-  } else {
-    add(target)
+  fun NavBackStack<NavKey>.navCheck(
+    target: Destination,
+    isLogin: Boolean = false,
+    onIntercept: (Destination) -> Unit
+  ) {
+    if (target is RequireLogin && !isLogin) {
+      onIntercept(target)
+      add(LoginDestination)
+    } else {
+      add(target)
+    }
   }
 }

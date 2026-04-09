@@ -1,8 +1,8 @@
 package me.zhangls.entry
 
+import me.zhangls.email.detail.EmailDetailDestination
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.main.MainDestination
-import me.zhangls.main.detail.EmailDetailDestination
 
 private const val HTTPS = "https"
 private const val NOTES_HOST = "notes.zhangls.me"

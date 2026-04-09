@@ -43,6 +43,7 @@ kotlin {
         implementation(projects.core.theme)
         implementation(projects.core.network)
         implementation(projects.core.framework)
+        implementation(projects.feature.email)
         implementation(projects.feature.main)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)

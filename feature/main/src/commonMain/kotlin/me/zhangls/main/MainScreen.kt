@@ -18,11 +18,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
+import me.zhangls.email.favorites.FavoritesScreen
+import me.zhangls.email.waterfall.HomeScreen
 import me.zhangls.main.icon.Favorite
 import me.zhangls.main.icon.Home
 import me.zhangls.main.icon.Settings
-import me.zhangls.main.waterfall.FavoritesScreen
-import me.zhangls.main.waterfall.HomeScreen
 import me.zhangls.settings.SettingsResult
 import me.zhangls.settings.SettingsScreen
 import me.zhangls.theme.icon.Icons

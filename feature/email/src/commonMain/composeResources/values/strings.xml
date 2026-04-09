@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_action_new_email">New email</string>
+    <string name="main_action_email_reply">Reply</string>
+    <string name="main_action_email_reply_all">Reply all</string>
+    <string name="main_hint_search">Search</string>
+    <string name="main_action_search_collapsed">Close search</string>
+    <string name="main_action_owner_info">Profile</string>
+    <string name="main_msg_no_item_found">No items found</string>
+    <string name="main_msg_no_search_history">No search history</string>
+    <string name="main_action_favorite">Favorite</string>
+    <string name="main_action_cancel_favorite">Unfavorite</string>
+    <string name="main_action_delete">Delete</string>
+    <string name="main_action_cancel">Cancel</string>
+    <string name="main_msg_save_avatar_failed">Save avatar failed</string>
+    <string name="main_msg_new_email_clicked">Coming soon</string>
+</resources>

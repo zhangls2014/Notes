@@ -28,8 +28,8 @@ kotlin {
 
   sourceSets {
     commonMain.dependencies {
-      implementation(project.dependencies.platform(kmp.ktor.bom))
-      implementation(kmp.ktor.client.core)
+      api(project.dependencies.platform(kmp.ktor.bom))
+      api(kmp.ktor.client.core)
       implementation(kmp.ktor.client.cio)
       implementation(kmp.ktor.client.auth)
       implementation(kmp.ktor.client.logging)
