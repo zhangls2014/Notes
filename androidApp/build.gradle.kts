@@ -1,3 +1,5 @@
+import com.android.build.api.variant.impl.VariantOutputImpl
+import com.android.build.api.variant.impl.capitalizeFirstChar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -104,6 +106,37 @@ android {
 
   buildFeatures {
     compose = true
+  }
+
+  flavorDimensions.add("environment")
+  flavorDimensions.add("language")
+  productFlavors {
+    create("dev") {
+      dimension = "environment"
+    }
+
+    create("prd") {
+      dimension = "environment"
+    }
+
+    create("mainland") {
+      dimension = "language"
+    }
+
+    create("full") {
+      dimension = "language"
+    }
+  }
+}
+
+androidComponents {
+  onVariants { variant ->
+    variant.outputs.forEach { output ->
+      if (output is VariantOutputImpl) {
+        output.outputFileName = "Notes_v${output.versionName.get()}(${output.versionCode.get()})" +
+            "_${variant.flavorName?.capitalizeFirstChar()}_${variant.buildType}.apk"
+      }
+    }
   }
 }
 
