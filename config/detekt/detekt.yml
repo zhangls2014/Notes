@@ -663,7 +663,7 @@ style:
     active: false
   MultilineRawStringIndentation:
     active: false
-    indentSize: 4
+    indentSize: 2
     trimmingMethods:
       - 'trimIndent'
       - 'trimMargin'

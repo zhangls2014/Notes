@@ -1,6 +1,7 @@
 package me.zhangls.settings.domain
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import me.zhangls.theme.ThemeColor
 import org.jetbrains.compose.resources.StringResource
 
 /**
@@ -19,6 +20,7 @@ sealed interface Preference<T> {
     override val title: StringResource,
     override val summary: StringResource?,
     override val icon: ImageVector?,
+    val tint: ThemeColor? = null,
   ) : Preference<Unit>
 
   data class Switch(

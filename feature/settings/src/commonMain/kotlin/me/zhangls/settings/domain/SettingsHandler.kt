@@ -14,6 +14,7 @@ import me.zhangls.settings.icon.ExitToApp
 import me.zhangls.settings.icon.FormatSize
 import me.zhangls.settings.icon.Language
 import me.zhangls.settings.icon.Palette
+import me.zhangls.theme.ThemeColor
 import me.zhangls.theme.icon.Icons
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_dialog_action_cancel
@@ -140,6 +141,7 @@ class SettingsHandler(
         title = Res.string.settings_label_logout,
         summary = null,
         icon = Icons.Rounded.ExitToApp,
+        tint = ThemeColor.Error,
       )
     }
   }
