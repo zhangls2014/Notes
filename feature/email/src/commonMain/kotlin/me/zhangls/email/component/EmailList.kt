@@ -1,41 +1,57 @@
 package me.zhangls.email.component
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,7 +61,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
+import me.zhangls.data.model.AccountModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.email.icon.Cancel
 import me.zhangls.email.icon.Delete
@@ -57,12 +75,18 @@ import me.zhangls.email.waterfall.EmailIntent
 import me.zhangls.email.waterfall.EmailViewModel
 import me.zhangls.theme.icon.Icons
 import notes.feature.email.generated.resources.Res
-import notes.feature.email.generated.resources.main_action_cancel
-import notes.feature.email.generated.resources.main_action_cancel_favorite
-import notes.feature.email.generated.resources.main_action_delete
-import notes.feature.email.generated.resources.main_action_favorite
-import notes.feature.email.generated.resources.main_action_new_email
-import notes.feature.email.generated.resources.main_msg_new_email_clicked
+import notes.feature.email.generated.resources.allDrawableResources
+import notes.feature.email.generated.resources.email_action_cancel
+import notes.feature.email.generated.resources.email_action_cancel_favorite
+import notes.feature.email.generated.resources.email_action_delete
+import notes.feature.email.generated.resources.email_action_favorite
+import notes.feature.email.generated.resources.email_action_new_email
+import notes.feature.email.generated.resources.email_action_save
+import notes.feature.email.generated.resources.email_action_sending
+import notes.feature.email.generated.resources.email_label_body
+import notes.feature.email.generated.resources.email_label_recipients
+import notes.feature.email.generated.resources.email_label_subject
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -84,12 +108,13 @@ internal fun EmailList(
   val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
   val items = remember {
     listOf(
-      ActionItem(Icons.Rounded.StarFill, Res.string.main_action_favorite),
-      ActionItem(Icons.Rounded.Star, Res.string.main_action_cancel_favorite),
-      ActionItem(Icons.Rounded.Delete, Res.string.main_action_delete),
-      ActionItem(Icons.Rounded.Cancel, Res.string.main_action_cancel),
+      ActionItem(Icons.Rounded.StarFill, Res.string.email_action_favorite),
+      ActionItem(Icons.Rounded.Star, Res.string.email_action_cancel_favorite),
+      ActionItem(Icons.Rounded.Delete, Res.string.email_action_delete),
+      ActionItem(Icons.Rounded.Cancel, Res.string.email_action_cancel),
     )
   }
+
 
   Scaffold(
     modifier = if (isFavorite) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -105,19 +130,19 @@ internal fun EmailList(
         } else {
           EmailActionBar(modifier = Modifier.statusBarsPadding(), items = items) {
             when (it.text) {
-              Res.string.main_action_favorite -> {
+              Res.string.email_action_favorite -> {
                 viewmodel.sendIntent(EmailIntent.MultiFavorite)
               }
 
-              Res.string.main_action_cancel_favorite -> {
+              Res.string.email_action_cancel_favorite -> {
                 viewmodel.sendIntent(EmailIntent.MultiCancelFavorite)
               }
 
-              Res.string.main_action_delete -> {
+              Res.string.email_action_delete -> {
                 viewmodel.sendIntent(EmailIntent.MultiDelete)
               }
 
-              Res.string.main_action_cancel -> {
+              Res.string.email_action_cancel -> {
                 viewmodel.sendIntent(EmailIntent.ClearSelectedEmail)
               }
             }
@@ -128,14 +153,29 @@ internal fun EmailList(
     floatingActionButton = {
       if (isFavorite) return@Scaffold
       ExtendedFloatingActionButton(
-        text = { Text(text = stringResource(Res.string.main_action_new_email)) },
-        icon = {
-          Icon(
-            imageVector = Icons.Rounded.Edit,
-            contentDescription = stringResource(Res.string.main_action_new_email)
+        text = {
+          Text(
+            text = if (state.isSending) {
+              stringResource(Res.string.email_action_sending)
+            } else {
+              stringResource(Res.string.email_action_new_email)
+            }
           )
         },
-        onClick = { viewmodel.sendIntent(EmailIntent.ShowToast(Res.string.main_msg_new_email_clicked)) },
+        icon = {
+          if (state.isSending) {
+            CircularProgressIndicator(
+              modifier = Modifier.size(24.dp),
+              strokeWidth = 2.dp,
+            )
+          } else {
+            Icon(
+              imageVector = Icons.Rounded.Edit,
+              contentDescription = stringResource(Res.string.email_action_new_email)
+            )
+          }
+        },
+        onClick = { if (!state.isSending) viewmodel.sendIntent(EmailIntent.OpenDraft) },
         expanded = emailListState.lastScrolledBackward || emailListState.canScrollBackward.not(),
       )
     },
@@ -187,6 +227,25 @@ internal fun EmailList(
         item { Loading(modifier = Modifier.fillParentMaxWidth()) }
       }
     }
+  }
+
+  if (!isFavorite) {
+    NewEmailSheet(
+      recipients = state.accounts,
+      visible = state.isEmailDraftVisible,
+      selectedRecipientIds = state.draftRecipientIds,
+      subject = state.draftSubject,
+      body = state.draftBody,
+      isSending = state.isSending,
+      onToggleRecipient = { id, selected ->
+        viewmodel.sendIntent(EmailIntent.UpdateDraftRecipient(recipientId = id, selected = selected))
+      },
+      onSubjectChange = { viewmodel.sendIntent(EmailIntent.UpdateDraftSubject(it)) },
+      onBodyChange = { viewmodel.sendIntent(EmailIntent.UpdateDraftBody(it)) },
+      onDismiss = { viewmodel.sendIntent(EmailIntent.CloseDraft) },
+      onCancel = { viewmodel.sendIntent(EmailIntent.ClearDraft) },
+      onSave = { viewmodel.sendIntent(EmailIntent.SubmitDraft) },
+    )
   }
 }
 
@@ -273,7 +332,7 @@ fun EmailListItem(
       }
 
       Text(
-        text = email.subject,
+        text = email.subject.toDisplaySubject(),
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
       )
@@ -283,6 +342,101 @@ fun EmailListItem(
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
+    }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun NewEmailSheet(
+  recipients: List<AccountModel>,
+  visible: Boolean,
+  selectedRecipientIds: Set<Long>,
+  subject: String,
+  body: String,
+  isSending: Boolean,
+  onToggleRecipient: (Long, Boolean) -> Unit,
+  onSubjectChange: (String) -> Unit,
+  onBodyChange: (String) -> Unit,
+  onDismiss: () -> Unit,
+  onCancel: () -> Unit,
+  onSave: () -> Unit,
+) {
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  val scope = rememberCoroutineScope()
+
+
+  if (visible) {
+    scope.launch { sheetState.show() }
+  } else if (sheetState.isVisible) {
+    scope.launch { sheetState.hide() }
+  } else if (sheetState.isAnimationRunning.not()) {
+    return
+  }
+
+
+  ModalBottomSheet(onDismissRequest = { if (!isSending) onDismiss() }, sheetState = sheetState) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 8.dp)
+        .verticalScroll(state = rememberScrollState()),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Text(
+        text = stringResource(Res.string.email_label_recipients),
+        style = MaterialTheme.typography.titleMedium,
+      )
+      FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        recipients.forEach { recipient ->
+          FilterChip(
+            selected = selectedRecipientIds.contains(recipient.id),
+            onClick = { onToggleRecipient(recipient.id, !selectedRecipientIds.contains(recipient.id)) },
+            enabled = !isSending,
+            leadingIcon = {
+              Image(
+                modifier = Modifier
+                  .size(16.dp)
+                  .clip(CircleShape),
+                painter = painterResource(Res.allDrawableResources.getValue(recipient.avatar)),
+                contentScale = ContentScale.Crop,
+                contentDescription = null,
+              )
+            },
+            label = { Text(recipient.fullName) },
+          )
+        }
+      }
+
+      OutlinedTextField(
+        value = subject,
+        onValueChange = onSubjectChange,
+        enabled = !isSending,
+        label = { Text(text = stringResource(Res.string.email_label_subject)) },
+        modifier = Modifier.fillMaxWidth(),
+      )
+
+      OutlinedTextField(
+        value = body,
+        onValueChange = onBodyChange,
+        enabled = !isSending,
+        label = { Text(text = stringResource(Res.string.email_label_body)) },
+        modifier = Modifier.fillMaxWidth(),
+        minLines = 4,
+      )
+
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+      ) {
+        TextButton(enabled = !isSending, onClick = onCancel) {
+          Text(text = stringResource(Res.string.email_action_cancel))
+        }
+        Spacer(modifier = Modifier.size(8.dp))
+        Button(enabled = !isSending, onClick = onSave) {
+          Text(text = stringResource(Res.string.email_action_save))
+        }
+      }
     }
   }
 }

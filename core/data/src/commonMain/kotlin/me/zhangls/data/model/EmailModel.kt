@@ -9,9 +9,9 @@ data class EmailModel(
   val recipients: List<AccountModel> = emptyList(),
   val subject: String,
   val body: String,
-  var isImportant: Boolean = false,
-  var isStarred: Boolean = false,
-  var mailbox: MailboxType = MailboxType.INBOX,
+  val isImportant: Boolean = false,
+  val isStarred: Boolean = false,
+  val mailbox: MailboxType = MailboxType.INBOX,
   val createdAt: String,
   val threads: List<EmailModel> = emptyList(),
 )

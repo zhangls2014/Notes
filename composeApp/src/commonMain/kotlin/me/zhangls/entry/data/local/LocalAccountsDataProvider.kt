@@ -7,10 +7,10 @@ object LocalAccountsDataProvider {
   val allUserAccounts = listOf(
     AccountModel(
       id = 1L,
-      firstName = "Jeff",
-      lastName = "Hansen",
-      email = "hikingfan@gmail.com",
-      altEmail = "hkngfan@outside.com",
+      firstName = "Ada",
+      lastName = "Lovelace",
+      email = "ada@example.com",
+      altEmail = "ada@example.net",
       avatar = "avatar_10",
     ),
     AccountModel(

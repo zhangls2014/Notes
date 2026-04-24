@@ -93,4 +93,8 @@ class EmailsRepository(
       pagingSourceFactory = { emailDao.searchEmails(keywords) }
     ).flow
   }
+
+  suspend fun getDefaultAccount() = accountDao.queryDefaultAccount()
+
+  fun getAllAccounts() = accountDao.queryAllAccount()
 }
