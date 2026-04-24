@@ -48,6 +48,12 @@ kotlin {
         implementation(kmp.koin.annotations)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(kmp.kotlin.test)
+      }
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 package me.zhangls.data.database.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
@@ -17,6 +18,8 @@ data class EmailEntity(
   @PrimaryKey(autoGenerate = true)
   val id: Long,
   val senderId: Long,
+  @ColumnInfo(defaultValue = "'[]'")
+  val recipientIds: String = "[]",
   val subject: String,
   val body: String,
   val isImportant: Boolean = false,

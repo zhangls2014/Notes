@@ -1,5 +1,6 @@
 package me.zhangls.data.database
 
+import androidx.room3.AutoMigration
 import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
@@ -19,9 +20,9 @@ import me.zhangls.data.database.entity.EmailEntity
     EmailEntity::class,
   ],
   // 警告⚠️：每次数据库字段变化都需要配置自动迁移，否则需要面临数据丢失风险！
-  version = 1,
+  version = 2,
   exportSchema = true,
-  autoMigrations = []
+  autoMigrations = [AutoMigration(from = 1, to = 2)]
 )
 @TypeConverters(Converters::class)
 @ConstructedBy(AppDatabaseConstructor::class)

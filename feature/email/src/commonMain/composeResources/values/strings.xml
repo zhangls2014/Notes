@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="main_action_new_email">New email</string>
-    <string name="main_action_email_reply">Reply</string>
-    <string name="main_action_email_reply_all">Reply all</string>
-    <string name="main_hint_search">Search</string>
-    <string name="main_action_search_collapsed">Close search</string>
-    <string name="main_action_owner_info">Profile</string>
-    <string name="main_msg_no_item_found">No items found</string>
-    <string name="main_msg_no_search_history">No search history</string>
-    <string name="main_action_favorite">Favorite</string>
-    <string name="main_action_cancel_favorite">Unfavorite</string>
-    <string name="main_action_delete">Delete</string>
-    <string name="main_action_cancel">Cancel</string>
-    <string name="main_msg_save_avatar_failed">Save avatar failed</string>
-    <string name="main_msg_new_email_clicked">Coming soon</string>
+    <string name="email_action_new_email">New email</string>
+    <string name="email_action_email_reply">Reply</string>
+    <string name="email_action_email_reply_all">Reply all</string>
+    <string name="email_hint_search">Search</string>
+    <string name="email_action_search_collapsed">Close search</string>
+    <string name="email_action_owner_info">Profile</string>
+    <string name="email_msg_no_item_found">No items found</string>
+    <string name="email_msg_no_search_history">No search history</string>
+    <string name="email_action_favorite">Favorite</string>
+    <string name="email_action_cancel_favorite">Unfavorite</string>
+    <string name="email_action_delete">Delete</string>
+    <string name="email_action_cancel">Cancel</string>
+    <string name="email_action_save">Save</string>
+    <string name="email_action_sending">Sending...</string>
+    <string name="email_label_recipients">Recipients</string>
+    <string name="email_label_subject">Subject</string>
+    <string name="email_label_body">Body</string>
+    <string name="email_msg_save_avatar_failed">Save avatar failed</string>
+    <string name="email_msg_recipient_required">Please select at least one recipient</string>
+    <string name="email_msg_body_required">Please enter the main content.</string>
+    <string name="email_msg_email_save_failed">Failed to save email</string>
+    <string name="email_label_empty_subject">(No Subject)</string>
 </resources>

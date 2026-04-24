@@ -67,13 +67,13 @@ import me.zhangls.email.search.SearchViewModel.Companion.DURATION_SEARCH_DEBOUNC
 import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Icons
 import notes.feature.email.generated.resources.Res
-import notes.feature.email.generated.resources.main_action_delete
-import notes.feature.email.generated.resources.main_action_owner_info
-import notes.feature.email.generated.resources.main_action_search_collapsed
-import notes.feature.email.generated.resources.main_hint_search
+import notes.feature.email.generated.resources.email_action_delete
+import notes.feature.email.generated.resources.email_action_owner_info
+import notes.feature.email.generated.resources.email_action_search_collapsed
+import notes.feature.email.generated.resources.email_hint_search
+import notes.feature.email.generated.resources.email_msg_no_item_found
+import notes.feature.email.generated.resources.email_msg_no_search_history
 import notes.feature.email.generated.resources.main_ic_default_avatar
-import notes.feature.email.generated.resources.main_msg_no_item_found
-import notes.feature.email.generated.resources.main_msg_no_search_history
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -112,7 +112,7 @@ internal fun EmailSearchBar(
       onSearch = { closeSearchBar() },
       placeholder = {
         Text(
-          text = stringResource(Res.string.main_hint_search),
+          text = stringResource(Res.string.email_hint_search),
           modifier = Modifier.clearAndSetSemantics {}
         )
       },
@@ -120,13 +120,13 @@ internal fun EmailSearchBar(
         if (searchBarState.currentValue == SearchBarValue.Expanded) {
           TooltipBox(
             positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-            tooltip = { PlainTooltip { Text(stringResource(Res.string.main_action_search_collapsed)) } },
+            tooltip = { PlainTooltip { Text(stringResource(Res.string.email_action_search_collapsed)) } },
             state = rememberTooltipState(),
           ) {
             IconButton(onClick = closeSearchBar) {
               Icon(
                 imageVector = Icons.Rounded.ArrowBackIosNew,
-                contentDescription = stringResource(Res.string.main_action_search_collapsed),
+                contentDescription = stringResource(Res.string.email_action_search_collapsed),
               )
             }
           }
@@ -250,7 +250,7 @@ private fun ProfileImage(user: UserModel, onImageSelected: (KmpFile?) -> Unit) {
     placeholder = painterResource(Res.drawable.main_ic_default_avatar),
     error = painterResource(Res.drawable.main_ic_default_avatar),
     contentScale = ContentScale.Crop,
-    contentDescription = stringResource(Res.string.main_action_owner_info),
+    contentDescription = stringResource(Res.string.email_action_owner_info),
   )
 }
 
@@ -262,7 +262,7 @@ private fun SearchResults(
 ) {
   if (searchResults.itemCount <= 0) {
     Text(
-      text = stringResource(Res.string.main_msg_no_item_found),
+      text = stringResource(Res.string.email_msg_no_item_found),
       modifier = Modifier.padding(16.dp),
     )
     return
@@ -278,7 +278,7 @@ private fun SearchResults(
         leadingContent = {
           ProfileImage(
             drawableKey = sender.avatar,
-            description = stringResource(Res.string.main_action_owner_info)
+            description = stringResource(Res.string.email_action_owner_info)
           )
         },
         modifier = Modifier.clickable { onResultClick(email.email.id) },
@@ -295,7 +295,7 @@ private fun SearchHistory(
 ) {
   if (searchHistory.isEmpty()) {
     Text(
-      text = stringResource(Res.string.main_msg_no_search_history),
+      text = stringResource(Res.string.email_msg_no_search_history),
       modifier = Modifier.padding(16.dp),
     )
     return
@@ -326,7 +326,7 @@ private fun SearchHistory(
           ) {
             Icon(
               imageVector = Icons.Rounded.Clear,
-              contentDescription = stringResource(Res.string.main_action_delete),
+              contentDescription = stringResource(Res.string.email_action_delete),
               modifier = Modifier.size(AssistChipDefaults.IconSize),
             )
           }

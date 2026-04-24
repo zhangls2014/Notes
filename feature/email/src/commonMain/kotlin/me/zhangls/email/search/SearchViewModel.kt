@@ -22,7 +22,7 @@ import me.zhangls.email.search.domain.AvatarSaver
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.feature.email.generated.resources.Res
-import notes.feature.email.generated.resources.main_msg_save_avatar_failed
+import notes.feature.email.generated.resources.email_msg_save_avatar_failed
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -89,7 +89,7 @@ internal class SearchViewModel(
         avatarSaver.save(avatar)
       }
       if (path == null) {
-        toastGlobalNotifier.showToast(Res.string.main_msg_save_avatar_failed)
+        toastGlobalNotifier.showToast(Res.string.email_msg_save_avatar_failed)
       } else {
         withState {
           user?.avatar?.let {

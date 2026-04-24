@@ -41,8 +41,8 @@ import me.zhangls.email.waterfall.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.icon.Icons
 import notes.feature.email.generated.resources.Res
-import notes.feature.email.generated.resources.main_action_email_reply
-import notes.feature.email.generated.resources.main_action_email_reply_all
+import notes.feature.email.generated.resources.email_action_email_reply
+import notes.feature.email.generated.resources.email_action_email_reply_all
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -65,7 +65,7 @@ internal fun EmailDetail(
   Scaffold(
     topBar = {
       model?.email?.subject?.let {
-        CenteredTopAppBar(title = it, navigate = onBackPressed)
+        CenteredTopAppBar(title = it.toDisplaySubject(), navigate = onBackPressed)
       }
     }
   ) { padding ->
@@ -146,7 +146,7 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
       }
 
       Text(
-        text = email.subject,
+        text = email.subject.toDisplaySubject(),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.outline,
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
@@ -164,8 +164,8 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
           .padding(top = 20.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        ReplayButton(modifier = Modifier.weight(1F), textRes = Res.string.main_action_email_reply) { }
-        ReplayButton(modifier = Modifier.weight(1F), textRes = Res.string.main_action_email_reply_all) { }
+        ReplayButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply) { }
+        ReplayButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply_all) { }
       }
     }
   }
@@ -175,7 +175,7 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
 @Composable
 private fun ReplayButton(
   modifier: Modifier = Modifier,
-  textRes: StringResource = Res.string.main_action_email_reply,
+  textRes: StringResource = Res.string.email_action_email_reply,
   onClick: () -> Unit = {}
 ) {
   Button(
