@@ -1,6 +1,7 @@
 package me.zhangls.email.component
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -50,6 +51,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.selected
@@ -294,13 +296,7 @@ fun EmailListItem(
         .padding(20.dp),
     ) {
       Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        AnimatedContent(targetState = isSelected, label = "avatar") {
-          if (it) {
-            SelectedProfileImage()
-          } else {
-            ProfileImage(drawableKey = sender.avatar, description = sender.fullName)
-          }
-        }
+        FlipAvatar(isSelected = isSelected, account = sender)
 
         Column(
           modifier = Modifier
@@ -342,6 +338,33 @@ fun EmailListItem(
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
+    }
+  }
+}
+
+@Composable
+private fun FlipAvatar(modifier: Modifier = Modifier, isSelected: Boolean, account: AccountModel) {
+  val rotation by animateFloatAsState(
+    targetValue = if (isSelected) 180F else 0F,
+    animationSpec = tween(durationMillis = 300),
+    label = "rotation"
+  )
+
+  Box(
+    modifier = modifier
+      .graphicsLayer {
+        rotationY = rotation
+        cameraDistance = 12 * density
+      }
+  ) {
+    if (rotation <= 90F) {
+      ProfileImage(drawableKey = account.avatar, description = account.fullName)
+    }
+    if (rotation > 90F) {
+      SelectedProfileImage(modifier = Modifier.graphicsLayer {
+        // 修正背面的图像
+        rotationY = 180F
+      })
     }
   }
 }

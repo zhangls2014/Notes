@@ -35,9 +35,9 @@ fun ProfileImage(drawableKey: String, description: String) {
 }
 
 @Composable
-fun SelectedProfileImage() {
+fun SelectedProfileImage(modifier: Modifier = Modifier) {
   Box(
-    modifier = Modifier
+    modifier = modifier
       .size(40.dp)
       .clip(CircleShape)
       .background(MaterialTheme.colorScheme.primary),
