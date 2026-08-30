@@ -1,4 +1,4 @@
-package me.zhangls.email.icon
+package me.zhangls.theme.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -7,19 +7,31 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 import me.zhangls.theme.icon.Icons
 
-val Icons.Rounded.StarFill: ImageVector
+val Icons.Rounded.Star: ImageVector
   get() {
     if (_Star != null) {
       return _Star!!
     }
     _Star = ImageVector.Builder(
-      name = "Rounded.StarFill",
+      name = "Rounded.Star",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
       viewportHeight = 960f
     ).apply {
       path(fill = SolidColor(Color(0xFF1F1F1F))) {
+        moveToRelative(354f, 673f)
+        lineToRelative(126f, -76f)
+        lineToRelative(126f, 77f)
+        lineToRelative(-33f, -144f)
+        lineToRelative(111f, -96f)
+        lineToRelative(-146f, -13f)
+        lineToRelative(-58f, -136f)
+        lineToRelative(-58f, 135f)
+        lineToRelative(-146f, 13f)
+        lineToRelative(111f, 97f)
+        lineToRelative(-33f, 143f)
+        close()
         moveTo(480f, 691f)
         lineTo(314f, 791f)
         quadToRelative(-11f, 7f, -23f, 6f)
@@ -51,6 +63,8 @@ val Icons.Rounded.StarFill: ImageVector
         quadToRelative(-9f, 7f, -21f, 8f)
         reflectiveQuadToRelative(-23f, -6f)
         lineTo(480f, 691f)
+        close()
+        moveTo(480f, 490f)
         close()
       }
     }.build()

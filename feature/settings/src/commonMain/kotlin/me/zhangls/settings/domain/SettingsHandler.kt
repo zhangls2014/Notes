@@ -9,12 +9,12 @@ import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.framework.mvi.DialogState
 import me.zhangls.framework.mvi.MviEffect
 import me.zhangls.settings.api.SettingsResult
-import me.zhangls.settings.icon.DarkMode
-import me.zhangls.settings.icon.ExitToApp
-import me.zhangls.settings.icon.FormatSize
-import me.zhangls.settings.icon.Palette
 import me.zhangls.theme.ThemeColor
+import me.zhangls.theme.icon.DarkMode
+import me.zhangls.theme.icon.ExitToApp
+import me.zhangls.theme.icon.FormatSize
 import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.icon.Palette
 import me.zhangls.theme.language.LanguageCatalog
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_dialog_action_cancel

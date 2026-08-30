@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import me.zhangls.email.icon.Check
+import me.zhangls.theme.icon.Check
 import me.zhangls.theme.icon.Icons
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.allDrawableResources

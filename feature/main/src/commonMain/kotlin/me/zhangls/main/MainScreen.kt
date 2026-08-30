@@ -20,9 +20,9 @@ import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import me.zhangls.email.favorites.FavoritesScreen
 import me.zhangls.email.waterfall.HomeScreen
-import me.zhangls.main.icon.Favorite
-import me.zhangls.main.icon.Home
-import me.zhangls.main.icon.Settings
+import me.zhangls.theme.icon.Favorite
+import me.zhangls.theme.icon.Home
+import me.zhangls.theme.icon.Settings
 import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.theme.icon.Icons

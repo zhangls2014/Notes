@@ -34,8 +34,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
-import me.zhangls.email.icon.Star
-import me.zhangls.email.icon.StarFill
+import me.zhangls.theme.icon.Star
+import me.zhangls.theme.icon.StarFill
 import me.zhangls.email.waterfall.EmailIntent
 import me.zhangls.email.waterfall.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar

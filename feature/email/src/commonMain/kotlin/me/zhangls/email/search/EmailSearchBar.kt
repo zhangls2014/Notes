@@ -61,8 +61,8 @@ import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.email.component.ProfileImage
-import me.zhangls.email.icon.Clear
-import me.zhangls.email.icon.Search
+import me.zhangls.theme.icon.Clear
+import me.zhangls.theme.icon.Search
 import me.zhangls.email.search.SearchViewModel.Companion.DURATION_SEARCH_DEBOUNCE
 import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Icons
