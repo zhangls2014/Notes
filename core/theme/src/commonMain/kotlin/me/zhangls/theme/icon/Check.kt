@@ -1,4 +1,4 @@
-package me.zhangls.email.icon
+package me.zhangls.theme.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor

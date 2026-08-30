@@ -67,11 +67,11 @@ import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.AccountModel
 import me.zhangls.data.model.toDomain
-import me.zhangls.email.icon.Cancel
-import me.zhangls.email.icon.Delete
-import me.zhangls.email.icon.Edit
-import me.zhangls.email.icon.Star
-import me.zhangls.email.icon.StarFill
+import me.zhangls.theme.icon.Cancel
+import me.zhangls.theme.icon.Delete
+import me.zhangls.theme.icon.Edit
+import me.zhangls.theme.icon.Star
+import me.zhangls.theme.icon.StarFill
 import me.zhangls.email.search.EmailSearchBar
 import me.zhangls.email.waterfall.EmailIntent
 import me.zhangls.email.waterfall.EmailViewModel

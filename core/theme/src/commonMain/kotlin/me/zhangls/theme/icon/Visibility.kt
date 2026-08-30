@@ -1,4 +1,4 @@
-package me.zhangls.login.icon
+package me.zhangls.theme.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
