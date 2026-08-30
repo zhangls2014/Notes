@@ -58,9 +58,9 @@ import me.zhangls.login.icon.Clear
 import me.zhangls.login.icon.Lock
 import me.zhangls.login.icon.Visibility
 import me.zhangls.login.icon.VisibilityOff
-import me.zhangls.settings.domain.SettingsHandler
 import me.zhangls.theme.component.ContainedLoadingIndicator
 import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.language.LanguageCatalog
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_hint_login_account
@@ -154,11 +154,10 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLanguageChange: (AppLanguage) -> Unit) {
-  val preference = SettingsHandler.languagePreference(language)
   val title = if (language == AppLanguage.FOLLOW_SYSTEM) {
-    preference.title
+    LanguageCatalog.title
   } else {
-    preference.options.first { it.value == language }.label
+    LanguageCatalog.options.first { it.value == language }.label
   }
   var expanded by remember { mutableStateOf(false) }
 
@@ -166,10 +165,8 @@ fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLangu
     OutlinedButton(
       onClick = { expanded = expanded.not() },
     ) {
-      preference.icon?.let {
-        Icon(imageVector = it, contentDescription = null)
-        Spacer(modifier = Modifier.width(8.dp))
-      }
+      Icon(imageVector = LanguageCatalog.icon, contentDescription = null)
+      Spacer(modifier = Modifier.width(8.dp))
       Text(text = stringResource(title))
     }
 
@@ -180,7 +177,7 @@ fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLangu
       DropdownMenuGroup(
         shapes = MenuDefaults.groupShapes(),
       ) {
-        preference.options.forEach { option ->
+        LanguageCatalog.options.forEach { option ->
           DropdownMenuItem(
             text = { Text(text = stringResource(option.label)) },
             shapes = MenuDefaults.itemShapes(),

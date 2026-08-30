@@ -1,11 +1,10 @@
-package me.zhangls.settings.icon
+package me.zhangls.theme.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
 
 
 val Icons.Rounded.Language: ImageVector

@@ -12,10 +12,6 @@
   <string name="settings_label_font_size_standard">Standard</string>
   <string name="settings_label_font_size_medium">Medium</string>
   <string name="settings_label_font_size_large">Large</string>
-  <string name="settings_label_language">Language</string>
-  <string name="settings_label_language_follow_system">System default</string>
-  <string name="settings_label_language_english">English</string>
-  <string name="settings_label_language_chinese">Chinese (Simplified)</string>
   <string name="settings_label_logout">Log out</string>
   <string name="settings_dialog_label_logout">Confirm</string>
   <string name="settings_dialog_action_cancel">Cancel</string>

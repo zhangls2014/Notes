@@ -44,6 +44,9 @@ kotlin {
         implementation(projects.core.theme)
         implementation(projects.core.framework)
 
+        // 依赖 settings 契约(api)；实现类 SettingsEntryImpl 通过 Koin 绑定到 SettingsEntry
+        implementation(projects.feature.settingsApi)
+
         implementation(kmp.jetbrains.compose.runtime)
         implementation(kmp.jetbrains.compose.foundation)
         implementation(kmp.jetbrains.compose.ui)

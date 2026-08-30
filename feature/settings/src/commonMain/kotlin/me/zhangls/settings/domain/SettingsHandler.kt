@@ -8,14 +8,14 @@ import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.framework.mvi.DialogState
 import me.zhangls.framework.mvi.MviEffect
-import me.zhangls.settings.SettingsResult
+import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.icon.DarkMode
 import me.zhangls.settings.icon.ExitToApp
 import me.zhangls.settings.icon.FormatSize
-import me.zhangls.settings.icon.Language
 import me.zhangls.settings.icon.Palette
 import me.zhangls.theme.ThemeColor
 import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.language.LanguageCatalog
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_dialog_action_cancel
 import notes.feature.settings.generated.resources.settings_dialog_action_logout
@@ -30,10 +30,6 @@ import notes.feature.settings.generated.resources.settings_label_font_size
 import notes.feature.settings.generated.resources.settings_label_font_size_large
 import notes.feature.settings.generated.resources.settings_label_font_size_medium
 import notes.feature.settings.generated.resources.settings_label_font_size_standard
-import notes.feature.settings.generated.resources.settings_label_language
-import notes.feature.settings.generated.resources.settings_label_language_chinese
-import notes.feature.settings.generated.resources.settings_label_language_english
-import notes.feature.settings.generated.resources.settings_label_language_follow_system
 import notes.feature.settings.generated.resources.settings_label_logout
 import notes.feature.settings.generated.resources.settings_msg_dynamic_color_off
 import notes.feature.settings.generated.resources.settings_msg_dynamic_color_on
@@ -120,18 +116,10 @@ class SettingsHandler(
       return Preference.Alert(
         key = KEY_APP_LANGUAGE,
         value = appLanguage,
-        title = Res.string.settings_label_language,
-        summary = when (appLanguage) {
-          AppLanguage.FOLLOW_SYSTEM -> Res.string.settings_label_language_follow_system
-          AppLanguage.ENGLISH -> Res.string.settings_label_language_english
-          AppLanguage.CHINESE -> Res.string.settings_label_language_chinese
-        },
-        options = listOf(
-          Preference.Option(Res.string.settings_label_language_follow_system, AppLanguage.FOLLOW_SYSTEM),
-          Preference.Option(Res.string.settings_label_language_english, AppLanguage.ENGLISH),
-          Preference.Option(Res.string.settings_label_language_chinese, AppLanguage.CHINESE)
-        ),
-        icon = Icons.Rounded.Language
+        title = LanguageCatalog.title,
+        summary = LanguageCatalog.summary(appLanguage),
+        options = LanguageCatalog.options.map { Preference.Option(it.label, it.value) },
+        icon = LanguageCatalog.icon,
       )
     }
 

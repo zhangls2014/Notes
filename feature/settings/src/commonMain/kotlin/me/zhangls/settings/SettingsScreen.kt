@@ -21,6 +21,7 @@ import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.framework.mvi.DialogResult
+import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.SettingsIntent.ClickSettings
 import me.zhangls.settings.SettingsIntent.DialogCallback
 import me.zhangls.settings.SettingsIntent.UpdateSettings
@@ -37,7 +38,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * @author zhangls
  */
 @Composable
-fun SettingsScreen(
+internal fun SettingsScreen(
   isBottomNavigationBar: Boolean,
   viewmodel: SettingsViewModel = koinViewModel(),
   onResult: (SettingsResult) -> Unit = {}
