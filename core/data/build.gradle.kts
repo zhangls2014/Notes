@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   alias(kmp.plugins.jetbrains.kotlin.serialization)
   alias(kmp.plugins.jetbrains.kotlin.multiplatform)
@@ -15,6 +17,10 @@ kotlin {
 
     compileSdk = kmp.versions.android.compileSdk.get().toInt()
     minSdk = kmp.versions.android.minSdk.get().toInt()
+
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_25
+    }
   }
 
   listOf(

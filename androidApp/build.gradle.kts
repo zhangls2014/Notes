@@ -1,6 +1,5 @@
 import com.android.build.api.variant.impl.VariantOutputImpl
 import com.android.build.api.variant.impl.capitalizeFirstChar
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
@@ -11,12 +10,6 @@ plugins {
 }
 
 kotlin {
-  target {
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
-  }
-
   dependencies {
     testImplementation(kmp.junit)
     androidTestImplementation(kmp.androidx.test.ext.junit)

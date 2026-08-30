@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(kmp.plugins.jetbrains.kotlin.multiplatform)
   alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
@@ -15,10 +13,6 @@ kotlin {
 
     compileSdk = kmp.versions.android.compileSdk.get().toInt()
     minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
 
     androidResources {
       enable = true
