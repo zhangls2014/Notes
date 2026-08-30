@@ -9,8 +9,6 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.settings.domain.SettingsHandler
-import me.zhangls.settings.domain.SettingsHandler.ClickAction
-import me.zhangls.settings.domain.mapToPreferences
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -20,42 +18,46 @@ import org.koin.core.annotation.KoinViewModel
 class SettingsViewModel(
   savedStateHandle: SavedStateHandle,
   userRepository: UserRepository,
-  settingsRepository: SettingsRepository,
+  private val settingsRepository: SettingsRepository,
 ) : MviViewModel<SettingsState, SettingsIntent>(
   initialState = SettingsState(),
   stateSerializer = SettingsState.serializer(),
-  savedStateHandle = savedStateHandle,
-  // 不保存状态
-  savedKey = null
+  savedStateHandle = savedStateHandle
 ) {
-  private val handler = SettingsHandler(userRepository, settingsRepository)
+  private val handler = SettingsHandler(userRepository)
 
   init {
-    // SettingsModel 转换为 List<Preference>
+    // 订阅设置数据源，同步到 State
     viewModelScope.launch {
       settingsRepository.settingsFlow
-        .map { it.mapToPreferences() }
+        .map { SettingsAction.UpdateSettings(it) }
         .collectLatest {
-          dispatch(SettingsAction.UpdatePreferences(it))
+          dispatch(it)
         }
     }
   }
 
   override fun handleIntent(intent: SettingsIntent) {
     when (intent) {
-      is SettingsIntent.UpdateSettings<*> -> {
-        viewModelScope.launch {
-          handler.updateSettings(intent.key, intent.result)
-        }
+      is SettingsIntent.UpdateDynamicColor -> {
+        viewModelScope.launch { settingsRepository.updateDynamicColor(intent.value) }
       }
 
-      is SettingsIntent.ClickSettings -> {
+      is SettingsIntent.UpdateDarkTheme -> {
+        viewModelScope.launch { settingsRepository.updateDarkTheme(intent.value) }
+      }
+
+      is SettingsIntent.UpdateFontSize -> {
+        viewModelScope.launch { settingsRepository.updateFontSize(intent.value) }
+      }
+
+      is SettingsIntent.UpdateAppLanguage -> {
+        viewModelScope.launch { settingsRepository.updateAppLanguage(intent.value) }
+      }
+
+      SettingsIntent.ClickLogout -> {
         viewModelScope.launch {
-          when (val action = handler.checkClickSettings(intent.key)) {
-            ClickAction.None -> {}
-            is ClickAction.ShowDialog -> dispatch(SettingsAction.ShowDialog(action.dialog))
-            is ClickAction.EmitEffect -> sendEffect(action.effect)
-          }
+          dispatch(SettingsAction.ShowDialog(handler.createLogoutDialog()))
         }
       }
 
