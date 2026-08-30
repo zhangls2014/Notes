@@ -56,9 +56,7 @@ class SettingsViewModel(
       }
 
       SettingsIntent.ClickLogout -> {
-        viewModelScope.launch {
-          dispatch(SettingsAction.ShowDialog(handler.createLogoutDialog()))
-        }
+        dispatch(SettingsAction.ShowDialog(handler.createLogoutDialog()))
       }
 
       is SettingsIntent.DialogCallback -> {

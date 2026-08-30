@@ -24,6 +24,7 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.ui.PreferenceUiModel
+import me.zhangls.settings.ui.toDialogUiModel
 import me.zhangls.settings.ui.toPreferenceUiModels
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
@@ -96,17 +97,19 @@ internal fun SettingsScreen(
   }
 
   state.dialog?.let { dialog ->
+    // 领域对话框在 UI 层映射为表现层模型
+    val dialogState = dialog.toDialogUiModel()
     SimpleDialog(
-      title = dialog.title,
-      content = dialog.message,
-      confirmText = dialog.confirm,
+      title = stringResource(dialogState.title),
+      content = stringResource(dialogState.message),
+      confirmText = stringResource(dialogState.confirm),
       confirm = {
-        val result = DialogResult.Confirm(dialog.dialogId)
+        val result = DialogResult.Confirm(dialogState.dialogId)
         sendIntent(SettingsIntent.DialogCallback(result))
       },
-      dismissText = dialog.dismiss,
+      dismissText = dialogState.dismiss?.let { stringResource(it) },
       dismiss = {
-        val result = DialogResult.Dismiss(dialog.dialogId)
+        val result = DialogResult.Dismiss(dialogState.dialogId)
         sendIntent(SettingsIntent.DialogCallback(result))
       }
     )
