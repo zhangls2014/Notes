@@ -43,7 +43,6 @@ kotlin {
         implementation(projects.core.data)
         implementation(projects.core.theme)
         implementation(projects.core.framework)
-        implementation(projects.feature.settings)
 
         implementation(kmp.jetbrains.compose.runtime)
         implementation(kmp.jetbrains.compose.foundation)

@@ -23,8 +23,8 @@ import me.zhangls.email.waterfall.HomeScreen
 import me.zhangls.main.icon.Favorite
 import me.zhangls.main.icon.Home
 import me.zhangls.main.icon.Settings
-import me.zhangls.settings.SettingsResult
-import me.zhangls.settings.SettingsScreen
+import me.zhangls.settings.api.SettingsEntry
+import me.zhangls.settings.api.SettingsResult
 import me.zhangls.theme.icon.Icons
 import notes.feature.main.generated.resources.Res
 import notes.feature.main.generated.resources.main_label_favorites
@@ -32,6 +32,7 @@ import notes.feature.main.generated.resources.main_label_home
 import notes.feature.main.generated.resources.main_label_settings
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 /**
  * @author zhangls
@@ -103,6 +104,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
     }
   }
   val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
+  val settingsEntry = koinInject<SettingsEntry>()
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {
@@ -128,7 +130,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
           }
         }
 
-        MainTab.SETTINGS -> SettingsScreen(isBottomNavigationBar = isBottomNavigationBar) { result ->
+        MainTab.SETTINGS -> settingsEntry.Screen(isBottomNavigationBar = isBottomNavigationBar) { result ->
           if (result == SettingsResult.Logout) {
             onResult(MainResult.Logout)
           }

@@ -45,7 +45,7 @@ kotlin {
         implementation(projects.core.network)
         implementation(projects.core.framework)
         implementation(projects.feature.email)
-        implementation(projects.feature.settings)
+        implementation(projects.feature.settingsApi)
 
         implementation(kmp.jetbrains.compose.runtime)
         implementation(kmp.jetbrains.compose.foundation)

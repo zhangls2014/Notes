@@ -1,4 +1,4 @@
-package me.zhangls.settings
+package me.zhangls.settings.api
 
 import me.zhangls.framework.mvi.MviEffect
 

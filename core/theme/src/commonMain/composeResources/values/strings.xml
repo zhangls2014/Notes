@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="theme_action_navigate_before">Back</string>
+  <string name="language_label">Language</string>
+  <string name="language_follow_system">System default</string>
+  <string name="language_english">English</string>
+  <string name="language_chinese">Chinese (Simplified)</string>
 </resources>
