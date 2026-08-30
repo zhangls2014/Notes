@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -22,10 +23,8 @@ import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.settings.api.SettingsResult
-import me.zhangls.settings.SettingsIntent.ClickSettings
-import me.zhangls.settings.SettingsIntent.DialogCallback
-import me.zhangls.settings.SettingsIntent.UpdateSettings
-import me.zhangls.settings.domain.Preference
+import me.zhangls.settings.ui.PreferenceUiModel
+import me.zhangls.settings.ui.toPreferenceUiModels
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
 import me.zhangls.theme.toColor
@@ -44,6 +43,9 @@ internal fun SettingsScreen(
   onResult: (SettingsResult) -> Unit = {}
 ) {
   val state by viewmodel.state.collectAsStateWithLifecycle()
+  // 领域模型在 UI 层映射为表现层模型
+  val preferences = remember(state.settings) { state.settings.toPreferenceUiModels() }
+  val sendIntent = viewmodel::sendIntent
 
   LaunchedEffect(viewmodel) {
     viewmodel.effect.collect { effect ->
@@ -71,27 +73,21 @@ internal fun SettingsScreen(
     ProvidePreferenceLocals {
       LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding) {
         items(
-          count = state.preferences.size,
-          key = { index -> state.preferences[index].key },
-          contentType = { index -> state.preferences[index] }
+          count = preferences.size,
+          key = { index -> preferences[index].key },
+          contentType = { index -> preferences[index]::class }
         ) {
-          when (val preference = state.preferences[it]) {
-            is Preference.Switch -> {
-              SwitchItem(preference = preference) { preference, result ->
-                viewmodel.sendIntent(UpdateSettings(preference, result))
-              }
+          when (val preference = preferences[it]) {
+            is PreferenceUiModel.Switch -> {
+              SwitchItem(preference = preference, sendIntent = sendIntent)
             }
 
-            is Preference.Alert<*> -> {
-              AlertItem(preference = preference) { preference, result ->
-                viewmodel.sendIntent(UpdateSettings(preference, result))
-              }
+            is PreferenceUiModel.Alert<*> -> {
+              AlertItem(preference = preference, sendIntent = sendIntent)
             }
 
-            is Preference.Text -> {
-              TextItem(preference = preference) { preference ->
-                viewmodel.sendIntent(ClickSettings(preference))
-              }
+            is PreferenceUiModel.Text -> {
+              TextItem(preference = preference, sendIntent = sendIntent)
             }
           }
         }
@@ -106,12 +102,12 @@ internal fun SettingsScreen(
       confirmText = dialog.confirm,
       confirm = {
         val result = DialogResult.Confirm(dialog.dialogId)
-        viewmodel.sendIntent(DialogCallback(result))
+        sendIntent(SettingsIntent.DialogCallback(result))
       },
       dismissText = dialog.dismiss,
       dismiss = {
         val result = DialogResult.Dismiss(dialog.dialogId)
-        viewmodel.sendIntent(DialogCallback(result))
+        sendIntent(SettingsIntent.DialogCallback(result))
       }
     )
   }
@@ -120,12 +116,12 @@ internal fun SettingsScreen(
 @Composable
 private fun SwitchItem(
   modifier: Modifier = Modifier,
-  preference: Preference.Switch,
-  onValueChange: (String, Boolean) -> Unit
+  preference: PreferenceUiModel.Switch,
+  sendIntent: (SettingsIntent) -> Unit
 ) {
   SwitchPreference(
     value = preference.value,
-    onValueChange = { onValueChange(preference.key, it) },
+    onValueChange = { sendIntent(preference.onValueChange(it)) },
     modifier = modifier,
     title = { Text(text = stringResource(preference.title)) },
     summary = preference.summary?.let {
@@ -142,8 +138,8 @@ private fun SwitchItem(
 @Composable
 private fun <T> AlertItem(
   modifier: Modifier = Modifier,
-  preference: Preference.Alert<T>,
-  onValueChange: (String, T) -> Unit
+  preference: PreferenceUiModel.Alert<T>,
+  sendIntent: (SettingsIntent) -> Unit
 ) {
   val optionTextMap = preference.options.associate {
     it.value to stringResource(it.label)
@@ -151,7 +147,7 @@ private fun <T> AlertItem(
 
   ListPreference(
     value = preference.value,
-    onValueChange = { onValueChange(preference.key, it) },
+    onValueChange = { sendIntent(preference.onValueChange(it)) },
     values = preference.options.map { it.value },
     modifier = modifier,
     valueToText = { AnnotatedString(optionTextMap[it] ?: "") },
@@ -170,8 +166,8 @@ private fun <T> AlertItem(
 @Composable
 private fun TextItem(
   modifier: Modifier = Modifier,
-  preference: Preference.Text,
-  onClick: (String) -> Unit
+  preference: PreferenceUiModel.Text,
+  sendIntent: (SettingsIntent) -> Unit
 ) {
   Preference(
     title = {
@@ -181,7 +177,7 @@ private fun TextItem(
       )
     },
     modifier = modifier,
-    onClick = { onClick(preference.key) },
+    onClick = { sendIntent(preference.clickIntent) },
     summary = preference.summary?.let {
       { Text(text = stringResource(it)) }
     },
