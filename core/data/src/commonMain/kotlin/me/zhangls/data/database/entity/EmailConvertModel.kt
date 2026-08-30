@@ -7,8 +7,8 @@ data class EmailConvertModel(
   @Embedded val email: EmailEntity,
 
   @Relation(
-    parentColumn = "senderId",
-    entityColumn = "id"
+    parentColumns = ["senderId"],
+    entityColumns = ["id"]
   )
   val sender: AccountEntity,
 )

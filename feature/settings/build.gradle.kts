@@ -19,7 +19,7 @@ kotlin {
     minSdk = kmp.versions.android.minSdk.get().toInt()
 
     compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
+      jvmTarget = JvmTarget.JVM_25
     }
 
     androidResources {

@@ -1,5 +1,4 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(kmp.plugins.jetbrains.kotlin.serialization)
@@ -19,10 +18,6 @@ kotlin {
 
     compileSdk = kmp.versions.android.compileSdk.get().toInt()
     minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
   }
 
   listOf(

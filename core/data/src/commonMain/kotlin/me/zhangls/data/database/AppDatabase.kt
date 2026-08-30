@@ -5,7 +5,7 @@ import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
-import androidx.room3.TypeConverters
+import androidx.room3.ColumnTypeConverters
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -24,7 +24,7 @@ import me.zhangls.data.database.entity.EmailEntity
   exportSchema = true,
   autoMigrations = [AutoMigration(from = 1, to = 2)]
 )
-@TypeConverters(Converters::class)
+@ColumnTypeConverters(Converters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun accountDao(): AccountDao
