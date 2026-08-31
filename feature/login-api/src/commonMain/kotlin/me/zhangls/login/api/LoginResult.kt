@@ -1,4 +1,4 @@
-package me.zhangls.login
+package me.zhangls.login.api
 
 import me.zhangls.framework.mvi.MviEffect
 

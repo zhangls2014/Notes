@@ -10,6 +10,7 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
+import me.zhangls.login.api.LoginResult
 import me.zhangls.login.domain.LoginValidator
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_msg_login_success

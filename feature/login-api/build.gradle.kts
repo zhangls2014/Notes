@@ -1,18 +1,15 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.serialization)
   alias(kmp.plugins.jetbrains.kotlin.multiplatform)
   alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
   alias(kmp.plugins.jetbrains.compose)
   alias(kmp.plugins.android.kmp.library)
-  alias(kmp.plugins.google.ksp)
-  alias(kmp.plugins.koin.compiler)
 }
 
 kotlin {
   android {
-    namespace = "me.zhangls.login"
+    namespace = "me.zhangls.login.api"
     buildToolsVersion = kmp.versions.android.buildTools.get()
 
     compileSdk = kmp.versions.android.compileSdk.get().toInt()
@@ -21,10 +18,6 @@ kotlin {
     compilerOptions {
       jvmTarget = JvmTarget.JVM_25
     }
-
-    androidResources {
-      enable = true
-    }
   }
 
   listOf(
@@ -32,7 +25,7 @@ kotlin {
     iosSimulatorArm64()
   ).forEach { iosTarget ->
     iosTarget.binaries.framework {
-      baseName = "loginKit"
+      baseName = "loginApiKit"
       isStatic = true
     }
   }
@@ -40,19 +33,11 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(projects.core.data)
-        implementation(projects.core.theme)
+        // 契约依赖 framework 中的 MviEffect
         implementation(projects.core.framework)
 
-        // 依赖 login 契约(api)；实现类 LoginEntryImpl 通过 Koin 绑定到 LoginEntry
-        implementation(projects.feature.loginApi)
-
+        // Compose（接口中的 @Composable 入口）
         implementation(kmp.jetbrains.compose.runtime)
-        implementation(kmp.jetbrains.compose.foundation)
-        implementation(kmp.jetbrains.compose.ui)
-        implementation(kmp.jetbrains.compose.ui.tooling.preview)
-        implementation(kmp.jetbrains.compose.components.resources)
-        implementation(kmp.jetbrains.compose.material3)
       }
     }
   }
