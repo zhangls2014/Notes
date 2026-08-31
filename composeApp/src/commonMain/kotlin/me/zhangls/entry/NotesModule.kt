@@ -2,6 +2,7 @@ package me.zhangls.entry
 
 import me.zhangls.data.DataModule
 import me.zhangls.entry.data.InitData
+import me.zhangls.email.EmailModule
 import me.zhangls.framework.FrameworkModule
 import me.zhangls.login.LoginModule
 import me.zhangls.main.MainModule
@@ -19,6 +20,7 @@ import org.koin.plugin.module.dsl.startKoin
   includes = [
     DataModule::class,
     FrameworkModule::class,
+    EmailModule::class,
     LoginModule::class,
     MainModule::class,
     SettingsModule::class

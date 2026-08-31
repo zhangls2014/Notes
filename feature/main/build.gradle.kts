@@ -44,7 +44,10 @@ kotlin {
         implementation(projects.core.theme)
         implementation(projects.core.network)
         implementation(projects.core.framework)
-        implementation(projects.feature.email)
+
+        // 依赖 email 契约(api)；HomeScreen / FavoritesScreen 由 Koin 提供 EmailEntry 实现
+        implementation(projects.feature.emailApi)
+
         implementation(projects.feature.settingsApi)
 
         implementation(kmp.jetbrains.compose.runtime)

@@ -4,9 +4,10 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import me.zhangls.email.api.EmailEntry
 import me.zhangls.email.detail.EmailDetailDestination
-import me.zhangls.email.detail.EmailDetailScreen
 import me.zhangls.framework.nav.NavEffect
+import org.koin.compose.koinInject
 
 
 val emailNavModule = SerializersModule {
@@ -17,6 +18,9 @@ val emailNavModule = SerializersModule {
 
 fun EntryProviderScope<NavKey>.emailNavEntry(effect: (NavEffect) -> Unit) {
   entry<EmailDetailDestination> {
-    EmailDetailScreen(emailId = it.emailId, onBackPressed = { effect(NavEffect.Popup()) })
+    koinInject<EmailEntry>().DetailScreen(
+      emailId = it.emailId,
+      onBackPressed = { effect(NavEffect.Popup()) },
+    )
   }
 }
