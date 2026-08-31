@@ -25,7 +25,7 @@ import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
 import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.LoginDestination
-import me.zhangls.login.LoginResult
+import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.login.loginNavModule
 import me.zhangls.main.MainDestination

@@ -44,6 +44,9 @@ kotlin {
         implementation(projects.core.theme)
         implementation(projects.core.framework)
 
+        // 依赖 login 契约(api)；实现类 LoginEntryImpl 通过 Koin 绑定到 LoginEntry
+        implementation(projects.feature.loginApi)
+
         implementation(kmp.jetbrains.compose.runtime)
         implementation(kmp.jetbrains.compose.foundation)
         implementation(kmp.jetbrains.compose.ui)

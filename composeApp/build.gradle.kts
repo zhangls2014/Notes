@@ -40,6 +40,8 @@ kotlin {
         implementation(projects.core.framework)
         implementation(projects.feature.email)
         implementation(projects.feature.main)
+        // 依赖 login 契约(api)；AppNavHost 引用 LoginResult
+        implementation(projects.feature.loginApi)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)
 
