@@ -29,7 +29,7 @@ import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.login.loginNavModule
 import me.zhangls.main.MainDestination
-import me.zhangls.main.MainResult
+import me.zhangls.main.api.MainResult
 import me.zhangls.main.mainNavEntry
 import me.zhangls.main.mainNavModule
 
