@@ -18,8 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
-import me.zhangls.email.favorites.FavoritesScreen
-import me.zhangls.email.waterfall.HomeScreen
+import me.zhangls.email.api.EmailEntry
 import me.zhangls.theme.icon.Favorite
 import me.zhangls.theme.icon.Home
 import me.zhangls.theme.icon.Settings
@@ -104,6 +103,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
     }
   }
   val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
+  val emailEntry = koinInject<EmailEntry>()
   val settingsEntry = koinInject<SettingsEntry>()
 
   NavigationSuiteScaffold(
@@ -123,9 +123,9 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
   ) {
     val pageContent = @Composable { page: Int ->
       when (MainTab.entries[page]) {
-        MainTab.HOME -> HomeScreen(isBottomNavigationBar = isBottomNavigationBar)
+        MainTab.HOME -> emailEntry.HomeScreen(isBottomNavigationBar = isBottomNavigationBar)
         MainTab.FAVORITES -> {
-          FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar) { emailId ->
+          emailEntry.FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar) { emailId ->
             onResult(MainResult.NavigateToEmailDetail(emailId))
           }
         }
