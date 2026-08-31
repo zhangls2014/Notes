@@ -39,6 +39,8 @@ kotlin {
         implementation(projects.core.network)
         implementation(projects.core.framework)
         implementation(projects.feature.email)
+        // 依赖 main 契约(api)；AppNavHost 引用 MainResult
+        implementation(projects.feature.mainApi)
         implementation(projects.feature.main)
         // 依赖 login 契约(api)；AppNavHost 引用 LoginResult
         implementation(projects.feature.loginApi)

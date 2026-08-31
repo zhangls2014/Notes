@@ -48,6 +48,9 @@ kotlin {
         // 依赖 email 契约(api)；HomeScreen / FavoritesScreen 由 Koin 提供 EmailEntry 实现
         implementation(projects.feature.emailApi)
 
+        // 依赖 main 契约(api)；实现类 MainEntryImpl 通过 Koin 绑定到 MainEntry
+        implementation(projects.feature.mainApi)
+
         implementation(projects.feature.settingsApi)
 
         implementation(kmp.jetbrains.compose.runtime)

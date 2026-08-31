@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import me.zhangls.email.api.EmailEntry
+import me.zhangls.main.api.MainResult
 import me.zhangls.theme.icon.Favorite
 import me.zhangls.theme.icon.Home
 import me.zhangls.theme.icon.Settings
