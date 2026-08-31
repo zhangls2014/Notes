@@ -4,82 +4,138 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个 Kotlin Multiplatform (KMP) 应用，使用 Kotlin、Compose Multiplatform、Koin 和模块化架构。应用主要功能是邮件管理，包含首页、收藏页和设置页。共享逻辑与 UI 在 `commonMain` 中实现，并在 Android 与 iOS 端复用。
+这是一个 Kotlin Multiplatform (KMP) 应用，使用 Kotlin、Compose Multiplatform、Koin（注解模式）和模块化架构。应用主要功能是邮件管理，包含登录、首页（邮件列表）、收藏、邮件详情、搜索和设置。共享逻辑与 UI 在 `commonMain` 中实现，并在 Android 与 iOS 端复用。
 
 ## 构建和运行
 
-### 构建项目
+### 构建 Android
 
 ```bash
-./gradlew build
+# 整包构建（注意 :composeApp 是 library，没有 assembleDebug 任务）
+./gradlew :androidApp:assembleDebug
+
+# 安装到设备
+./gradlew :androidApp:installDebug
 ```
 
-### 运行 Android
+全量冷构建或 dex 合并若报 Java heap space OOM，追加以下参数重试：
 
 ```bash
-./gradlew :androidApp:installDebug
+./gradlew :androidApp:assembleDebug \
+  -Dkotlin.daemon.jvmargs=-Xmx8g \
+  -Dorg.gradle.jvmargs="-Xmx8g -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
 ```
 
 ### 运行 iOS
 
 使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。
 
-### 运行测试
+### iOS 编译验证
 
 ```bash
-./gradlew test
-./gradlew :androidApp:connectedAndroidTest
+./gradlew :composeApp:compileKotlinIosSimulatorArm64
+```
+
+### 运行测试
+
+Android 宿主测试未启用（`./gradlew test` 无此任务），commonTest 需通过 iOS 模拟器执行：
+
+```bash
+./gradlew :composeApp:iosSimulatorArm64Test   # 约 3 分钟，需要模拟器
+./gradlew :core:data:iosSimulatorArm64Test
+```
+
+### 静态检查
+
+```bash
+./gradlew detekt   # 配置位于 config/detekt/detekt.yml
+```
+
+### Fused Library（实验性）
+
+```bash
+./gradlew :android:output:login:assemble
 ```
 
 ## 项目架构
 
 ### 模块结构
 
-- `androidApp`: Android 入口应用
-- `iosApp`: iOS 入口应用
-- `composeApp`: 共享应用入口与跨平台 UI/导航
-- `core:data`: 数据层，包含数据源和仓库
-- `core:theme`: 主题和样式
-- `core:network`: 网络层
-- `core:framework`: 框架层，包含基础组件和工具类
-- `feature:main`: 主功能模块，包含主屏幕和邮件列表
-- `feature:login`: 登录功能
-- `feature:settings`: 设置功能
-- `android:baselineprofile`: Android 基线配置文件
+组合根：
+
+- `:androidApp`: Android 入口应用
+- `:iosApp`: iOS 入口应用
+- `:composeApp`: 共享应用入口与导航装配（`AppNavHost`、Koin 组合根 `NotesModule`、启动数据初始化）
+
+核心层（`core/`）：
+
+- `:core:data`: 数据层，Room (KMP) 数据库（entity/dao/auto-migration）、DataStore、仓库
+- `:core:theme`: 主题、图标、通用组件（Toast/Dialog）、多语言目录
+- `:core:network`: 网络层，Ktor、`ApiResponse`/`NetworkResult`、`TokenProvider`
+- `:core:framework`: 框架层，MVI 基类（`MviViewModel`）、导航抽象（`Destination`/`NavEffect`/`RequireLogin`）、DeepLink、全局 Toast
+
+功能层（`feature/`），每个功能拆为 `-api` 与实现两个模块：
+
+- `:feature:main` + `:feature:main-api`: 主屏幕（Tab 容器）
+- `:feature:email` + `:feature:email-api`: 邮件列表、收藏、详情、搜索、写邮件
+- `:feature:login` + `:feature:login-api`: 登录
+- `:feature:settings` + `:feature:settings-api`: 设置
+
+Android 专用：
+
+- `:android:baselineprofile`: 基线配置文件生成
+- `:android:output:login`: Android Fused Library 实验性打包（见 `android/output/README.md`）
+
+### api / impl 解耦模式
+
+兄弟 feature 之间只依赖对方的 `-api` 接口（如 `EmailEntry`、`SettingsEntry`），实现由 impl 模块通过 Koin 绑定到接口；仅组合根（`:composeApp`）依赖全部实现模块，以此切断 feature 间的直接依赖。入口契约位于 `feature/<name>-api/src/commonMain/kotlin/me/zhangls/<name>/api/`。
+
+### 导航
+
+使用 Jetpack Navigation 3（`NavDisplay` / `NavBackStack` / `NavKey`）：
+
+- `core:framework` 的 `Destination` 是各 feature 导航目的地的抽象（如 `MainDestination`、`LoginDestination`、`EmailDetailDestination`），导航操作统一为 `NavEffect`（Navigate/Replace/Restart/Popup）
+- `composeApp` 的 `AppNavHost.kt` 装配各 feature 的 nav entry（`mainNavEntry`/`loginNavEntry`/`emailNavEntry`），并实现 `RequireLogin` 登录拦截：未登录访问受限页面时先跳登录，登录成功后恢复目标页面
+- 根据登录状态决定首屏（`MainDestination` 或 `LoginDestination`），支持 DeepLink
+
+### MVI 架构
+
+- `core/framework/src/commonMain/kotlin/me/zhangls/framework/mvi/MviViewModel.kt`：Intent → State (+ Effect) 单向数据流，State 自动持久化到 `SavedStateHandle`
+- 各 feature 按 `XxxIntent` / `XxxAction` / `XxxState` / `XxxReducer` / `XxxViewModel` 组织（如 `feature/email` 的 `waterfall/`、`search/`）
+- ViewModel 使用 Koin 注解 `@KoinViewModel` 注册
 
 ### 主要组件
 
 #### 主屏幕 (MainScreen)
 
-位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/MainScreen.kt`，包含三个标签页：
+位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/MainScreen.kt`，使用 `NavigationSuiteScaffold` 自适应布局（小屏底部导航栏，中大屏 Navigation Rail），包含三个 Tab，通过 Koin 注入的 `EmailEntry` / `SettingsEntry` 内联渲染：
 
-- HOME: 首页，显示邮件列表
-- FAVORITES: 收藏页
-- SETTINGS: 设置页
+- HOME: 首页，显示邮件列表（`EmailEntry.HomeScreen`）
+- FAVORITES: 收藏页（`EmailEntry.FavoritesScreen`）
+- SETTINGS: 设置页（`SettingsEntry.Screen`）
 
-#### 首页 (HomeScreen)
+#### 邮件相关 (feature:email)
 
-位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/home/HomeScreen.kt`，使用 `EmailList` 组件显示邮件列表。
-
-#### 邮件列表 (EmailList)
-
-位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/compose/EmailList.kt`，使用分页数据加载：
-
-- 初始加载时显示文本 "Waiting for items to load from the backend"
-- 加载更多时显示 `CircularProgressIndicator`
+- 首页列表：`feature/email/src/commonMain/kotlin/me/zhangls/email/waterfall/HomeScreen.kt`
+- 收藏页：`feature/email/src/commonMain/kotlin/me/zhangls/email/favorites/FavoritesScreen.kt`
+- 邮件列表组件：`feature/email/src/commonMain/kotlin/me/zhangls/email/component/EmailList.kt`（含搜索栏、多选操作栏、写邮件 BottomSheet）
+- 邮件详情：`feature/email/src/commonMain/kotlin/me/zhangls/email/detail/EmailDetailScreen.kt`
+- 搜索：`feature/email/src/commonMain/kotlin/me/zhangls/email/search/`
 
 ### 数据加载
 
 应用使用分页数据加载（Paging），通过 `EmailViewModel` 管理：
 
-- `emailPaging` 流提供分页数据
+- `emailPaging` / `emailFavoritePaging` 流提供分页数据（`cachedIn(viewModelScope)`）
 - 使用 `collectAsLazyPagingItems()` 在 Compose 中收集数据
-- 加载状态通过 `LoadState` 监控
+- 加载状态通过 `LoadState` 监控；初始加载显示 `LoadingIndicator`，列表为空显示 "No emails!"
 
 ## 注意事项
 
-- 项目使用 Koin 进行依赖注入
-- 使用 Compose Multiplatform 进行 UI 构建
-- 采用 MVI (Model-View-Intent) 架构模式
+- 项目使用 Koin 注解进行依赖注入（`@Module` / `@ComponentScan` / `@KoinViewModel`，KSP 生成），组合根在 `composeApp` 的 `NotesModule.kt`
+- 使用 Compose Multiplatform 进行 UI 构建，Material 3（含 Expressive 与 Adaptive API）
+- 数据库为 Room KMP 版本，字段变化必须配置 AutoMigration（见 `core/data` 的 `AppDatabase.kt`）
 - 数据通过分页加载，支持无限滚动
 - 支持多种设备尺寸和方向适配
+- 依赖版本统一在 `gradle/kmp.versions.toml`（typesafe 访问器为 `kmp.` 前缀）
+- 同一仓库目录下不要并发执行两个 Gradle 构建（守护进程地址注册表会锁冲突）
