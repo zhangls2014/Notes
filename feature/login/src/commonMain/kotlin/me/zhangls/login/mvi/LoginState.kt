@@ -1,7 +1,7 @@
 package me.zhangls.login.mvi
 
 import kotlinx.serialization.Serializable
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.framework.mvi.MviState
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError

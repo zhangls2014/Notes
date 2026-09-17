@@ -1,7 +1,7 @@
 package me.zhangls.theme.language
 
 import androidx.compose.ui.graphics.vector.ImageVector
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Language
 import notes.core.theme.generated.resources.Res

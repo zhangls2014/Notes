@@ -47,7 +47,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.login.mvi.LoginIntent
 import me.zhangls.login.mvi.LoginViewModel
 import me.zhangls.login.api.LoginResult

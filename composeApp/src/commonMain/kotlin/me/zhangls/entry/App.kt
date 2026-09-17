@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.component.ToastHost

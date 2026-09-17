@@ -41,6 +41,9 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.core.data)
+
+        // 公共领域模型（AppLanguage）
+        implementation(projects.core.model)
         implementation(projects.core.theme)
         implementation(projects.core.framework)
 

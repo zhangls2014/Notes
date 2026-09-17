@@ -32,8 +32,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        // 语言目录需要 AppLanguage 类型（core:data 不依赖任何 core 模块，无环）
-        implementation(projects.core.data)
+        // 语言目录需要 AppLanguage 类型（位于 core:model，UI 基础模块不再反向依赖数据层）
+        api(projects.core.model)
 
         implementation(kmp.jetbrains.compose.runtime)
         implementation(kmp.jetbrains.compose.foundation)

@@ -1,7 +1,7 @@
 package me.zhangls.settings.ui
 
 import me.zhangls.data.model.SettingsModel
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.settings.mvi.SettingsIntent

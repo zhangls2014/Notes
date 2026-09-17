@@ -1,7 +1,7 @@
 package me.zhangls.data.model
 
 import kotlinx.serialization.Serializable
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 
