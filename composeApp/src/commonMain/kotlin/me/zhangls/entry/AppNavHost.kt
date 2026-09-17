@@ -4,6 +4,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +57,13 @@ fun AppNavHost(
 
   val navHandler = NavHandler(backStack = backStack, isLogin = { isLogin }, onIntercept = { pendingDestination = it })
 
-  if (state.isLogin != null) {
-    // 回退栈为空，则根据登录状态添加首屏
+  // 首屏/DeepLink 的导航初始化必须放在 LaunchedEffect 中执行：
+  // 直接在组合期间写 backStack 属于组合期副作用，会导致非确定性行为
+  LaunchedEffect(state.isLogin, deepLinkDestination) {
+    if (state.isLogin == null) return@LaunchedEffect
+
     if (backStack.isEmpty()) {
+      // 回退栈为空，则根据登录状态添加首屏
       val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination
       navHandler(NavEffect.Navigate(firstDest))
 
@@ -67,7 +72,9 @@ fun AppNavHost(
       navHandler(NavEffect.Navigate(deepLinkDestination))
       onDeepLinkConsumed()
     }
-  } else {
+  }
+
+  if (state.isLogin == null) {
     // 登录状态未知，不显示 UI
     return
   }
