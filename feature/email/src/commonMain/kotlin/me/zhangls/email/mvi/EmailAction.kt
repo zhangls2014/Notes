@@ -1,4 +1,4 @@
-package me.zhangls.email.waterfall
+package me.zhangls.email.mvi
 
 import me.zhangls.data.model.AccountModel
 import me.zhangls.data.model.UserModel

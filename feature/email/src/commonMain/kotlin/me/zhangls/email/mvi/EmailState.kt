@@ -1,4 +1,4 @@
-package me.zhangls.email.waterfall
+package me.zhangls.email.mvi
 
 import kotlinx.serialization.Serializable
 import me.zhangls.data.model.AccountModel

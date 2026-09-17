@@ -1,11 +1,13 @@
-package me.zhangls.email.waterfall
+package me.zhangls.email.home
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
-import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import me.zhangls.email.mvi.EmailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -14,10 +16,12 @@ actual fun HomeScreen(isBottomNavigationBar: Boolean) {
   val viewModel: EmailViewModel = koinViewModel()
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
   val scope = rememberCoroutineScope()
+  // 按当前窗口自适应信息计算 directive，避免 iPad 分屏下不自适应
+  val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfo())
 
-  NavigableListDetailPaneScaffold(
-    navigator = scaffoldNavigator,
-    defaultBackBehavior = BackNavigationBehavior.PopUntilCurrentDestinationChange,
+  ListDetailPaneScaffold(
+    directive = directive,
+    scaffoldState = scaffoldNavigator.scaffoldState,
     listPane = {
       HomeListPane(
         viewModel = viewModel,

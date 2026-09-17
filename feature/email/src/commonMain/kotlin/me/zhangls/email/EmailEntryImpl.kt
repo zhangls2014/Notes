@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.email.detail.EmailDetailScreen
 import me.zhangls.email.favorites.FavoritesScreen as FavoritesScreenImpl
-import me.zhangls.email.waterfall.HomeScreen as HomeScreenImpl
+import me.zhangls.email.home.HomeScreen as HomeScreenImpl
 import org.koin.core.annotation.Singleton
 
 /**

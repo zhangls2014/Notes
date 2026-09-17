@@ -1,4 +1,4 @@
-package me.zhangls.email.waterfall
+package me.zhangls.email.mvi
 
 import me.zhangls.framework.mvi.MviIntent
 import org.jetbrains.compose.resources.StringResource

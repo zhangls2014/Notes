@@ -35,8 +35,8 @@ import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.toDomain
 import me.zhangls.theme.icon.Star
 import me.zhangls.theme.icon.StarFill
-import me.zhangls.email.waterfall.EmailIntent
-import me.zhangls.email.waterfall.EmailViewModel
+import me.zhangls.email.mvi.EmailIntent
+import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.icon.Icons
 import notes.feature.email.generated.resources.Res
