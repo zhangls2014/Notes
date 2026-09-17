@@ -40,15 +40,18 @@ interface EmailDao {
   @Query("SELECT * FROM email WHERE parentEmailId = :parentEmailId")
   fun getThreadEmails(parentEmailId: Long): PagingSource<Int, EmailConvertModel>
 
-  @Query("SELECT * FROM email WHERE parentEmailId = :parentEmailId")
-  suspend fun getThreadEmailsByParentId(parentEmailId: Long): List<EmailEntity>
-
   @Transaction
   @Query("SELECT * FROM email WHERE :keywords != '' AND subject LIKE '%' || :keywords || '%' COLLATE NOCASE")
   fun searchEmails(keywords: String): PagingSource<Int, EmailConvertModel>
 
   @Query("UPDATE email SET isImportant = :isImportant WHERE id IN (:emailId)")
   suspend fun updateIsImportant(emailId: Set<Long>, isImportant: Boolean)
+
+  @Query("DELETE FROM email WHERE id IN (:emailIds)")
+  suspend fun deleteByIds(emailIds: Set<Long>)
+
+  @Query("DELETE FROM email WHERE parentEmailId IN (:parentEmailIds)")
+  suspend fun deleteByParentIds(parentEmailIds: Set<Long>)
 
   @Query("DELETE FROM email WHERE id = :emailId")
   suspend fun deleteById(emailId: Long)

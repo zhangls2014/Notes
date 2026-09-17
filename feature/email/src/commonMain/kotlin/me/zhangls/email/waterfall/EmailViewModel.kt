@@ -170,7 +170,9 @@ class EmailViewModel(
   private fun updateFavorite(intent: EmailIntent.UpdateFavorite) {
     viewModelScope.launch {
       val entity = emailsRepository.getEmailById(intent.emailId) ?: return@launch
-      emailsRepository.insertEmail(entity.copy(isImportant = entity.isImportant.not()))
+      // 走 UPDATE 语句，避免用 INSERT OR REPLACE 模拟更新（会触发 REPLACE
+      // 语义的删行重建，开销更大且可能触发级联行为）
+      emailsRepository.updateIsFavorite(setOf(intent.emailId), entity.isImportant.not())
     }
   }
 

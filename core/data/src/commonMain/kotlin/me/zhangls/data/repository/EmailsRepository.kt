@@ -56,13 +56,9 @@ class EmailsRepository(
 
   suspend fun deleteEmails(emailIds: Set<Long>) {
     database.withWriteTransaction {
-      emailIds.forEach {
-        val threads = emailDao.getThreadEmailsByParentId(it)
-        threads.forEach { thread ->
-          emailDao.deleteById(thread.id)
-        }
-        emailDao.deleteById(it)
-      }
+      // 先批量删除子邮件，再批量删除所选邮件，避免 N+1 循环逐条删除
+      emailDao.deleteByParentIds(emailIds)
+      emailDao.deleteByIds(emailIds)
     }
   }
 
