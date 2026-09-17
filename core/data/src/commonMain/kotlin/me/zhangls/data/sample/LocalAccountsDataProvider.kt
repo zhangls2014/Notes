@@ -11,6 +11,7 @@ object LocalAccountsDataProvider {
       email = "zhangls0_0@gmail.com",
       altEmail = "zhangls0_0@outside.com",
       avatar = "avatar_10",
+      isDefault = true,
     ),
     AccountModel(
       id = 2L,

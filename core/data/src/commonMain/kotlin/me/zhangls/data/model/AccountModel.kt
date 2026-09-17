@@ -11,6 +11,7 @@ data class AccountModel(
   val email: String,
   val altEmail: String,
   val avatar: String,
+  val isDefault: Boolean = false,
 ) {
   val fullName: String = "$firstName $lastName"
 }
@@ -22,7 +23,8 @@ fun AccountModel.toEntity(): AccountEntity {
     lastName = lastName,
     email = email,
     altEmail = altEmail,
-    avatar = avatar
+    avatar = avatar,
+    isDefault = isDefault
   )
 }
 
@@ -33,6 +35,7 @@ fun AccountEntity.toDomain(): AccountModel {
     lastName = lastName,
     email = email,
     altEmail = altEmail,
-    avatar = avatar
+    avatar = avatar,
+    isDefault = isDefault
   )
 }
