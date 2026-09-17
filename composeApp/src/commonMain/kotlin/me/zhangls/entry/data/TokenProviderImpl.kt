@@ -7,7 +7,7 @@ import org.koin.core.annotation.Singleton
 /**
  * @author zhangls
  */
-@Singleton
+@Singleton(binds = [TokenProvider::class])
 class TokenProviderImpl(private val user: UserRepository) : TokenProvider {
   override suspend fun refreshToken(): String? {
     return user.getUser()?.refreshToken
