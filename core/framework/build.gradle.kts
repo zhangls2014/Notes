@@ -61,9 +61,3 @@ kotlin {
     }
   }
 }
-
-dependencies {
-  add("kspAndroid", kmp.androidx.room.compiler)
-  add("kspIosArm64", kmp.androidx.room.compiler)
-  add("kspIosSimulatorArm64", kmp.androidx.room.compiler)
-}
