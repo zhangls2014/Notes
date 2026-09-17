@@ -18,6 +18,7 @@ object AESUtils {
   private const val ANDROID_KEYSTORE = "AndroidKeyStore"
   private const val TRANSFORMATION = "AES/GCM/NoPadding"
   private const val IV_LENGTH = 12
+  private const val KEY_SIZE = 256
   private const val TAG_LENGTH = 128
 
   /**
@@ -31,7 +32,7 @@ object AESUtils {
 
     // 生成新的 AES Key
     val keyGenParam = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-      .setKeySize(TAG_LENGTH)
+      .setKeySize(KEY_SIZE)
       .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
       .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
       .setRandomizedEncryptionRequired(true)

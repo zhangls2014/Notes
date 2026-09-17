@@ -11,7 +11,15 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
 
-class SecureDataStore<T>(
+/**
+ * 基于 Preferences DataStore 的 JSON 序列化读写封装。
+ *
+ * 注意：这里只做 JSON 序列化，没有加密，敏感数据（如 token）为明文落盘；
+ * 需要静态加密时应在平台层使用 Keystore / Keychain（参见 androidMain 的 AESUtils）。
+ *
+ * @author zhangls
+ */
+class AppDataStore<T>(
   name: String,
   private val serializer: KSerializer<T>,
   private val dataStore: DataStore<Preferences>,
