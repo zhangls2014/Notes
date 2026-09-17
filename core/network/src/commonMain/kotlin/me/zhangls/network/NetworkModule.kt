@@ -7,6 +7,9 @@ import io.ktor.client.plugins.Charsets
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.addDefaultResponseValidation
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
@@ -32,8 +35,13 @@ class NetworkModule
 expect fun httpClient(config: HttpClientConfig<*>.() -> Unit = {}): HttpClient
 
 @Singleton
-fun provideKtorClient(networkConfig: NetworkConfig): HttpClient {
-  return HttpClient {
+fun provideKtorClient(
+  networkConfig: NetworkConfig,
+  tokenProvider: TokenProvider,
+): HttpClient {
+  // 通过 expect/actual 走平台引擎（Android: OkHttp / iOS: Darwin），
+  // 平台特定的 engine 配置（如 retryOnConnectionFailure）才会生效
+  return httpClient {
     expectSuccess = true
     addDefaultResponseValidation()
 
@@ -49,6 +57,15 @@ fun provideKtorClient(networkConfig: NetworkConfig): HttpClient {
     install(DefaultRequest) {
       contentType(ContentType.Application.Json)
       url(networkConfig.baseUrl)
+    }
+
+    install(Auth) {
+      bearer {
+        loadTokens {
+          val accessToken = tokenProvider.getAccessToken() ?: return@loadTokens null
+          BearerTokens(accessToken, tokenProvider.refreshToken() ?: accessToken)
+        }
+      }
     }
 
     install(Logging) {
