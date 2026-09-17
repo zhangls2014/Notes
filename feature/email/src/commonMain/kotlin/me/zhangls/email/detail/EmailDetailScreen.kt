@@ -9,7 +9,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun EmailDetailScreen(
+internal fun EmailDetailScreen(
   emailId: Long,
   viewModel: EmailViewModel = koinViewModel(),
   onBackPressed: () -> Unit = {}
