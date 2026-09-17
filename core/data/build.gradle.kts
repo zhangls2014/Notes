@@ -1,38 +1,11 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.serialization)
-  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
-  alias(kmp.plugins.android.kmp.library)
-  alias(kmp.plugins.android.lint)
+  id("me.zhangls.kmp-library")
+  id("me.zhangls.kmp-koin")
   alias(kmp.plugins.androidx.room)
-  alias(kmp.plugins.google.ksp)
-  alias(kmp.plugins.koin.compiler)
+  alias(kmp.plugins.android.lint)
 }
 
 kotlin {
-  android {
-    namespace = "me.zhangls.data"
-    buildToolsVersion = kmp.versions.android.buildTools.get()
-
-    compileSdk = kmp.versions.android.compileSdk.get().toInt()
-    minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
-  }
-
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "dataKit"
-      isStatic = true
-    }
-  }
-
   sourceSets {
     commonMain {
       dependencies {
@@ -50,11 +23,6 @@ kotlin {
         implementation(kmp.androidx.room.runtime)
         implementation(kmp.androidx.room.paging)
         implementation(kmp.androidx.sqlite.bundled)
-
-        // Koin
-        implementation(project.dependencies.platform(kmp.koin.bom))
-        implementation(kmp.koin.core)
-        implementation(kmp.koin.annotations)
       }
     }
 

@@ -1,37 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.serialization)
-  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
-  alias(kmp.plugins.android.kmp.library)
+  id("me.zhangls.kmp-library")
+  id("me.zhangls.kmp-koin")
   alias(kmp.plugins.android.lint)
-  alias(kmp.plugins.google.ksp)
-  alias(kmp.plugins.koin.compiler)
 }
 
 kotlin {
-  android {
-    namespace = "me.zhangls.network"
-    buildToolsVersion = kmp.versions.android.buildTools.get()
-
-    compileSdk = kmp.versions.android.compileSdk.get().toInt()
-    minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
-  }
-
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "networkKit"
-      isStatic = true
-    }
-  }
-
   sourceSets {
     commonMain.dependencies {
       api(project.dependencies.platform(kmp.ktor.bom))
@@ -43,13 +16,9 @@ kotlin {
       implementation(kmp.ktor.serialization.kotlinx.json)
 
       implementation(kmp.jetbrains.kotlinx.coroutines.core)
+
       implementation(kmp.jetbrains.kotlinx.serialization.core)
       implementation(kmp.jetbrains.kotlinx.serialization.json)
-
-      // DI
-      implementation(project.dependencies.platform(kmp.koin.bom))
-      implementation(kmp.koin.core)
-      implementation(kmp.koin.annotations)
     }
     androidMain.dependencies {
       implementation(kmp.ktor.client.okhttp)

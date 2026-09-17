@@ -1,37 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.serialization)
-  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
-  alias(kmp.plugins.android.kmp.library)
+  id("me.zhangls.kmp-library")
+  id("me.zhangls.kmp-koin")
   alias(kmp.plugins.android.lint)
-  alias(kmp.plugins.google.ksp)
-  alias(kmp.plugins.koin.compiler)
 }
 
 kotlin {
-  android {
-    namespace = "me.zhangls.framework"
-    buildToolsVersion = kmp.versions.android.buildTools.get()
-
-    compileSdk = kmp.versions.android.compileSdk.get().toInt()
-    minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
-  }
-
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "frameworkKit"
-      isStatic = true
-    }
-  }
-
   sourceSets {
     commonMain {
       dependencies {
@@ -46,9 +19,7 @@ kotlin {
 
         api(kmp.jetbrains.compose.components.resources)
 
-        api(project.dependencies.platform(kmp.koin.bom))
         api(kmp.koin.core)
-        api(kmp.koin.annotations)
         api(kmp.koin.compose)
         api(kmp.koin.compose.viewmodel)
       }
