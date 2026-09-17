@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.zhangls.email.search.EmailSearchBar
-import me.zhangls.email.waterfall.EmailIntent
-import me.zhangls.email.waterfall.EmailState
+import me.zhangls.email.mvi.EmailIntent
+import me.zhangls.email.mvi.EmailState
 import me.zhangls.theme.icon.Cancel
 import me.zhangls.theme.icon.Delete
 import me.zhangls.theme.icon.Icons

@@ -3,7 +3,7 @@ package me.zhangls.email.detail
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import me.zhangls.email.component.EmailDetail
-import me.zhangls.email.waterfall.EmailViewModel
+import me.zhangls.email.mvi.EmailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 

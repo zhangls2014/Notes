@@ -1,4 +1,4 @@
-package me.zhangls.email.waterfall
+package me.zhangls.email.home
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.zhangls.email.component.EmailDetail
+import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.email.component.EmailList
 
 @OptIn(

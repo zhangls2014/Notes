@@ -1,4 +1,4 @@
-package me.zhangls.email.waterfall
+package me.zhangls.email.mvi
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope

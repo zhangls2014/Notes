@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
-import me.zhangls.email.waterfall.EmailIntent
+import me.zhangls.email.mvi.EmailIntent
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_msg_no_emails
 import org.jetbrains.compose.resources.stringResource

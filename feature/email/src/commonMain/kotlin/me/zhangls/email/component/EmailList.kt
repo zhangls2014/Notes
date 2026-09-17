@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
-import me.zhangls.email.waterfall.EmailIntent
-import me.zhangls.email.waterfall.EmailViewModel
+import me.zhangls.email.mvi.EmailIntent
+import me.zhangls.email.mvi.EmailViewModel
 
 /**
  * 邮件列表页骨架：组装顶栏（搜索/多选操作栏）、写邮件 FAB、分页列表与草稿 BottomSheet。
