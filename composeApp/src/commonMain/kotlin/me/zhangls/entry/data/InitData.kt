@@ -7,7 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.CommonRepository
 import me.zhangls.data.repository.EmailsRepository
-import me.zhangls.entry.data.local.LocalEmailsDataProvider
+import me.zhangls.data.sample.LocalEmailsDataProvider
 import me.zhangls.entry.util.AppInfo
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

@@ -24,3 +24,6 @@ local.properties
 /iosApp/iosApp.xcodeproj/xcuserdata
 
 .worktrees/
+
+# WorkBuddy 项目数据（记忆、任务等），不提交
+/.workbuddy/

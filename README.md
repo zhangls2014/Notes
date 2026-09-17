@@ -285,7 +285,6 @@ adb shell am start \
 以下内容是当前代码中的真实状态，便于二次开发时快速判断：
 
 - `TokenProviderImpl` 的 `getAccessToken/refreshToken` 仍为占位实现（返回 `null`）。
-- `JokeViewModel` 中 `appId/appSecret` 为空，网络示例默认不可用。
 - 测试代码目前多为模板样例（`ExampleUnitTest` / `ExampleInstrumentedTest`）。
 
 ---

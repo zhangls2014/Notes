@@ -1,4 +1,4 @@
-package me.zhangls.email.search.domain
+package me.zhangls.email.profile
 
 import com.mohamedrejeb.calf.io.KmpFile
 import org.koin.core.annotation.Factory
