@@ -3,7 +3,7 @@ plugins {
 }
 
 androidFusedLibrary {
-  namespace = "me.zhangls.login"
+  namespace = "me.zhangls.login.output"
   minSdk {
     version = release(kmp.versions.android.minSdk.get().toInt())
   }
