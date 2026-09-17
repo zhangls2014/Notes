@@ -1,6 +1,7 @@
 package me.zhangls.data.model
 
 import me.zhangls.data.database.entity.EmailEntity
+import me.zhangls.data.database.entity.RecipientIdsCodec
 import me.zhangls.data.type.MailboxType
 
 data class EmailModel(
@@ -21,6 +22,7 @@ fun EmailModel.toEntity(parentEmailId: Long?): EmailEntity {
   return EmailEntity(
     id = id,
     senderId = sender.id,
+    recipientIds = RecipientIdsCodec.encode(recipients.map { it.id }.toSet()),
     subject = subject,
     body = body,
     isImportant = isImportant,
