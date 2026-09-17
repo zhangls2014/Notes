@@ -1,5 +1,6 @@
 package me.zhangls.email.search
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -27,6 +28,8 @@ import org.koin.core.annotation.KoinViewModel
 /**
  * @author zhangls
  */
+// 类级 @OptIn 必需：SearchState/SearchIntent 使用了实验性 SearchBarValue 类型
+@OptIn(ExperimentalMaterial3Api::class)
 @KoinViewModel
 internal class SearchViewModel(
   savedStateHandle: SavedStateHandle,
