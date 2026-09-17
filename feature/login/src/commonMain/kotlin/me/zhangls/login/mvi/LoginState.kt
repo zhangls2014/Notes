@@ -1,4 +1,4 @@
-package me.zhangls.login
+package me.zhangls.login.mvi
 
 import kotlinx.serialization.Serializable
 import me.zhangls.data.type.AppLanguage

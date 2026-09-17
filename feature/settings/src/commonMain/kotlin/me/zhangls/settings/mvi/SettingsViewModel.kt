@@ -1,4 +1,4 @@
-package me.zhangls.settings
+package me.zhangls.settings.mvi
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope

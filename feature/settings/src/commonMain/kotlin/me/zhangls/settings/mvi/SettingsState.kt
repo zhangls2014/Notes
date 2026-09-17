@@ -1,4 +1,4 @@
-package me.zhangls.settings
+package me.zhangls.settings.mvi
 
 import kotlinx.serialization.Serializable
 import me.zhangls.data.model.SettingsModel

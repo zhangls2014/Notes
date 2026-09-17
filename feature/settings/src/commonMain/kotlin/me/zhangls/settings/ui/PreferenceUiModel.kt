@@ -1,7 +1,7 @@
 package me.zhangls.settings.ui
 
 import androidx.compose.ui.graphics.vector.ImageVector
-import me.zhangls.settings.SettingsIntent
+import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.theme.ThemeColor
 import org.jetbrains.compose.resources.StringResource
 

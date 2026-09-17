@@ -1,4 +1,4 @@
-package me.zhangls.login
+package me.zhangls.login.mvi
 
 import me.zhangls.login.domain.LoginValidator
 

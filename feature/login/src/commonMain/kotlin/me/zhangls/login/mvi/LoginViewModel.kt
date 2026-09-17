@@ -1,4 +1,4 @@
-package me.zhangls.login
+package me.zhangls.login.mvi
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope

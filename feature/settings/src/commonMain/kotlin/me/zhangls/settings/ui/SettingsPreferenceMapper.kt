@@ -4,7 +4,7 @@ import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.type.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
-import me.zhangls.settings.SettingsIntent
+import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.theme.ThemeColor
 import me.zhangls.theme.icon.DarkMode
 import me.zhangls.theme.icon.ExitToApp

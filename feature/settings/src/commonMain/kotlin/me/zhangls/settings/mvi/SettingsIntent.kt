@@ -1,4 +1,4 @@
-package me.zhangls.settings
+package me.zhangls.settings.mvi
 
 import me.zhangls.data.type.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
