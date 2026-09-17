@@ -4,10 +4,12 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.framework.mvi.MviEffect
 import me.zhangls.settings.api.SettingsResult
+import org.koin.core.annotation.Singleton
 
 /**
  * @author zhangls
  */
+@Singleton
 class SettingsHandler(
   private val userRepository: UserRepository,
 ) {
