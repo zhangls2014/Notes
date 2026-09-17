@@ -34,6 +34,7 @@ internal fun EmailActionBar(modifier: Modifier = Modifier, items: List<ActionIte
 data class ActionItem(
   val icon: ImageVector,
   val text: StringResource,
+  val onAction: () -> Unit = {},
 )
 
 @Composable
