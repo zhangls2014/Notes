@@ -10,8 +10,8 @@ androidx-lifecycle = "2.11.0"
 androidx-room = "3.0.2"
 androidx-paging = "3.5.1"
 androidx-datastore = "1.3.0-alpha10"
-jetbrians-coroutines = "1.11.0"
-jetbrians-serialization = "1.11.0"
+jetbrains-coroutines = "1.11.0"
+jetbrains-serialization = "1.11.0"
 jetbrains-compose = "1.12.0"
 jetbrains-compose-material3 = "1.12.0-alpha03"
 jetbrains-compose-material3-adaptive = "1.3.0-beta02"
@@ -86,11 +86,11 @@ jetbrains-compose-components-resources = { group = "org.jetbrains.compose.compon
 jetbrains-compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "jetbrains-compose" }
 jetbrains-compose-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref = "jetbrains-compose" }
 ### Jetbrains
-jetbrains-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "jetbrians-coroutines" }
-jetbrains-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "jetbrians-coroutines" }
+jetbrains-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "jetbrains-coroutines" }
+jetbrains-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "jetbrains-coroutines" }
 jetbrains-kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.5.2" }
-jetbrains-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "jetbrians-serialization" }
-jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "jetbrians-serialization" }
+jetbrains-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "jetbrains-serialization" }
+jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "jetbrains-serialization" }
 
 # coil : https://github.com/coil-kt/coil
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
