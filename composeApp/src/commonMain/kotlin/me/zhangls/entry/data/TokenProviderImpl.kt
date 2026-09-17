@@ -18,5 +18,6 @@ class TokenProviderImpl(private val user: UserRepository) : TokenProvider {
   }
 
   override suspend fun clear() {
+    user.clear()
   }
 }
