@@ -3,7 +3,6 @@ package me.zhangls.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.room3.Transaction
 import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.database.AppDatabase
@@ -13,15 +12,14 @@ import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.database.entity.EmailEntity
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.model.toEntity
-import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Singleton
 
-@Factory
+@Singleton
 class EmailsRepository(
   private val database: AppDatabase,
   private val accountDao: AccountDao,
   private val emailDao: EmailDao
 ) {
-  @Transaction
   suspend fun insertEmails(emails: List<EmailModel>) {
     database.withWriteTransaction {
       emails.forEach { email ->
