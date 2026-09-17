@@ -40,8 +40,10 @@ import me.zhangls.email.waterfall.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.icon.Icons
 import notes.feature.email.generated.resources.Res
+import notes.feature.email.generated.resources.email_action_cancel_favorite
 import notes.feature.email.generated.resources.email_action_email_reply
 import notes.feature.email.generated.resources.email_action_email_reply_all
+import notes.feature.email.generated.resources.email_action_favorite
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -138,7 +140,10 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
         ) {
           Icon(
             imageVector = if (email.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
-            contentDescription = "Favorite",
+            contentDescription = stringResource(
+              if (email.isImportant) Res.string.email_action_cancel_favorite
+              else Res.string.email_action_favorite
+            ),
             tint = MaterialTheme.colorScheme.outline,
           )
         }

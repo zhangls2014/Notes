@@ -153,7 +153,7 @@ internal fun EmailList(
       if (emailItems.loadState.refresh is LoadState.NotLoading && emailItems.itemCount == 0) {
         item {
           Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "No emails!")
+            Text(text = stringResource(Res.string.email_msg_no_emails))
           }
         }
       }
