@@ -7,7 +7,6 @@ import androidx.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
@@ -16,6 +15,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.database.entity.EmailEntity
+import me.zhangls.data.database.entity.RecipientIdsCodec
 import me.zhangls.data.model.toDomain
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.UserRepository
@@ -25,6 +25,8 @@ import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_msg_body_required
 import notes.feature.email.generated.resources.email_msg_email_save_failed
 import notes.feature.email.generated.resources.email_msg_recipient_required
+import notes.feature.email.generated.resources.email_time_just_now
+import org.jetbrains.compose.resources.getString
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -74,7 +76,6 @@ class EmailViewModel(
 
   companion object {
     private const val DURATION_STOP_SUBSCRIBED = 5000L
-    private const val CREATED_AT_JUST_NOW = "just now"
   }
 
   init {
@@ -138,7 +139,7 @@ class EmailViewModel(
       }
 
 
-      val recipientIds = draftRecipientIds.toString()
+      val recipientIds = RecipientIdsCodec.encode(draftRecipientIds)
       val subject = draftSubject
       val body = draftBody
 
@@ -146,14 +147,13 @@ class EmailViewModel(
         dispatch(EmailAction.SetDraftVisible(false))
         dispatch(EmailAction.SetSending(true))
         try {
-          delay(3_000L)
           val draft = EmailEntity(
             id = 0L,
             senderId = emailsRepository.getDefaultAccount()?.id ?: return@launch,
             recipientIds = recipientIds,
             subject = subject,
             body = body,
-            createdAt = CREATED_AT_JUST_NOW,
+            createdAt = getString(Res.string.email_time_just_now),
           )
           emailsRepository.insertEmail(draft)
           dispatch(EmailAction.ClearDraft)

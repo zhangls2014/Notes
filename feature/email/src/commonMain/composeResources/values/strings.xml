@@ -22,4 +22,5 @@
     <string name="email_msg_body_required">Please enter the main content.</string>
     <string name="email_msg_email_save_failed">Failed to save email</string>
     <string name="email_label_empty_subject">(No Subject)</string>
+    <string name="email_time_just_now">Just now</string>
 </resources>

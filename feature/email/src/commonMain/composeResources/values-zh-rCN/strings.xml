@@ -22,4 +22,5 @@
     <string name="email_msg_body_required">请输入正文内容</string>
     <string name="email_msg_email_save_failed">邮件保存失败</string>
     <string name="email_label_empty_subject">(无主题)</string>
+    <string name="email_time_just_now">刚刚</string>
 </resources>
