@@ -33,7 +33,7 @@ import org.koin.core.annotation.KoinViewModel
  * @author zhangls
  */
 @KoinViewModel
-class EmailViewModel(
+internal class EmailViewModel(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
   private val userRepository: UserRepository,
