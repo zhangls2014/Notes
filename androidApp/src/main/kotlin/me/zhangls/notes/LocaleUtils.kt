@@ -1,7 +1,7 @@
 package me.zhangls.notes
 
 import androidx.core.os.LocaleListCompat
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 
 fun AppLanguage.toLocales(): LocaleListCompat {
   return when (this) {
