@@ -1,4 +1,4 @@
-package me.zhangls.data.sample
+package me.zhangls.entry.data.sample
 
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.type.MailboxType
@@ -126,7 +126,7 @@ object LocalEmailsDataProvider {
       body = "Here are some great shots from my trip...",
       isImportant = true,
       createdAt = "1 hour ago",
-      threads = threads.shuffled().take(2),
+      threads = threads.take(2),
     ),
     EmailModel(
       id = 4L,
@@ -142,7 +142,7 @@ object LocalEmailsDataProvider {
                   """.trimIndent(),
       createdAt = "2 hours ago",
       mailbox = MailboxType.SENT,
-      threads = threads.shuffled().take(3),
+      threads = threads.drop(4).take(3),
     ),
     EmailModel(
       id = 5L,
@@ -162,7 +162,7 @@ object LocalEmailsDataProvider {
             """.trimIndent(),
       createdAt = "2 hours ago",
       isStarred = true,
-      threads = threads.shuffled().take(4),
+      threads = threads.drop(3).take(4),
     ),
     EmailModel(
       id = 6L,
@@ -171,7 +171,7 @@ object LocalEmailsDataProvider {
       subject = "Update to Your Itinerary",
       body = "",
       createdAt = "2 hours ago",
-      threads = threads.shuffled().take(5),
+      threads = threads.drop(2).take(5),
     ),
     EmailModel(
       id = 7L,
@@ -182,7 +182,7 @@ object LocalEmailsDataProvider {
           "very quick to put together.",
       createdAt = "2 hours ago",
       mailbox = MailboxType.SENT,
-      threads = threads.shuffled().take(6),
+      threads = threads.take(6),
     ),
     EmailModel(
       id = 8L,
@@ -191,7 +191,7 @@ object LocalEmailsDataProvider {
       subject = "Delivered",
       body = "Your shoes should be waiting for you at home!",
       createdAt = "2 hours ago",
-      threads = threads.shuffled(),
+      threads = threads.drop(1),
     ),
     EmailModel(
       id = 9L,
@@ -205,7 +205,7 @@ object LocalEmailsDataProvider {
             """.trimIndent(),
       mailbox = MailboxType.TRASH,
       createdAt = "3 hours ago",
-      threads = threads.shuffled().take(6),
+      threads = threads.take(6),
     ),
     EmailModel(
       id = 10L,
@@ -219,7 +219,7 @@ object LocalEmailsDataProvider {
             """.trimIndent(),
       createdAt = "3 hours ago",
       mailbox = MailboxType.DRAFTS,
-      threads = threads.shuffled().take(5),
+      threads = threads.drop(2).take(5),
     ),
     EmailModel(
       id = 11L,
@@ -233,7 +233,7 @@ object LocalEmailsDataProvider {
             """.trimIndent(),
       createdAt = "3 hours ago",
       mailbox = MailboxType.TRASH,
-      threads = threads.shuffled().take(4),
+      threads = threads.drop(3).take(4),
     ),
     EmailModel(
       id = 12L,
@@ -245,7 +245,7 @@ object LocalEmailsDataProvider {
             """.trimIndent(),
       createdAt = "3 hours ago",
       mailbox = MailboxType.SPAM,
-      threads = threads.shuffled().take(3),
+      threads = threads.drop(4).take(3),
     ),
   )
 }

@@ -1,4 +1,4 @@
-package me.zhangls.data.sample
+package me.zhangls.entry.data.sample
 
 import me.zhangls.data.model.AccountModel
 
