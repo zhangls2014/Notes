@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhanghai.compose.preference.ListPreference
@@ -192,8 +191,3 @@ private fun TextItem(
   )
 }
 
-@Preview
-@Composable
-fun SettingsScreenPreview() {
-  SettingsScreen(true, onResult = {})
-}
