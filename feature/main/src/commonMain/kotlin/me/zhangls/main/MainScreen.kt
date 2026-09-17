@@ -88,19 +88,23 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
   val adaptiveInfo = currentWindowAdaptiveInfo()
   val scope = rememberCoroutineScope()
   val pagerState = rememberPagerState(initialPage = 0, pageCount = { MainTab.entries.size })
-  val customLayoutType = with(adaptiveInfo.windowSizeClass) {
-    if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_LARGE_LOWER_BOUND)) {
-      NavigationSuiteType.WideNavigationRailExpanded
-    } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
-      NavigationSuiteType.WideNavigationRailCollapsed
-    } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
-      if (minWidthDp > minHeightDp) {
+  val windowSizeClass = adaptiveInfo.windowSizeClass
+  // 布局类型仅由窗口尺寸类决定，用 remember 避免每次重组重复计算
+  val customLayoutType = remember(windowSizeClass) {
+    with(windowSizeClass) {
+      if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_LARGE_LOWER_BOUND)) {
+        NavigationSuiteType.WideNavigationRailExpanded
+      } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
         NavigationSuiteType.WideNavigationRailCollapsed
+      } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+        if (minWidthDp > minHeightDp) {
+          NavigationSuiteType.WideNavigationRailCollapsed
+        } else {
+          NavigationSuiteType.ShortNavigationBarMedium
+        }
       } else {
-        NavigationSuiteType.ShortNavigationBarMedium
+        NavigationSuiteType.ShortNavigationBarCompact
       }
-    } else {
-      NavigationSuiteType.ShortNavigationBarCompact
     }
   }
   val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
