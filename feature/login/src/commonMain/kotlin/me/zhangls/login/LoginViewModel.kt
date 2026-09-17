@@ -2,7 +2,6 @@ package me.zhangls.login
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.UserModel
@@ -81,15 +80,21 @@ class LoginViewModel(
   }
 
   /**
-   * 模拟登录保存
+   * 无后端环境下的本地模拟登录：直接构造用户并持久化。
+   *
+   * TODO: 接入真实登录接口后替换为网络请求
    */
   private fun login() {
     viewModelScope.launch {
       dispatch(LoginAction.Loading(true))
 
-      delay(1000)
       val user = withState {
-        UserModel(id = (0..100).random().toString(), nickname = account, accessToken = "123456", avatar = null)
+        UserModel(
+          id = MOCK_USER_ID,
+          nickname = account,
+          accessToken = MOCK_ACCESS_TOKEN,
+          avatar = null,
+        )
       }
       userRepository.update(user)
 
@@ -97,5 +102,12 @@ class LoginViewModel(
       toastGlobalNotifier.showToast(Res.string.login_msg_login_success)
       sendEffect(LoginResult.Success)
     }
+  }
+
+  companion object {
+    private const val MOCK_USER_ID = "local"
+
+    /** 本地模拟令牌，接入真实登录接口后移除 */
+    private const val MOCK_ACCESS_TOKEN = "mock-access-token"
   }
 }
