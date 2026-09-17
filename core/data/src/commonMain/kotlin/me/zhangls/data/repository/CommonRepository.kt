@@ -8,25 +8,31 @@ import me.zhangls.data.datastore.AppDataStore
 import me.zhangls.data.model.CommonModel
 import org.koin.core.annotation.Singleton
 
+interface CommonRepository {
+  val commonFlow: Flow<CommonModel>
 
-@Singleton
-class CommonRepository(prefsDataStore: DataStore<Preferences>) {
+  suspend fun increaseLaunchCount()
+
+  suspend fun updateVersionCode(versionCode: Long)
+}
+
+@Singleton(binds = [CommonRepository::class])
+class CommonRepositoryImpl(prefsDataStore: DataStore<Preferences>) : CommonRepository {
   private val dataStore = AppDataStore(
     name = "common",
     serializer = CommonModel.serializer(),
     dataStore = prefsDataStore,
     defaultValue = CommonModel()
   )
-  val commonFlow: Flow<CommonModel> = dataStore.read().map { it ?: CommonModel() }
+  override val commonFlow: Flow<CommonModel> = dataStore.read().map { it ?: CommonModel() }
 
-
-  suspend fun increaseLaunchCount() {
+  override suspend fun increaseLaunchCount() {
     dataStore.updateData {
       it?.copy(launchCount = it.launchCount + 1)
     }
   }
 
-  suspend fun updateVersionCode(versionCode: Long) {
+  override suspend fun updateVersionCode(versionCode: Long) {
     dataStore.updateData {
       it?.copy(lastVersionCode = versionCode)
     }
