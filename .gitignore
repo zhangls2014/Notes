@@ -15,6 +15,8 @@
 /.kotlin
 .DS_Store
 /build
+# 各模块构建产物
+**/build/
 /captures
 .externalNativeBuild
 .cxx
