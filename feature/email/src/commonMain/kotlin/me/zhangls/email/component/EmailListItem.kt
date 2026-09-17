@@ -35,6 +35,10 @@ import me.zhangls.data.model.toDomain
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Star
 import me.zhangls.theme.icon.StarFill
+import notes.feature.email.generated.resources.Res
+import notes.feature.email.generated.resources.email_action_cancel_favorite
+import notes.feature.email.generated.resources.email_action_favorite
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -105,7 +109,10 @@ fun EmailListItem(
         ) {
           Icon(
             imageVector = if (email.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
-            contentDescription = "Favorite",
+            contentDescription = stringResource(
+              if (email.isImportant) Res.string.email_action_cancel_favorite
+              else Res.string.email_action_favorite
+            ),
             tint = MaterialTheme.colorScheme.outline,
           )
         }
