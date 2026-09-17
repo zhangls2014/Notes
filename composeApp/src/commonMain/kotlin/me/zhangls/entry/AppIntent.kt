@@ -5,4 +5,4 @@ import me.zhangls.framework.mvi.MviIntent
 /**
  * @author zhangls
  */
-sealed class MainIntent : MviIntent
+sealed class AppIntent : MviIntent

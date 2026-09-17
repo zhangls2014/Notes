@@ -11,7 +11,7 @@ import me.zhangls.framework.mvi.MviState
  * @author zhangls
  */
 @Serializable
-data class MainState(
+data class AppState(
   val isLogin: Boolean?,
   val dynamicColor: Boolean = false,
   val darkTheme: DarkThemeConfig = DarkThemeConfig.LIGHT,

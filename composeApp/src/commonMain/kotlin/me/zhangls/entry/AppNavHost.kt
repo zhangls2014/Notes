@@ -39,7 +39,7 @@ import me.zhangls.main.mainNavModule
  */
 @Composable
 fun AppNavHost(
-  viewModel: MainViewModel,
+  viewModel: AppViewModel,
   deepLinkDestination: DeepLinkDestination? = null,
   onDeepLinkConsumed: () -> Unit = {},
 ) {

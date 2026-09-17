@@ -26,7 +26,7 @@ fun App(
   deepLinkUrl: String? = null,
   onDeepLinkConsumed: () -> Unit = {},
 ) {
-  val viewModel: MainViewModel = koinViewModel()
+  val viewModel: AppViewModel = koinViewModel()
   val toastState = rememberToastState()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val deepLinkDestination = parseDeepLink(deepLinkUrl)
