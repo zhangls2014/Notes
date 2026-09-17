@@ -9,7 +9,6 @@ import me.zhangls.data.type.MailboxType
 @Entity(
   tableName = "email",
   indices = [
-    Index("id"),
     Index("senderId"),
     Index("parentEmailId")
   ]
