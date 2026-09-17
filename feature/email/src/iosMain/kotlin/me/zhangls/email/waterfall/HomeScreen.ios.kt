@@ -1,17 +1,12 @@
 package me.zhangls.email.waterfall
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
-import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import me.zhangls.email.component.EmailDetail
-import me.zhangls.email.component.EmailList
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -20,45 +15,27 @@ actual fun HomeScreen(isBottomNavigationBar: Boolean) {
   val viewModel: EmailViewModel = koinViewModel()
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
   val scope = rememberCoroutineScope()
-  val navigateToDetail: (Long) -> Unit = {
-    scope.launch { scaffoldNavigator.navigateTo(pane = ListDetailPaneScaffoldRole.Detail, contentKey = it) }
-  }
-  val scaffoldValue = scaffoldNavigator.scaffoldValue
-  val showBack = scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Hidden
+  // 按当前窗口自适应信息计算 directive，避免 iPad 分屏下不自适应
+  val directive = calculatePaneScaffoldDirective(currentWindowAdaptiveInfo())
 
   ListDetailPaneScaffold(
-    directive = PaneScaffoldDirective.Default,
+    directive = directive,
     scaffoldState = scaffoldNavigator.scaffoldState,
     listPane = {
-      AnimatedPane {
-        EmailList(
-          viewModel = viewModel,
-          isFavorite = false,
-          isBottomNavigationBar = isBottomNavigationBar,
-          openedEmailId = scaffoldNavigator.currentDestination?.contentKey,
-          navigateToDetail = navigateToDetail
-        )
-      }
+      HomeListPane(
+        viewModel = viewModel,
+        isBottomNavigationBar = isBottomNavigationBar,
+        scaffoldNavigator = scaffoldNavigator,
+        navigateToDetail = scope.navigateToDetailOf(scaffoldNavigator),
+      )
     },
     detailPane = {
-      val emailId = scaffoldNavigator.currentDestination?.contentKey
-      val onBackPressed: (() -> Unit)? = if (showBack) {
-        {
-          scope.launch { scaffoldNavigator.navigateBack() }
-        }
-      } else null
-
-      if (emailId != null) {
-        AnimatedPane {
-          EmailDetail(
-            emailId = emailId,
-            isStandalone = false,
-            isBottomNavigationBar = isBottomNavigationBar,
-            viewModel = viewModel,
-            onBackPressed = onBackPressed
-          )
-        }
-      }
+      HomeDetailPane(
+        viewModel = viewModel,
+        isBottomNavigationBar = isBottomNavigationBar,
+        scaffoldNavigator = scaffoldNavigator,
+        scope = scope,
+      )
     }
   )
 }
