@@ -4,7 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.lastOrNull
-import me.zhangls.data.datastore.SecureDataStore
+import me.zhangls.data.datastore.AppDataStore
 import me.zhangls.data.model.UserModel
 import org.koin.core.annotation.Singleton
 
@@ -13,7 +13,7 @@ import org.koin.core.annotation.Singleton
  */
 @Singleton
 class UserRepository(prefsDataStore: DataStore<Preferences>) {
-  private val dataStore = SecureDataStore(
+  private val dataStore = AppDataStore(
     name = "user",
     serializer = UserModel.serializer(),
     dataStore = prefsDataStore,

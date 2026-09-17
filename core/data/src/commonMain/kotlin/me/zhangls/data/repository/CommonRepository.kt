@@ -4,14 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import me.zhangls.data.datastore.SecureDataStore
+import me.zhangls.data.datastore.AppDataStore
 import me.zhangls.data.model.CommonModel
 import org.koin.core.annotation.Singleton
 
 
 @Singleton
 class CommonRepository(prefsDataStore: DataStore<Preferences>) {
-  private val dataStore = SecureDataStore(
+  private val dataStore = AppDataStore(
     name = "common",
     serializer = CommonModel.serializer(),
     dataStore = prefsDataStore,
