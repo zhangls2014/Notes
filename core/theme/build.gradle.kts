@@ -1,46 +1,15 @@
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
-  alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
-  alias(kmp.plugins.jetbrains.compose)
-  alias(kmp.plugins.android.kmp.library)
+  id("me.zhangls.kmp-library")
+  id("me.zhangls.kmp-compose")
   alias(kmp.plugins.android.lint)
 }
 
 kotlin {
-  android {
-    namespace = "me.zhangls.theme"
-    buildToolsVersion = kmp.versions.android.buildTools.get()
-
-    compileSdk = kmp.versions.android.compileSdk.get().toInt()
-    minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    androidResources {
-      enable = true
-    }
-  }
-
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "themeKit"
-      isStatic = true
-    }
-  }
-
   sourceSets {
     commonMain {
       dependencies {
         // 语言目录需要 AppLanguage 类型（位于 core:model，UI 基础模块不再反向依赖数据层）
         api(projects.core.model)
-
-        implementation(kmp.jetbrains.compose.runtime)
-        implementation(kmp.jetbrains.compose.foundation)
-        implementation(kmp.jetbrains.compose.ui)
-        implementation(kmp.jetbrains.compose.ui.tooling.preview)
-        implementation(kmp.jetbrains.compose.components.resources)
-        implementation(kmp.jetbrains.compose.material3)
       }
     }
   }

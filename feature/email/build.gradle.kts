@@ -1,42 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.serialization)
-  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
-  alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
-  alias(kmp.plugins.jetbrains.compose)
-  alias(kmp.plugins.android.kmp.library)
-  alias(kmp.plugins.google.ksp)
-  alias(kmp.plugins.koin.compiler)
+  id("me.zhangls.kmp-library")
+  id("me.zhangls.kmp-compose")
+  id("me.zhangls.kmp-koin")
 }
 
 kotlin {
-  android {
-    namespace = "me.zhangls.email"
-    buildToolsVersion = kmp.versions.android.buildTools.get()
-
-    compileSdk = kmp.versions.android.compileSdk.get().toInt()
-    minSdk = kmp.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
-    }
-
-    androidResources {
-      enable = true
-    }
-  }
-
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "emailKit"
-      isStatic = true
-    }
-  }
-
   sourceSets {
     commonMain {
       dependencies {
@@ -46,13 +14,6 @@ kotlin {
 
         // 依赖 email 契约(api)；实现类 EmailEntryImpl 通过 Koin 绑定到 EmailEntry
         implementation(projects.feature.emailApi)
-
-        implementation(kmp.jetbrains.compose.runtime)
-        implementation(kmp.jetbrains.compose.foundation)
-        implementation(kmp.jetbrains.compose.ui)
-        implementation(kmp.jetbrains.compose.ui.tooling.preview)
-        implementation(kmp.jetbrains.compose.components.resources)
-        implementation(kmp.jetbrains.compose.material3)
 
         // 自适应布局
         implementation(kmp.jetbrains.compose.material3.window.size)

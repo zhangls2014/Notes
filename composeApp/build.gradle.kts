@@ -1,42 +1,18 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 plugins {
-  alias(kmp.plugins.jetbrains.kotlin.serialization)
-  alias(kmp.plugins.jetbrains.kotlin.multiplatform)
-  alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
-  alias(kmp.plugins.jetbrains.compose)
-  alias(kmp.plugins.android.kmp.library)
-  alias(kmp.plugins.google.ksp)
-  alias(kmp.plugins.koin.compiler)
+  id("me.zhangls.kmp-library")
+  id("me.zhangls.kmp-compose")
+  id("me.zhangls.kmp-koin")
   alias(kmp.plugins.buildKonfig)
 }
 
 kotlin {
-  android {
-    namespace = "me.zhangls.entry"
-    buildToolsVersion = kmp.versions.android.buildTools.get()
-
-    compileSdk = kmp.versions.android.compileSdk.get().toInt()
-    minSdk = kmp.versions.android.minSdk.get().toInt()
-  }
-
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "ComposeApp"
-      isStatic = true
-    }
-  }
-
   sourceSets {
     commonMain {
       dependencies {
         // Module
         implementation(projects.core.data)
-
-        // 公共领域模型（AppLanguage）
         implementation(projects.core.model)
         implementation(projects.core.theme)
         implementation(projects.core.network)
@@ -49,9 +25,6 @@ kotlin {
         implementation(projects.feature.loginApi)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)
-
-        // Compose
-        implementation(kmp.jetbrains.compose.material3)
       }
     }
 
