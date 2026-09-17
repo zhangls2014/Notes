@@ -12,7 +12,6 @@ import me.zhangls.framework.mvi.MviState
 data class EmailState(
   val selectedItems: Set<Long> = emptySet(),
   val user: UserModel? = null,
-  val searchText: CharSequence = "",
   val isEmailDraftVisible: Boolean = false,
   val isSending: Boolean = false,
   val accounts: List<AccountModel> = emptyList(),

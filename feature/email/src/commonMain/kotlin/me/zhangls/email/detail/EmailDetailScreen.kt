@@ -11,14 +11,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun EmailDetailScreen(
   emailId: Long,
-  viewmodel: EmailViewModel = koinViewModel(),
+  viewModel: EmailViewModel = koinViewModel(),
   onBackPressed: () -> Unit = {}
 ) {
   EmailDetail(
     emailId = emailId,
-    isFavorite = true,
+    isStandalone = true,
     isBottomNavigationBar = true,
-    viewmodel = viewmodel,
+    viewModel = viewModel,
     onBackPressed = onBackPressed
   )
 }

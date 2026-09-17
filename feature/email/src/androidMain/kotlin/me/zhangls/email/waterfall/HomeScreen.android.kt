@@ -23,7 +23,7 @@ import org.koin.compose.viewmodel.koinViewModel
 )
 @Composable
 actual fun HomeScreen(isBottomNavigationBar: Boolean) {
-  val viewmodel: EmailViewModel = koinViewModel()
+  val viewModel: EmailViewModel = koinViewModel()
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
   val scope = rememberCoroutineScope()
   val navigateToDetail: (Long) -> Unit = {
@@ -38,7 +38,7 @@ actual fun HomeScreen(isBottomNavigationBar: Boolean) {
     listPane = {
       AnimatedPane {
         EmailList(
-          viewModel = viewmodel,
+          viewModel = viewModel,
           isFavorite = false,
           isBottomNavigationBar = isBottomNavigationBar,
           openedEmailId = scaffoldNavigator.currentDestination?.contentKey,
@@ -58,9 +58,9 @@ actual fun HomeScreen(isBottomNavigationBar: Boolean) {
         AnimatedPane {
           EmailDetail(
             emailId = emailId,
-            isFavorite = false,
+            isStandalone = false,
             isBottomNavigationBar = isBottomNavigationBar,
-            viewmodel = viewmodel,
+            viewModel = viewModel,
             onBackPressed = onBackPressed
           )
         }

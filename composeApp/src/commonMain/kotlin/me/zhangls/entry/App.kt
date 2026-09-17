@@ -26,9 +26,9 @@ fun App(
   deepLinkUrl: String? = null,
   onDeepLinkConsumed: () -> Unit = {},
 ) {
-  val viewmodel: MainViewModel = koinViewModel()
+  val viewModel: MainViewModel = koinViewModel()
   val toastState = rememberToastState()
-  val state by viewmodel.state.collectAsStateWithLifecycle()
+  val state by viewModel.state.collectAsStateWithLifecycle()
   val deepLinkDestination = parseDeepLink(deepLinkUrl)
   val darkTheme = when (state.darkTheme) {
     DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
@@ -54,7 +54,7 @@ fun App(
   ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       AppNavHost(
-        viewmodel = viewmodel,
+        viewModel = viewModel,
         deepLinkDestination = deepLinkDestination,
         onDeepLinkConsumed = onDeepLinkConsumed
       )
@@ -62,7 +62,7 @@ fun App(
     }
 
     LaunchedEffect(Unit) {
-      viewmodel.toast.collect {
+      viewModel.toast.collect {
         toastState.showToast(it.resId)
       }
     }

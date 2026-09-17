@@ -38,28 +38,25 @@ import me.zhangls.main.mainNavModule
  */
 @Composable
 fun AppNavHost(
-  viewmodel: MainViewModel,
+  viewModel: MainViewModel,
   deepLinkDestination: DeepLinkDestination? = null,
   onDeepLinkConsumed: () -> Unit = {},
 ) {
   // 待处理的目标页面
   var pendingDestination by remember { mutableStateOf<Destination?>(null) }
-  //
   val config = SavedStateConfiguration {
     serializersModule = mainNavModule + loginNavModule + emailNavModule
   }
   // 返回堆栈
   val backStack = rememberNavBackStack(config)
   // 登录状态
-  val state by viewmodel.state.collectAsStateWithLifecycle()
-  // 是否登录
-  var isLogin by remember { mutableStateOf(false) }
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  // 是否登录（从 state 派生，避免组合期写状态）
+  val isLogin = state.isLogin ?: false
 
   val navHandler = NavHandler(backStack = backStack, isLogin = { isLogin }, onIntercept = { pendingDestination = it })
 
   if (state.isLogin != null) {
-    isLogin = state.isLogin ?: false
-
     // 回退栈为空，则根据登录状态添加首屏
     if (backStack.isEmpty()) {
       val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination

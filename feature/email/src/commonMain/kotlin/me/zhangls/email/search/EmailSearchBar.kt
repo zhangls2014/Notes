@@ -79,9 +79,9 @@ internal fun EmailSearchBar(
   scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
   onResultClick: (Long) -> Unit = {}
 ) {
-  val viewmodel: SearchViewModel = koinViewModel()
-  val state by viewmodel.state.collectAsStateWithLifecycle()
-  val searchResults = viewmodel.searchResults.collectAsLazyPagingItems()
+  val viewModel: SearchViewModel = koinViewModel()
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
 
   val textFieldState = rememberTextFieldState(initialText = state.searchText)
   val searchBarState = rememberSearchBarState(initialValue = state.searchBarValue)
@@ -91,7 +91,7 @@ internal fun EmailSearchBar(
 
   val closeSearchBar: () -> Unit = {
     textFieldState.clearText()
-    viewmodel.sendIntent(SearchIntent.UpdateSearchText(""))
+    viewModel.sendIntent(SearchIntent.UpdateSearchText(""))
     scope.launch { searchBarState.animateToCollapsed() }
   }
 
@@ -128,7 +128,7 @@ internal fun EmailSearchBar(
       trailingIcon = {
         state.user?.also {
           AvatarPicker(user = it) { kmpFile ->
-            viewmodel.sendIntent(SearchIntent.UpdateSelectedAvatar(kmpFile))
+            viewModel.sendIntent(SearchIntent.UpdateSelectedAvatar(kmpFile))
           }
         }
       },
@@ -142,16 +142,16 @@ internal fun EmailSearchBar(
         searchHistory = state.searchHistory,
         onHistoryClick = {
           textFieldState.edit { replace(0, length, it) }
-          viewmodel.sendIntent(SearchIntent.SelectSearchHistory(it))
+          viewModel.sendIntent(SearchIntent.SelectSearchHistory(it))
         },
         onHistoryDelete = {
-          viewmodel.sendIntent(SearchIntent.DeleteSearchHistory(it))
+          viewModel.sendIntent(SearchIntent.DeleteSearchHistory(it))
         })
     } else {
       SearchResults(searchResults = searchResults) {
         val searchText = textFieldState.text.toString()
-        viewmodel.sendIntent(SearchIntent.UpdateSearchText(searchText))
-        viewmodel.sendIntent(SearchIntent.SaveSearchHistory(searchText))
+        viewModel.sendIntent(SearchIntent.UpdateSearchText(searchText))
+        viewModel.sendIntent(SearchIntent.SaveSearchHistory(searchText))
         closeSearchBar()
         onResultClick(it)
       }
@@ -183,18 +183,18 @@ internal fun EmailSearchBar(
       initial = false
       return@LaunchedEffect
     }
-    viewmodel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
+    viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
       closeSearchBar()
     }
   }
 
-  LaunchedEffect(viewmodel) {
+  LaunchedEffect(viewModel) {
     snapshotFlow { textFieldState.text.toString() }
       .debounce(DURATION_SEARCH_DEBOUNCE)
       .distinctUntilChanged()
       .collect {
-        viewmodel.sendIntent(SearchIntent.UpdateSearchText(it))
+        viewModel.sendIntent(SearchIntent.UpdateSearchText(it))
       }
   }
 
