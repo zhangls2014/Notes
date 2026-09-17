@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.CommonRepository
 import me.zhangls.data.repository.EmailsRepository
-import me.zhangls.data.sample.LocalEmailsDataProvider
 import me.zhangls.entry.util.AppInfo
+import me.zhangls.entry.data.sample.LocalEmailsDataProvider
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
