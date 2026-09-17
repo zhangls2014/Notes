@@ -1,6 +1,5 @@
 package me.zhangls.email.search
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -24,24 +23,22 @@ import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_msg_save_avatar_failed
 import org.koin.core.annotation.KoinViewModel
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * @author zhangls
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @KoinViewModel
 internal class SearchViewModel(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
   private val userRepository: UserRepository,
   private val toastGlobalNotifier: ToastGlobalNotifier,
+  private val avatarSaver: AvatarSaver,
 ) : MviViewModel<SearchState, SearchIntent>(
   initialState = SearchState(),
   stateSerializer = SearchState.serializer(),
   savedStateHandle = savedStateHandle,
-), KoinComponent {
+) {
   @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
   val searchResults = state
     .map { it.searchText }
@@ -49,8 +46,6 @@ internal class SearchViewModel(
     .flowOn(Dispatchers.IO)
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
     .cachedIn(viewModelScope)
-
-  private val avatarSaver: AvatarSaver by inject()
 
   internal companion object {
     const val DURATION_SEARCH_DEBOUNCE = 300L
@@ -70,7 +65,6 @@ internal class SearchViewModel(
     updateState { SearchReducer.reduce(this, action) }
   }
 
-  @OptIn(ExperimentalMaterial3Api::class)
   override fun handleIntent(intent: SearchIntent) {
     when (intent) {
       is SearchIntent.UpdateSelectedAvatar -> updateAvatar(intent)
