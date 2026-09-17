@@ -12,10 +12,10 @@ fun FavoritesScreen(
   isBottomNavigationBar: Boolean,
   navigateToDetail: (Long) -> Unit
 ) {
-  val viewmodel: EmailViewModel = koinViewModel()
+  val viewModel: EmailViewModel = koinViewModel()
 
   EmailList(
-    viewModel = viewmodel,
+    viewModel = viewModel,
     isFavorite = true,
     isBottomNavigationBar = isBottomNavigationBar,
     openedEmailId = null,

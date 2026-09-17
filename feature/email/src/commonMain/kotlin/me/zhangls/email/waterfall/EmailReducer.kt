@@ -8,7 +8,6 @@ object EmailReducer {
         EmailAction.ClearSelectedEmail -> copy(selectedItems = emptySet())
         is EmailAction.UpdateUser -> copy(user = action.user)
         is EmailAction.UpdateSelectedEmail -> updateSelectedEmail(action)
-        is EmailAction.UpdateSearchText -> copy(searchText = action.text)
         is EmailAction.SetDraftVisible -> copy(isEmailDraftVisible = action.visible)
         is EmailAction.SetSending -> copy(isSending = action.sending)
         is EmailAction.UpdateAllAccounts -> copy(accounts = action.accounts)

@@ -73,18 +73,18 @@ import org.koin.compose.viewmodel.koinViewModel
  * @author zhangls
  */
 @Composable
-fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (LoginResult) -> Unit) {
+fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (LoginResult) -> Unit) {
   val keyboardController = LocalSoftwareKeyboardController.current
-  val state by viewmodel.state.collectAsStateWithLifecycle()
-  val loginClick = remember(keyboardController, viewmodel) {
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  val loginClick = remember(keyboardController, viewModel) {
     {
       keyboardController?.hide()
-      viewmodel.sendIntent(LoginIntent.Login)
+      viewModel.sendIntent(LoginIntent.Login)
     }
   }
 
   LaunchedEffect(Unit) {
-    viewmodel.effect.collect { effect ->
+    viewModel.effect.collect { effect ->
       when (effect) {
         is LoginResult -> onLoginResult(effect)
       }
@@ -102,7 +102,7 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
         modifier = Modifier
           .align(alignment = Alignment.End)
           .padding(end = 16.dp, top = padding.calculateTopPadding() + 16.dp),
-        onLanguageChange = { viewmodel.sendIntent(LoginIntent.UpdateLanguage(it)) }
+        onLanguageChange = { viewModel.sendIntent(LoginIntent.UpdateLanguage(it)) }
       )
 
       Column(
@@ -116,8 +116,8 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
           modifier = Modifier.padding(top = 40.dp),
           account = state.account,
           accountError = state.accountError,
-          onAccountChange = { viewmodel.sendIntent(LoginIntent.UpdateAccount(it)) },
-          onClearAccount = { viewmodel.sendIntent(LoginIntent.ClearAccount) }
+          onAccountChange = { viewModel.sendIntent(LoginIntent.UpdateAccount(it)) },
+          onClearAccount = { viewModel.sendIntent(LoginIntent.ClearAccount) }
         )
 
         PasswordInput(
@@ -125,11 +125,11 @@ fun LoginScreen(viewmodel: LoginViewModel = koinViewModel(), onLoginResult: (Log
           password = state.password,
           passwordError = state.passwordError,
           passwordVisible = state.passwordVisible,
-          onPasswordChange = { viewmodel.sendIntent(LoginIntent.UpdatePassword(it)) },
-          onPasswordVisibleChange = { viewmodel.sendIntent(LoginIntent.UpdatePasswordVisible(it)) },
+          onPasswordChange = { viewModel.sendIntent(LoginIntent.UpdatePassword(it)) },
+          onPasswordVisibleChange = { viewModel.sendIntent(LoginIntent.UpdatePasswordVisible(it)) },
           onLogin = {
             keyboardController?.hide()
-            viewmodel.sendIntent(LoginIntent.Login)
+            viewModel.sendIntent(LoginIntent.Login)
           }
         )
 

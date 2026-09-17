@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,13 +51,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EmailDetail(
   emailId: Long,
-  isFavorite: Boolean,
+  isStandalone: Boolean,
   isBottomNavigationBar: Boolean,
-  viewmodel: EmailViewModel,
+  viewModel: EmailViewModel,
   onBackPressed: (() -> Unit)?
 ) {
-  val emailFlow = remember(viewmodel, emailId) { viewmodel.getEmail(emailId) }
-  val threadFlow = remember(viewmodel, emailId) { viewmodel.getThreadEmails(emailId) }
+  val emailFlow = remember(viewModel, emailId) { viewModel.getEmail(emailId) }
+  val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
   val model by emailFlow.collectAsStateWithLifecycle(null)
   val threads = threadFlow.collectAsLazyPagingItems()
 
@@ -69,7 +68,7 @@ internal fun EmailDetail(
       }
     }
   ) { padding ->
-    val contentPadding = if (isFavorite) {
+    val contentPadding = if (isStandalone) {
       padding
     } else {
       PaddingValues(
@@ -84,14 +83,14 @@ internal fun EmailDetail(
       item {
         model?.let {
           EmailDetailItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
-            viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
+            viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
           }
         }
       }
       items(count = threads.itemCount, key = threads.itemKey { it.email.id }) {
         val item = threads[it] ?: return@items
         EmailDetailItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
-          viewmodel.sendIntent(EmailIntent.UpdateFavorite(id))
+          viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
         }
       }
     }
@@ -164,16 +163,16 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
           .padding(top = 20.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        ReplayButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply) { }
-        ReplayButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply_all) { }
+        // TODO 回复/回复全部功能尚未实现
+        ReplyButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply) { }
+        ReplyButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply_all) { }
       }
     }
   }
 }
 
-@Preview
 @Composable
-private fun ReplayButton(
+private fun ReplyButton(
   modifier: Modifier = Modifier,
   textRes: StringResource = Res.string.email_action_email_reply,
   onClick: () -> Unit = {}

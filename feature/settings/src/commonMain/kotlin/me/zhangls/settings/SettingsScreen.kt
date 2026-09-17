@@ -40,16 +40,16 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 internal fun SettingsScreen(
   isBottomNavigationBar: Boolean,
-  viewmodel: SettingsViewModel = koinViewModel(),
+  viewModel: SettingsViewModel = koinViewModel(),
   onResult: (SettingsResult) -> Unit = {}
 ) {
-  val state by viewmodel.state.collectAsStateWithLifecycle()
+  val state by viewModel.state.collectAsStateWithLifecycle()
   // 领域模型在 UI 层映射为表现层模型
   val preferences = remember(state.settings) { state.settings.toPreferenceUiModels() }
-  val sendIntent = viewmodel::sendIntent
+  val sendIntent = viewModel::sendIntent
 
-  LaunchedEffect(viewmodel) {
-    viewmodel.effect.collect { effect ->
+  LaunchedEffect(viewModel) {
+    viewModel.effect.collect { effect ->
       when (effect) {
         is SettingsResult -> onResult(effect)
       }

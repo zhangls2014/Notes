@@ -38,7 +38,7 @@ import me.zhangls.theme.icon.StarFill
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun Loading(modifier: Modifier = Modifier) {
+internal fun Loading(modifier: Modifier = Modifier) {
   Box(modifier = modifier, contentAlignment = Alignment.Center) {
     LoadingIndicator()
   }
