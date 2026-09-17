@@ -1,7 +1,6 @@
-package me.zhangls.entry.data.local
+package me.zhangls.data.sample
 
 import me.zhangls.data.model.AccountModel
-
 
 object LocalAccountsDataProvider {
   val allUserAccounts = listOf(

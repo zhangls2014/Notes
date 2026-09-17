@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.UserRepository
-import me.zhangls.email.search.domain.AvatarSaver
+import me.zhangls.email.profile.AvatarSaver
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.feature.email.generated.resources.Res

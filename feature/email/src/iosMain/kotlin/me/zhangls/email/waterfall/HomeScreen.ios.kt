@@ -32,7 +32,7 @@ actual fun HomeScreen(isBottomNavigationBar: Boolean) {
     listPane = {
       AnimatedPane {
         EmailList(
-          viewmodel = viewmodel,
+          viewModel = viewmodel,
           isFavorite = false,
           isBottomNavigationBar = isBottomNavigationBar,
           openedEmailId = scaffoldNavigator.currentDestination?.contentKey,

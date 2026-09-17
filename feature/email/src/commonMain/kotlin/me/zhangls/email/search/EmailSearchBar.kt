@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
@@ -41,25 +40,19 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import coil3.compose.AsyncImage
-import com.mohamedrejeb.calf.io.KmpFile
-import com.mohamedrejeb.calf.picker.FilePickerFileType
-import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
-import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import me.zhangls.data.database.entity.EmailConvertModel
-import me.zhangls.data.model.UserModel
 import me.zhangls.data.model.toDomain
+import me.zhangls.email.component.AvatarPicker
 import me.zhangls.email.component.ProfileImage
 import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Search
@@ -73,8 +66,6 @@ import notes.feature.email.generated.resources.email_action_search_collapsed
 import notes.feature.email.generated.resources.email_hint_search
 import notes.feature.email.generated.resources.email_msg_no_item_found
 import notes.feature.email.generated.resources.email_msg_no_search_history
-import notes.feature.email.generated.resources.main_ic_default_avatar
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -136,7 +127,7 @@ internal fun EmailSearchBar(
       },
       trailingIcon = {
         state.user?.also {
-          ProfileImage(it) { kmpFile ->
+          AvatarPicker(user = it) { kmpFile ->
             viewmodel.sendIntent(SearchIntent.UpdateSelectedAvatar(kmpFile))
           }
         }
@@ -232,28 +223,6 @@ internal fun EmailSearchBar(
     )
   }
 }
-
-@Composable
-private fun ProfileImage(user: UserModel, onImageSelected: (KmpFile?) -> Unit) {
-  val launcher = rememberFilePickerLauncher(
-    type = FilePickerFileType.Image,
-    selectionMode = FilePickerSelectionMode.Single,
-    onResult = { onImageSelected(it.firstOrNull()) }
-  )
-
-  AsyncImage(
-    modifier = Modifier
-      .size(40.dp)
-      .clip(CircleShape)
-      .clickable { launcher.launch() },
-    model = user.avatar,
-    placeholder = painterResource(Res.drawable.main_ic_default_avatar),
-    error = painterResource(Res.drawable.main_ic_default_avatar),
-    contentScale = ContentScale.Crop,
-    contentDescription = stringResource(Res.string.email_action_owner_info),
-  )
-}
-
 
 @Composable
 private fun SearchResults(

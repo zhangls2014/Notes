@@ -1,4 +1,4 @@
-package me.zhangls.entry.data.local
+package me.zhangls.data.sample
 
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.type.MailboxType
