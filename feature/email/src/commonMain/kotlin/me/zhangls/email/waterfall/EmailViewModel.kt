@@ -40,6 +40,10 @@ class EmailViewModel(
   initialState = EmailState(),
   stateSerializer = EmailState.serializer(),
   savedStateHandle = savedStateHandle,
+  // EmailState 含 UserModel（带 accessToken/refreshToken）与账户列表，
+  // 持久化到 SavedStateHandle 会把敏感凭证写进进程恢复 Bundle，且有大对象
+  // TransactionTooLarge 风险；列表数据可从 Room 重新加载，纯内存态即可
+  savedKey = null,
 ) {
   // 首页邮件列表，缓存分页数据
   val emailPaging = emailsRepository.getEmailPaging()
