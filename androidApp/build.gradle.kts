@@ -72,17 +72,20 @@ android {
 
   signingConfigs {
     create("release") {
-      storeFile = file(path = localProperties.map { it.getProperty("signing.path") }.getOrElse(""))
-      storePassword = localProperties.map { it.getProperty("signing.storePassword") }.getOrElse("")
-      keyAlias = localProperties.map { it.getProperty("signing.keyAlias") }.getOrElse("")
-      keyPassword = localProperties.map { it.getProperty("signing.keyPassword") }.getOrElse("")
+      // 仅在 local.properties 提供签名信息时配置，避免无密钥环境无法构建
+      val storeFilePath = localProperties.map { it.getProperty("signing.path") }.getOrElse("")
+      if (storeFilePath.isNotEmpty()) {
+        storeFile = file(storeFilePath)
+        storePassword = localProperties.map { it.getProperty("signing.storePassword") }.getOrElse("")
+        keyAlias = localProperties.map { it.getProperty("signing.keyAlias") }.getOrElse("")
+        keyPassword = localProperties.map { it.getProperty("signing.keyPassword") }.getOrElse("")
+      }
     }
   }
 
   buildTypes {
     debug {
-      signingConfig = signingConfigs.getByName("release")
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      // debug 构建使用默认 debug 签名，不挂 release 密钥与混淆配置
     }
     release {
       isMinifyEnabled = true
