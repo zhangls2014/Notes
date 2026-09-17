@@ -21,6 +21,8 @@ import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.framework.mvi.DialogResult
+import me.zhangls.settings.mvi.SettingsIntent
+import me.zhangls.settings.mvi.SettingsViewModel
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.ui.PreferenceUiModel
 import me.zhangls.settings.ui.toDialogUiModel

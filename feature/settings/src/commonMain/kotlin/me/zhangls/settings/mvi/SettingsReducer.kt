@@ -1,4 +1,4 @@
-package me.zhangls.settings
+package me.zhangls.settings.mvi
 
 object SettingsReducer {
   fun reduce(oldState: SettingsState, action: SettingsAction): SettingsState {
