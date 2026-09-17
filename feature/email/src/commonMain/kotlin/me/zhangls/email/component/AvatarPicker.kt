@@ -16,7 +16,7 @@ import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import me.zhangls.data.model.UserModel
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_owner_info
-import notes.feature.email.generated.resources.main_ic_default_avatar
+import notes.feature.email.generated.resources.email_ic_default_avatar
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -43,8 +43,8 @@ fun AvatarPicker(
       .clip(CircleShape)
       .clickable { launcher.launch() },
     model = user.avatar,
-    placeholder = painterResource(Res.drawable.main_ic_default_avatar),
-    error = painterResource(Res.drawable.main_ic_default_avatar),
+    placeholder = painterResource(Res.drawable.email_ic_default_avatar),
+    error = painterResource(Res.drawable.email_ic_default_avatar),
     contentScale = ContentScale.Crop,
     contentDescription = stringResource(Res.string.email_action_owner_info),
   )
