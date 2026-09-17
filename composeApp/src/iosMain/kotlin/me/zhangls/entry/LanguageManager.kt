@@ -1,6 +1,6 @@
 package me.zhangls.entry
 
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSUserDefaults
 

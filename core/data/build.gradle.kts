@@ -36,6 +36,9 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        // 公共领域模型（AppLanguage 等）
+        api(projects.core.model)
+
         // DataStore
         api(kmp.androidx.datastore.preferences)
 

@@ -1,6 +1,6 @@
 package me.zhangls.login.mvi
 
-import me.zhangls.data.type.AppLanguage
+import me.zhangls.model.AppLanguage
 import me.zhangls.framework.mvi.MviAction
 
 /**
