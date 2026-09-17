@@ -16,14 +16,14 @@ import org.koin.core.annotation.KoinViewModel
  * @author zhangls
  */
 @KoinViewModel
-class MainViewModel(
+class AppViewModel(
   savedStateHandle: SavedStateHandle,
   toastGlobalNotifier: ToastGlobalNotifier,
   userRepository: UserRepository,
   settingsRepository: SettingsRepository
-) : MviViewModel<MainState, MainIntent>(
-  initialState = MainState(null),
-  stateSerializer = MainState.serializer(),
+) : MviViewModel<AppState, AppIntent>(
+  initialState = AppState(null),
+  stateSerializer = AppState.serializer(),
   savedStateHandle = savedStateHandle
 ) {
   /**
@@ -32,7 +32,7 @@ class MainViewModel(
   val toast = toastGlobalNotifier.toast
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-  override fun handleIntent(intent: MainIntent) {}
+  override fun handleIntent(intent: AppIntent) {}
 
   init {
     viewModelScope.launch {
