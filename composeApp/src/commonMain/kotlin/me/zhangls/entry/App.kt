@@ -1,20 +1,16 @@
 package me.zhangls.entry
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.zhangls.framework.toast.showSystemToast
 import me.zhangls.model.AppLanguage
 import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.theme.ComposeAppTheme
-import me.zhangls.theme.component.ToastHost
-import me.zhangls.theme.component.rememberToastState
+import org.jetbrains.compose.resources.getString
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -27,7 +23,6 @@ fun App(
   onDeepLinkConsumed: () -> Unit = {},
 ) {
   val viewModel: AppViewModel = koinViewModel()
-  val toastState = rememberToastState()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val deepLinkDestination = parseDeepLink(deepLinkUrl)
   val darkTheme = when (state.darkTheme) {
@@ -52,18 +47,16 @@ fun App(
     dynamicScheme = if (state.dynamicColor) onDynamicColorChanged(darkTheme) else null,
     fontScale = fontScale,
   ) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      AppNavHost(
-        viewModel = viewModel,
-        deepLinkDestination = deepLinkDestination,
-        onDeepLinkConsumed = onDeepLinkConsumed
-      )
-      ToastHost(toastState)
-    }
+    AppNavHost(
+      viewModel = viewModel,
+      deepLinkDestination = deepLinkDestination,
+      onDeepLinkConsumed = onDeepLinkConsumed
+    )
 
     LaunchedEffect(Unit) {
-      viewModel.toast.collect {
-        toastState.showToast(it.resId)
+      viewModel.toast.collect { effect ->
+        val message = getString(effect.resId)
+        showSystemToast(message, longDuration = message.length > 20)
       }
     }
   }
