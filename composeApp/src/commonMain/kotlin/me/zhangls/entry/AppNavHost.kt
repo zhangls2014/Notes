@@ -57,26 +57,28 @@ fun AppNavHost(
 
   val navHandler = NavHandler(backStack = backStack, isLogin = { isLogin }, onIntercept = { pendingDestination = it })
 
-  // 首屏/DeepLink 的导航初始化必须放在 LaunchedEffect 中执行：
-  // 直接在组合期间写 backStack 属于组合期副作用，会导致非确定性行为
-  LaunchedEffect(state.isLogin, deepLinkDestination) {
-    if (state.isLogin == null) return@LaunchedEffect
-
-    if (backStack.isEmpty()) {
-      // 回退栈为空，则根据登录状态添加首屏
-      val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination
-      navHandler(NavEffect.Navigate(firstDest))
-
-      if (deepLinkDestination != null) onDeepLinkConsumed()
-    } else if (deepLinkDestination != null) {
-      navHandler(NavEffect.Navigate(deepLinkDestination))
-      onDeepLinkConsumed()
-    }
-  }
-
+  // 首屏/DeepLink 初始化必须在组合期同步完成：
+  // NavDisplay 进入组合的瞬间即 require(backStack.isNotEmpty())，
+  // 若推迟到 LaunchedEffect（在组合应用后才执行），首次渲染前必然存在空栈窗口，
+  // 直接抛 IllegalArgumentException 崩溃。
+  // isEmpty 守卫保证初始化幂等：仅在栈为空时填充一次，后续重组不会重复入栈。
   if (state.isLogin == null) {
     // 登录状态未知，不显示 UI
     return
+  }
+
+  if (backStack.isEmpty()) {
+    // 回退栈为空，则根据登录状态添加首屏
+    val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination
+    navHandler(NavEffect.Navigate(firstDest))
+
+    if (deepLinkDestination != null) onDeepLinkConsumed()
+  } else if (deepLinkDestination != null) {
+    // 运行期 DeepLink：事件驱动，放 effect 中执行避免重组重复触发导航
+    LaunchedEffect(deepLinkDestination) {
+      navHandler(NavEffect.Navigate(deepLinkDestination))
+      onDeepLinkConsumed()
+    }
   }
 
   NavDisplay(
