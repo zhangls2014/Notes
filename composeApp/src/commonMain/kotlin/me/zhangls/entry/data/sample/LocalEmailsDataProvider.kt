@@ -1,7 +1,7 @@
 package me.zhangls.entry.data.sample
 
 import me.zhangls.data.model.EmailModel
-import me.zhangls.data.type.MailboxType
+import me.zhangls.model.MailboxType
 
 object LocalEmailsDataProvider {
   private val threads = listOf(

@@ -1,11 +1,11 @@
 package me.zhangls.data.impl.mapper
 
-import me.zhangls.data.impl.database.entity.AccountEntity
-import me.zhangls.data.impl.database.entity.EmailEntity
-import me.zhangls.data.impl.database.entity.EmailWithSender
-import me.zhangls.data.impl.database.entity.RecipientIdsCodec
 import me.zhangls.data.model.AccountModel
 import me.zhangls.data.model.EmailModel
+import me.zhangls.database.entity.AccountEntity
+import me.zhangls.database.entity.EmailEntity
+import me.zhangls.database.entity.EmailWithSender
+import me.zhangls.database.entity.RecipientIdsCodec
 
 /**
  * 数据层内部的映射集合：实体 ↔ 对外模型。
