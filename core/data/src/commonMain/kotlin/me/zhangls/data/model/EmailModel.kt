@@ -1,6 +1,6 @@
 package me.zhangls.data.model
 
-import me.zhangls.data.type.MailboxType
+import me.zhangls.model.MailboxType
 
 /**
  * 邮件对外模型。
