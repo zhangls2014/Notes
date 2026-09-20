@@ -1,4 +1,4 @@
-package me.zhangls.data.database.entity
+package me.zhangls.data.impl.database.entity
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

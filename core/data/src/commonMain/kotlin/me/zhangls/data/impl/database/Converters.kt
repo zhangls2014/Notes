@@ -1,11 +1,11 @@
 @file:Suppress("unused")
 
-package me.zhangls.data.database
+package me.zhangls.data.impl.database
 
 import androidx.room3.ColumnTypeConverter
 import me.zhangls.data.type.MailboxType
 
-class Converters {
+internal class Converters {
   @ColumnTypeConverter
   fun mailboxTypeToInt(type: MailboxType): Int = type.value
 

@@ -13,10 +13,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import me.zhangls.data.database.entity.EmailConvertModel
-import me.zhangls.data.database.entity.EmailEntity
-import me.zhangls.data.database.entity.RecipientIdsCodec
-import me.zhangls.data.model.toDomain
+import me.zhangls.data.model.EmailDraft
+import me.zhangls.data.model.EmailModel
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
@@ -58,14 +56,14 @@ internal class EmailViewModel(
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
     .cachedIn(viewModelScope)
 
-  fun getThreadEmails(parentEmailId: Long): Flow<PagingData<EmailConvertModel>> {
+  fun getThreadEmails(parentEmailId: Long): Flow<PagingData<EmailModel>> {
     return emailsRepository.getThreadEmailsById(parentEmailId)
       .flowOn(Dispatchers.IO)
       .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
       .cachedIn(viewModelScope)
   }
 
-  fun getEmail(emailId: Long): Flow<EmailConvertModel?> {
+  fun getEmail(emailId: Long): Flow<EmailModel?> {
     return emailsRepository.getEmail(emailId)
       .flowOn(Dispatchers.IO)
       .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
@@ -139,23 +137,19 @@ internal class EmailViewModel(
       }
 
 
-      val recipientIds = RecipientIdsCodec.encode(draftRecipientIds)
-      val subject = draftSubject
-      val body = draftBody
-
       viewModelScope.launch {
         dispatch(EmailAction.SetDraftVisible(false))
         dispatch(EmailAction.SetSending(true))
         try {
-          val draft = EmailEntity(
-            id = 0L,
-            senderId = emailsRepository.getDefaultAccount()?.id ?: return@launch,
-            recipientIds = recipientIds,
-            subject = subject,
-            body = body,
-            createdAt = getString(Res.string.email_time_just_now),
+          // 收件人 ID 的落盘编码与"默认发件账户"的选取都在数据层内部完成
+          emailsRepository.insertDraft(
+            EmailDraft(
+              recipientIds = draftRecipientIds,
+              subject = draftSubject,
+              body = draftBody,
+              createdAt = getString(Res.string.email_time_just_now),
+            )
           )
-          emailsRepository.insertEmail(draft)
           dispatch(EmailAction.ClearDraft)
         } catch (_: Exception) {
           dispatch(EmailAction.SetDraftVisible(true))
@@ -169,10 +163,7 @@ internal class EmailViewModel(
 
   private fun updateFavorite(intent: EmailIntent.UpdateFavorite) {
     viewModelScope.launch {
-      val entity = emailsRepository.getEmailById(intent.emailId) ?: return@launch
-      // 走 UPDATE 语句，避免用 INSERT OR REPLACE 模拟更新（会触发 REPLACE
-      // 语义的删行重建，开销更大且可能触发级联行为）
-      emailsRepository.updateIsFavorite(setOf(intent.emailId), entity.isImportant.not())
+      emailsRepository.toggleFavorite(intent.emailId)
     }
   }
 
@@ -197,8 +188,7 @@ internal class EmailViewModel(
   private fun startCollectAccounts() {
     allAccountsJob = viewModelScope.launch {
       emailsRepository.getAllAccounts().collectLatest { accounts ->
-        val models = accounts.map { it.toDomain() }
-        dispatch(EmailAction.UpdateAllAccounts(models))
+        dispatch(EmailAction.UpdateAllAccounts(accounts))
       }
     }
   }

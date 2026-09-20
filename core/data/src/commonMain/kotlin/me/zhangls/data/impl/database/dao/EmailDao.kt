@@ -1,4 +1,4 @@
-package me.zhangls.data.database.dao
+package me.zhangls.data.impl.database.dao
 
 import androidx.paging.PagingSource
 import androidx.room3.Dao
@@ -9,8 +9,8 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import kotlinx.coroutines.flow.Flow
-import me.zhangls.data.database.entity.EmailConvertModel
-import me.zhangls.data.database.entity.EmailEntity
+import me.zhangls.data.impl.database.entity.EmailWithSender
+import me.zhangls.data.impl.database.entity.EmailEntity
 
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
@@ -23,26 +23,26 @@ interface EmailDao {
 
   @Transaction
   @Query("SELECT * FROM email WHERE id = :emailId")
-  fun getEmail(emailId: Long): Flow<EmailConvertModel?>
+  fun getEmail(emailId: Long): Flow<EmailWithSender?>
 
   @Query("SELECT * FROM email WHERE id = :emailId")
   suspend fun getEmailById(emailId: Long): EmailEntity?
 
   @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId IS NULL")
-  fun getEmailPaging(): PagingSource<Int, EmailConvertModel>
+  fun getEmailPaging(): PagingSource<Int, EmailWithSender>
 
   @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId IS NULL AND isImportant == 1")
-  fun getEmailFavoritePaging(): PagingSource<Int, EmailConvertModel>
+  fun getEmailFavoritePaging(): PagingSource<Int, EmailWithSender>
 
   @Transaction
   @Query("SELECT * FROM email WHERE parentEmailId = :parentEmailId")
-  fun getThreadEmails(parentEmailId: Long): PagingSource<Int, EmailConvertModel>
+  fun getThreadEmails(parentEmailId: Long): PagingSource<Int, EmailWithSender>
 
   @Transaction
   @Query("SELECT * FROM email WHERE :keywords != '' AND subject LIKE '%' || :keywords || '%' COLLATE NOCASE")
-  fun searchEmails(keywords: String): PagingSource<Int, EmailConvertModel>
+  fun searchEmails(keywords: String): PagingSource<Int, EmailWithSender>
 
   @Query("UPDATE email SET isImportant = :isImportant WHERE id IN (:emailId)")
   suspend fun updateIsImportant(emailId: Set<Long>, isImportant: Boolean)

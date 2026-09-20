@@ -1,4 +1,4 @@
-package me.zhangls.data.datastore
+package me.zhangls.data.impl.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
  *
  * @author zhangls
  */
-class AppDataStore<T>(
+internal class AppDataStore<T>(
   name: String,
   private val serializer: KSerializer<T>,
   private val dataStore: DataStore<Preferences>,

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
+import me.zhangls.data.model.EmailModel
 import me.zhangls.email.mvi.EmailIntent
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_msg_no_emails
@@ -25,7 +26,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun EmailPagedList(
-  emailItems: LazyPagingItems<me.zhangls.data.database.entity.EmailConvertModel>,
+  emailItems: LazyPagingItems<EmailModel>,
   listState: LazyListState,
   contentPadding: PaddingValues,
   isFavorite: Boolean,
@@ -53,7 +54,7 @@ internal fun EmailPagedList(
       item { Loading(modifier = Modifier.fillParentMaxWidth()) }
     }
 
-    items(count = emailItems.itemCount, key = emailItems.itemKey { it.email.id }) { index ->
+    items(count = emailItems.itemCount, key = emailItems.itemKey { it.id }) { index ->
       val item = emailItems[index] ?: return@items
       EmailListItem(
         model = item,
@@ -61,8 +62,8 @@ internal fun EmailPagedList(
           .padding(horizontal = 16.dp, vertical = 8.dp)
           .animateItem(),
         isMultiSelect = if (isFavorite) false else selectedItems.isNotEmpty(),
-        isOpened = item.email.id == openedEmailId,
-        isSelected = if (isFavorite) false else selectedItems.contains(item.email.id),
+        isOpened = item.id == openedEmailId,
+        isSelected = if (isFavorite) false else selectedItems.contains(item.id),
         navigateToDetail = navigateToDetail,
         toggleSelection = {
           if (isFavorite) return@EmailListItem

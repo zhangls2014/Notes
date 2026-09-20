@@ -50,8 +50,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import me.zhangls.data.database.entity.EmailConvertModel
-import me.zhangls.data.model.toDomain
+import me.zhangls.data.model.EmailModel
 import me.zhangls.email.component.AvatarPicker
 import me.zhangls.email.component.ProfileImage
 import me.zhangls.theme.icon.Clear
@@ -226,7 +225,7 @@ internal fun EmailSearchBar(
 
 @Composable
 private fun SearchResults(
-  searchResults: LazyPagingItems<EmailConvertModel>,
+  searchResults: LazyPagingItems<EmailModel>,
   onResultClick: (Long) -> Unit,
 ) {
   if (searchResults.itemCount <= 0) {
@@ -238,11 +237,11 @@ private fun SearchResults(
   }
 
   LazyColumn(modifier = Modifier.fillMaxWidth()) {
-    items(count = searchResults.itemCount, key = searchResults.itemKey { it.email.id }) {
+    items(count = searchResults.itemCount, key = searchResults.itemKey { it.id }) {
       val email = searchResults[it] ?: return@items
-      val sender = email.sender.toDomain()
+      val sender = email.sender
       ListItem(
-        headlineContent = { Text(email.email.subject) },
+        headlineContent = { Text(email.subject) },
         supportingContent = { Text(sender.fullName) },
         leadingContent = {
           ProfileImage(
@@ -250,7 +249,7 @@ private fun SearchResults(
             description = stringResource(Res.string.email_action_owner_info)
           )
         },
-        modifier = Modifier.clickable { onResultClick(email.email.id) },
+        modifier = Modifier.clickable { onResultClick(email.id) },
       )
     }
   }

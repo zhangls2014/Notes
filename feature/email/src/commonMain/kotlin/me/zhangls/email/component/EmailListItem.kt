@@ -29,9 +29,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import me.zhangls.data.database.entity.EmailConvertModel
 import me.zhangls.data.model.AccountModel
-import me.zhangls.data.model.toDomain
+import me.zhangls.data.model.EmailModel
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Star
 import me.zhangls.theme.icon.StarFill
@@ -50,7 +49,7 @@ internal fun Loading(modifier: Modifier = Modifier) {
 
 @Composable
 fun EmailListItem(
-  model: EmailConvertModel,
+  model: EmailModel,
   modifier: Modifier = Modifier,
   isMultiSelect: Boolean = false,
   isOpened: Boolean = false,
@@ -59,8 +58,7 @@ fun EmailListItem(
   toggleSelection: (Long) -> Unit,
   onFavoriteClick: (Long) -> Unit = {},
 ) {
-  val sender = model.sender.toDomain()
-  val email = model.email
+  val sender = model.sender
 
   Card(
     modifier = modifier
@@ -68,9 +66,9 @@ fun EmailListItem(
       .clip(CardDefaults.shape)
       .combinedClickable(
         onClick = {
-          if (isMultiSelect) toggleSelection(email.id) else navigateToDetail(email.id)
+          if (isMultiSelect) toggleSelection(model.id) else navigateToDetail(model.id)
         },
-        onLongClick = { toggleSelection(email.id) },
+        onLongClick = { toggleSelection(model.id) },
       ),
     colors = CardDefaults.cardColors(
       containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
@@ -97,20 +95,20 @@ fun EmailListItem(
             style = MaterialTheme.typography.labelMedium,
           )
           Text(
-            text = email.createdAt,
+            text = model.createdAt,
             style = MaterialTheme.typography.labelMedium,
           )
         }
         IconButton(
-          onClick = { onFavoriteClick(email.id) },
+          onClick = { onFavoriteClick(model.id) },
           modifier = Modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         ) {
           Icon(
-            imageVector = if (email.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
+            imageVector = if (model.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
             contentDescription = stringResource(
-              if (email.isImportant) Res.string.email_action_cancel_favorite
+              if (model.isImportant) Res.string.email_action_cancel_favorite
               else Res.string.email_action_favorite
             ),
             tint = MaterialTheme.colorScheme.outline,
@@ -119,12 +117,12 @@ fun EmailListItem(
       }
 
       Text(
-        text = email.subject.toDisplaySubject(),
+        text = model.subject.toDisplaySubject(),
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
       )
       Text(
-        text = email.body,
+        text = model.body,
         style = MaterialTheme.typography.bodyMedium,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,

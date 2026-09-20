@@ -1,9 +1,13 @@
 package me.zhangls.data.model
 
-import me.zhangls.data.database.entity.EmailEntity
-import me.zhangls.data.database.entity.RecipientIdsCodec
 import me.zhangls.data.type.MailboxType
 
+/**
+ * 邮件对外模型。
+ *
+ * 注意：[recipients] 与 [threads] 只在写入路径（`EmailsRepository.insertEmails`）被填充；
+ * 读取路径（列表 / 详情 / 搜索）不会查询它们，取到的值为空。
+ */
 data class EmailModel(
   val id: Long,
   val sender: AccountModel,
@@ -16,19 +20,3 @@ data class EmailModel(
   val createdAt: String,
   val threads: List<EmailModel> = emptyList(),
 )
-
-
-fun EmailModel.toEntity(parentEmailId: Long?): EmailEntity {
-  return EmailEntity(
-    id = id,
-    senderId = sender.id,
-    recipientIds = RecipientIdsCodec.encode(recipients.map { it.id }.toSet()),
-    subject = subject,
-    body = body,
-    isImportant = isImportant,
-    isStarred = isStarred,
-    mailbox = mailbox,
-    createdAt = createdAt,
-    parentEmailId = parentEmailId
-  )
-}

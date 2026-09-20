@@ -1,8 +1,10 @@
 package me.zhangls.data.model
 
 import kotlinx.serialization.Serializable
-import me.zhangls.data.database.entity.AccountEntity
 
+/**
+ * 账户对外模型（发件人 / 收件人）。
+ */
 @Serializable
 data class AccountModel(
   val id: Long,
@@ -14,28 +16,4 @@ data class AccountModel(
   val isDefault: Boolean = false,
 ) {
   val fullName: String = "$firstName $lastName"
-}
-
-fun AccountModel.toEntity(): AccountEntity {
-  return AccountEntity(
-    id = id,
-    firstName = firstName,
-    lastName = lastName,
-    email = email,
-    altEmail = altEmail,
-    avatar = avatar,
-    isDefault = isDefault
-  )
-}
-
-fun AccountEntity.toDomain(): AccountModel {
-  return AccountModel(
-    id = id,
-    firstName = firstName,
-    lastName = lastName,
-    email = email,
-    altEmail = altEmail,
-    avatar = avatar,
-    isDefault = isDefault
-  )
 }
