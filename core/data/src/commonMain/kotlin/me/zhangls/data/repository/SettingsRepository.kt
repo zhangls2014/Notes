@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.zhangls.data.datastore.AppDataStore
 import me.zhangls.data.model.SettingsModel
-import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.model.AppLanguage
+import me.zhangls.model.DarkThemeConfig
 import org.koin.core.annotation.Singleton
 
 interface SettingsRepository {

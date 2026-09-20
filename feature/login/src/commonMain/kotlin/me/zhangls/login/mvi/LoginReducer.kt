@@ -44,6 +44,10 @@ object LoginReducer {
           copy(appLanguage = action.language)
         }
 
+        is LoginAction.UpdateDarkTheme -> {
+          copy(darkTheme = action.config)
+        }
+
         is LoginAction.Loading -> {
           copy(isLoading = action.visible)
         }

@@ -1,6 +1,5 @@
 package me.zhangls.entry
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,8 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.framework.toast.showSystemToast
 import me.zhangls.model.AppLanguage
-import me.zhangls.data.type.DarkThemeConfig
 import me.zhangls.theme.ComposeAppTheme
+import me.zhangls.theme.darkmode.DarkThemeCatalog
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -25,11 +24,7 @@ fun App(
   val viewModel: AppViewModel = koinViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val deepLinkDestination = parseDeepLink(deepLinkUrl)
-  val darkTheme = when (state.darkTheme) {
-    DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-    DarkThemeConfig.LIGHT -> false
-    DarkThemeConfig.DARK -> true
-  }
+  val darkTheme = DarkThemeCatalog.isDark(state.darkTheme)
   val fontScale = state.fontSize.value
 
   LaunchedEffect(state.appLanguage) {

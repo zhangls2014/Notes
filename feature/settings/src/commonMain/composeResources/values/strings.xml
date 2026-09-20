@@ -4,10 +4,6 @@
   <string name="settings_label_dynamic_color">Dynamic color</string>
   <string name="settings_msg_dynamic_color_on">Theme follows wallpaper colors</string>
   <string name="settings_msg_dynamic_color_off">Built-in theme colors</string>
-  <string name="settings_label_dark_theme">Dark theme</string>
-  <string name="settings_label_dark_theme_follow_system">Follow system</string>
-  <string name="settings_label_dark_theme_light">Light</string>
-  <string name="settings_label_dark_theme_dark">Dark</string>
   <string name="settings_label_font_size">Font size</string>
   <string name="settings_label_font_size_standard">Standard</string>
   <string name="settings_label_font_size_medium">Medium</string>
