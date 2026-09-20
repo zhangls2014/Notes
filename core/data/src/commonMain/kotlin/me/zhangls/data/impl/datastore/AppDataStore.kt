@@ -35,13 +35,13 @@ internal class AppDataStore<T>(
 
   fun read(): Flow<T?> {
     return dataStore.data
-      .map { it[key]?.decode() }
+      .map { it[key]?.decodeOrNull() }
       .distinctUntilChanged()
   }
 
   suspend fun updateData(transform: (t: T?) -> T?) {
     dataStore.edit { prefs ->
-      val oldValue = prefs[key]?.decode() ?: defaultValue
+      val oldValue = prefs[key]?.decodeOrNull() ?: defaultValue
       val newValue = transform(oldValue)?.encode()
       if (newValue == null) {
         prefs.remove(key)
@@ -51,8 +51,19 @@ internal class AppDataStore<T>(
     }
   }
 
-  private fun String.decode(): T {
-    return json.decodeFromString(serializer, this)
+  /**
+   * 解析已落盘的 JSON，失败一律返回 null（视为"没有值"）而不是抛异常。
+   *
+   * 反序列化失败在这里是**可达**的：序列化对象里若含枚举（如 `AppLanguage` / `FontSizeConfig`），
+   * 删除或重命名任一枚举常量都会让存量 JSON 不再兼容（kotlinx.serialization 对未知枚举值抛
+   * `SerializationException`）。异常会顺着 `dataStore.data` 终止整条 Flow，导致设置页与登录页
+   * 再也读不到任何取值（且订阅它的 viewModelScope 一并崩溃）；静默回退到 [defaultValue] 虽会
+   * 丢弃用户自定义取值，但至少应用保持可用。
+   *
+   * 写入路径同样走这里：解析失败时以 [defaultValue] 为基底做更新，而不是让异常中断写入。
+   */
+  private fun String.decodeOrNull(): T? {
+    return runCatching { json.decodeFromString(serializer, this) }.getOrNull()
   }
 
   private fun T.encode(): String {
