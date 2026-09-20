@@ -4,6 +4,9 @@ android-minSdk = "28"
 android-targetSdk = "36"
 android-buildTools = "36.1.0"
 
+# JVM 编译目标：Kotlin jvmTarget 与 Java 语言级别的唯一来源（约定插件统一消费）
+jvm-target = "21"
+
 agp = "9.3.2"
 androidx-activity = "1.13.0"
 androidx-lifecycle = "2.11.0"
