@@ -1,17 +1,5 @@
 plugins {
   id("me.zhangls.kmp-library")
-  alias(kmp.plugins.jetbrains.compose)
-  alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
-}
-
-kotlin {
-  sourceSets {
-    commonMain {
-      dependencies {
-        // Compose（接口中的 @Composable 入口）
-        implementation(kmp.jetbrains.compose.runtime)
-
-      }
-    }
-  }
+  // 契约里只有 @Composable 入口，故只注入 compose-runtime（见约定插件）
+  id("me.zhangls.kmp-compose-api")
 }
