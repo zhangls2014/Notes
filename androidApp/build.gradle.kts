@@ -22,6 +22,8 @@ kotlin {
 
     // modules
     implementation(projects.core.data)
+    // LocaleUtils 直接用 AppLanguage，显式声明而不是依赖 core:data 的 api 传递
+    implementation(projects.core.model)
     implementation(projects.composeApp)
 
     // libraries
