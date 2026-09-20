@@ -6,15 +6,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import me.zhangls.preference.PreferenceSpec
+import me.zhangls.theme.component.TooltipIconButton
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -32,6 +27,7 @@ import org.jetbrains.compose.resources.stringResource
  * 留在各自 feature 里（本控件就是为消掉登录页那两个 55 行同构函数而生的）。
  * 因此每种形态都实现一次、都住在本模块，消费方只提供取值与回调。
  *
+ * 按钮本体复用 `core:theme` 的 [TooltipIconButton]，下拉菜单由本控件补上。
  * 与设置页的列表行共用同一份 [PreferenceSpec.Select]，故标题 / 图标 / 选项文案永远不会漂移。
  *
  * 两处刻意的设计：
@@ -43,7 +39,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param value 当前取值
  * @param onValueChange 取值变化回调，由消费方决定如何派发
  */
-// TooltipBox 需要 ExperimentalMaterial3Api，DropdownMenuPopup / MenuDefaults 需要 Expressive
+// DropdownMenuPopup / MenuDefaults 需要 Expressive
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun <T> SelectIconButton(
@@ -56,22 +52,13 @@ fun <T> SelectIconButton(
   var expanded by remember { mutableStateOf(false) }
 
   Box(modifier = modifier) {
-    TooltipBox(
+    TooltipIconButton(
+      icon = spec.icon,
+      label = label,
+      onClick = { expanded = expanded.not() },
       // 按钮通常位于页面顶部，提示放在下方避免被屏幕边缘裁掉
-      positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-      state = rememberTooltipState(),
-      tooltip = {
-        PlainTooltip {
-          Text(text = label)
-        }
-      },
-    ) {
-      IconButton(
-        onClick = { expanded = expanded.not() },
-      ) {
-        Icon(imageVector = spec.icon, contentDescription = label)
-      }
-    }
+      tooltipPosition = TooltipAnchorPosition.Below,
+    )
 
     DropdownMenuPopup(
       expanded = expanded,

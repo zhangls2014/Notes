@@ -3,17 +3,10 @@ package me.zhangls.email.component
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import me.zhangls.theme.component.TooltipIconButton
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -39,13 +32,9 @@ data class ActionItem(
 
 @Composable
 fun ActionItem(item: ActionItem, onClick: (ActionItem) -> Unit) {
-  TooltipBox(
-    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-    tooltip = { PlainTooltip { Text(stringResource(item.text)) } },
-    state = rememberTooltipState(),
-  ) {
-    IconButton(onClick = { onClick(item) }) {
-      Icon(imageVector = item.icon, contentDescription = stringResource(item.text))
-    }
-  }
+  TooltipIconButton(
+    icon = item.icon,
+    label = stringResource(item.text),
+    onClick = { onClick(item) },
+  )
 }
