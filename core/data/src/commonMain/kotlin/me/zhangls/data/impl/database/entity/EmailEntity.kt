@@ -1,4 +1,4 @@
-package me.zhangls.data.database.entity
+package me.zhangls.data.impl.database.entity
 
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity

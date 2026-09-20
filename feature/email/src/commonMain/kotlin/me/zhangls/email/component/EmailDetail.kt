@@ -31,8 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import me.zhangls.data.database.entity.EmailConvertModel
-import me.zhangls.data.model.toDomain
+import me.zhangls.data.model.EmailModel
 import me.zhangls.theme.icon.Star
 import me.zhangls.theme.icon.StarFill
 import me.zhangls.email.mvi.EmailIntent
@@ -65,7 +64,7 @@ internal fun EmailDetail(
 
   Scaffold(
     topBar = {
-      model?.email?.subject?.let {
+      model?.subject?.let {
         CenteredTopAppBar(title = it.toDisplaySubject(), navigate = onBackPressed)
       }
     }
@@ -89,7 +88,7 @@ internal fun EmailDetail(
           }
         }
       }
-      items(count = threads.itemCount, key = threads.itemKey { it.email.id }) {
+      items(count = threads.itemCount, key = threads.itemKey { it.id }) {
         val item = threads[it] ?: return@items
         EmailDetailItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
           viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
@@ -100,9 +99,8 @@ internal fun EmailDetail(
 }
 
 @Composable
-fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
-  val sender = model.sender.toDomain()
-  val email = model.email
+fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
+  val sender = model.sender
 
   Card(
     modifier = modifier,
@@ -127,21 +125,21 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
             style = MaterialTheme.typography.labelMedium,
           )
           Text(
-            text = email.createdAt,
+            text = model.createdAt,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.outline,
           )
         }
         IconButton(
-          onClick = { onFavoriteClick(email.id) },
+          onClick = { onFavoriteClick(model.id) },
           modifier = Modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainer),
         ) {
           Icon(
-            imageVector = if (email.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
+            imageVector = if (model.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
             contentDescription = stringResource(
-              if (email.isImportant) Res.string.email_action_cancel_favorite
+              if (model.isImportant) Res.string.email_action_cancel_favorite
               else Res.string.email_action_favorite
             ),
             tint = MaterialTheme.colorScheme.outline,
@@ -150,14 +148,14 @@ fun EmailDetailItem(model: EmailConvertModel, modifier: Modifier = Modifier, onF
       }
 
       Text(
-        text = email.subject.toDisplaySubject(),
+        text = model.subject.toDisplaySubject(),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.outline,
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
       )
 
       Text(
-        text = email.body,
+        text = model.body,
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )

@@ -1,4 +1,4 @@
-package me.zhangls.data.database
+package me.zhangls.data.impl.database
 
 import androidx.room3.AutoMigration
 import androidx.room3.ConstructedBy
@@ -9,10 +9,10 @@ import androidx.room3.ColumnTypeConverters
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import me.zhangls.data.database.dao.AccountDao
-import me.zhangls.data.database.dao.EmailDao
-import me.zhangls.data.database.entity.AccountEntity
-import me.zhangls.data.database.entity.EmailEntity
+import me.zhangls.data.impl.database.dao.AccountDao
+import me.zhangls.data.impl.database.dao.EmailDao
+import me.zhangls.data.impl.database.entity.AccountEntity
+import me.zhangls.data.impl.database.entity.EmailEntity
 
 @Database(
   entities = [

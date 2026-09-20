@@ -3,11 +3,11 @@ package me.zhangls.data
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import me.zhangls.data.database.AppDatabase
-import me.zhangls.data.database.AppDatabaseFactory
-import me.zhangls.data.database.create
-import me.zhangls.data.database.dao.AccountDao
-import me.zhangls.data.database.dao.EmailDao
+import me.zhangls.data.impl.database.AppDatabase
+import me.zhangls.data.impl.database.AppDatabaseFactory
+import me.zhangls.data.impl.database.create
+import me.zhangls.data.impl.database.dao.AccountDao
+import me.zhangls.data.impl.database.dao.EmailDao
 import me.zhangls.data.util.AppFileManager
 import okio.Path.Companion.toPath
 import org.koin.core.annotation.ComponentScan
@@ -19,8 +19,9 @@ import org.koin.core.annotation.Singleton
 @ComponentScan("me.zhangls.data")
 class DataModule
 
+// AppDatabaseFactory 为 internal，故本 provider 也必须为 internal
 @Singleton
-fun provideDatabase(factory: AppDatabaseFactory): AppDatabase {
+internal fun provideDatabase(factory: AppDatabaseFactory): AppDatabase {
   return factory.getDatabaseBuilder("notes.db").create()
 }
 
