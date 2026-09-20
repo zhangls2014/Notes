@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>BlankLineBetweenWhenConditions:DeepLink.kt:when (request.path) { PATH_HOME -&gt; MainDestination PATH_EMAIL -&gt; { val emailId = request.queries["id"]?.toLongOrNull() ?: return null EmailDetailDestination(emailId = emailId) } else -&gt; null }</ID>
+    <ID>EmptyFunctionBlock:AppViewModel.kt:AppViewModel${}</ID>
+    <ID>FinalNewline:AppInfo.kt:me.zhangls.entry.util.AppInfo.kt</ID>
+    <ID>FinalNewline:AppIntent.kt:me.zhangls.entry.AppIntent.kt</ID>
+    <ID>FinalNewline:AppNetworkConfig.kt:me.zhangls.entry.AppNetworkConfig.kt</ID>
+    <ID>FinalNewline:InitData.kt:me.zhangls.entry.data.InitData.kt</ID>
+    <ID>FinalNewline:TokenProviderImpl.kt:me.zhangls.entry.data.TokenProviderImpl.kt</ID>
+    <ID>FunctionExpressionBody:AppInfo.android.kt:AppInfo${ return with(context) { packageManager.getPackageInfo(packageName, 0) } }</ID>
+    <ID>FunctionExpressionBody:LocalAccountsDataProvider.kt:LocalAccountsDataProvider${ return allUserContactAccounts.first { it.id == accountId } }</ID>
+    <ID>FunctionExpressionBody:TokenProviderImpl.kt:TokenProviderImpl${ return user.getUser()?.accessToken }</ID>
+    <ID>FunctionExpressionBody:TokenProviderImpl.kt:TokenProviderImpl${ return user.getUser()?.refreshToken }</ID>
+    <ID>FunctionSignature:App.kt:@Composable fun App</ID>
+    <ID>FunctionSignature:AppNavHost.kt:@Composable fun AppNavHost</ID>
+    <ID>FunctionSignature:AppNavHost.kt:NavHandler$fun NavBackStack&lt;NavKey&gt;.handle</ID>
+    <ID>FunctionSignature:AppNavHost.kt:NavHandler$fun NavBackStack&lt;NavKey&gt;.navCheck</ID>
+    <ID>ImportOrdering:AppState.kt:import kotlinx.serialization.Serializable import me.zhangls.model.AppLanguage import me.zhangls.model.DarkThemeConfig import me.zhangls.model.FontSizeConfig import me.zhangls.framework.mvi.MviState</ID>
+    <ID>ImportOrdering:InitData.kt:import kotlinx.coroutines.CoroutineScope import kotlinx.coroutines.Dispatchers import kotlinx.coroutines.IO import kotlinx.coroutines.SupervisorJob import kotlinx.coroutines.flow.first import kotlinx.coroutines.launch import me.zhangls.data.repository.CommonRepository import me.zhangls.data.repository.EmailsRepository import me.zhangls.entry.util.AppInfo import me.zhangls.entry.data.sample.LocalEmailsDataProvider import org.koin.core.component.KoinComponent import org.koin.core.component.inject</ID>
+    <ID>ImportOrdering:NotesModule.kt:import me.zhangls.data.DataModule import me.zhangls.entry.data.InitData import me.zhangls.email.EmailModule import me.zhangls.framework.FrameworkModule import me.zhangls.login.LoginModule import me.zhangls.main.MainModule import me.zhangls.settings.SettingsModule import org.koin.core.annotation.ComponentScan import org.koin.core.annotation.KoinApplication import org.koin.core.annotation.Module import org.koin.dsl.KoinAppDeclaration import org.koin.plugin.module.dsl.startKoin</ID>
+    <ID>Indentation:LocalEmailsDataProvider.kt:LocalEmailsDataProvider$ </ID>
+    <ID>LongMethod:AppNavHost.kt:@Composable fun AppNavHost</ID>
+    <ID>NewLineAtEndOfFile:AppInfo.kt:me.zhangls.entry.util.AppInfo.kt</ID>
+    <ID>NewLineAtEndOfFile:AppIntent.kt:me.zhangls.entry.AppIntent.kt</ID>
+    <ID>NewLineAtEndOfFile:AppNetworkConfig.kt:me.zhangls.entry.AppNetworkConfig.kt</ID>
+    <ID>NewLineAtEndOfFile:InitData.kt:me.zhangls.entry.data.InitData.kt</ID>
+    <ID>NewLineAtEndOfFile:TokenProviderImpl.kt:me.zhangls.entry.data.TokenProviderImpl.kt</ID>
+    <ID>NoConsecutiveBlankLines:App.kt: </ID>
+    <ID>NoConsecutiveBlankLines:AppInfo.kt: </ID>
+    <ID>NoConsecutiveBlankLines:AppNavHost.kt: </ID>
+    <ID>NoConsecutiveBlankLines:AppState.kt: </ID>
+    <ID>NoConsecutiveBlankLines:InitData.kt:InitData$ </ID>
+    <ID>NoConsecutiveBlankLines:NotesModule.kt: </ID>
+    <ID>ReturnCount:DeepLink.kt:fun parseDeepLink: DeepLinkDestination?</ID>
+    <ID>TrailingCommaOnCallSite:App.kt:( viewModel = viewModel, deepLinkDestination = deepLinkDestination, onDeepLinkConsumed = onDeepLinkConsumed )</ID>
+    <ID>TrailingCommaOnCallSite:AppNavHost.kt:( backStack = backStack, onBack = { backStack.removeLastOrNull() }, transitionSpec = { slideInHorizontally { it } togetherWith slideOutHorizontally { -it } }, popTransitionSpec = { slideInHorizontally { -it } togetherWith slideOutHorizontally { it } }, predictivePopTransitionSpec = { slideInHorizontally { -it } togetherWith slideOutHorizontally { it } }, entryProvider = entryProvider { mainNavEntry { result -&gt; when (result) { MainResult.Logout -&gt; { navHandler(Restart(LoginDestination)) } is MainResult.NavigateToEmailDetail -&gt; { navHandler( NavEffect.Navigate(EmailDetailDestination(result.emailId)), ) } } } loginNavEntry { if (it == LoginResult.Success) { pendingDestination?.let { dest -&gt; pendingDestination = null // 登录成功，且跳转目标页面不为空，则跳转到目标页面 navHandler(NavEffect.Replace(dest), isLogin = true) } ?: run { // 登录成功，且跳转目标页面为空，则跳转到主页 navHandler(NavEffect.Replace(MainDestination), isLogin = true) } } } emailNavEntry { navHandler(it) } } )</ID>
+    <ID>TrailingCommaOnCallSite:AppViewModel.kt:AppViewModel$( dynamicColor = it.dynamicColor, darkTheme = it.darkTheme, fontSize = it.fontSize, appLanguage = it.appLanguage )</ID>
+    <ID>TrailingCommaOnCallSite:AppViewModel.kt:AppViewModel$( initialState = AppState(null), stateSerializer = AppState.serializer(), savedStateHandle = savedStateHandle )</ID>
+    <ID>TrailingCommaOnCallSite:NotesModule.kt:NotesModule$( includes = [ DataModule::class, FrameworkModule::class, EmailModule::class, LoginModule::class, MainModule::class, SettingsModule::class ] )</ID>
+    <ID>TrailingCommaOnCallSite:NotesModule.kt:NotesModule$[ DataModule::class, FrameworkModule::class, EmailModule::class, LoginModule::class, MainModule::class, SettingsModule::class ]</ID>
+    <ID>TrailingCommaOnDeclarationSite:AppNavHost.kt:NavHandler$( effect: NavEffect, isLogin: Boolean, onIntercept: (Destination) -&gt; Unit = {} )</ID>
+    <ID>TrailingCommaOnDeclarationSite:AppNavHost.kt:NavHandler$( private val backStack: NavBackStack&lt;NavKey&gt;, private val isLogin: () -&gt; Boolean, private val onIntercept: (Destination) -&gt; Unit )</ID>
+    <ID>TrailingCommaOnDeclarationSite:AppNavHost.kt:NavHandler$( target: Destination, isLogin: Boolean = false, onIntercept: (Destination) -&gt; Unit )</ID>
+    <ID>TrailingCommaOnDeclarationSite:AppViewModel.kt:AppViewModel$( savedStateHandle: SavedStateHandle, toastGlobalNotifier: ToastGlobalNotifier, userRepository: UserRepository, settingsRepository: SettingsRepository )</ID>
+  </CurrentIssues>
+</SmellBaseline>

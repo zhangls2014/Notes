@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ClassSignature:EmailDraft.kt:EmailDraft</ID>
+    <ID>FinalNewline:AESUtils.kt:me.zhangls.data.util.AESUtils.kt</ID>
+    <ID>FinalNewline:AccountModel.kt:me.zhangls.data.model.AccountModel.kt</ID>
+    <ID>FinalNewline:AppDataStore.kt:me.zhangls.data.impl.datastore.AppDataStore.kt</ID>
+    <ID>FinalNewline:AppFileManager.kt:me.zhangls.data.util.AppFileManager.kt</ID>
+    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return dataStore.data .map { it[key]?.decode() } .distinctUntilChanged() }</ID>
+    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return json.decodeFromString(serializer, this) }</ID>
+    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return json.encodeToString(serializer, this) }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getCacheDir(), Environment.DIRECTORY_PICTURES) .apply { if (exists().not()) mkdirs() }.absolutePath }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getCacheImageDir(), filename).apply { if (exists().not()) createNewFile() }.absolutePath }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getImageDir(), filename).apply { if (exists().not()) createNewFile() }.absolutePath }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getPrivateDir(), Environment.DIRECTORY_PICTURES) .apply { if (exists().not()) mkdirs() }.absolutePath }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return context.dataStoreFile(filename).absolutePath }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return context.getDatabasePath(filename).absolutePath }</ID>
+    <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return try { context.contentResolver.openInputStream(srcUri)?.use { input -&gt; input.copyTo(File(destPath).outputStream()) } true } catch (_: Exception) { false } }</ID>
+    <ID>FunctionExpressionBody:DataModule.kt:{ return factory.getDatabaseBuilder(manager.getDatabasePath(DATABASE_NAME)).create() }</ID>
+    <ID>FunctionExpressionBody:EmailsRepositoryImpl.kt:EmailsRepositoryImpl${ return emailDao.getEmail(id).map { it?.toModel() } }</ID>
+    <ID>FunctionSignature:DataModule.kt:@Singleton internal fun provideDataStore: DataStore&lt;Preferences&gt;</ID>
+    <ID>FunctionSignature:EmailsRepositoryImpl.kt:EmailsRepositoryImpl$override fun getEmailFavoritePaging: Flow&lt;PagingData&lt;EmailModel&gt;&gt;</ID>
+    <ID>FunctionSignature:EmailsRepositoryImpl.kt:EmailsRepositoryImpl$override fun getEmailPaging: Flow&lt;PagingData&lt;EmailModel&gt;&gt;</ID>
+    <ID>FunctionSignature:EmailsRepositoryImpl.kt:EmailsRepositoryImpl$override fun searchEmails: Flow&lt;PagingData&lt;EmailModel&gt;&gt;</ID>
+    <ID>FunctionSignature:EmailsRepositoryImpl.kt:EmailsRepositoryImpl$private fun paging: Flow&lt;PagingData&lt;EmailModel&gt;&gt;</ID>
+    <ID>ImportOrdering:SettingsModel.kt:import kotlinx.serialization.Serializable import me.zhangls.model.FontSizeConfig import me.zhangls.model.AppLanguage import me.zhangls.model.DarkThemeConfig</ID>
+    <ID>ImportOrdering:SettingsRepository.kt:import kotlinx.coroutines.flow.Flow import me.zhangls.data.model.SettingsModel import me.zhangls.model.FontSizeConfig import me.zhangls.model.AppLanguage import me.zhangls.model.DarkThemeConfig</ID>
+    <ID>ImportOrdering:SettingsRepositoryImpl.kt:import androidx.datastore.core.DataStore import androidx.datastore.preferences.core.Preferences import kotlinx.coroutines.flow.Flow import kotlinx.coroutines.flow.map import me.zhangls.data.impl.datastore.AppDataStore import me.zhangls.data.model.SettingsModel import me.zhangls.data.repository.SettingsRepository import me.zhangls.model.FontSizeConfig import me.zhangls.model.AppLanguage import me.zhangls.model.DarkThemeConfig import org.koin.core.annotation.Singleton</ID>
+    <ID>MaxLineLength:DataModule.kt:internal</ID>
+    <ID>MaximumLineLength:DataModule.kt:{</ID>
+    <ID>NewLineAtEndOfFile:AESUtils.kt:me.zhangls.data.util.AESUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:AccountModel.kt:me.zhangls.data.model.AccountModel.kt</ID>
+    <ID>NewLineAtEndOfFile:AppDataStore.kt:me.zhangls.data.impl.datastore.AppDataStore.kt</ID>
+    <ID>NewLineAtEndOfFile:AppFileManager.kt:me.zhangls.data.util.AppFileManager.kt</ID>
+    <ID>NoConsecutiveBlankLines:AppDataStore.kt: </ID>
+    <ID>NoConsecutiveBlankLines:AppDataStore.kt:AppDataStore$ </ID>
+    <ID>NoConsecutiveBlankLines:AppFileManager.kt: </ID>
+    <ID>NoConsecutiveBlankLines:CommonModel.kt: </ID>
+    <ID>NoConsecutiveBlankLines:DataModule.kt: </ID>
+    <ID>NoConsecutiveBlankLines:SettingsModel.kt: </ID>
+    <ID>ParameterListWrapping:DataModule.kt:(manager: AppFileManager)</ID>
+    <ID>TooManyFunctions:AppFileManager.kt:AppFileManager</ID>
+    <ID>TooManyFunctions:EmailsRepositoryImpl.kt:EmailsRepositoryImpl : EmailsRepository</ID>
+    <ID>TrailingCommaOnCallSite:CommonRepositoryImpl.kt:CommonRepositoryImpl$( name = "common", serializer = CommonModel.serializer(), dataStore = prefsDataStore, defaultValue = CommonModel() )</ID>
+    <ID>TrailingCommaOnCallSite:DataModule.kt:DataModule$( includes = [DatabaseModule::class] )</ID>
+    <ID>TrailingCommaOnCallSite:EmailsRepositoryImpl.kt:EmailsRepositoryImpl$( EmailEntity( id = 0L, senderId = senderId, recipientIds = RecipientIdsCodec.encode(draft.recipientIds), subject = draft.subject, body = draft.body, createdAt = draft.createdAt, ) )</ID>
+    <ID>TrailingCommaOnCallSite:SettingsRepositoryImpl.kt:SettingsRepositoryImpl$( name = "settings", serializer = SettingsModel.serializer(), dataStore = prefsDataStore, defaultValue = SettingsModel() )</ID>
+    <ID>TrailingCommaOnCallSite:UserRepositoryImpl.kt:UserRepositoryImpl$( name = "user", serializer = UserModel.serializer(), dataStore = prefsDataStore, defaultValue = null )</ID>
+    <ID>TrailingCommaOnDeclarationSite:SettingsModel.kt:SettingsModel$( val dynamicColor: Boolean = false, val darkTheme: DarkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM, val fontSize: FontSizeConfig = FontSizeConfig.STANDARD, val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM )</ID>
+  </CurrentIssues>
+</SmellBaseline>

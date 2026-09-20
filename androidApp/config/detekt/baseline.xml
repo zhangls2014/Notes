@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FinalNewline:ExampleUnitTest.kt:me.zhangls.notes.ExampleUnitTest.kt</ID>
+    <ID>FinalNewline:NotesApp.kt:me.zhangls.notes.NotesApp.kt</ID>
+    <ID>FunctionExpressionBody:LocaleUtils.kt:{ return when (this) { AppLanguage.FOLLOW_SYSTEM -&gt; LocaleListCompat.getEmptyLocaleList() AppLanguage.ENGLISH -&gt; LocaleListCompat.forLanguageTags("en-CN") AppLanguage.CHINESE -&gt; LocaleListCompat.forLanguageTags("zh-Hans-CN") } }</ID>
+    <ID>NewLineAtEndOfFile:ExampleUnitTest.kt:me.zhangls.notes.ExampleUnitTest.kt</ID>
+    <ID>NewLineAtEndOfFile:NotesApp.kt:me.zhangls.notes.NotesApp.kt</ID>
+    <ID>NoConsecutiveBlankLines:MainActivity.kt: </ID>
+    <ID>TrailingCommaOnCallSite:MainActivity.kt:MainActivity$( onDarkThemeChanged = { val lightBars = it.not() WindowInsetsControllerCompat(window, window.decorView).run { // 状态栏图标颜色（亮色图标 = 深色背景） isAppearanceLightStatusBars = lightBars // 导航栏图标颜色 isAppearanceLightNavigationBars = lightBars } }, onLanguageChanged = { AppCompatDelegate.setApplicationLocales(it.toLocales()) }, onDynamicColorChanged = { darkTheme -&gt; (if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.S) { if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context) } else { null }) }, deepLinkUrl = deepLinkUrl, onDeepLinkConsumed = { deepLinkUrl = null } )</ID>
+    <ID>Wrapping:MainActivity.kt:MainActivity$(</ID>
+  </CurrentIssues>
+</SmellBaseline>

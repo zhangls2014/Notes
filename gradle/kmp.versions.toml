@@ -139,3 +139,4 @@ android-gradle-plugin = { group = "com.android.kotlin.multiplatform.library", na
 compose-gradle-plugin = { group = "org.jetbrains.compose", name = "org.jetbrains.compose.gradle.plugin", version.ref = "jetbrains-compose" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "google-ksp" }
 koin-compiler-gradle-plugin = { group = "io.insert-koin.compiler.plugin", name = "io.insert-koin.compiler.plugin.gradle.plugin", version = "1.2.1" }
+detekt-gradle-plugin = { group = "dev.detekt", name = "dev.detekt.gradle.plugin", version.ref = "detekt" }

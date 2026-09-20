@@ -11,4 +11,5 @@ dependencies {
   compileOnly(kmp.compose.gradle.plugin)
   compileOnly(kmp.ksp.gradle.plugin)
   compileOnly(kmp.koin.compiler.gradle.plugin)
+  compileOnly(kmp.detekt.gradle.plugin)
 }
