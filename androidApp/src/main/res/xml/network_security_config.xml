@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  Android 17（API 37）适配。
+
+  背景：`android:usesCleartextTraffic` 已被列入弃用计划，官方要求应用把明文流量策略迁移到
+  网络安全配置文件。本应用全部后端调用均走 HTTPS（见 composeApp 的 BuildKonfig.BASE_URL），
+  因此这里显式关闭明文流量，防止外部配置变更（例如后端下发 HTTP 地址）导致静默降级。
+  参考：https://developer.android.com/about/versions/17/behavior-changes-all#uses-clear-traffic-deprecation
+
+  关于 Android 17 的另外两项网络侧变更（证书透明度 CT、加密客户端问候 ECH）：
+  - CT 自 API 37 起默认开启。已实测本项目唯一的 API 域名 www.mxnzp.com 的证书内嵌 3 个
+    SCT（来自 3 个不同 CT 日志），满足合规要求，无需关闭。
+  - ECH 自 API 37 起默认以 "enabled" 模式使用，但仅在网络库支持且服务端协商成功时生效；
+    该站点仅支持 TLS 1.2，ECH（依赖 TLS 1.3）不会启用，无需干预。
+  - 注意：<certificateTransparency>（API 36+）与 <domainEncryption>（API 37+）这两个元素在
+    低版本平台上会导致整个配置文件解析失败。若将来需要声明它们，必须放进 res/xml-v36/、
+    res/xml-v37/ 版本限定目录，而不是本文件。
+-->
+<network-security-config>
+  <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
