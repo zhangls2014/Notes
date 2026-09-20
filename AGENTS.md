@@ -70,7 +70,11 @@ Android 宿主测试未启用（`./gradlew test` 无此任务），commonTest �
 核心层（`core/`）：
 
 - `:core:model`: 公共领域模型（`AppLanguage` 等跨层共享类型）
-- `:core:data`: 数据层，Room (KMP) 数据库（entity/dao/auto-migration）、DataStore、仓库（接口 + 实现分离）
+- `:core:data`: 数据层，分**公开面**与**内部面**两层：
+  - 公开面：`model/`（对外模型 `EmailModel` / `AccountModel` / `UserModel` / `SettingsModel` / `EmailDraft`）、`repository/`（仓库**接口**）、`type/`、`util/`、`DataModule.kt`
+  - 内部面：`impl/`（`database/`（Room entity/dao/auto-migration）、`datastore/`、`mapper/`、`repository/`（实现）），多数实现类为 `internal`
+  - **硬规则：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
+  - 注意：`AppDatabase` 与其包名耦合 —— 移动它必须同步迁移 `core/data/schemas/<全限定名>.AppDatabase/`，否则 KSP 无法生成 AutoMigration
 - `:core:theme`: 主题、图标、通用组件（Toast/Dialog）、多语言目录
 - `:core:network`: 网络层，Ktor、`ApiResponse`/`NetworkResult`、`TokenProvider`
 - `:core:framework`: 框架层，MVI 基类（`MviViewModel`）、导航抽象（`Destination`/`NavEffect`/`RequireLogin`）、DeepLink、全局 Toast
