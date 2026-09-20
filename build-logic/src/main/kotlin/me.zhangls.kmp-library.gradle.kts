@@ -5,6 +5,7 @@ plugins {
   id("org.jetbrains.kotlin.multiplatform")
   id("org.jetbrains.kotlin.plugin.serialization")
   id("com.android.kotlin.multiplatform.library")
+  id("me.zhangls.detekt")
 }
 
 // 预编译脚本插件无版本目录访问器，显式获取 "kmp" 目录

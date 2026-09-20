@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FinalNewline:ApiResponse.kt:me.zhangls.network.ApiResponse.kt</ID>
+    <ID>FinalNewline:NetworkConfig.kt:me.zhangls.network.NetworkConfig.kt</ID>
+    <ID>FinalNewline:NetworkError.kt:me.zhangls.network.NetworkError.kt</ID>
+    <ID>FinalNewline:NetworkResult.kt:me.zhangls.network.NetworkResult.kt</ID>
+    <ID>FinalNewline:TokenProvider.kt:me.zhangls.network.TokenProvider.kt</ID>
+    <ID>FunctionExpressionBody:SafeRequest.kt:{ return try { val result: ApiResponse&lt;T&gt; = block().body() if (result.code == 0) { // 业务成功时允许 data 为 null（如无返回体的操作型接口）， // 与 Success(data: T?) 的可空设计保持一致 NetworkResult.Success(result.data) } else { NetworkResult.Failure( NetworkError.Business(code = result.code, message = result.message) ) } } catch (e: ResponseException) { // ClientRequestException / ServerResponseException / RedirectResponseException // 三个分支处理逻辑完全相同，统一由父类捕获 NetworkResult.Failure( NetworkError.Http( code = e.response.status.value, message = e.message.orEmpty() ) ) } catch (e: Exception) { NetworkResult.Failure(NetworkError.Unknown(e)) } }</ID>
+    <ID>FunctionSignature:NetworkModule.android.kt:actual fun httpClient</ID>
+    <ID>FunctionSignature:NetworkModule.kt:@Singleton fun provideKtorClient: HttpClient</ID>
+    <ID>FunctionSignature:SafeRequest.kt:suspend inline fun &lt;reified T&gt; safeRequest: NetworkResult&lt;T&gt;</ID>
+    <ID>MagicNumber:NetworkModule.kt:10_000</ID>
+    <ID>NewLineAtEndOfFile:ApiResponse.kt:me.zhangls.network.ApiResponse.kt</ID>
+    <ID>NewLineAtEndOfFile:NetworkConfig.kt:me.zhangls.network.NetworkConfig.kt</ID>
+    <ID>NewLineAtEndOfFile:NetworkError.kt:me.zhangls.network.NetworkError.kt</ID>
+    <ID>NewLineAtEndOfFile:NetworkResult.kt:me.zhangls.network.NetworkResult.kt</ID>
+    <ID>NewLineAtEndOfFile:TokenProvider.kt:me.zhangls.network.TokenProvider.kt</ID>
+    <ID>NoConsecutiveBlankLines:ApiResponse.kt: </ID>
+    <ID>NoConsecutiveBlankLines:NetworkConfig.kt: </ID>
+    <ID>NoConsecutiveBlankLines:NetworkModule.android.kt: </ID>
+    <ID>NoConsecutiveBlankLines:NetworkModule.kt: </ID>
+    <ID>NoConsecutiveBlankLines:SafeRequest.kt: </ID>
+    <ID>TooGenericExceptionCaught:SafeRequest.kt:e: Exception</ID>
+    <ID>TrailingCommaOnCallSite:NetworkModule.kt:( Json { ignoreUnknownKeys = true explicitNulls = false encodeDefaults = true isLenient = true prettyPrint = true } )</ID>
+    <ID>TrailingCommaOnCallSite:SafeRequest.kt:( NetworkError.Business(code = result.code, message = result.message) )</ID>
+    <ID>TrailingCommaOnCallSite:SafeRequest.kt:( NetworkError.Http( code = e.response.status.value, message = e.message.orEmpty() ) )</ID>
+    <ID>TrailingCommaOnCallSite:SafeRequest.kt:( code = e.response.status.value, message = e.message.orEmpty() )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ApiResponse.kt:ApiResponse$( val code: Int, @JsonNames("message", "msg") val message: String, val data: T? )</ID>
+    <ID>TrailingCommaOnDeclarationSite:NetworkModule.android.kt:( config: HttpClientConfig&lt;*&gt;.() -&gt; Unit )</ID>
+    <ID>TrailingCommaOnDeclarationSite:SafeRequest.kt:( crossinline block: suspend () -&gt; HttpResponse )</ID>
+  </CurrentIssues>
+</SmellBaseline>

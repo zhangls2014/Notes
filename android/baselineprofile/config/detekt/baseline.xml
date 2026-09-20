@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FinalNewline:BaselineProfileGenerator.kt:me.zhangls.baselineprofile.BaselineProfileGenerator.kt</ID>
+    <ID>FinalNewline:StartupBenchmarks.kt:me.zhangls.baselineprofile.StartupBenchmarks.kt</ID>
+    <ID>FunctionSignature:StartupBenchmarks.kt:StartupBenchmarks$@Test fun startupCompilationBaselineProfiles</ID>
+    <ID>FunctionSignature:StartupBenchmarks.kt:StartupBenchmarks$@Test fun startupCompilationNone</ID>
+    <ID>NewLineAtEndOfFile:BaselineProfileGenerator.kt:me.zhangls.baselineprofile.BaselineProfileGenerator.kt</ID>
+    <ID>NewLineAtEndOfFile:StartupBenchmarks.kt:me.zhangls.baselineprofile.StartupBenchmarks.kt</ID>
+    <ID>TooGenericExceptionThrown:BaselineProfileGenerator.kt:BaselineProfileGenerator$throw Exception("targetAppId not passed as instrumentation runner arg")</ID>
+    <ID>TooGenericExceptionThrown:StartupBenchmarks.kt:StartupBenchmarks$throw Exception("targetAppId not passed as instrumentation runner arg")</ID>
+    <ID>TrailingCommaOnCallSite:BaselineProfileGenerator.kt:BaselineProfileGenerator$( packageName = InstrumentationRegistry.getArguments().getString("targetAppId") ?: throw Exception("targetAppId not passed as instrumentation runner arg"), // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations includeInStartupProfile = true )</ID>
+    <ID>TrailingCommaOnCallSite:StartupBenchmarks.kt:StartupBenchmarks$( packageName = InstrumentationRegistry.getArguments().getString("targetAppId") ?: throw Exception("targetAppId not passed as instrumentation runner arg"), metrics = listOf(StartupTimingMetric()), compilationMode = compilationMode, startupMode = StartupMode.COLD, iterations = 10, setupBlock = { pressHome() }, measureBlock = { startActivityAndWait() // TODO Add interactions to wait for when your app is fully drawn. // The app is fully drawn when Activity.reportFullyDrawn is called. // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter // from the AndroidX Activity library. // Check the UiAutomator documentation for more information on how to // interact with the app. // https://d.android.com/training/testing/other-components/ui-automator } )</ID>
+  </CurrentIssues>
+</SmellBaseline>

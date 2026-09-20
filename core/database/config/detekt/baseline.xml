@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FinalNewline:AccountEntity.kt:me.zhangls.database.entity.AccountEntity.kt</ID>
+    <ID>FinalNewline:AppDatabaseFactory.android.kt:me.zhangls.database.AppDatabaseFactory.android.kt</ID>
+    <ID>FinalNewline:EmailDao.kt:me.zhangls.database.dao.EmailDao.kt</ID>
+    <ID>FunctionExpressionBody:AppDatabase.kt:{ return this.setDriver(BundledSQLiteDriver()) .setQueryCoroutineContext(Dispatchers.IO) .build() }</ID>
+    <ID>FunctionExpressionBody:AppDatabaseFactory.android.kt:AppDatabaseFactory${ return Room.databaseBuilder&lt;AppDatabase&gt;( context = context.applicationContext, name = databasePath ) }</ID>
+    <ID>FunctionExpressionBody:Converters.kt:Converters${ return MailboxType.entries.find { it.value == value } ?: MailboxType.INBOX }</ID>
+    <ID>FunctionExpressionBody:RecipientIdsCodec.kt:RecipientIdsCodec${ return if (raw.isBlank()) emptySet() else json.decodeFromString(serializer, raw).toSet() }</ID>
+    <ID>FunctionExpressionBody:RecipientIdsCodec.kt:RecipientIdsCodec${ return json.encodeToString(serializer, ids.toList().distinct().sorted()) }</ID>
+    <ID>ImportOrdering:AppDatabase.kt:import androidx.room3.AutoMigration import androidx.room3.ConstructedBy import androidx.room3.Database import androidx.room3.RoomDatabase import androidx.room3.RoomDatabaseConstructor import androidx.room3.ColumnTypeConverters import androidx.sqlite.driver.bundled.BundledSQLiteDriver import kotlinx.coroutines.Dispatchers import kotlinx.coroutines.IO import me.zhangls.database.dao.AccountDao import me.zhangls.database.dao.EmailDao import me.zhangls.database.entity.AccountEntity import me.zhangls.database.entity.EmailEntity</ID>
+    <ID>ImportOrdering:EmailDao.kt:import androidx.paging.PagingSource import androidx.room3.Dao import androidx.room3.DaoReturnTypeConverters import androidx.room3.Insert import androidx.room3.OnConflictStrategy import androidx.room3.Query import androidx.room3.Transaction import androidx.room3.paging.PagingSourceDaoReturnTypeConverter import kotlinx.coroutines.flow.Flow import me.zhangls.database.entity.EmailWithSender import me.zhangls.database.entity.EmailEntity</ID>
+    <ID>NewLineAtEndOfFile:AccountEntity.kt:me.zhangls.database.entity.AccountEntity.kt</ID>
+    <ID>NewLineAtEndOfFile:AppDatabaseFactory.android.kt:me.zhangls.database.AppDatabaseFactory.android.kt</ID>
+    <ID>NewLineAtEndOfFile:EmailDao.kt:me.zhangls.database.dao.EmailDao.kt</ID>
+    <ID>NoConsecutiveBlankLines:AppDatabaseFactory.android.kt: </ID>
+    <ID>TooManyFunctions:EmailDao.kt:EmailDao</ID>
+    <ID>TrailingCommaOnCallSite:AppDatabase.kt:AppDatabase$( entities = [ AccountEntity::class, EmailEntity::class, ], // 警告⚠️：每次数据库字段变化都需要配置自动迁移，否则需要面临数据丢失风险！ version = 4, exportSchema = true, autoMigrations = [ AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4), ] )</ID>
+    <ID>TrailingCommaOnCallSite:AppDatabaseFactory.android.kt:AppDatabaseFactory$( context = context.applicationContext, name = databasePath )</ID>
+    <ID>TrailingCommaOnCallSite:EmailEntity.kt:EmailEntity$( tableName = "email", indices = [ Index("senderId"), Index("parentEmailId") ] )</ID>
+    <ID>TrailingCommaOnCallSite:EmailEntity.kt:EmailEntity$[ Index("senderId"), Index("parentEmailId") ]</ID>
+    <ID>TrailingCommaOnCallSite:EmailWithSender.kt:EmailWithSender$( parentColumns = ["senderId"], entityColumns = ["id"] )</ID>
+    <ID>TrailingCommaOnDeclarationSite:EmailEntity.kt:EmailEntity$( @PrimaryKey(autoGenerate = true) val id: Long, val senderId: Long, @ColumnInfo(defaultValue = "'[]'") val recipientIds: String = "[]", val subject: String, val body: String, val isImportant: Boolean = false, val isStarred: Boolean = false, val mailbox: MailboxType = MailboxType.INBOX, val createdAt: String, // 用于 threads（自关联） val parentEmailId: Long? = null )</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -1,5 +1,3 @@
-import dev.detekt.gradle.Detekt
-
 plugins {
   alias(kmp.plugins.android.application) apply false
   alias(kmp.plugins.android.library) apply false
@@ -18,23 +16,9 @@ plugins {
   alias(kmp.plugins.koin.compiler) apply false
 
   alias(kmp.plugins.buildKonfig) apply false
-  alias(kmp.plugins.detekt)
-}
 
-detekt {
-  toolVersion = kmp.versions.detekt.get()
-  config.setFrom(file("config/detekt/detekt.yml"))
-  buildUponDefaultConfig = true
-  allRules = true
-}
-
-tasks.withType<Detekt>().configureEach {
-  reports {
-    html.required.set(true)
-    markdown.required.set(true)
-  }
-}
-
-dependencies {
-  detektPlugins(kmp.detekt.formatting)
+  // 只在此锁定版本，供 build-logic 的 me.zhangls.detekt 约定插件在各模块上应用。
+  // 先前此处是 apply（不带 apply false），导致 detekt 只作用于根项目；根项目无源集，
+  // 任务恒为 NO-SOURCE，config/detekt/detekt.yml 从未对任何模块代码生效过。
+  alias(kmp.plugins.detekt) apply false
 }

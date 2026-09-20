@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ClassSignature:PreferenceSpec.kt:PreferenceOption&lt;T&gt;</ID>
+  </CurrentIssues>
+</SmellBaseline>

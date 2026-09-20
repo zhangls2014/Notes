@@ -7,6 +7,8 @@ plugins {
   alias(kmp.plugins.androidx.baselineprofile)
   alias(kmp.plugins.jetbrains.kotlin.compose.compiler)
   alias(kmp.plugins.jetbrains.compose)
+  // 本模块不适用 me.zhangls.kmp-library，故单独引入静态分析约定
+  id("me.zhangls.detekt")
 }
 
 kotlin {

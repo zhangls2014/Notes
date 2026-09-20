@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ArgumentListWrapping:SimpleDialog.kt:( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {})</ID>
+    <ID>BackingPropertyNaming:AccountCircle.kt:@Suppress("ObjectPropertyName") private var _AccountCircle: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:ArrowBackIosNew.kt:@Suppress("ObjectPropertyName") private var _ArrowBack: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Cancel.kt:@Suppress("ObjectPropertyName") private var _Cancel: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Check.kt:@Suppress("ObjectPropertyName") private var _Check: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Clear.kt:@Suppress("ObjectPropertyName") private var _Clear: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:DarkMode.kt:@Suppress("ObjectPropertyName") private var _DarkMode: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Delete.kt:@Suppress("ObjectPropertyName") private var _Delete: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Edit.kt:@Suppress("ObjectPropertyName") private var _Edit: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:ExitToApp.kt:@Suppress("ObjectPropertyName") private var _ExitToApp: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Favorite.kt:@Suppress("ObjectPropertyName") private var _Favorite: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:FormatSize.kt:@Suppress("ObjectPropertyName") private var _FormatSize: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Home.kt:@Suppress("ObjectPropertyName") private var _Home: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Language.kt:@Suppress("ObjectPropertyName") private var _Language: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Lock.kt:@Suppress("ObjectPropertyName") private var _Lock: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Palette.kt:@Suppress("ObjectPropertyName") private var _Palette: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Search.kt:@Suppress("ObjectPropertyName") private var _Search: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Settings.kt:@Suppress("ObjectPropertyName") private var _Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Star.kt:@Suppress("ObjectPropertyName") private var _Star: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:StarFill.kt:@Suppress("ObjectPropertyName") private var _Star: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Visibility.kt:@Suppress("ObjectPropertyName") private var _Visibility: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:VisibilityOff.kt:@Suppress("ObjectPropertyName") private var _VisibilityOff: ImageVector? = null</ID>
+    <ID>FinalNewline:CenteredTopAppBar.kt:me.zhangls.theme.component.CenteredTopAppBar.kt</ID>
+    <ID>FinalNewline:Color.kt:me.zhangls.theme.Color.kt</ID>
+    <ID>FinalNewline:ColorScheme.kt:me.zhangls.theme.ColorScheme.kt</ID>
+    <ID>FinalNewline:ContainedLoadingIndicator.kt:me.zhangls.theme.component.ContainedLoadingIndicator.kt</ID>
+    <ID>FinalNewline:SimpleDialog.kt:me.zhangls.theme.component.SimpleDialog.kt</ID>
+    <ID>FunctionSignature:CenteredTopAppBar.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun CenteredTopAppBar</ID>
+    <ID>FunctionSignature:ContainedLoadingIndicator.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun ContainedLoadingIndicator</ID>
+    <ID>FunctionSignature:SimpleDialog.kt:@Composable fun SimpleDialog</ID>
+    <ID>FunctionSignature:Theme.kt:@Composable fun ComposeAppTheme</ID>
+    <ID>LongMethod:SimpleDialog.kt:@Composable fun SimpleDialog</ID>
+    <ID>NewLineAtEndOfFile:CenteredTopAppBar.kt:me.zhangls.theme.component.CenteredTopAppBar.kt</ID>
+    <ID>NewLineAtEndOfFile:Color.kt:me.zhangls.theme.Color.kt</ID>
+    <ID>NewLineAtEndOfFile:ColorScheme.kt:me.zhangls.theme.ColorScheme.kt</ID>
+    <ID>NewLineAtEndOfFile:ContainedLoadingIndicator.kt:me.zhangls.theme.component.ContainedLoadingIndicator.kt</ID>
+    <ID>NewLineAtEndOfFile:SimpleDialog.kt:me.zhangls.theme.component.SimpleDialog.kt</ID>
+    <ID>NoConsecutiveBlankLines:ColorScheme.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Icons.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Language.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Theme.kt: </ID>
+    <ID>TrailingCommaOnCallSite:AccountCircle.kt:( name = "Rounded.AccountCircle", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:ArrowBackIosNew.kt:( name = "Rounded.ArrowBack", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Cancel.kt:( name = "Rounded.Cancel", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:CenteredTopAppBar.kt:( imageVector = Icons.Rounded.ArrowBackIosNew, contentDescription = stringResource(Res.string.theme_action_navigate_before) )</ID>
+    <ID>TrailingCommaOnCallSite:CenteredTopAppBar.kt:( title = { Text(text = title) }, modifier = modifier, colors = TopAppBarDefaults.topAppBarColors(), navigationIcon = { if (navigate != null) { IconButton(onClick = navigate) { Icon( imageVector = Icons.Rounded.ArrowBackIosNew, contentDescription = stringResource(Res.string.theme_action_navigate_before) ) } } }, actions = actions )</ID>
+    <ID>TrailingCommaOnCallSite:Check.kt:( name = "Rounded.Check", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Clear.kt:( name = "Rounded.Clear", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:ContainedLoadingIndicator.kt:( modifier = modifier .fillMaxSize() .background(backgroundColor) .pointerInput(Unit) { awaitPointerEventScope { while (true) { awaitPointerEvent() } } }, contentAlignment = Alignment.Center )</ID>
+    <ID>TrailingCommaOnCallSite:DarkMode.kt:( name = "Rounded.DarkMode", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Delete.kt:( name = "Rounded.Delete", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Edit.kt:( name = "Rounded.Edit", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:ExitToApp.kt:( name = "Rounded.ExitToApp", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Favorite.kt:( name = "Rounded.Favorite", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:FormatSize.kt:( name = "Rounded.FormatSize", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Home.kt:( name = "Rounded.Home", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Language.kt:( name = "Rounded.Language", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Lock.kt:( name = "Rounded.Lock", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Palette.kt:( name = "Rounded.Palette", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Search.kt:( name = "Rounded.Search", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Settings.kt:( name = "Rounded.Settings", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( LinkAnnotation.Clickable( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {}) )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.extraLarge )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( modifier = Modifier .background( color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.extraLarge ) )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( modifier = Modifier .fillMaxWidth() .padding(horizontal = 24.dp), horizontalArrangement = Arrangement.End )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( onClick = { confirm?.invoke() }, modifier = Modifier.weight(1F) )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( onClick = { dismiss?.invoke() }, modifier = Modifier.weight(1F), border = BorderStroke( width = 1.dp, color = MaterialTheme.colorScheme.outline, ) )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {})</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( text = title, modifier = Modifier .fillMaxWidth() .padding(horizontal = 24.dp), maxLines = 1, style = MaterialTheme.typography.titleLarge, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( title = "提示", content = "您确定要删除该文件吗？", confirmText = "确定", dismissText = "取消", confirm = {}, dismiss = {} )</ID>
+    <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( title = "提示", content = buildAnnotatedString { append("您确定要删除") withLink( LinkAnnotation.Clickable( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {}) ) { append("用户协议") } append("文件吗") }, confirmText = "确定", dismissText = "取消", confirm = {}, dismiss = {} )</ID>
+    <ID>TrailingCommaOnCallSite:Star.kt:( name = "Rounded.Star", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:StarFill.kt:( name = "Rounded.StarFill", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:Visibility.kt:( name = "Rounded.Visibility", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnCallSite:VisibilityOff.kt:( name = "Rounded.VisibilityOff", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>TrailingCommaOnDeclarationSite:CenteredTopAppBar.kt:( title: String, modifier: Modifier = Modifier, navigate: (() -&gt; Unit)? = null, actions: (@Composable RowScope.() -&gt; Unit) = {} )</ID>
+    <ID>TrailingCommaOnDeclarationSite:Theme.kt:( darkTheme: Boolean = isSystemInDarkTheme(), dynamicScheme: ColorScheme? = null, fontScale: Float = 1F, content: @Composable () -&gt; Unit )</ID>
+    <ID>Wrapping:SimpleDialog.kt:(</ID>
+  </CurrentIssues>
+</SmellBaseline>

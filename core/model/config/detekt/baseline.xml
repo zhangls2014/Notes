@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FinalNewline:FontSizeConfig.kt:me.zhangls.model.FontSizeConfig.kt</ID>
+    <ID>FinalNewline:MailboxType.kt:me.zhangls.model.MailboxType.kt</ID>
+    <ID>MagicNumber:FontSizeConfig.kt:FontSizeConfig.MEDIUM$1.5F</ID>
+    <ID>MagicNumber:MailboxType.kt:MailboxType.SPAM$3</ID>
+    <ID>MagicNumber:MailboxType.kt:MailboxType.TRASH$4</ID>
+    <ID>NewLineAtEndOfFile:FontSizeConfig.kt:me.zhangls.model.FontSizeConfig.kt</ID>
+    <ID>NewLineAtEndOfFile:MailboxType.kt:me.zhangls.model.MailboxType.kt</ID>
+    <ID>TrailingCommaOnDeclarationSite:AppLanguage.kt:AppLanguage</ID>
+  </CurrentIssues>
+</SmellBaseline>

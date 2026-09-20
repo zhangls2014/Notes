@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>BackingPropertyNaming:MviViewModel.kt:MviViewModel$private val _intent = MutableSharedFlow&lt;I&gt;(extraBufferCapacity = 64)</ID>
+    <ID>ClassSignature:DeepLinkParser.kt:DeepLinkRequest</ID>
+    <ID>ClassSignature:ToastEffect.kt:ToastEffect : MviEffect</ID>
+    <ID>Filename:DeepLinkParser.kt:me.zhangls.framework.deeplink.DeepLinkParser.kt</ID>
+    <ID>FinalNewline:FrameworkModule.kt:me.zhangls.framework.FrameworkModule.kt</ID>
+    <ID>FinalNewline:MviAction.kt:me.zhangls.framework.mvi.MviAction.kt</ID>
+    <ID>FinalNewline:MviEffect.kt:me.zhangls.framework.mvi.MviEffect.kt</ID>
+    <ID>FinalNewline:MviIntent.kt:me.zhangls.framework.mvi.MviIntent.kt</ID>
+    <ID>FinalNewline:MviState.kt:me.zhangls.framework.mvi.MviState.kt</ID>
+    <ID>FinalNewline:NavEffect.kt:me.zhangls.framework.nav.NavEffect.kt</ID>
+    <ID>FinalNewline:RequireLogin.kt:me.zhangls.framework.nav.RequireLogin.kt</ID>
+    <ID>FinalNewline:ToastEffect.kt:me.zhangls.framework.toast.ToastEffect.kt</ID>
+    <ID>FinalNewline:ToastGlobalNotifier.kt:me.zhangls.framework.toast.ToastGlobalNotifier.kt</ID>
+    <ID>FunctionExpressionBody:MviViewModel.kt:MviViewModel${ return block(_state.value) }</ID>
+    <ID>ImportOrdering:MviViewModel.kt:import androidx.lifecycle.SavedStateHandle import androidx.lifecycle.ViewModel import androidx.lifecycle.serialization.saved import androidx.lifecycle.viewModelScope import kotlin.properties.ReadWriteProperty import kotlin.reflect.KProperty import kotlinx.coroutines.flow.MutableSharedFlow import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.asSharedFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.flow.update import kotlinx.coroutines.launch import kotlinx.serialization.KSerializer</ID>
+    <ID>MatchingDeclarationName:DeepLinkParser.kt:DeepLinkRequest</ID>
+    <ID>NewLineAtEndOfFile:FrameworkModule.kt:me.zhangls.framework.FrameworkModule.kt</ID>
+    <ID>NewLineAtEndOfFile:MviAction.kt:me.zhangls.framework.mvi.MviAction.kt</ID>
+    <ID>NewLineAtEndOfFile:MviEffect.kt:me.zhangls.framework.mvi.MviEffect.kt</ID>
+    <ID>NewLineAtEndOfFile:MviIntent.kt:me.zhangls.framework.mvi.MviIntent.kt</ID>
+    <ID>NewLineAtEndOfFile:MviState.kt:me.zhangls.framework.mvi.MviState.kt</ID>
+    <ID>NewLineAtEndOfFile:NavEffect.kt:me.zhangls.framework.nav.NavEffect.kt</ID>
+    <ID>NewLineAtEndOfFile:RequireLogin.kt:me.zhangls.framework.nav.RequireLogin.kt</ID>
+    <ID>NewLineAtEndOfFile:ToastEffect.kt:me.zhangls.framework.toast.ToastEffect.kt</ID>
+    <ID>NewLineAtEndOfFile:ToastGlobalNotifier.kt:me.zhangls.framework.toast.ToastGlobalNotifier.kt</ID>
+    <ID>NoConsecutiveBlankLines:FrameworkModule.kt: </ID>
+    <ID>NoConsecutiveBlankLines:MviViewModel.kt:MviViewModel$ </ID>
+    <ID>NoConsecutiveBlankLines:ToastEffect.kt: </ID>
+    <ID>ReturnCount:DeepLinkParser.kt:fun parseDeepLinkUrl: DeepLinkRequest?</ID>
+    <ID>TrailingCommaOnCallSite:ToastGlobalNotifier.kt:ToastGlobalNotifier$( extraBufferCapacity = TOAST_BUFFER_SIZE, onBufferOverflow = BufferOverflow.DROP_OLDEST )</ID>
+    <ID>TrailingCommaOnDeclarationSite:MviViewModel.kt:MviViewModel$( initialState: S, stateSerializer: KSerializer&lt;S&gt;, savedStateHandle: SavedStateHandle, // 当保存的 key 为 null 时，则不保存（纯内存态，进程销毁即丢失） savedKey: String? = "state" )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ToastEffect.kt:ToastEffect$( val resId: StringResource, val timestamp: Long = Clock.System.now().toEpochMilliseconds() )</ID>
+  </CurrentIssues>
+</SmellBaseline>

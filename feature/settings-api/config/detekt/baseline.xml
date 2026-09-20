@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FunctionSignature:SettingsEntry.kt:SettingsEntry$@Composable fun Screen</ID>
+  </CurrentIssues>
+</SmellBaseline>
