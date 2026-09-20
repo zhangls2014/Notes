@@ -82,11 +82,14 @@ Android 侧用 lint（`detekt` 只 apply 在根项目且根项目无源集，跑
   - **硬规则一：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
   - **硬规则二：对 `core:database` 只能用 `implementation`**（见上），一旦改成 `api` 或 `implementation` 丢失，隔离即刻失效
 - `:core:theme`: 主题、颜色、图标、通用组件（Toast/Dialog）
-- `:core:preference`: 设置项**展示元数据**的登记处（`me.zhangls.preference`）
-  - 内容 = `PreferenceSpec` 词表（`Toggle` / `Select<T>` / `Action` + `PreferenceOption<T>`）+ 每个设置项一个 `object`（`LanguagePreference` / `DarkThemePreference` / `DynamicColorPreference` / `FontSizePreference` / `LogoutPreference`，统一只暴露 `spec`）+ 专属文案（composeResources）+ "由取值推导展示结果"的纯函数（如 `DarkThemePreference.isDark`）
-  - **硬规则一：不含取值与行为** —— `value`、`onValueChange`、点击回调、消费方的 Intent 一律留在消费 feature。`SettingsIntent` 定义在 `feature:settings` 的 **impl** 模块内（不在 `-api`），一旦带进本模块立刻形成 impl → impl 依赖环
-  - **硬规则二：不含渲染** —— 不依赖 `androidx.compose.preference` 的任何组件
-  - **硬规则三：不含清单与顺序** —— 哪些设置项存在、以什么顺序展示是**平台相关**的（动态取色仅 Android 有），那份 expect/actual 必须留在 feature
+- `:core:preference`: 设置项的**展示元数据 + 配套通用控件**（`me.zhangls.preference`）
+  - 元数据 = `PreferenceSpec` 词表（`Toggle` / `Select<T>` / `Action` + `PreferenceOption<T>`）+ 每个设置项一个 `object`（`LanguagePreference` / `DarkThemePreference` / `DynamicColorPreference` / `FontSizePreference` / `LogoutPreference`，统一只暴露 `spec`）+ 专属文案（composeResources）+ "由取值推导展示结果"的纯函数（如 `DarkThemePreference.isDark`）
+  - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染，如 `SelectIconButton`（图标按钮 + 长按提示 + 下拉单选）。**同一 spec 的每种形态都应在此实现一次** —— 登录页与设置页展示同一批设置项但形态不同（图标按钮 vs 列表行），只共享元数据。若哪天新增第三种形态，先看这里是否已有可复用件
+  - **硬规则一：不含取值来源与行为主体** —— `value` / `onValueChange` 只作为控件**参数**传入，`spec` 单例自身不持有它们；回调签名一律用 `(T) -> Unit` 而非 `(T) -> SettingsIntent`。`SettingsIntent` 定义在 `feature:settings` 的 **impl** 模块内（不在 `-api`），把它带进本模块会立刻形成 impl → impl 依赖环
+  - **硬规则二：控件只用通用 Compose 组件** —— 不依赖 `androidx.compose.preference`（`SelectIconButton` 只用 Material3 的 IconButton / DropdownMenuPopup / TooltipBox）
+  - **硬规则三：不含清单与顺序** —— 哪些设置项存在、以什么顺序展示是**平台相关**的（动态取色仅 Android 有），定义留在 `feature:settings`；平台差异用能力位（`supportsDynamicColor`）过滤，不要各平台各写一份清单
+  - 依赖方向：`api(projects.core.theme)`（复用图标与 `ThemeColor`，图标本身不搬）+ `api(projects.core.model)`（设置取值枚举作为元数据的类型参数出现在公开 API）
+  - 消费方式：消费方把 `spec` 与自己的取值 / Intent 组装成表现层模型再渲染。参考 `feature:settings` 的 `ui/PreferenceUiModel.kt`（`spec` + `value` + `SettingsIntent` 三元组）与 `ui/SettingsPreferenceMapper.kt`（纯装配层）
   - 依赖方向：`api(projects.core.theme)`（复用图标与 `ThemeColor`，图标本身不搬）+ `api(projects.core.model)`（设置取值枚举作为元数据的类型参数出现在公开 API）
   - 消费方式：消费方把 `spec` 与自己的取值 / Intent 组装成表现层模型再渲染。参考 `feature:settings` 的 `ui/PreferenceUiModel.kt`（`spec` + `value` + `SettingsIntent` 三元组）与 `ui/SettingsPreferenceMapper.kt`（纯装配层）
 - `:core:network`: 网络层，Ktor、`ApiResponse`/`NetworkResult`、`TokenProvider`
@@ -106,10 +109,11 @@ Android 专用：
 
 ### 构建约定（convention plugins）
 
-`build-logic/` included build 提供三个预编译脚本插件，各 KMP 模块构建脚本只保留自身真实差异：
+`build-logic/` included build 提供四个预编译脚本插件，各 KMP 模块构建脚本只保留自身真实差异：
 
 - `me.zhangls.kmp-library`: KMP + Android/iOS 目标基础配置（namespace 与 iOS framework 名由模块路径推导，见 `KmpConventions.kt`）
-- `me.zhangls.kmp-compose`: Compose Multiplatform 依赖
+- `me.zhangls.kmp-compose`: Compose Multiplatform 全量依赖（runtime / foundation / ui / tooling-preview / resources / material3）
+- `me.zhangls.kmp-compose-api`: 只注入 `compose-runtime` + compose 编译器，用于 feature 的 `-api` 契约模块（契约里只有 `@Composable` 入口，不需要 foundation / material3 / resources）。**新增 `-api` 模块一律用它，不要再手工 `alias(kmp.plugins.jetbrains.compose)`**
 - `me.zhangls.kmp-koin`: Koin 注解 + KSP 编译器（koin-bom 以 `api` 传播版本约束）
 
 ### api / impl 解耦模式
@@ -128,7 +132,7 @@ Android 专用：
 
 ### MVI 架构
 
-- `core/framework/src/commonMain/kotlin/me/zhangls/framework/mvi/MviViewModel.kt`：Intent → State (+ Effect) 单向数据流，State 可选持久化到 `SavedStateHandle`（含敏感数据的 State 应传 `savedKey = null` 保持纯内存）
+- `core/framework/src/commonMain/kotlin/me/zhangls/framework/mvi/MviViewModel.kt`：Intent → State (+ Effect) 单向数据流。State 的跨进程持久化是 **opt-in** 的 —— `savedKey` 默认 `null`（纯内存，进程销毁即丢失）。这是刻意的**安全默认**：State 普遍含密码 / token / 大对象，写进 `SavedStateHandle` 会随 instance state 落盘并可能触发 `TransactionTooLarge`；"默认持久化 + 各自记得关掉"必然漏（历史上漏过登录态与搜索态两处）。确需跨进程恢复时才显式给 key（如 `AppViewModel` 传 `"state"`），给 key 的那一刻必须确认该 State 不含敏感数据
 - 各 feature 的 MVI 文件统一组织在 `mvi/` 子包（`XxxIntent` / `XxxAction` / `XxxState` / `XxxReducer` / `XxxViewModel`），UI 组织在 `home/`、`search/`、`detail/` 等按职责划分的子包
 - ViewModel 使用 Koin 注解 `@KoinViewModel` 注册
 
