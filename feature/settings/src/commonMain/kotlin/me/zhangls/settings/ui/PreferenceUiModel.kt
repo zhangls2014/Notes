@@ -1,56 +1,37 @@
 package me.zhangls.settings.ui
 
-import androidx.compose.ui.graphics.vector.ImageVector
+import me.zhangls.preference.PreferenceSpec
 import me.zhangls.settings.mvi.SettingsIntent
-import me.zhangls.theme.ThemeColor
-import org.jetbrains.compose.resources.StringResource
 
 /**
- * 设置项的表现层模型：持有图标、文案资源等 UI 数据，
- * 并通过 [onValueChange] / [clickIntent] 携带对应的 [SettingsIntent]，
- * 供 Compose 在用户交互时直接派发。
+ * 设置项的表现层模型 = 静态展示元数据（[PreferenceSpec]，来自 `core:preference`）
+ * + 当前取值 + 取值变化要做什么（两者都只属于本模块）。
+ *
+ * 拆成这两半是有意的，不能合并回一个类型：
+ * - 元数据跨 feature 共享（登录页也用语言 / 深色两项），必须放 core 层；
+ * - 当前取值来自 State，行为是 [SettingsIntent] —— 后者定义在**本 impl 模块**内
+ *   （不在 `:feature:settings-api`），一旦把它塞进 `core:preference` 就会形成
+ *   impl → impl 的依赖环。
  *
  * @author zhangls
  */
 sealed interface PreferenceUiModel {
-  val key: String
-  val title: StringResource
-  val summary: StringResource?
-  val icon: ImageVector?
+  val spec: PreferenceSpec
 
-  data class Text(
-    override val key: String,
-    override val title: StringResource,
-    override val summary: StringResource?,
-    override val icon: ImageVector?,
-    val tint: ThemeColor? = null,
-    val clickIntent: SettingsIntent,
-  ) : PreferenceUiModel
-
-  data class Switch(
-    override val key: String,
+  data class Toggle(
+    override val spec: PreferenceSpec.Toggle,
     val value: Boolean,
-    override val title: StringResource,
-    override val summary: StringResource?,
-    override val icon: ImageVector?,
     val onValueChange: (Boolean) -> SettingsIntent,
   ) : PreferenceUiModel
 
-  data class Alert<T>(
-    override val key: String,
+  data class Select<T>(
+    override val spec: PreferenceSpec.Select<T>,
     val value: T,
-    override val title: StringResource,
-    override val summary: StringResource?,
-    val options: List<Option<T>>,
-    override val icon: ImageVector?,
     val onValueChange: (T) -> SettingsIntent,
   ) : PreferenceUiModel
 
-  /**
-   * 辅助类：定义每个选项的显示文字和实际值
-   */
-  data class Option<T>(
-    val label: StringResource,
-    val value: T
-  )
+  data class Action(
+    override val spec: PreferenceSpec.Action,
+    val clickIntent: SettingsIntent,
+  ) : PreferenceUiModel
 }

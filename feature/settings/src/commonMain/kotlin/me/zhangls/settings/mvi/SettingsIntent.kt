@@ -1,6 +1,6 @@
 package me.zhangls.settings.mvi
 
-import me.zhangls.data.type.FontSizeConfig
+import me.zhangls.model.FontSizeConfig
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
 import me.zhangls.framework.mvi.DialogResult

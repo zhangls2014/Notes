@@ -3,98 +3,62 @@ package me.zhangls.settings.ui
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
-import me.zhangls.data.type.FontSizeConfig
+import me.zhangls.model.FontSizeConfig
+import me.zhangls.preference.DarkThemePreference
+import me.zhangls.preference.DynamicColorPreference
+import me.zhangls.preference.FontSizePreference
+import me.zhangls.preference.LanguagePreference
+import me.zhangls.preference.LogoutPreference
 import me.zhangls.settings.mvi.SettingsIntent
-import me.zhangls.theme.ThemeColor
-import me.zhangls.theme.darkmode.DarkThemeCatalog
-import me.zhangls.theme.icon.ExitToApp
-import me.zhangls.theme.icon.FormatSize
-import me.zhangls.theme.icon.Icons
-import me.zhangls.theme.icon.Palette
-import me.zhangls.theme.language.LanguageCatalog
-import notes.feature.settings.generated.resources.Res
-import notes.feature.settings.generated.resources.settings_label_dynamic_color
-import notes.feature.settings.generated.resources.settings_label_font_size
-import notes.feature.settings.generated.resources.settings_label_font_size_large
-import notes.feature.settings.generated.resources.settings_label_font_size_medium
-import notes.feature.settings.generated.resources.settings_label_font_size_standard
-import notes.feature.settings.generated.resources.settings_label_logout
-import notes.feature.settings.generated.resources.settings_msg_dynamic_color_off
-import notes.feature.settings.generated.resources.settings_msg_dynamic_color_on
 
 /**
- * 将领域模型 [SettingsModel] 映射为设置页所需的表现层模型。
+ * 把领域模型 [SettingsModel] 映射为设置页所需的表现层模型。
+ *
+ * 每一项都是「`core:preference` 的静态元数据 + 本模块的当前取值 + 本模块的 [SettingsIntent]」，
+ * 本文件因此只负责**装配**，不再持有任何标题 / 图标 / 选项文案。
+ *
+ * 哪些设置项存在、以什么顺序展示由各平台的 actual 决定 —— 这是**平台相关**信息
+ * （动态取色仅 Android 支持），因此不进 `core:preference`，必须留在本模块的 expect/actual 里。
  *
  * @author zhangls
  */
 internal expect fun SettingsModel.toPreferenceUiModels(): List<PreferenceUiModel>
 
-internal fun dynamicColorPreference(dynamicColor: Boolean): PreferenceUiModel.Switch {
-  return PreferenceUiModel.Switch(
-    key = "dynamicColor",
-    value = dynamicColor,
-    title = Res.string.settings_label_dynamic_color,
-    summary = if (dynamicColor) {
-      Res.string.settings_msg_dynamic_color_on
-    } else {
-      Res.string.settings_msg_dynamic_color_off
-    },
-    icon = Icons.Rounded.Palette,
+internal fun dynamicColorPreference(value: Boolean): PreferenceUiModel.Toggle {
+  return PreferenceUiModel.Toggle(
+    spec = DynamicColorPreference.spec,
+    value = value,
     onValueChange = { SettingsIntent.UpdateDynamicColor(it) },
   )
 }
 
-internal fun darkThemePreference(darkTheme: DarkThemeConfig): PreferenceUiModel.Alert<DarkThemeConfig> {
-  return PreferenceUiModel.Alert(
-    key = "darkTheme",
-    value = darkTheme,
-    title = DarkThemeCatalog.title,
-    summary = DarkThemeCatalog.summary(darkTheme),
-    options = DarkThemeCatalog.options.map { PreferenceUiModel.Option(it.label, it.value) },
-    icon = DarkThemeCatalog.icon,
+internal fun darkThemePreference(value: DarkThemeConfig): PreferenceUiModel.Select<DarkThemeConfig> {
+  return PreferenceUiModel.Select(
+    spec = DarkThemePreference.spec,
+    value = value,
     onValueChange = { SettingsIntent.UpdateDarkTheme(it) },
   )
 }
 
-internal fun fontSizePreference(fontSize: FontSizeConfig): PreferenceUiModel.Alert<FontSizeConfig> {
-  return PreferenceUiModel.Alert(
-    key = "fontSize",
-    value = fontSize,
-    title = Res.string.settings_label_font_size,
-    summary = when (fontSize) {
-      FontSizeConfig.STANDARD -> Res.string.settings_label_font_size_standard
-      FontSizeConfig.MEDIUM -> Res.string.settings_label_font_size_medium
-      FontSizeConfig.LARGE -> Res.string.settings_label_font_size_large
-    },
-    options = listOf(
-      PreferenceUiModel.Option(Res.string.settings_label_font_size_standard, FontSizeConfig.STANDARD),
-      PreferenceUiModel.Option(Res.string.settings_label_font_size_medium, FontSizeConfig.MEDIUM),
-      PreferenceUiModel.Option(Res.string.settings_label_font_size_large, FontSizeConfig.LARGE)
-    ),
-    icon = Icons.Rounded.FormatSize,
+internal fun fontSizePreference(value: FontSizeConfig): PreferenceUiModel.Select<FontSizeConfig> {
+  return PreferenceUiModel.Select(
+    spec = FontSizePreference.spec,
+    value = value,
     onValueChange = { SettingsIntent.UpdateFontSize(it) },
   )
 }
 
-internal fun languagePreference(appLanguage: AppLanguage): PreferenceUiModel.Alert<AppLanguage> {
-  return PreferenceUiModel.Alert(
-    key = "appLanguage",
-    value = appLanguage,
-    title = LanguageCatalog.title,
-    summary = LanguageCatalog.summary(appLanguage),
-    options = LanguageCatalog.options.map { PreferenceUiModel.Option(it.label, it.value) },
-    icon = LanguageCatalog.icon,
+internal fun languagePreference(value: AppLanguage): PreferenceUiModel.Select<AppLanguage> {
+  return PreferenceUiModel.Select(
+    spec = LanguagePreference.spec,
+    value = value,
     onValueChange = { SettingsIntent.UpdateAppLanguage(it) },
   )
 }
 
-internal fun logoutPreference(): PreferenceUiModel.Text {
-  return PreferenceUiModel.Text(
-    key = "logout",
-    title = Res.string.settings_label_logout,
-    summary = null,
-    icon = Icons.Rounded.ExitToApp,
-    tint = ThemeColor.Error,
+internal fun logoutPreference(): PreferenceUiModel.Action {
+  return PreferenceUiModel.Action(
+    spec = LogoutPreference.spec,
     clickIntent = SettingsIntent.ClickLogout,
   )
 }

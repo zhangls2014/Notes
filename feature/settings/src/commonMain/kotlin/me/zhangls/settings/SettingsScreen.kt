@@ -76,20 +76,20 @@ internal fun SettingsScreen(
       LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding) {
         items(
           count = preferences.size,
-          key = { index -> preferences[index].key },
+          key = { index -> preferences[index].spec.key },
           contentType = { index -> preferences[index]::class }
         ) {
           when (val preference = preferences[it]) {
-            is PreferenceUiModel.Switch -> {
-              SwitchItem(preference = preference, sendIntent = sendIntent)
+            is PreferenceUiModel.Toggle -> {
+              ToggleItem(preference = preference, sendIntent = sendIntent)
             }
 
-            is PreferenceUiModel.Alert<*> -> {
-              AlertItem(preference = preference, sendIntent = sendIntent)
+            is PreferenceUiModel.Select<*> -> {
+              SelectItem(preference = preference, sendIntent = sendIntent)
             }
 
-            is PreferenceUiModel.Text -> {
-              TextItem(preference = preference, sendIntent = sendIntent)
+            is PreferenceUiModel.Action -> {
+              ActionItem(preference = preference, sendIntent = sendIntent)
             }
           }
         }
@@ -118,78 +118,73 @@ internal fun SettingsScreen(
 }
 
 @Composable
-private fun SwitchItem(
+private fun ToggleItem(
   modifier: Modifier = Modifier,
-  preference: PreferenceUiModel.Switch,
+  preference: PreferenceUiModel.Toggle,
   sendIntent: (SettingsIntent) -> Unit
 ) {
+  val spec = preference.spec
   SwitchPreference(
     value = preference.value,
     onValueChange = { sendIntent(preference.onValueChange(it)) },
     modifier = modifier,
-    title = { Text(text = stringResource(preference.title)) },
-    summary = preference.summary?.let {
+    title = { Text(text = stringResource(spec.title)) },
+    summary = spec.summary(preference.value)?.let {
       { Text(text = stringResource(it)) }
     },
     icon = {
-      preference.icon?.let {
-        Icon(imageVector = it, contentDescription = null)
-      }
+      Icon(imageVector = spec.icon, contentDescription = null)
     }
   )
 }
 
 @Composable
-private fun <T> AlertItem(
+private fun <T> SelectItem(
   modifier: Modifier = Modifier,
-  preference: PreferenceUiModel.Alert<T>,
+  preference: PreferenceUiModel.Select<T>,
   sendIntent: (SettingsIntent) -> Unit
 ) {
-  val optionTextMap = preference.options.associate {
+  val spec = preference.spec
+  val optionTextMap = spec.options.associate {
     it.value to stringResource(it.label)
   }
 
   ListPreference(
     value = preference.value,
     onValueChange = { sendIntent(preference.onValueChange(it)) },
-    values = preference.options.map { it.value },
+    values = spec.options.map { it.value },
     modifier = modifier,
     valueToText = { AnnotatedString(optionTextMap[it] ?: "") },
-    title = { Text(text = stringResource(preference.title)) },
-    summary = preference.summary?.let {
+    title = { Text(text = stringResource(spec.title)) },
+    summary = spec.summary(preference.value)?.let {
       { Text(text = stringResource(it)) }
     },
     icon = {
-      preference.icon?.let {
-        Icon(imageVector = it, contentDescription = null)
-      }
+      Icon(imageVector = spec.icon, contentDescription = null)
     }
   )
 }
 
 @Composable
-private fun TextItem(
+private fun ActionItem(
   modifier: Modifier = Modifier,
-  preference: PreferenceUiModel.Text,
+  preference: PreferenceUiModel.Action,
   sendIntent: (SettingsIntent) -> Unit
 ) {
+  val spec = preference.spec
+  val tint = spec.tint?.toColor() ?: Color.Unspecified
+
   Preference(
     title = {
-      Text(
-        text = stringResource(preference.title),
-        color = preference.tint?.toColor() ?: Color.Unspecified
-      )
+      Text(text = stringResource(spec.title), color = tint)
     },
     modifier = modifier,
     onClick = { sendIntent(preference.clickIntent) },
-    summary = preference.summary?.let {
+    summary = spec.summary?.let {
       { Text(text = stringResource(it)) }
     },
     icon = {
-      preference.icon?.let {
-        Icon(imageVector = it, contentDescription = null, tint = preference.tint?.toColor() ?: Color.Unspecified)
-      }
+      Icon(imageVector = spec.icon, contentDescription = null, tint = tint)
     }
   )
 }
-
