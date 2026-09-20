@@ -3,6 +3,5 @@
   <string name="settings_label_settings">设置</string>
   <string name="settings_dialog_label_logout">提示</string>
   <string name="settings_dialog_action_cancel">取消</string>
-  <string name="settings_dialog_action_logout">退出登录</string>
   <string name="settings_dialog_content_logout">确定要退出登录吗？</string>
 </resources>
