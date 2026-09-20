@@ -14,13 +14,13 @@ jetbrains-coroutines = "1.11.0"
 jetbrains-serialization = "1.11.0"
 jetbrains-compose = "1.12.0"
 jetbrains-compose-material3 = "1.12.0-alpha03"
-jetbrains-compose-material3-adaptive = "1.3.0-beta02"
-ktor-bom = "3.5.2"
+jetbrains-compose-material3-adaptive = "1.3.0-rc01"
+ktor-bom = "3.6.0"
 koin-bom = "4.2.2"
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 google-ksp = "2.3.11"
-coil = "3.6.0"
-calf = "0.13.0"
+coil = "3.6.3"
+calf = "0.14.0"
 baselineprofile = "1.5.0-rc02"
 detekt = "2.0.0-alpha.6"
 
@@ -39,8 +39,8 @@ jetbrains-kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose"
 jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "google-ksp" }
-koin-compiler = { id = "io.insert-koin.compiler.plugin", version = "1.1.0" }
-buildKonfig = { id = "com.codingfeline.buildkonfig", version = "0.22.0" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version = "1.2.1" }
+buildKonfig = { id = "com.codingfeline.buildkonfig", version = "0.23.0" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 
 
@@ -131,4 +131,4 @@ kotlin-compose-plugin = { group = "org.jetbrains.kotlin.plugin.compose", name = 
 android-gradle-plugin = { group = "com.android.kotlin.multiplatform.library", name = "com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "agp" }
 compose-gradle-plugin = { group = "org.jetbrains.compose", name = "org.jetbrains.compose.gradle.plugin", version.ref = "jetbrains-compose" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "google-ksp" }
-koin-compiler-gradle-plugin = { group = "io.insert-koin.compiler.plugin", name = "io.insert-koin.compiler.plugin.gradle.plugin", version = "1.1.0" }
+koin-compiler-gradle-plugin = { group = "io.insert-koin.compiler.plugin", name = "io.insert-koin.compiler.plugin.gradle.plugin", version = "1.2.1" }
