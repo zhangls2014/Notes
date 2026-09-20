@@ -3,7 +3,6 @@ package me.zhangls.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,29 +15,15 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -53,8 +38,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.zhangls.model.AppLanguage
-import me.zhangls.model.DarkThemeConfig
 import me.zhangls.login.mvi.LoginIntent
 import me.zhangls.login.mvi.LoginViewModel
 import me.zhangls.login.api.LoginResult
@@ -64,6 +47,7 @@ import me.zhangls.login.domain.text
 import me.zhangls.login.icon.AppLogo
 import me.zhangls.preference.DarkThemePreference
 import me.zhangls.preference.LanguagePreference
+import me.zhangls.preference.ui.SelectIconButton
 import me.zhangls.theme.component.ContainedLoadingIndicator
 import me.zhangls.theme.icon.AccountCircle
 import me.zhangls.theme.icon.Clear
@@ -120,14 +104,16 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
           .align(alignment = Alignment.End)
           .padding(end = 16.dp, top = padding.calculateTopPadding() + 16.dp)
       ) {
-        DarkThemeButton(
-          darkTheme = state.darkTheme,
-          onDarkThemeChange = { viewModel.sendIntent(LoginIntent.UpdateDarkTheme(it)) }
+        SelectIconButton(
+          spec = DarkThemePreference.spec,
+          value = state.darkTheme,
+          onValueChange = { viewModel.sendIntent(LoginIntent.UpdateDarkTheme(it)) },
         )
 
-        LanguageButton(
-          language = state.appLanguage,
-          onLanguageChange = { viewModel.sendIntent(LoginIntent.UpdateLanguage(it)) }
+        SelectIconButton(
+          spec = LanguagePreference.spec,
+          value = state.appLanguage,
+          onValueChange = { viewModel.sendIntent(LoginIntent.UpdateLanguage(it)) },
         )
       }
 
@@ -178,115 +164,6 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
   if (state.isLoading) {
     ContainedLoadingIndicator()
-  }
-}
-
-/**
- * 深色模式切换入口：仅显示图标，长按提示按钮名称（不含当前取值）。
- *
- * 与 [LanguageButton] 同构：三态下拉（跟随系统 / 浅色 / 深色），选定后写入 SettingsRepository，
- * 主题由 `composeApp` 的 `App` 统一装配，登录页自身也会随之重绘。
- */
-// TooltipBox 需要 ExperimentalMaterial3Api，DropdownMenuPopup / MenuDefaults 需要 Expressive
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun DarkThemeButton(
-  darkTheme: DarkThemeConfig,
-  modifier: Modifier = Modifier,
-  onDarkThemeChange: (DarkThemeConfig) -> Unit
-) {
-  val label = stringResource(DarkThemePreference.spec.title)
-  var expanded by remember { mutableStateOf(false) }
-
-  Box(modifier = modifier) {
-    TooltipBox(
-      // 按钮位于页面顶部，提示放在下方避免被屏幕边缘裁掉
-      positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-      state = rememberTooltipState(),
-      tooltip = {
-        PlainTooltip {
-          Text(text = label)
-        }
-      },
-    ) {
-      IconButton(
-        onClick = { expanded = expanded.not() },
-      ) {
-        Icon(imageVector = DarkThemePreference.spec.icon, contentDescription = label)
-      }
-    }
-
-    DropdownMenuPopup(
-      expanded = expanded,
-      onDismissRequest = { expanded = false }
-    ) {
-      DropdownMenuGroup(
-        shapes = MenuDefaults.groupShapes(),
-      ) {
-        DarkThemePreference.spec.options.forEach { option ->
-          DropdownMenuItem(
-            text = { Text(text = stringResource(option.label)) },
-            shapes = MenuDefaults.itemShapes(),
-            checked = option.value == darkTheme,
-            onCheckedChange = {
-              expanded = false
-              onDarkThemeChange(option.value)
-            },
-          )
-        }
-      }
-    }
-  }
-}
-
-/**
- * 语言切换入口：仅显示图标，长按提示按钮名称（不含当前取值）。
- */
-// TooltipBox 需要 ExperimentalMaterial3Api，DropdownMenuPopup / MenuDefaults 需要 Expressive
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLanguageChange: (AppLanguage) -> Unit) {
-  val label = stringResource(LanguagePreference.spec.title)
-  var expanded by remember { mutableStateOf(false) }
-
-  Box(modifier = modifier) {
-    TooltipBox(
-      // 按钮位于页面顶部，提示放在下方避免被屏幕边缘裁掉
-      positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-      state = rememberTooltipState(),
-      tooltip = {
-        PlainTooltip {
-          Text(text = label)
-        }
-      },
-    ) {
-      IconButton(
-        onClick = { expanded = expanded.not() },
-      ) {
-        Icon(imageVector = LanguagePreference.spec.icon, contentDescription = label)
-      }
-    }
-
-    DropdownMenuPopup(
-      expanded = expanded,
-      onDismissRequest = { expanded = false }
-    ) {
-      DropdownMenuGroup(
-        shapes = MenuDefaults.groupShapes(),
-      ) {
-        LanguagePreference.spec.options.forEach { option ->
-          DropdownMenuItem(
-            text = { Text(text = stringResource(option.label)) },
-            shapes = MenuDefaults.itemShapes(),
-            checked = option.value == language,
-            onCheckedChange = {
-              expanded = false
-              onLanguageChange(option.value)
-            },
-          )
-        }
-      }
-    }
   }
 }
 
