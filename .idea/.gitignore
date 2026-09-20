@@ -3,3 +3,15 @@
 /workspace.xml
 /deploymentTargetSelector.xml
 /deviceManager.xml
+
+# IDE 本机专属文件：由 Gradle 同步推导，或记录个人偏好/本机环境，不应随仓库分发。
+# 构建参数（jvmTarget、字节码版本等）的唯一来源是 build-logic 约定插件与 gradle/kmp.versions.toml。
+/AndroidProjectSystem.xml
+/compiler.xml
+/detekt.xml
+/icon.svg
+/kotlinc.xml
+/markdown.xml
+/migrations.xml
+/misc.xml
+/studiobot.xml
