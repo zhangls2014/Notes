@@ -8,25 +8,50 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldPaneScope
 import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.zhangls.email.component.EmailDetail
-import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.email.component.EmailList
+import me.zhangls.email.mvi.EmailViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * 首页：列表 + 详情双栏。
+ *
+ * 装配（含两个 pane 的内容）在两平台共享，平台差异只有 [PaneScaffold] 一处。
+ */
 @OptIn(
   ExperimentalMaterial3AdaptiveApi::class,
   ExperimentalMaterial3Api::class,
   ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-expect fun HomeScreen(isBottomNavigationBar: Boolean)
+fun HomeScreen() {
+  val viewModel: EmailViewModel = koinViewModel()
+  val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
+  val scope = rememberCoroutineScope()
 
-/**
- * 两平台 HomeScreen 共享的导航与内容装配：
- * 平台 actual 只负责选择 Scaffold（Android: Navigable / iOS: 普通 + 自适应 directive）。
- */
+  PaneScaffold(
+    scaffoldNavigator = scaffoldNavigator,
+    listPane = {
+      HomeListPane(
+        viewModel = viewModel,
+        scaffoldNavigator = scaffoldNavigator,
+        navigateToDetail = scope.navigateToDetailOf(scaffoldNavigator),
+      )
+    },
+    detailPane = {
+      HomeDetailPane(
+        viewModel = viewModel,
+        scaffoldNavigator = scaffoldNavigator,
+        scope = scope,
+      )
+    },
+  )
+}
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 internal fun CoroutineScope.navigateToDetailOf(
@@ -39,7 +64,6 @@ internal fun CoroutineScope.navigateToDetailOf(
 @Composable
 internal fun ThreePaneScaffoldPaneScope.HomeListPane(
   viewModel: EmailViewModel,
-  isBottomNavigationBar: Boolean,
   scaffoldNavigator: ThreePaneScaffoldNavigator<Long>,
   navigateToDetail: (Long) -> Unit,
 ) {
@@ -47,7 +71,6 @@ internal fun ThreePaneScaffoldPaneScope.HomeListPane(
     EmailList(
       viewModel = viewModel,
       isFavorite = false,
-      isBottomNavigationBar = isBottomNavigationBar,
       openedEmailId = scaffoldNavigator.currentDestination?.contentKey,
       navigateToDetail = navigateToDetail
     )
@@ -58,7 +81,6 @@ internal fun ThreePaneScaffoldPaneScope.HomeListPane(
 @Composable
 internal fun ThreePaneScaffoldPaneScope.HomeDetailPane(
   viewModel: EmailViewModel,
-  isBottomNavigationBar: Boolean,
   scaffoldNavigator: ThreePaneScaffoldNavigator<Long>,
   scope: CoroutineScope,
 ) {
@@ -75,7 +97,6 @@ internal fun ThreePaneScaffoldPaneScope.HomeDetailPane(
       EmailDetail(
         emailId = emailId,
         isStandalone = false,
-        isBottomNavigationBar = isBottomNavigationBar,
         viewModel = viewModel,
         onBackPressed = onBackPressed
       )

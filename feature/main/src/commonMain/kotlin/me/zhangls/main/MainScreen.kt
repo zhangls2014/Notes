@@ -11,6 +11,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -20,12 +21,14 @@ import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.main.api.MainResult
-import me.zhangls.theme.icon.Favorite
-import me.zhangls.theme.icon.Home
-import me.zhangls.theme.icon.Settings
 import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.settings.api.SettingsResult
+import me.zhangls.theme.icon.Favorite
+import me.zhangls.theme.icon.Home
 import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.icon.Settings
+import me.zhangls.theme.layout.LocalNavigationPlacement
+import me.zhangls.theme.layout.NavigationPlacement
 import notes.feature.main.generated.resources.Res
 import notes.feature.main.generated.resources.main_label_favorites
 import notes.feature.main.generated.resources.main_label_home
@@ -44,27 +47,35 @@ private enum class MainTab(val label: StringResource, val icon: ImageVector) {
 }
 
 /**
- * 判断当前 [NavigationSuiteScaffold] 类型是否是底部导航栏
+ * 把 [NavigationSuiteScaffold] 的布局类型归类为"导航套件占哪一侧"。
+ *
+ * 归类结果是宿主布局对内容区唯一的承诺，经 `LocalNavigationPlacement` 下发。
+ * 原先这里是一个 `isBottomNavigationBar: Boolean`，穿透了 3 个 feature 的公开契约、
+ * 在 15 个文件间手工传递 47 次，且被三处当成了三种不同含义（内边距 / 搜索栏形态 / 屏幕尺寸）。
  */
-private fun isBottomNavigationBar(type: NavigationSuiteType): Boolean {
-  val navigationBarArray = arrayOf(
+private fun NavigationSuiteType.toNavigationPlacement(): NavigationPlacement {
+  val bottomNavigationTypes = arrayOf(
     NavigationSuiteType.ShortNavigationBarCompact,
     NavigationSuiteType.ShortNavigationBarMedium,
     NavigationSuiteType.NavigationBar
   )
-  return navigationBarArray.contains(type)
+  return if (bottomNavigationTypes.contains(this)) {
+    NavigationPlacement.Bottom
+  } else {
+    NavigationPlacement.Side
+  }
 }
 
 /**
- * 根据导航类型创建合适的 Pager
+ * 根据导航方位创建合适的 Pager
  */
 @Composable
 private fun NavigationPager(
-  isBottomNavigationBar: Boolean,
+  placement: NavigationPlacement,
   pagerState: PagerState,
   pageContent: @Composable (page: Int) -> Unit
 ) {
-  if (isBottomNavigationBar) {
+  if (placement == NavigationPlacement.Bottom) {
     HorizontalPager(
       state = pagerState,
       modifier = Modifier.fillMaxSize(),
@@ -107,7 +118,7 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
       }
     }
   }
-  val isBottomNavigationBar = remember(customLayoutType) { isBottomNavigationBar(customLayoutType) }
+  val navigationPlacement = remember(customLayoutType) { customLayoutType.toNavigationPlacement() }
   val emailEntry = koinInject<EmailEntry>()
   val settingsEntry = koinInject<SettingsEntry>()
 
@@ -126,28 +137,30 @@ fun MainScreen(onResult: (MainResult) -> Unit) {
     },
     layoutType = customLayoutType,
   ) {
-    val pageContent = @Composable { page: Int ->
-      when (MainTab.entries[page]) {
-        MainTab.HOME -> emailEntry.HomeScreen(isBottomNavigationBar = isBottomNavigationBar)
-        MainTab.FAVORITES -> {
-          emailEntry.FavoritesScreen(isBottomNavigationBar = isBottomNavigationBar) { emailId ->
+    // 导航方位在此下发：三个 feature 的内容区据此换算内边距，
+    // 契约里因此不需要任何布局参数
+    CompositionLocalProvider(LocalNavigationPlacement provides navigationPlacement) {
+      val pageContent = @Composable { page: Int ->
+        when (MainTab.entries[page]) {
+          MainTab.HOME -> emailEntry.HomeScreen()
+          MainTab.FAVORITES -> emailEntry.FavoritesScreen { emailId ->
             onResult(MainResult.NavigateToEmailDetail(emailId))
           }
-        }
 
-        MainTab.SETTINGS -> settingsEntry.Screen(isBottomNavigationBar = isBottomNavigationBar) { result ->
-          if (result == SettingsResult.Logout) {
-            onResult(MainResult.Logout)
+          MainTab.SETTINGS -> settingsEntry.Screen { result ->
+            if (result == SettingsResult.Logout) {
+              onResult(MainResult.Logout)
+            }
           }
         }
       }
-    }
 
-    NavigationPager(
-      isBottomNavigationBar = isBottomNavigationBar,
-      pagerState = pagerState,
-      pageContent = pageContent
-    )
+      NavigationPager(
+        placement = navigationPlacement,
+        pagerState = pagerState,
+        pageContent = pageContent
+      )
+    }
   }
 }
 

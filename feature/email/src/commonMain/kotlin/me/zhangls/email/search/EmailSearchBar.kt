@@ -19,16 +19,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberSearchBarState
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,11 +48,14 @@ import kotlinx.coroutines.launch
 import me.zhangls.data.model.EmailModel
 import me.zhangls.email.component.AvatarPicker
 import me.zhangls.email.component.ProfileImage
-import me.zhangls.theme.icon.Clear
-import me.zhangls.theme.icon.Search
 import me.zhangls.email.search.SearchViewModel.Companion.DURATION_SEARCH_DEBOUNCE
+import me.zhangls.theme.component.TooltipIconButton
 import me.zhangls.theme.icon.ArrowBackIosNew
+import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.icon.Search
+import me.zhangls.theme.layout.LocalNavigationPlacement
+import me.zhangls.theme.layout.NavigationPlacement
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_delete
 import notes.feature.email.generated.resources.email_action_owner_info
@@ -74,13 +72,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 internal fun EmailSearchBar(
-  isBottomNavigationBar: Boolean,
   scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
   onResultClick: (Long) -> Unit = {}
 ) {
   val viewModel: SearchViewModel = koinViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
+  // 紧凑窗口（导航套件在底部）用全屏搜索栏，宽窗口用 docked
+  val useFullScreenSearchBar = LocalNavigationPlacement.current == NavigationPlacement.Bottom
 
   val textFieldState = rememberTextFieldState(initialText = state.searchText)
   val searchBarState = rememberSearchBarState(initialValue = state.searchBarValue)
@@ -108,18 +107,12 @@ internal fun EmailSearchBar(
       },
       leadingIcon = {
         if (searchBarState.currentValue == SearchBarValue.Expanded) {
-          TooltipBox(
-            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-            tooltip = { PlainTooltip { Text(stringResource(Res.string.email_action_search_collapsed)) } },
-            state = rememberTooltipState(),
-          ) {
-            IconButton(onClick = closeSearchBar) {
-              Icon(
-                imageVector = Icons.Rounded.ArrowBackIosNew,
-                contentDescription = stringResource(Res.string.email_action_search_collapsed),
-              )
-            }
-          }
+          // 返回键复用通用形态：图标 + 提示气泡，提示位置在 core:theme 里定
+          TooltipIconButton(
+            icon = Icons.Rounded.ArrowBackIosNew,
+            label = stringResource(Res.string.email_action_search_collapsed),
+            onClick = closeSearchBar,
+          )
         } else {
           Icon(Icons.Rounded.Search, contentDescription = null)
         }
@@ -208,7 +201,7 @@ internal fun EmailSearchBar(
     ),
   )
 
-  if (isBottomNavigationBar) {
+  if (useFullScreenSearchBar) {
     ExpandedFullScreenSearchBar(
       state = searchBarState,
       inputField = inputField,

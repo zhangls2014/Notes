@@ -30,7 +30,6 @@ import notes.feature.email.generated.resources.email_action_favorite
 @Composable
 internal fun EmailTopBar(
   state: EmailState,
-  isBottomNavigationBar: Boolean,
   scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
   onIntent: (EmailIntent) -> Unit,
   onResultClick: (Long) -> Unit,
@@ -38,7 +37,6 @@ internal fun EmailTopBar(
   Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
     if (state.selectedItems.isEmpty()) {
       EmailSearchBar(
-        isBottomNavigationBar = isBottomNavigationBar,
         scrollBehavior = scrollBehavior,
         onResultClick = onResultClick
       )

@@ -14,10 +14,10 @@ internal fun EmailDetailScreen(
   viewModel: EmailViewModel = koinViewModel(),
   onBackPressed: () -> Unit = {}
 ) {
+  // 独立导航目的地：内容占满整屏（isStandalone），不参与导航套件的内容内边距换算
   EmailDetail(
     emailId = emailId,
     isStandalone = true,
-    isBottomNavigationBar = true,
     viewModel = viewModel,
     onBackPressed = onBackPressed
   )
