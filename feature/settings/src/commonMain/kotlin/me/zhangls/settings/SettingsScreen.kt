@@ -4,32 +4,24 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.zhanghai.compose.preference.ListPreference
-import me.zhanghai.compose.preference.Preference
-import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.framework.mvi.DialogResult
+import me.zhangls.preference.ui.PreferenceRow
+import me.zhangls.preference.ui.ProvidePreferenceLocals
+import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.settings.mvi.SettingsViewModel
-import me.zhangls.settings.api.SettingsResult
-import me.zhangls.settings.ui.PreferenceUiModel
 import me.zhangls.settings.ui.toDialogUiModel
 import me.zhangls.settings.ui.toPreferenceUiModels
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
-import me.zhangls.theme.toColor
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_label_settings
 import org.jetbrains.compose.resources.stringResource
@@ -45,9 +37,11 @@ internal fun SettingsScreen(
   onResult: (SettingsResult) -> Unit = {}
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
-  // 领域模型在 UI 层映射为表现层模型
-  val preferences = remember(state.settings) { state.settings.toPreferenceUiModels() }
-  val sendIntent = viewModel::sendIntent
+  // 领域模型在 UI 层映射为表现层模型（回调在此绑到 viewModel）。
+  // 以 settings 与 viewModel 为 key：只在取值变化时重建，且不会捕获过期的 sendIntent
+  val preferences = remember(state.settings, viewModel) {
+    state.settings.toPreferenceUiModels(viewModel::sendIntent)
+  }
 
   LaunchedEffect(viewModel) {
     viewModel.effect.collect { effect ->
@@ -72,26 +66,15 @@ internal fun SettingsScreen(
       )
     }
 
+    // 行的渲染全在 core:preference（PreferenceRow），本屏只负责列表装配与顺序
     ProvidePreferenceLocals {
       LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = contentPadding) {
         items(
           count = preferences.size,
           key = { index -> preferences[index].spec.key },
           contentType = { index -> preferences[index]::class }
-        ) {
-          when (val preference = preferences[it]) {
-            is PreferenceUiModel.Toggle -> {
-              ToggleItem(preference = preference, sendIntent = sendIntent)
-            }
-
-            is PreferenceUiModel.Select<*> -> {
-              SelectItem(preference = preference, sendIntent = sendIntent)
-            }
-
-            is PreferenceUiModel.Action -> {
-              ActionItem(preference = preference, sendIntent = sendIntent)
-            }
-          }
+        ) { index ->
+          PreferenceRow(model = preferences[index])
         }
       }
     }
@@ -106,85 +89,13 @@ internal fun SettingsScreen(
       confirmText = stringResource(dialogState.confirm),
       confirm = {
         val result = DialogResult.Confirm(dialogState.dialogId)
-        sendIntent(SettingsIntent.DialogCallback(result))
+        viewModel.sendIntent(SettingsIntent.DialogCallback(result))
       },
       dismissText = dialogState.dismiss?.let { stringResource(it) },
       dismiss = {
         val result = DialogResult.Dismiss(dialogState.dialogId)
-        sendIntent(SettingsIntent.DialogCallback(result))
+        viewModel.sendIntent(SettingsIntent.DialogCallback(result))
       }
     )
   }
-}
-
-@Composable
-private fun ToggleItem(
-  modifier: Modifier = Modifier,
-  preference: PreferenceUiModel.Toggle,
-  sendIntent: (SettingsIntent) -> Unit
-) {
-  val spec = preference.spec
-  SwitchPreference(
-    value = preference.value,
-    onValueChange = { sendIntent(preference.onValueChange(it)) },
-    modifier = modifier,
-    title = { Text(text = stringResource(spec.title)) },
-    summary = spec.summary(preference.value)?.let {
-      { Text(text = stringResource(it)) }
-    },
-    icon = {
-      Icon(imageVector = spec.icon, contentDescription = null)
-    }
-  )
-}
-
-@Composable
-private fun <T> SelectItem(
-  modifier: Modifier = Modifier,
-  preference: PreferenceUiModel.Select<T>,
-  sendIntent: (SettingsIntent) -> Unit
-) {
-  val spec = preference.spec
-  val optionTextMap = spec.options.associate {
-    it.value to stringResource(it.label)
-  }
-
-  ListPreference(
-    value = preference.value,
-    onValueChange = { sendIntent(preference.onValueChange(it)) },
-    values = spec.options.map { it.value },
-    modifier = modifier,
-    valueToText = { AnnotatedString(optionTextMap[it] ?: "") },
-    title = { Text(text = stringResource(spec.title)) },
-    summary = spec.summary(preference.value)?.let {
-      { Text(text = stringResource(it)) }
-    },
-    icon = {
-      Icon(imageVector = spec.icon, contentDescription = null)
-    }
-  )
-}
-
-@Composable
-private fun ActionItem(
-  modifier: Modifier = Modifier,
-  preference: PreferenceUiModel.Action,
-  sendIntent: (SettingsIntent) -> Unit
-) {
-  val spec = preference.spec
-  val tint = spec.tint?.toColor() ?: Color.Unspecified
-
-  Preference(
-    title = {
-      Text(text = stringResource(spec.title), color = tint)
-    },
-    modifier = modifier,
-    onClick = { sendIntent(preference.clickIntent) },
-    summary = spec.summary?.let {
-      { Text(text = stringResource(it)) }
-    },
-    icon = {
-      Icon(imageVector = spec.icon, contentDescription = null, tint = tint)
-    }
-  )
 }

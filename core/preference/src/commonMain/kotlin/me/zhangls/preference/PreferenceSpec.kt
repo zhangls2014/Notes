@@ -19,9 +19,13 @@ data class PreferenceOption<T>(
 /**
  * 设置项的**静态展示元数据**：一个设置项"长什么样、叫什么"，不含它当前的取值，也不含取值变化后要做什么。
  *
- * 本类型是 `core:preference` 的全部公开词汇表。三个硬约束：
+ * 本类型是 `core:preference` 词表的一半，另一半是渲染契约 `ui/PreferenceUiModel`（元数据 + 取值 + 回调），
+ * 两者配成一对交给 `ui/` 里的控件。三条硬约束：
  * ① **不含行为** —— 当前取值、`onValueChange` / 点击回调、以及消费方自己的 Intent 类型都不在此；
- * ② **不含渲染** —— 不依赖 `androidx.compose.preference` 的任何组件，怎么画由消费方决定；
+ *    取值与回调整形由消费方装进 `ui/PreferenceUiModel`，签名一律 `(T) -> Unit`，故 feature 类型不会回流；
+ * ② **只管"长什么样"，不管"怎么画"** —— 本类型不引用任何渲染 API。怎么画由本模块 `ui/` 的控件决定
+ *    （[PreferenceRow] 行形态 / [SelectIconButton] 图标形态），同一份 spec 可以有多种形态，
+ *    每种形态在本模块实现一次；
  * ③ **不含清单与顺序** —— 哪些设置项存在、以什么顺序展示是**平台相关**的
  *    （动态取色仅 Android 有），因此那份清单必须留在 feature 的 expect/actual 里。
  *
