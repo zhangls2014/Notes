@@ -1,6 +1,7 @@
 package me.zhangls.login.mvi
 
 import me.zhangls.model.AppLanguage
+import me.zhangls.model.DarkThemeConfig
 import me.zhangls.framework.mvi.MviAction
 
 /**
@@ -12,6 +13,7 @@ sealed interface LoginAction : MviAction {
   data class UpdatePassword(val password: String) : LoginAction
   data class UpdatePasswordVisible(val visible: Boolean) : LoginAction
   data class UpdateLanguage(val language: AppLanguage) : LoginAction
+  data class UpdateDarkTheme(val config: DarkThemeConfig) : LoginAction
   data object ValidationResult : LoginAction
   data class Loading(val visible: Boolean) : LoginAction
 }

@@ -2,6 +2,7 @@ package me.zhangls.login.mvi
 
 import kotlinx.serialization.Serializable
 import me.zhangls.model.AppLanguage
+import me.zhangls.model.DarkThemeConfig
 import me.zhangls.framework.mvi.MviState
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
@@ -29,4 +30,6 @@ data class LoginState(
   val isLoading: Boolean = false,
   // 应用语言
   val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM,
+  // 深色主题配置
+  val darkTheme: DarkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
 ) : MviState

@@ -33,6 +33,7 @@ class LoginViewModel(
     viewModelScope.launch {
       settingsRepository.settingsFlow.collectLatest {
         dispatch(LoginAction.UpdateLanguage(it.appLanguage))
+        dispatch(LoginAction.UpdateDarkTheme(it.darkTheme))
       }
     }
   }
@@ -68,6 +69,13 @@ class LoginViewModel(
         dispatch(LoginAction.UpdateLanguage(intent.language))
         viewModelScope.launch {
           settingsRepository.updateAppLanguage(intent.language)
+        }
+      }
+
+      is LoginIntent.UpdateDarkTheme -> {
+        dispatch(LoginAction.UpdateDarkTheme(intent.config))
+        viewModelScope.launch {
+          settingsRepository.updateDarkTheme(intent.config)
         }
       }
     }

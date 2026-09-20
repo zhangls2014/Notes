@@ -2,21 +2,17 @@ package me.zhangls.settings.ui
 
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.model.AppLanguage
-import me.zhangls.data.type.DarkThemeConfig
+import me.zhangls.model.DarkThemeConfig
 import me.zhangls.data.type.FontSizeConfig
 import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.theme.ThemeColor
-import me.zhangls.theme.icon.DarkMode
+import me.zhangls.theme.darkmode.DarkThemeCatalog
 import me.zhangls.theme.icon.ExitToApp
 import me.zhangls.theme.icon.FormatSize
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Palette
 import me.zhangls.theme.language.LanguageCatalog
 import notes.feature.settings.generated.resources.Res
-import notes.feature.settings.generated.resources.settings_label_dark_theme
-import notes.feature.settings.generated.resources.settings_label_dark_theme_dark
-import notes.feature.settings.generated.resources.settings_label_dark_theme_follow_system
-import notes.feature.settings.generated.resources.settings_label_dark_theme_light
 import notes.feature.settings.generated.resources.settings_label_dynamic_color
 import notes.feature.settings.generated.resources.settings_label_font_size
 import notes.feature.settings.generated.resources.settings_label_font_size_large
@@ -52,18 +48,10 @@ internal fun darkThemePreference(darkTheme: DarkThemeConfig): PreferenceUiModel.
   return PreferenceUiModel.Alert(
     key = "darkTheme",
     value = darkTheme,
-    title = Res.string.settings_label_dark_theme,
-    summary = when (darkTheme) {
-      DarkThemeConfig.FOLLOW_SYSTEM -> Res.string.settings_label_dark_theme_follow_system
-      DarkThemeConfig.LIGHT -> Res.string.settings_label_dark_theme_light
-      DarkThemeConfig.DARK -> Res.string.settings_label_dark_theme_dark
-    },
-    options = listOf(
-      PreferenceUiModel.Option(Res.string.settings_label_dark_theme_follow_system, DarkThemeConfig.FOLLOW_SYSTEM),
-      PreferenceUiModel.Option(Res.string.settings_label_dark_theme_light, DarkThemeConfig.LIGHT),
-      PreferenceUiModel.Option(Res.string.settings_label_dark_theme_dark, DarkThemeConfig.DARK)
-    ),
-    icon = Icons.Rounded.DarkMode,
+    title = DarkThemeCatalog.title,
+    summary = DarkThemeCatalog.summary(darkTheme),
+    options = DarkThemeCatalog.options.map { PreferenceUiModel.Option(it.label, it.value) },
+    icon = DarkThemeCatalog.icon,
     onValueChange = { SettingsIntent.UpdateDarkTheme(it) },
   )
 }
