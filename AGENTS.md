@@ -69,12 +69,16 @@ Android 宿主测试未启用（`./gradlew test` 无此任务），commonTest �
 
 核心层（`core/`）：
 
-- `:core:model`: 公共领域模型（`AppLanguage` 等跨层共享类型）
+- `:core:model`: 跨层共享的值类型（`AppLanguage` / `DarkThemeConfig` / `MailboxType`）。准入判据：该类型同时被 `core:data` 与"不含 Compose 的 UI 基础模块"看见，或出现在 `core:data` / `core:database` 的公开签名里
+- `:core:database`: Room 存储层（entity / dao / converter / auto-migration / 建库工厂 / 事务助手）
+  - **隔离靠模块边界**：`core:data` 以 `implementation` 依赖本模块，Gradle 的 `implementation` 不向下游传递，feature 层因此看不到任何 Room 类型。这是唯一可靠手段 —— `internal` 在这条链上无效（Room 生成的 `AppDatabaseConstructor` 被硬编码为 `public actual`，会连锁要求 DAO / entity / AppDatabase 也公开）
+  - 数据库文件位置不在本模块：由 `core:data` 传入路径（`AppFileManager` 是位置唯一来源，且 feature 层也在使用，故不下沉）；平台建库差异由 `AppDatabaseFactory` 的 expect/actual 承担
+  - 注意：`AppDatabase` 与其包名耦合 —— 移动它必须同步迁移 `core/database/schemas/<全限定名>.AppDatabase/`，否则 KSP 无法生成 AutoMigration
 - `:core:data`: 数据层，分**公开面**与**内部面**两层：
   - 公开面：`model/`（对外模型 `EmailModel` / `AccountModel` / `UserModel` / `SettingsModel` / `EmailDraft`）、`repository/`（仓库**接口**）、`type/`、`util/`、`DataModule.kt`
-  - 内部面：`impl/`（`database/`（Room entity/dao/auto-migration）、`datastore/`、`mapper/`、`repository/`（实现）），多数实现类为 `internal`
-  - **硬规则：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
-  - 注意：`AppDatabase` 与其包名耦合 —— 移动它必须同步迁移 `core/data/schemas/<全限定名>.AppDatabase/`，否则 KSP 无法生成 AutoMigration
+  - 内部面：`impl/`（`datastore/`、`mapper/`、`repository/`（实现）），实现类与 Koin provider 均为 `internal`
+  - **硬规则一：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
+  - **硬规则二：对 `core:database` 只能用 `implementation`**（见上），一旦改成 `api` 或 `implementation` 丢失，隔离即刻失效
 - `:core:theme`: 主题、图标、通用组件（Toast/Dialog）、多语言目录
 - `:core:network`: 网络层，Ktor、`ApiResponse`/`NetworkResult`、`TokenProvider`
 - `:core:framework`: 框架层，MVI 基类（`MviViewModel`）、导航抽象（`Destination`/`NavEffect`/`RequireLogin`）、DeepLink、全局 Toast
