@@ -24,7 +24,11 @@ class AppViewModel(
 ) : MviViewModel<AppState, AppIntent>(
   initialState = AppState(null),
   stateSerializer = AppState.serializer(),
-  savedStateHandle = savedStateHandle
+  savedStateHandle = savedStateHandle,
+  // 显式开启持久化：isLogin 为 null 时 AppNavHost 直接 return（不渲染任何 UI），
+  // 恢复它可避免进程重建后多出一帧空白。
+  // AppState 只含登录标志与主题 / 语言等非敏感展示值（真实取值来自 DataStore，不在本 State 里）
+  savedKey = "state",
 ) {
   /**
    * 全局 Toast 队列

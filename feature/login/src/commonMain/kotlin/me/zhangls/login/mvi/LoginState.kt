@@ -8,6 +8,9 @@ import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
 
 /**
+ * 含明文密码 [password] —— 属敏感数据，依赖 MviViewModel 的默认非持久化行为，
+ * 不要为它指定 savedKey。
+ *
  * @author zhangls
  */
 @Serializable

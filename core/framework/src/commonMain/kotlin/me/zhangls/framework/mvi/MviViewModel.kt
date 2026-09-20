@@ -15,14 +15,25 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
 
 /**
+ * MVI 基类：Intent → State（+ Effect）单向数据流。
+ *
+ * State 的跨进程持久化是 **opt-in** 的 —— 默认纯内存态，见 [savedKey]。
+ *
  * @author zhangls
  */
 abstract class MviViewModel<S : MviState, I : MviIntent>(
   initialState: S,
   stateSerializer: KSerializer<S>,
   savedStateHandle: SavedStateHandle,
-  // 当保存的 key 为 null 时，则不保存（纯内存态，进程销毁即丢失）
-  savedKey: String? = "state"
+  // 安全默认：不保存（纯内存态，进程销毁即丢失）。
+  //
+  // 默认值刻意取 null 而非某个 key —— State 普遍含敏感数据（登录密码、
+  // accessToken / refreshToken）或大对象（分页列表、账户集），一旦写进
+  // SavedStateHandle 就会随 instance state 落盘，并可能触发 TransactionTooLarge。
+  // "默认持久化 + 各自记得关掉"这种约定必然漏（本项目就漏了登录态与搜索态两处），
+  // 而漏掉的后果是静默的凭证泄漏。故改为：确需跨进程恢复时才显式给 key，
+  // 且给 key 的那一刻必须确认该 State 不含敏感数据。
+  savedKey: String? = null
 ) : ViewModel() {
   private val _intent = MutableSharedFlow<I>(extraBufferCapacity = 64)
 
