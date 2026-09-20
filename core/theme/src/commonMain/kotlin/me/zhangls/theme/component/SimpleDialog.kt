@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 /**
+ * 纯文本内容的便捷重载，委托给 [AnnotatedString] 版本。
+ *
+ * 版式（间距 / 分隔线 / 按钮排布）只在下方那个重载里定义一次 —— 两个重载各写一份
+ * 主体时，改一次样式要记得改两处，漏改不会报错，只会让两种对话框长得不一样。
+ *
  * @author zhangls
  */
 @Composable
@@ -42,77 +47,14 @@ fun SimpleDialog(
   dismissText: String? = null,
   dismiss: (() -> Unit)? = null,
 ) {
-  Dialog(onDismissRequest = {}) {
-    Column(
-      modifier = Modifier
-        .background(
-          color = MaterialTheme.colorScheme.surfaceContainerHigh,
-          shape = MaterialTheme.shapes.extraLarge
-        )
-    ) {
-      Spacer(modifier = Modifier.height(20.dp))
-
-      Text(
-        text = title,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 24.dp),
-        maxLines = 1,
-        style = MaterialTheme.typography.titleLarge,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
-        fontWeight = FontWeight.Bold
-      )
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      HorizontalDivider(thickness = 0.5.dp)
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      Text(
-        text = content,
-        style = MaterialTheme.typography.bodyLarge,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 24.dp),
-      )
-
-      Spacer(modifier = Modifier.height(24.dp))
-
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.End
-      ) {
-        dismissText?.let {
-          OutlinedButton(
-            onClick = { dismiss?.invoke() },
-            modifier = Modifier.weight(1F),
-            border = BorderStroke(
-              width = 1.dp,
-              color = MaterialTheme.colorScheme.outline,
-            )
-          ) {
-            Text(text = dismissText)
-          }
-
-          Spacer(modifier = Modifier.width(24.dp))
-        }
-
-        Button(
-          onClick = { confirm?.invoke() },
-          modifier = Modifier.weight(1F)
-        ) {
-          Text(text = confirmText)
-        }
-      }
-
-      Spacer(modifier = Modifier.height(20.dp))
-    }
-  }
+  SimpleDialog(
+    title = title,
+    content = AnnotatedString(content),
+    confirmText = confirmText,
+    confirm = confirm,
+    dismissText = dismissText,
+    dismiss = dismiss,
+  )
 }
 
 @Preview
