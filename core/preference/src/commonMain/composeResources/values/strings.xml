@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- 深色模式 -->
+  <string name="theme_label_dark_mode">Dark mode</string>
+  <string name="theme_dark_mode_follow_system">Follow system</string>
+  <string name="theme_dark_mode_light">Light</string>
+  <string name="theme_dark_mode_dark">Dark</string>
+  <!-- 语言 -->
+  <string name="language_label">Language</string>
+  <string name="language_follow_system">System default</string>
+  <string name="language_english">English</string>
+  <string name="language_chinese">Chinese (Simplified)</string>
+  <!-- 动态主题色 -->
+  <string name="settings_label_dynamic_color">Dynamic color</string>
+  <string name="settings_msg_dynamic_color_on">Theme follows wallpaper colors</string>
+  <string name="settings_msg_dynamic_color_off">Built-in theme colors</string>
+  <!-- 字体大小 -->
+  <string name="settings_label_font_size">Font size</string>
+  <string name="settings_label_font_size_standard">Standard</string>
+  <string name="settings_label_font_size_medium">Medium</string>
+  <string name="settings_label_font_size_large">Large</string>
+  <!-- 退出登录 -->
+  <string name="settings_label_logout">Log out</string>
+</resources>

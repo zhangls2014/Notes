@@ -62,15 +62,15 @@ import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
 import me.zhangls.login.domain.text
 import me.zhangls.login.icon.AppLogo
+import me.zhangls.preference.DarkThemePreference
+import me.zhangls.preference.LanguagePreference
 import me.zhangls.theme.component.ContainedLoadingIndicator
-import me.zhangls.theme.darkmode.DarkThemeCatalog
 import me.zhangls.theme.icon.AccountCircle
 import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Lock
 import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
-import me.zhangls.theme.language.LanguageCatalog
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_hint_login_account
@@ -195,7 +195,7 @@ fun DarkThemeButton(
   modifier: Modifier = Modifier,
   onDarkThemeChange: (DarkThemeConfig) -> Unit
 ) {
-  val label = stringResource(DarkThemeCatalog.title)
+  val label = stringResource(DarkThemePreference.spec.title)
   var expanded by remember { mutableStateOf(false) }
 
   Box(modifier = modifier) {
@@ -212,7 +212,7 @@ fun DarkThemeButton(
       IconButton(
         onClick = { expanded = expanded.not() },
       ) {
-        Icon(imageVector = DarkThemeCatalog.icon, contentDescription = label)
+        Icon(imageVector = DarkThemePreference.spec.icon, contentDescription = label)
       }
     }
 
@@ -223,7 +223,7 @@ fun DarkThemeButton(
       DropdownMenuGroup(
         shapes = MenuDefaults.groupShapes(),
       ) {
-        DarkThemeCatalog.options.forEach { option ->
+        DarkThemePreference.spec.options.forEach { option ->
           DropdownMenuItem(
             text = { Text(text = stringResource(option.label)) },
             shapes = MenuDefaults.itemShapes(),
@@ -246,7 +246,7 @@ fun DarkThemeButton(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLanguageChange: (AppLanguage) -> Unit) {
-  val label = stringResource(LanguageCatalog.title)
+  val label = stringResource(LanguagePreference.spec.title)
   var expanded by remember { mutableStateOf(false) }
 
   Box(modifier = modifier) {
@@ -263,7 +263,7 @@ fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLangu
       IconButton(
         onClick = { expanded = expanded.not() },
       ) {
-        Icon(imageVector = LanguageCatalog.icon, contentDescription = label)
+        Icon(imageVector = LanguagePreference.spec.icon, contentDescription = label)
       }
     }
 
@@ -274,7 +274,7 @@ fun LanguageButton(language: AppLanguage, modifier: Modifier = Modifier, onLangu
       DropdownMenuGroup(
         shapes = MenuDefaults.groupShapes(),
       ) {
-        LanguageCatalog.options.forEach { option ->
+        LanguagePreference.spec.options.forEach { option ->
           DropdownMenuItem(
             text = { Text(text = stringResource(option.label)) },
             shapes = MenuDefaults.itemShapes(),
