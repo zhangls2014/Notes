@@ -1,17 +1,7 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-/.idea/valkyrie_settings.xml
-/.idea/artifacts
-/.idea/inspectionProfiles/Project_Default.xml
-/.idea/gradle.xml
-/.idea/xcode.xml
+# .idea 的忽略规则统一由 .idea/.gitignore 管理（含 Gradle 同步推导的本机文件）
 /.kotlin
 .DS_Store
 /build
@@ -20,7 +10,6 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 /.trae
 /iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata
 /iosApp/iosApp.xcodeproj/xcuserdata

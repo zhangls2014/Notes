@@ -15,3 +15,16 @@
 /migrations.xml
 /misc.xml
 /studiobot.xml
+
+# 由 Gradle 同步推导 / IDE 自动生成的工程文件
+# （原先散落在仓库根 .gitignore，统一收敛到此处，避免两处维护同一件事）
+/artifacts
+/assetWizardSettings.xml
+/caches
+/gradle.xml
+/inspectionProfiles/Project_Default.xml
+/libraries
+/modules.xml
+/navEditor.xml
+/valkyrie_settings.xml
+/xcode.xml
