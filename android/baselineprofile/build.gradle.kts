@@ -3,6 +3,12 @@ plugins {
   alias(kmp.plugins.androidx.baselineprofile)
 }
 
+kotlin {
+  // 显式声明编译用 JDK：否则回退到运行 Gradle 的 JDK，
+  // 而 IDE（Android Studio 自带 JBR）与命令行的默认 JDK 可能不同
+  jvmToolchain(kmp.versions.jvm.target.get().toInt())
+}
+
 android {
   namespace = "me.zhangls.baselineprofile"
   buildToolsVersion = kmp.versions.android.buildTools.get()
@@ -12,8 +18,8 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.toVersion(kmp.versions.jvm.target.get())
+    targetCompatibility = JavaVersion.toVersion(kmp.versions.jvm.target.get())
   }
 
   defaultConfig {
