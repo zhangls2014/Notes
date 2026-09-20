@@ -86,12 +86,13 @@ Android 侧用 lint（`detekt` 只 apply 在根项目且根项目无源集，跑
   - 元数据 = `PreferenceSpec` 词表（`Toggle` / `Select<T>` / `Action` + `PreferenceOption<T>`）+ 每个设置项一个 `object`（`LanguagePreference` / `DarkThemePreference` / `DynamicColorPreference` / `FontSizePreference` / `LogoutPreference`，统一只暴露 `spec`）+ 专属文案（composeResources）+ "由取值推导展示结果"的纯函数（如 `DarkThemePreference.isDark`）
   - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染，如 `SelectIconButton`（图标按钮 + 长按提示 + 下拉单选）。**同一 spec 的每种形态都应在此实现一次** —— 登录页与设置页展示同一批设置项但形态不同（图标按钮 vs 列表行），只共享元数据。若哪天新增第三种形态，先看这里是否已有可复用件
   - **硬规则一：不含取值来源与行为主体** —— `value` / `onValueChange` 只作为控件**参数**传入，`spec` 单例自身不持有它们；回调签名一律用 `(T) -> Unit` 而非 `(T) -> SettingsIntent`。`SettingsIntent` 定义在 `feature:settings` 的 **impl** 模块内（不在 `-api`），把它带进本模块会立刻形成 impl → impl 依赖环
-  - **硬规则二：控件只用通用 Compose 组件** —— 不依赖 `androidx.compose.preference`（`SelectIconButton` 只用 Material3 的 IconButton / DropdownMenuPopup / TooltipBox）
+  - 渲染契约（`ui/PreferenceUiModel.kt`）= `spec` + 当前取值 + 回调 `(T) -> Unit`。消费方装配它，控件渲染它
+  - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染：`PreferenceRow`（列表行形态，含 `Toggle` / `Select<T>` / `Action` 三类行）、`SelectIconButton`（图标形态：图标按钮 + 长按提示 + 下拉单选）、`ProvidePreferenceLocals`（行控件的 locals 容器）。**同一 spec 的每种形态都在此实现一次** —— 登录页用图标形态、设置页用行形态，展示同一批 spec，两边都不写渲染代码。新增**设置项**不必改任何 feature 的渲染；新增**形态**才需要在这里加控件
+  - **硬规则一：不含取值来源与行为主体** —— `value` / `onValueChange` 只作为控件**参数**传入，`spec` 单例自身不持有它们；回调签名一律用 `(T) -> Unit` 而非 `(T) -> SettingsIntent`。`SettingsIntent` 定义在 `feature:settings` 的 **impl** 模块内（不在 `-api`），把它带进本模块会立刻形成 impl → impl 依赖环
+  - **硬规则二：实现库不外泄** —— 行形态基于 `me.zhanghai.compose.preference`，但该依赖在本模块是 `implementation`：消费方的签名里不得出现 `SwitchPreference` / `ListPreference` 及库版 `ProvidePreferenceLocals` 等底层类型，只能用本模块的 `PreferenceUiModel` / `PreferenceRow` / `ProvidePreferenceLocals`（同名包装）。换实现库时 feature 不应有任何改动 —— 与 `core:data → core:database` 用 `implementation` 制造可见性边界是同一手法
   - **硬规则三：不含清单与顺序** —— 哪些设置项存在、以什么顺序展示是**平台相关**的（动态取色仅 Android 有），定义留在 `feature:settings`；平台差异用能力位（`supportsDynamicColor`）过滤，不要各平台各写一份清单
-  - 依赖方向：`api(projects.core.theme)`（复用图标与 `ThemeColor`，图标本身不搬）+ `api(projects.core.model)`（设置取值枚举作为元数据的类型参数出现在公开 API）
-  - 消费方式：消费方把 `spec` 与自己的取值 / Intent 组装成表现层模型再渲染。参考 `feature:settings` 的 `ui/PreferenceUiModel.kt`（`spec` + `value` + `SettingsIntent` 三元组）与 `ui/SettingsPreferenceMapper.kt`（纯装配层）
-  - 依赖方向：`api(projects.core.theme)`（复用图标与 `ThemeColor`，图标本身不搬）+ `api(projects.core.model)`（设置取值枚举作为元数据的类型参数出现在公开 API）
-  - 消费方式：消费方把 `spec` 与自己的取值 / Intent 组装成表现层模型再渲染。参考 `feature:settings` 的 `ui/PreferenceUiModel.kt`（`spec` + `value` + `SettingsIntent` 三元组）与 `ui/SettingsPreferenceMapper.kt`（纯装配层）
+  - 依赖方向：`api(projects.core.theme)`（复用图标与 `ThemeColor`，图标本身不搬）+ `api(projects.core.model)`（设置取值枚举作为元数据的类型参数出现在公开 API）+ `implementation(kmp.compose.preference)`（行控件的实现库，不外泄）
+  - 消费方式：消费方把 `spec` 与自己的取值 / 回调装配成 `List<PreferenceUiModel>`（回调在此处绑定，见 `feature:settings` 的 `ui/SettingsPreferenceMapper.kt`），再交给 `ProvidePreferenceLocals { LazyColumn { PreferenceRow(...) } }` 渲染
 - `:core:network`: 网络层，Ktor、`ApiResponse`/`NetworkResult`、`TokenProvider`
 - `:core:framework`: 框架层，MVI 基类（`MviViewModel`）、导航抽象（`Destination`/`NavEffect`/`RequireLogin`）、DeepLink、全局 Toast
 
@@ -156,13 +157,14 @@ Android 专用：
 
 #### 设置相关 (feature:settings + core:preference)
 
-设置项拆成"元数据 / 取值 / 行为"三段：
+设置项拆成"元数据 / 取值 / 行为 / 渲染"四段：
 
 - **元数据**（标题 / 图标 / 选项 / 摘要）→ `core:preference` 的对应 `object`，跨 feature 复用（登录页也用语言与深色模式两项）
 - **当前取值** → `SettingsModel`（`core:data`）经 `SettingsRepository.settingsFlow` 流到 `SettingsState`
 - **行为** → `SettingsIntent` + `SettingsViewModel`（`feature:settings` impl）
-- 三者由 `ui/SettingsPreferenceMapper.kt` 组装为 `ui/PreferenceUiModel.kt` 的 `Toggle` / `Select<T>` / `Action`，`SettingsScreen.kt` 只按 spec 渲染（`Toggle`→`SwitchPreference`、`Select`→`ListPreference`、`Action`→`Preference`）
-- **清单与顺序**由 `SettingsPreferenceMapper.android.kt` / `.ios.kt` 两个 actual 决定（iOS 无动态取色）
+- **渲染** → `core:preference` 的控件（行形态 `PreferenceRow` / 图标形态 `SelectIconButton`），feature 一行渲染代码都不写
+- 前三者由 `ui/SettingsPreferenceMapper.kt` 装配为 `core:preference` 的 `PreferenceUiModel`（`Toggle` / `Select<T>` / `Action`，回调在此绑到 `viewModel::sendIntent`），`SettingsScreen.kt` 只做列表装配：`ProvidePreferenceLocals { LazyColumn { PreferenceRow(...) } }`
+- **清单与顺序**在 `SettingsPreferenceMapper.kt`（common）定义一次，平台差异用能力位 `supportsDynamicColor` 过滤（iOS 无动态取色）—— 不要退回成 android/ios 两份 actual 清单
 
 ### 数据加载
 
