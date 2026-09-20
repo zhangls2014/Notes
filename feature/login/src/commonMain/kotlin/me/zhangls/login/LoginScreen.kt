@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -78,6 +79,12 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
+ * 表单最大宽度。Android 17 起大屏设备不再允许应用锁定方向/尺寸，窗口宽度可能达到上千 dp，
+ * 这里对表单做宽度约束，避免单行输入框横跨整个窗口。
+ */
+private val FormMaxWidth = 480.dp
+
+/**
  * @author zhangls
  */
 @Composable
@@ -101,6 +108,7 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
   Scaffold { padding ->
     Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier
         .fillMaxSize()
         .verticalScroll(state = rememberScrollState())
@@ -126,7 +134,10 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(vertical = 32.dp)
+        modifier = Modifier
+          // 大屏（sw>=600dp）下不拉满整行，避免单行输入框宽到难以阅读
+          .widthIn(max = FormMaxWidth)
+          .padding(vertical = 32.dp)
       ) {
         Image(imageVector = AppLogo, contentDescription = null)
 
