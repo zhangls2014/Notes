@@ -17,12 +17,27 @@ import me.zhangls.settings.mvi.SettingsIntent
  * 每一项都是「`core:preference` 的静态元数据 + 本模块的当前取值 + 本模块的 [SettingsIntent]」，
  * 本文件因此只负责**装配**，不再持有任何标题 / 图标 / 选项文案。
  *
- * 哪些设置项存在、以什么顺序展示由各平台的 actual 决定 —— 这是**平台相关**信息
- * （动态取色仅 Android 支持），因此不进 `core:preference`，必须留在本模块的 expect/actual 里。
+ * 设置项清单（有哪些、什么顺序）只在 common 定义一次，平台差异用能力位 [supportsDynamicColor]
+ * 过滤后表达。这类"平台相关"信息确实不该进 `core:preference`（动态取色仅 Android 支持），
+ * 但也不该让各平台各写一份清单 —— 两份清单的问题不是重复，而是**必然漏改一侧**。
  *
  * @author zhangls
  */
-internal expect fun SettingsModel.toPreferenceUiModels(): List<PreferenceUiModel>
+internal expect val supportsDynamicColor: Boolean
+
+/**
+ * 全部设置项的表现层模型，顺序即展示顺序。[supportsDynamicColor] 为 false 的平台会跳过动态取色项。
+ */
+internal fun SettingsModel.toPreferenceUiModels(): List<PreferenceUiModel> = buildList {
+  if (supportsDynamicColor) {
+    add(dynamicColorPreference(dynamicColor))
+  }
+  add(darkThemePreference(darkTheme))
+  add(fontSizePreference(fontSize))
+  add(languagePreference(appLanguage))
+  // 退出登录
+  add(logoutPreference())
+}
 
 internal fun dynamicColorPreference(value: Boolean): PreferenceUiModel.Toggle {
   return PreferenceUiModel.Toggle(
