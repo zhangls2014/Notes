@@ -81,13 +81,13 @@ Android 侧用 lint（`detekt` 只 apply 在根项目且根项目无源集，跑
   - 内部面：`impl/`（`datastore/`、`mapper/`、`repository/`（实现）），实现类与 Koin provider 均为 `internal`
   - **硬规则一：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
   - **硬规则二：对 `core:database` 只能用 `implementation`**（见上），一旦改成 `api` 或 `implementation` 丢失，隔离即刻失效
-- `:core:theme`: 主题、颜色、图标、通用组件（Toast/Dialog）
+- `:core:theme`: 主题、颜色、图标、通用组件（`TooltipIconButton` / `SimpleDialog` / `CenteredTopAppBar` / `ContainedLoadingIndicator`）、布局环境（`layout/NavigationPlacement.kt`）
+  - **通用控件的判据**：同一段 Compose 渲染在 ≥2 处出现时下沉到这里，而不是在各自 feature 里复制。`TooltipIconButton` 就是这么来的 —— "图标按钮 + 提示气泡"曾在三处各写一遍（设置页顶部入口 / 多选操作栏 / 搜索栏返回键）
+  - `layout/NavigationPlacement.kt`：`LocalNavigationPlacement`（导航套件占哪一侧）+ `PaddingValues.toContentPadding(placement)`（把 Scaffold 内边距换算成内容内边距）。**宿主布局信息走 CompositionLocal，不进 feature 契约**（见「导航」一节）
 - `:core:preference`: 设置项的**展示元数据 + 配套通用控件**（`me.zhangls.preference`）
   - 元数据 = `PreferenceSpec` 词表（`Toggle` / `Select<T>` / `Action` + `PreferenceOption<T>`）+ 每个设置项一个 `object`（`LanguagePreference` / `DarkThemePreference` / `DynamicColorPreference` / `FontSizePreference` / `LogoutPreference`，统一只暴露 `spec`）+ 专属文案（composeResources）+ "由取值推导展示结果"的纯函数（如 `DarkThemePreference.isDark`）
-  - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染，如 `SelectIconButton`（图标按钮 + 长按提示 + 下拉单选）。**同一 spec 的每种形态都应在此实现一次** —— 登录页与设置页展示同一批设置项但形态不同（图标按钮 vs 列表行），只共享元数据。若哪天新增第三种形态，先看这里是否已有可复用件
-  - **硬规则一：不含取值来源与行为主体** —— `value` / `onValueChange` 只作为控件**参数**传入，`spec` 单例自身不持有它们；回调签名一律用 `(T) -> Unit` 而非 `(T) -> SettingsIntent`。`SettingsIntent` 定义在 `feature:settings` 的 **impl** 模块内（不在 `-api`），把它带进本模块会立刻形成 impl → impl 依赖环
-  - 渲染契约（`ui/PreferenceUiModel.kt`）= `spec` + 当前取值 + 回调 `(T) -> Unit`。消费方装配它，控件渲染它
   - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染：`PreferenceRow`（列表行形态，含 `Toggle` / `Select<T>` / `Action` 三类行）、`SelectIconButton`（图标形态：图标按钮 + 长按提示 + 下拉单选）、`ProvidePreferenceLocals`（行控件的 locals 容器）。**同一 spec 的每种形态都在此实现一次** —— 登录页用图标形态、设置页用行形态，展示同一批 spec，两边都不写渲染代码。新增**设置项**不必改任何 feature 的渲染；新增**形态**才需要在这里加控件
+  - 渲染契约（`ui/PreferenceUiModel.kt`）= `spec` + 当前取值 + 回调 `(T) -> Unit`。消费方装配它，控件渲染它
   - **硬规则一：不含取值来源与行为主体** —— `value` / `onValueChange` 只作为控件**参数**传入，`spec` 单例自身不持有它们；回调签名一律用 `(T) -> Unit` 而非 `(T) -> SettingsIntent`。`SettingsIntent` 定义在 `feature:settings` 的 **impl** 模块内（不在 `-api`），把它带进本模块会立刻形成 impl → impl 依赖环
   - **硬规则二：实现库不外泄** —— 行形态基于 `me.zhanghai.compose.preference`，但该依赖在本模块是 `implementation`：消费方的签名里不得出现 `SwitchPreference` / `ListPreference` 及库版 `ProvidePreferenceLocals` 等底层类型，只能用本模块的 `PreferenceUiModel` / `PreferenceRow` / `ProvidePreferenceLocals`（同名包装）。换实现库时 feature 不应有任何改动 —— 与 `core:data → core:database` 用 `implementation` 制造可见性边界是同一手法
   - **硬规则三：不含清单与顺序** —— 哪些设置项存在、以什么顺序展示是**平台相关**的（动态取色仅 Android 有），定义留在 `feature:settings`；平台差异用能力位（`supportsDynamicColor`）过滤，不要各平台各写一份清单
@@ -130,6 +130,7 @@ Android 专用：
 - `core:framework` 的 `Destination` 是各 feature 导航目的地的抽象（如 `MainDestination`、`LoginDestination`、`EmailDetailDestination`），导航操作统一为 `NavEffect`（Navigate/Replace/Restart/Popup）
 - `composeApp` 的 `AppNavHost.kt` 装配各 feature 的 nav entry（`mainNavEntry`/`loginNavEntry`/`emailNavEntry`），并实现 `RequireLogin` 登录拦截：未登录访问受限页面时先跳登录，登录成功后恢复目标页面
 - 根据登录状态决定首屏（`MainDestination` 或 `LoginDestination`），支持 DeepLink
+- **宿主布局信息（导航套件占哪一侧）走 `LocalNavigationPlacement`，不进 feature 的 `-api` 契约**：契约里出现布局参数，等于把宿主细节泄漏给兄弟 feature，且同一个参数会被各消费方按不同含义使用。历史上 `isBottomNavigationBar: Boolean` 曾穿透 3 个契约、出现在 15 个文件 47 处，并被当成"内容内边距"、"搜索栏形态（其实是屏幕尺寸）"、"硬编码常量"三种用途，它派生出的内边距换算还在两个 feature 各写一遍并已分叉。现在的口径是：`feature:main` 只下发 `NavigationPlacement`，各页面用 `PaddingValues.toContentPadding(placement)` 自行换算
 
 ### MVI 架构
 
@@ -143,15 +144,17 @@ Android 专用：
 
 位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/MainScreen.kt`，使用 `NavigationSuiteScaffold` 自适应布局（小屏底部导航栏，中大屏 Navigation Rail），包含三个 Tab，通过 Koin 注入的 `EmailEntry` / `SettingsEntry` 内联渲染：
 
-- HOME: 首页，显示邮件列表（`EmailEntry.HomeScreen`）
+- HOME: 首页，显示邮件列表（`EmailEntry.HomeScreen()`）
 - FAVORITES: 收藏页（`EmailEntry.FavoritesScreen`）
 - SETTINGS: 设置页（`SettingsEntry.Screen`）
 
+宿主职责只有两件：把 `NavigationSuiteType` 归类为 `NavigationPlacement`（`Bottom` / `Side`），再经 `CompositionLocalProvider` 下发给内容区。三个入口调用因此都不带布局参数 —— 内容内边距由各 feature 用 `toContentPadding()` 自行换算。
+
 #### 邮件相关 (feature:email)
 
-- 首页列表：`feature/email/src/commonMain/kotlin/me/zhangls/email/home/HomeScreen.kt`（Android/iOS 平台差异仅 Scaffold 选择，共享逻辑在 commonMain）
+- 首页列表：`feature/email/src/commonMain/kotlin/me/zhangls/email/home/HomeScreen.kt`（列表-详情双栏的装配写在 commonMain；平台差异只有 `home/PaneScaffold.kt` 的一层 expect/actual 包裹 —— Android 走 `NavigableListDetailPaneScaffold`，iOS 走 `ListDetailPaneScaffold` + 自适应 directive。**不要**再各平台写一份完整 HomeScreen）
 - 收藏页：`feature/email/src/commonMain/kotlin/me/zhangls/email/favorites/FavoritesScreen.kt`
-- 邮件列表组件：`feature/email/src/commonMain/kotlin/me/zhangls/email/component/`（`EmailList` 为编排层，`EmailTopBar`/`EmailFab`/`EmailPagedList`/`NewEmailSheet` 等按职责拆分）
+- 邮件列表组件：`feature/email/src/commonMain/kotlin/me/zhangls/email/component/`（`EmailList` 为编排层，`EmailTopBar`/`EmailFab`/`EmailPagedList`/`NewEmailSheet` 等按职责拆分；`EmailHeader` 是列表项与详情项**共用**的卡片头部（头像 + 发件人/时间 + 收藏按钮），差异由 `EmailHeaderVariant` 表达 —— 收藏按钮的图标与无障碍文案只维护这一处）
 - 邮件详情：`feature/email/src/commonMain/kotlin/me/zhangls/email/detail/EmailDetailScreen.kt`
 - 搜索：`feature/email/src/commonMain/kotlin/me/zhangls/email/search/`
 
@@ -165,6 +168,7 @@ Android 专用：
 - **渲染** → `core:preference` 的控件（行形态 `PreferenceRow` / 图标形态 `SelectIconButton`），feature 一行渲染代码都不写
 - 前三者由 `ui/SettingsPreferenceMapper.kt` 装配为 `core:preference` 的 `PreferenceUiModel`（`Toggle` / `Select<T>` / `Action`，回调在此绑到 `viewModel::sendIntent`），`SettingsScreen.kt` 只做列表装配：`ProvidePreferenceLocals { LazyColumn { PreferenceRow(...) } }`
 - **清单与顺序**在 `SettingsPreferenceMapper.kt`（common）定义一次，平台差异用能力位 `supportsDynamicColor` 过滤（iOS 无动态取色）—— 不要退回成 android/ios 两份 actual 清单
+- 对话框（`ui/DialogUiModel.kt` + `SettingsDialogMapper.kt`）留在 `feature:settings`：它只有这一个消费方且带确认/取消语义，不是横向资产。但**按钮文案若与某个设置项同源（"退出登录"），直接取 `LogoutPreference.spec.title`**，不要在 strings.xml 里再抄一份 —— 各写一份的结果是改标题时按钮不跟着变。注意跨模块只能取 `core:preference` 的**公开 API**，取不到它的资源字符串（CMP 生成的资源访问器是 `internal`）
 
 ### 数据加载
 
