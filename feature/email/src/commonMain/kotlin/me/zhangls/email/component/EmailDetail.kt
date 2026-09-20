@@ -1,48 +1,35 @@
 package me.zhangls.email.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import me.zhangls.data.model.EmailModel
-import me.zhangls.theme.icon.Star
-import me.zhangls.theme.icon.StarFill
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar
-import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.layout.LocalNavigationPlacement
+import me.zhangls.theme.layout.toContentPadding
 import notes.feature.email.generated.resources.Res
-import notes.feature.email.generated.resources.email_action_cancel_favorite
 import notes.feature.email.generated.resources.email_action_email_reply
 import notes.feature.email.generated.resources.email_action_email_reply_all
-import notes.feature.email.generated.resources.email_action_favorite
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -53,7 +40,6 @@ import org.jetbrains.compose.resources.stringResource
 internal fun EmailDetail(
   emailId: Long,
   isStandalone: Boolean,
-  isBottomNavigationBar: Boolean,
   viewModel: EmailViewModel,
   onBackPressed: (() -> Unit)?
 ) {
@@ -61,6 +47,7 @@ internal fun EmailDetail(
   val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
   val model by emailFlow.collectAsStateWithLifecycle(null)
   val threads = threadFlow.collectAsLazyPagingItems()
+  val navigationPlacement = LocalNavigationPlacement.current
 
   Scaffold(
     topBar = {
@@ -69,16 +56,9 @@ internal fun EmailDetail(
       }
     }
   ) { padding ->
-    val contentPadding = if (isStandalone) {
-      padding
-    } else {
-      PaddingValues(
-        top = padding.calculateTopPadding(),
-        bottom = padding.calculateBottomPadding(),
-        start = if (isBottomNavigationBar) padding.calculateStartPadding(LayoutDirection.Ltr) else 0.dp,
-        end = padding.calculateEndPadding(LayoutDirection.Ltr)
-      )
-    }
+    // 独立页面（isStandalone）占满整屏，直接用 Scaffold 的内边距；
+    // 作为主界面分栏的详情页则以导航方位换算内容内边距
+    val contentPadding = if (isStandalone) padding else padding.toContentPadding(navigationPlacement)
 
     LazyColumn(contentPadding = contentPadding) {
       item {
@@ -100,8 +80,6 @@ internal fun EmailDetail(
 
 @Composable
 fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
-  val sender = model.sender
-
   Card(
     modifier = modifier,
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -111,41 +89,13 @@ fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavorite
         .fillMaxWidth()
         .padding(20.dp),
     ) {
-      Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        ProfileImage(drawableKey = sender.avatar, description = sender.fullName)
-
-        Column(
-          modifier = Modifier
-            .weight(1f)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-          verticalArrangement = Arrangement.Center,
-        ) {
-          Text(
-            text = sender.firstName,
-            style = MaterialTheme.typography.labelMedium,
-          )
-          Text(
-            text = model.createdAt,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.outline,
-          )
-        }
-        IconButton(
-          onClick = { onFavoriteClick(model.id) },
-          modifier = Modifier
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainer),
-        ) {
-          Icon(
-            imageVector = if (model.isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
-            contentDescription = stringResource(
-              if (model.isImportant) Res.string.email_action_cancel_favorite
-              else Res.string.email_action_favorite
-            ),
-            tint = MaterialTheme.colorScheme.outline,
-          )
-        }
-      }
+      EmailHeader(
+        account = model.sender,
+        createdAt = model.createdAt,
+        isImportant = model.isImportant,
+        variant = EmailHeaderVariant.Detail,
+        onFavoriteClick = { onFavoriteClick(model.id) },
+      )
 
       Text(
         text = model.subject.toDisplaySubject(),

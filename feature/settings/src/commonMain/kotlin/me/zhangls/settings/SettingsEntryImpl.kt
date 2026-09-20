@@ -17,11 +17,9 @@ import org.koin.core.annotation.Singleton
 class SettingsEntryImpl : SettingsEntry {
   @Composable
   override fun Screen(
-    isBottomNavigationBar: Boolean,
     onResult: (SettingsResult) -> Unit,
   ) {
     SettingsScreen(
-      isBottomNavigationBar = isBottomNavigationBar,
       onResult = onResult,
     )
   }

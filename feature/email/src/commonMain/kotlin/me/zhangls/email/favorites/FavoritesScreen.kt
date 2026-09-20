@@ -9,7 +9,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun FavoritesScreen(
-  isBottomNavigationBar: Boolean,
   navigateToDetail: (Long) -> Unit
 ) {
   val viewModel: EmailViewModel = koinViewModel()
@@ -17,7 +16,6 @@ fun FavoritesScreen(
   EmailList(
     viewModel = viewModel,
     isFavorite = true,
-    isBottomNavigationBar = isBottomNavigationBar,
     openedEmailId = null,
     navigateToDetail = navigateToDetail,
   )

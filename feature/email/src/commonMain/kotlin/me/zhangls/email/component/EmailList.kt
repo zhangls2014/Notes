@@ -1,8 +1,5 @@
 package me.zhangls.email.component
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -10,14 +7,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
+import me.zhangls.theme.layout.LocalNavigationPlacement
+import me.zhangls.theme.layout.toContentPadding
 
 /**
  * 邮件列表页骨架：组装顶栏（搜索/多选操作栏）、写邮件 FAB、分页列表与草稿 BottomSheet。
@@ -28,7 +25,6 @@ import me.zhangls.email.mvi.EmailViewModel
 internal fun EmailList(
   viewModel: EmailViewModel,
   isFavorite: Boolean,
-  isBottomNavigationBar: Boolean,
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
 ) {
@@ -40,6 +36,7 @@ internal fun EmailList(
     viewModel.emailPaging.collectAsLazyPagingItems()
   }
   val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+  val navigationPlacement = LocalNavigationPlacement.current
 
   Scaffold(
     modifier = if (isFavorite) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -47,7 +44,6 @@ internal fun EmailList(
       if (isFavorite) return@Scaffold
       EmailTopBar(
         state = state,
-        isBottomNavigationBar = isBottomNavigationBar,
         scrollBehavior = scrollBehavior,
         onIntent = { viewModel.sendIntent(it) },
         onResultClick = navigateToDetail
@@ -62,17 +58,11 @@ internal fun EmailList(
       )
     },
   ) { padding ->
-    val contentPadding = PaddingValues(
-      top = padding.calculateTopPadding(),
-      bottom = if (isBottomNavigationBar) 0.dp else padding.calculateBottomPadding(),
-      start = if (isBottomNavigationBar) padding.calculateStartPadding(LayoutDirection.Ltr) else 0.dp,
-      end = if (isBottomNavigationBar) padding.calculateEndPadding(LayoutDirection.Ltr) else 0.dp
-    )
-
     EmailPagedList(
       emailItems = emailItems,
       listState = emailListState,
-      contentPadding = contentPadding,
+      // 内容内边距由导航方位换算：导航套件占用的那一侧归零，其余保留系统边距
+      contentPadding = padding.toContentPadding(navigationPlacement),
       isFavorite = isFavorite,
       selectedItems = state.selectedItems,
       openedEmailId = openedEmailId,
