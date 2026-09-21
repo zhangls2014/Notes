@@ -10,10 +10,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.modules.plus
@@ -84,6 +86,16 @@ fun AppNavHost(
   NavDisplay(
     backStack = backStack,
     onBack = { backStack.removeLastOrNull() },
+    // 每个 NavEntry 一个 ViewModelStore：ViewModel 随 entry 一起创建、随 entry 出栈一起清除。
+    // 少了这一项，NavDisplay 只挂 SaveableStateHolder，所有 ViewModel 都会落到宿主（Activity）
+    // 的 store 里，于是登录页的 ViewModel 永不 onCleared（明文密码残留），详情页与列表页也会
+    // 共用同一个实例。
+    // 顺序不能反：SaveableStateHolder 装饰器负责提供 SavedStateRegistryOwner，
+    // ViewModelStore 装饰器要读它才能给每个 entry 的 ViewModel 装配 SavedStateHandle。
+    entryDecorators = listOf(
+      rememberSaveableStateHolderNavEntryDecorator(),
+      rememberViewModelStoreNavEntryDecorator(),
+    ),
     transitionSpec = {
       slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
     },

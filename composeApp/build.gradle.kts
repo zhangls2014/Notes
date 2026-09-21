@@ -26,6 +26,8 @@ kotlin {
         implementation(projects.feature.loginApi)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)
+
+        implementation(kmp.androidx.lifecycle.viewmodel.navigation3)
       }
     }
 
@@ -38,7 +40,6 @@ kotlin {
       implementation(kmp.androidx.activity.compose)
       implementation(kmp.androidx.lifecycle.compose)
       implementation(kmp.androidx.viewmodel.compose)
-      implementation(kmp.androidx.viewmodel.navigation3)
     }
   }
 }
