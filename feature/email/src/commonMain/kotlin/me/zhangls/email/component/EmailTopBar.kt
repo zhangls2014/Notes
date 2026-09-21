@@ -25,6 +25,16 @@ import notes.feature.email.generated.resources.email_action_favorite
 
 /**
  * 首页顶栏：未选中邮件时展示搜索栏，多选时切换为多选操作栏。
+ *
+ * 两个分支各自处理系统内边距，且**不对称是有意的**：
+ * - 搜索栏走 [EmailSearchBar] → `AppBarWithSearch`，后者自带
+ *   `systemBarsForVisualComponents.only(Horizontal + Top)`，已经贴好状态栏；
+ * - 多选操作栏是 [EmailActionBar]（`HorizontalFloatingToolbar`），浮动工具栏没有
+ *   "内置内边距"这回事，必须自己补 [statusBarsPadding]。
+ *
+ * 两个分支互斥，所以这里不会重复留白。加这个注释是为了避免后来者看到不对称
+ * 就"顺手统一"，那会让搜索栏被顶下去一个状态栏的高度。
+ * 导航套件那一侧的内边距不在这里处理 —— 已由外壳统一消费（`AppShell`）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

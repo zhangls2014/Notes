@@ -8,8 +8,9 @@ import androidx.compose.runtime.Composable
  * 兄弟 feature 只依赖本接口（`:feature:settings-api`），具体实现由 `:feature:settings`
  * 通过 Koin 提供并绑定到该接口，仅 `app`（组合根）依赖实现模块。以此切断 feature 间的直接依赖。
  *
- * 内容内边距不由本契约传递：宿主通过 `LocalNavigationPlacement`（`core:theme`）告诉内容区
- * "导航套件占了哪一侧"，页面自行换算内边距。契约里因此没有布局细节。
+ * 内容内边距不由本契约传递：导航套件占用的那部分系统内边距由应用外壳消费掉
+ * （`AppShell` 的 `consumeWindowInsets`），页面直接用 `Scaffold` 给出的 padding。
+ * 契约里因此没有布局细节 —— 既没有"导航在哪一侧"，也没有窗口尺寸。
  *
  * @author zhangls
  */

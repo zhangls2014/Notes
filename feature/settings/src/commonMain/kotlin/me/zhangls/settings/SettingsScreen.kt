@@ -19,8 +19,6 @@ import me.zhangls.settings.ui.toDialogUiModel
 import me.zhangls.settings.ui.toPreferenceUiModels
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
-import me.zhangls.theme.layout.LocalNavigationPlacement
-import me.zhangls.theme.layout.toContentPadding
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_label_settings
 import org.jetbrains.compose.resources.stringResource
@@ -40,7 +38,6 @@ internal fun SettingsScreen(
   val preferences = remember(state.settings, viewModel) {
     state.settings.toPreferenceUiModels(viewModel::sendIntent)
   }
-  val navigationPlacement = LocalNavigationPlacement.current
 
   LaunchedEffect(viewModel) {
     viewModel.effect.collect { effect ->
@@ -59,7 +56,8 @@ internal fun SettingsScreen(
     ProvidePreferenceLocals {
       LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = padding.toContentPadding(navigationPlacement),
+        // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
+        contentPadding = padding,
       ) {
         items(
           count = preferences.size,

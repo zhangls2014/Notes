@@ -13,8 +13,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
-import me.zhangls.theme.layout.LocalNavigationPlacement
-import me.zhangls.theme.layout.toContentPadding
 
 /**
  * 邮件列表页骨架：组装顶栏（搜索/多选操作栏）、写邮件 FAB、分页列表与草稿 BottomSheet。
@@ -36,7 +34,6 @@ internal fun EmailList(
     viewModel.emailPaging.collectAsLazyPagingItems()
   }
   val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
-  val navigationPlacement = LocalNavigationPlacement.current
 
   Scaffold(
     modifier = if (isFavorite) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -61,8 +58,9 @@ internal fun EmailList(
     EmailPagedList(
       emailItems = emailItems,
       listState = emailListState,
-      // 内容内边距由导航方位换算：导航套件占用的那一侧归零，其余保留系统边距
-      contentPadding = padding.toContentPadding(navigationPlacement),
+      // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
+      // （`AppShell`），这里读到的是"内容区真正可用"的内边距，不需要再换算。
+      contentPadding = padding,
       isFavorite = isFavorite,
       selectedItems = state.selectedItems,
       openedEmailId = openedEmailId,
