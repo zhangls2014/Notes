@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.framework.toast.showSystemToast
 import me.zhangls.model.AppLanguage
@@ -23,7 +24,10 @@ fun App(
 ) {
   val viewModel: AppViewModel = koinViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
-  val deepLinkDestination = parseDeepLink(deepLinkUrl)
+  // remember 住解析结果：parseDeepLink 每次调用都会新建对象，不记住的话这个参数会随每次
+  // 重组变化。下游需要按**引用**区分"首帧带进来的 DeepLink"与"运行期新来的同一条
+  // DeepLink"，参数不稳定会让这个判断失准（等于把每次重组都当成一次新导航）。
+  val deepLinkDestination = remember(deepLinkUrl) { parseDeepLink(deepLinkUrl) }
   val darkTheme = DarkThemePreference.isDark(state.darkTheme)
   val fontScale = state.fontSize.value
 

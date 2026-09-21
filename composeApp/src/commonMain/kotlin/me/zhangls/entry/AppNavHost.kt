@@ -6,9 +6,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -45,42 +44,53 @@ fun AppNavHost(
   deepLinkDestination: DeepLinkDestination? = null,
   onDeepLinkConsumed: () -> Unit = {},
 ) {
-  // 待处理的目标页面
-  var pendingDestination by remember { mutableStateOf<Destination?>(null) }
-  val config = SavedStateConfiguration {
-    serializersModule = mainNavModule + loginNavModule + emailNavModule
-  }
-  // 返回堆栈
-  val backStack = rememberNavBackStack(config)
   // 登录状态
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 是否登录（从 state 派生，避免组合期写状态）
   val isLogin = state.isLogin ?: false
 
-  val navHandler = NavHandler(backStack = backStack, isLogin = { isLogin }, onIntercept = { pendingDestination = it })
-
-  // 首屏/DeepLink 初始化必须在组合期同步完成：
-  // NavDisplay 进入组合的瞬间即 require(backStack.isNotEmpty())，
-  // 若推迟到 LaunchedEffect（在组合应用后才执行），首次渲染前必然存在空栈窗口，
-  // 直接抛 IllegalArgumentException 崩溃。
-  // isEmpty 守卫保证初始化幂等：仅在栈为空时填充一次，后续重组不会重复入栈。
+  // 登录状态未知，不显示 UI
   if (state.isLogin == null) {
-    // 登录状态未知，不显示 UI
     return
   }
 
-  if (backStack.isEmpty()) {
-    // 回退栈为空，则根据登录状态添加首屏
-    val firstDest = deepLinkDestination ?: if (isLogin) MainDestination else LoginDestination
-    navHandler(NavEffect.Navigate(firstDest))
-
-    if (deepLinkDestination != null) onDeepLinkConsumed()
-  } else if (deepLinkDestination != null) {
-    // 运行期 DeepLink：事件驱动，放 effect 中执行避免重组重复触发导航
-    LaunchedEffect(deepLinkDestination) {
-      navHandler(NavEffect.Navigate(deepLinkDestination))
-      onDeepLinkConsumed()
+  // 返回栈的序列化配置。remember 住：每次重组新建一个 SerializersModule 毫无意义，
+  // 还会让 rememberNavBackStack 依赖的配置对象持续变化。
+  val config = remember {
+    SavedStateConfiguration {
+      serializersModule = mainNavModule + loginNavModule + emailNavModule
     }
+  }
+
+  // 首帧传进来的 DeepLink 直接作为返回栈的初始元素。NavDisplay 进入组合的瞬间即
+  // require(backStack.isNotEmpty())，给初始元素比"先建空栈、再在组合期往里补一个"更稳，
+  // 也免掉了组合期写返回栈这段副作用。
+  // 注意初始元素同样要过登录守卫 —— 它是首屏，不是"已经过检查的栈内容"。
+  val initialDeepLink = remember { deepLinkDestination }
+  val initialDestination = (initialDeepLink ?: if (isLogin) MainDestination else LoginDestination())
+    .guardedByLogin(isLogin)
+  val backStack = rememberNavBackStack(config, initialDestination)
+
+  // navHandler 会被传进 NavDisplay 的 entryProvider，而 rememberDecoratedNavEntries 按返回栈
+  // 内容缓存已创建的 entry —— 旧 entry 里捕获到的是**创建那一刻**的 navHandler。因此这里既
+  // remember 住实例（避免无谓重建），又用 rememberUpdatedState 让它读到的始终是当前登录态，
+  // 而不是某个历史帧的快照。
+  val currentIsLogin by rememberUpdatedState(isLogin)
+  val navHandler = remember(backStack) {
+    NavHandler(backStack = backStack, isLogin = { currentIsLogin })
+  }
+
+  // 运行期 DeepLink：事件驱动，放 effect 里执行，避免重组重复触发导航。
+  // 首帧的 DeepLink 已并入返回栈的初始元素，所以只有"与首帧不同的那一个"才是新来的。
+  // 这里用引用比较而非 equals：同一条 URL 再次打开也应当重新导航。
+  // 另外 MainActivity 在 Activity 重建时会重新从 intent 取 URL，此时它会被当作"首帧"值，
+  // 因此不会被误判成新导航而重复压栈。
+  LaunchedEffect(deepLinkDestination) {
+    val destination = deepLinkDestination ?: return@LaunchedEffect
+    if (destination !== initialDeepLink) {
+      navHandler(NavEffect.Navigate(destination))
+    }
+    onDeepLinkConsumed()
   }
 
   NavDisplay(
@@ -109,7 +119,7 @@ fun AppNavHost(
       mainNavEntry { result ->
         when (result) {
           MainResult.Logout -> {
-            navHandler(Restart(LoginDestination))
+            navHandler(Restart(LoginDestination()))
           }
 
           is MainResult.NavigateToEmailDetail -> {
@@ -120,16 +130,12 @@ fun AppNavHost(
         }
       }
 
-      loginNavEntry {
-        if (it == LoginResult.Success) {
-          pendingDestination?.let { dest ->
-            pendingDestination = null
-            // 登录成功，且跳转目标页面不为空，则跳转到目标页面
-            navHandler(NavEffect.Replace(dest), isLogin = true)
-          } ?: run {
-            // 登录成功，且跳转目标页面为空，则跳转到主页
-            navHandler(NavEffect.Replace(MainDestination), isLogin = true)
-          }
+      loginNavEntry { result, destination ->
+        if (result == LoginResult.Success) {
+          // 去向取自登录页 key 自身携带的 redirectTo：它随返回栈一起被序列化恢复，
+          // 因此 Activity 重建后依然成立；为空则进主页。
+          // isLogin 显式传 true —— 此刻 AppViewModel 里的登录态可能还没回调到位。
+          navHandler(NavEffect.Replace(destination.redirectTo ?: MainDestination), isLogin = true)
         }
       }
 
@@ -144,56 +150,49 @@ fun AppNavHost(
 private class NavHandler(
   private val backStack: NavBackStack<NavKey>,
   private val isLogin: () -> Boolean,
-  private val onIntercept: (Destination) -> Unit
 ) {
   operator fun invoke(effect: NavEffect, isLogin: Boolean? = null) {
-    backStack.handle(effect, isLogin ?: this.isLogin(), onIntercept)
+    backStack.handle(effect, isLogin ?: this.isLogin())
   }
 
-  fun NavBackStack<NavKey>.handle(
-    effect: NavEffect,
-    isLogin: Boolean,
-    onIntercept: (Destination) -> Unit = {}
-  ) {
+  private fun NavBackStack<NavKey>.handle(effect: NavEffect, isLogin: Boolean) {
     when (effect) {
-      is NavEffect.Navigate -> {
-        navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
-      }
+      is NavEffect.Navigate -> add(effect.dest.guardedByLogin(isLogin))
 
       is NavEffect.Replace -> {
         removeLastOrNull()
-        navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
+        add(effect.dest.guardedByLogin(isLogin))
       }
 
       is Restart -> {
         clear()
-        navCheck(target = effect.dest, isLogin = isLogin, onIntercept = onIntercept)
+        add(effect.dest.guardedByLogin(isLogin))
       }
 
       is NavEffect.Popup -> {
         if (size > 1) {
           removeLastOrNull()
         } else {
-          val target = if (isLogin) MainDestination else LoginDestination
-          if (firstOrNull() != target) {
-            add(0, target)
+          val root = if (isLogin) MainDestination else LoginDestination()
+          if (firstOrNull() != root) {
+            add(0, root)
             removeLastOrNull()
           }
         }
       }
     }
   }
+}
 
-  fun NavBackStack<NavKey>.navCheck(
-    target: Destination,
-    isLogin: Boolean = false,
-    onIntercept: (Destination) -> Unit
-  ) {
-    if (target is RequireLogin && !isLogin) {
-      onIntercept(target)
-      add(LoginDestination)
-    } else {
-      add(target)
-    }
-  }
+/**
+ * 未登录时访问需要登录的目标，改为落回登录页，并把原始目标写进登录页的 key。
+ *
+ * 待跳转目标必须跟着 key 走而不是待在组合内存里：key 会被 `rememberNavBackStack` 连同整个
+ * 返回栈一起序列化并恢复，而组合内存活不过 Activity 重建。
+ *
+ * 返回栈的**初始元素**与之后每一次压栈共用这一个判断。首屏 DeepLink 尤其不能漏 —— 它是
+ * 未登录时最容易到达受限页面的入口（外部链接直开）。
+ */
+private fun Destination.guardedByLogin(isLogin: Boolean): Destination {
+  return if (this is RequireLogin && !isLogin) LoginDestination(redirectTo = this) else this
 }
