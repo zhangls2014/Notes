@@ -10,7 +10,9 @@ import me.zhangls.email.detail.EmailDetailDestination
 import me.zhangls.email.emailNavModule
 import me.zhangls.login.LoginDestination
 import me.zhangls.login.loginNavModule
-import me.zhangls.main.MainDestination
+import me.zhangls.main.api.FavoritesDestination
+import me.zhangls.main.api.HomeDestination
+import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.mainNavModule
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,13 +41,15 @@ class NavBackStackSerializationTest {
   private val serializer = NavBackStackSerializer(PolymorphicSerializer(NavKey::class))
 
   @Test
-  fun `返回栈连同 key 的参数一起往返`() {
-    val stack = NavBackStack<NavKey>(
-      MainDestination,
-      EmailDetailDestination(emailId = 42L),
-    )
+  fun `每个 Tab 目的地连同栈上压着的页面一起往返`() {
+    listOf(HomeDestination, FavoritesDestination, SettingsDestination).forEach { tab ->
+      val stack = NavBackStack<NavKey>(
+        tab,
+        EmailDetailDestination(emailId = 42L),
+      )
 
-    assertEquals(stack.toList(), roundTrip(stack).toList())
+      assertEquals(stack.toList(), roundTrip(stack).toList(), "$tab 未能往返")
+    }
   }
 
   @Test

@@ -1,7 +1,7 @@
 package me.zhangls.entry
 
 import me.zhangls.email.detail.EmailDetailDestination
-import me.zhangls.main.MainDestination
+import me.zhangls.main.api.HomeDestination
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -17,7 +17,7 @@ class ComposeAppCommonTest {
   @Test
   fun `parse home deep link success`() {
     val destination = parseDeepLink("https://notes.zhangls.me/home")
-    assertEquals(MainDestination, destination)
+    assertEquals(HomeDestination, destination)
   }
 
   @Test

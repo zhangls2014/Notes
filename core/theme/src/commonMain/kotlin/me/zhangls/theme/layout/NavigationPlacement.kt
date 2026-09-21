@@ -26,12 +26,16 @@ enum class NavigationPlacement {
 }
 
 /**
- * 由宿主（`feature:main`）提供的 [NavigationPlacement]。
+ * 由宿主（应用外壳 `AppShell`）提供的 [NavigationPlacement]。
  *
- * 默认取 [NavigationPlacement.Bottom]：脱离主界面单独渲染的页面（如作为独立导航目的地的
- * 详情页）读不到宿主提供的值，此时按紧凑布局兜底最接近它们的实际形态。
+ * 没有默认方位：外壳是 `NavDisplay` 的容器，除登录页外所有内容都在它内部，因此**读到本值却
+ * 没被外壳包住**一定是接线错了。这种情况早先被一个 `Bottom` 默认值掩盖 —— 那个默认值的存在
+ * 本身是因为当时存在"作为独立导航目的地、脱离外壳渲染"的页面（详情页），而外壳上提后已不再
+ * 有这类页面。用一个会立刻失败的实现替代静默兜底，接线错误在开发期就暴露。
  */
-val LocalNavigationPlacement = staticCompositionLocalOf { NavigationPlacement.Bottom }
+val LocalNavigationPlacement = staticCompositionLocalOf<NavigationPlacement> {
+  error("LocalNavigationPlacement 未被提供：内容区必须位于 AppShell 内")
+}
 
 /**
  * 把 Scaffold 给出的系统内边距转换为**内容内边距**：导航套件已占用的那一侧归零，

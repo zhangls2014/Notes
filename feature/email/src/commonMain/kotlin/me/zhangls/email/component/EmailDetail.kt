@@ -39,7 +39,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EmailDetail(
   emailId: Long,
-  isStandalone: Boolean,
   viewModel: EmailViewModel,
   onBackPressed: (() -> Unit)?
 ) {
@@ -56,9 +55,9 @@ internal fun EmailDetail(
       }
     }
   ) { padding ->
-    // 独立页面（isStandalone）占满整屏，直接用 Scaffold 的内边距；
-    // 作为主界面分栏的详情页则以导航方位换算内容内边距
-    val contentPadding = if (isStandalone) padding else padding.toContentPadding(navigationPlacement)
+    // 内容内边距按导航方位换算：外壳由 AppShell 统一提供，本组件无论作为首页分栏的详情、
+    // 还是作为独立的导航目的地，都在同一个外壳内，因此不需要"我是否独立"这个参数
+    val contentPadding = padding.toContentPadding(navigationPlacement)
 
     LazyColumn(contentPadding = contentPadding) {
       item {
