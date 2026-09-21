@@ -30,7 +30,8 @@ import org.koin.compose.viewmodel.koinViewModel
 )
 @Composable
 fun HomeScreen() {
-  val viewModel: EmailViewModel = koinViewModel()
+  // key 与收藏页区分：两个 tab 处于同一个 NavEntry，不区分就会共用同一个实例
+  val viewModel: EmailViewModel = koinViewModel(key = EmailViewModel.KEY_HOME)
   val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Long>()
   val scope = rememberCoroutineScope()
 
