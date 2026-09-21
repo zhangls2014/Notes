@@ -1,8 +1,5 @@
 package me.zhangls.entry
 
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,7 +92,6 @@ fun AppNavHost(
 
   NavDisplay(
     backStack = backStack,
-    onBack = { backStack.removeLastOrNull() },
     // 每个 NavEntry 一个 ViewModelStore：ViewModel 随 entry 一起创建、随 entry 出栈一起清除。
     // 少了这一项，NavDisplay 只挂 SaveableStateHolder，所有 ViewModel 都会落到宿主（Activity）
     // 的 store 里，于是登录页的 ViewModel 永不 onCleared（明文密码残留），详情页与列表页也会
@@ -106,15 +102,10 @@ fun AppNavHost(
       rememberSaveableStateHolderNavEntryDecorator(),
       rememberViewModelStoreNavEntryDecorator(),
     ),
-    transitionSpec = {
-      slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-    },
-    popTransitionSpec = {
-      slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-    },
-    predictivePopTransitionSpec = {
-      slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-    },
+    // 转场与 onBack 都走 NavDisplay 的默认值：默认转场是**按平台**给的 —— Android 是
+    // Material 的 fade（predictive back 走 spring + scaleOut），iOS 是 500ms 原生曲线
+    // 配合 veil/unveil。此前这里手写了一套线性横滑盖在两端之上，等于把两个平台各自的原生
+    // 观感一起丢掉，且 pop 与 predictivePop 两份内容完全重复。
     entryProvider = entryProvider {
       mainNavEntry { result ->
         when (result) {
@@ -157,7 +148,13 @@ private class NavHandler(
 
   private fun NavBackStack<NavKey>.handle(effect: NavEffect, isLogin: Boolean) {
     when (effect) {
-      is NavEffect.Navigate -> add(effect.dest.guardedByLogin(isLogin))
+      is NavEffect.Navigate -> {
+        // 幂等：栈顶已是同一目标就不再压栈。
+        // 少了这一条，快速连点同一个列表项会压入两个相同的 key，用户"按一次返回"没有反应，
+        // 得按两次才回到上一页（A/B 实测：无此判断时连点两次后第 1 次返回仍停在详情页）。
+        val target = effect.dest.guardedByLogin(isLogin)
+        if (lastOrNull() != target) add(target)
+      }
 
       is NavEffect.Replace -> {
         removeLastOrNull()
@@ -169,7 +166,7 @@ private class NavHandler(
         add(effect.dest.guardedByLogin(isLogin))
       }
 
-      is NavEffect.Popup -> {
+      NavEffect.Popup -> {
         if (size > 1) {
           removeLastOrNull()
         } else {
