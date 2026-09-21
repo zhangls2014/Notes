@@ -27,10 +27,7 @@ import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,8 +51,8 @@ import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Search
-import me.zhangls.theme.layout.LocalNavigationPlacement
-import me.zhangls.theme.layout.NavigationPlacement
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.isCompactWidth
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_delete
 import notes.feature.email.generated.resources.email_action_owner_info
@@ -78,14 +75,15 @@ internal fun EmailSearchBar(
   val viewModel: SearchViewModel = koinViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
-  // 紧凑窗口（导航套件在底部）用全屏搜索栏，宽窗口用 docked
-  val useFullScreenSearchBar = LocalNavigationPlacement.current == NavigationPlacement.Bottom
+  // 形态由**窗口宽度**决定：要不要摊开一个 docked 结果面板，问的是"有没有横向空间"。
+  // 原先这里读的是 `LocalNavigationPlacement == Bottom`（注释还写着"紧凑窗口"）——
+  // 那是宿主布局的**推导结果**，只是碰巧与宽度相关；导航套件的形态策略一变，
+  // 搜索栏的形态就会跟着莫名改变。契约里缺的是"窗口多大"这个事实，不是"导航在哪一侧"。
+  val useFullScreenSearchBar = LocalWindowAdaptiveInfo.current.isCompactWidth
 
   val textFieldState = rememberTextFieldState(initialText = state.searchText)
   val searchBarState = rememberSearchBarState(initialValue = state.searchBarValue)
   val scope = rememberCoroutineScope()
-  // 是否是第一次渲染
-  var initial by remember { mutableStateOf(true) }
 
   val closeSearchBar: () -> Unit = {
     textFieldState.clearText()
@@ -151,30 +149,22 @@ internal fun EmailSearchBar(
   }
 
   /**
-   * 为了适配不同屏幕，采用了 [ExpandedFullScreenSearchBar] 和 [ExpandedDockedSearchBar] 来渲染搜索框。
-   * 在屏幕旋转时，它们的状态时不同步的，所以这里需要手动同步一下状态
+   * 把搜索栏的展开 / 收起状态回写给 ViewModel。
+   *
+   * 这里**不再需要**"首帧手工对齐"那段补丁（原先用 `initial` 标志 + `snapTo`：
+   * 旋转时 [ExpandedFullScreenSearchBar] 与 [ExpandedDockedSearchBar] 换了一个渲染，
+   * 于是强行把值搬过去）。两处状态本来就是框架负责恢复的：
+   *
+   * - [rememberTextFieldState] 内部是 `rememberSaveable`（无 input），保存值优先；
+   * - [rememberSearchBarState] 内部是 `rememberSaveable(initialValue, ...)`，
+   *   以 `initialValue` 为 input —— 于是 ViewModel 的值变化时它会自动重置，
+   *   不需要手工 `snapTo`。
+   *
+   * 原先那段补丁还有一处反向伤害：它把输入框内容**覆盖成 ViewModel 里的旧值**
+   * （框内文本经 300ms 防抖才回写，旋转若落在防抖窗口内，VM 比用户输入旧）——
+   * 也就是说它会吃掉用户刚敲的字。
    */
   LaunchedEffect(searchBarState.currentValue) {
-    // 如果第一次渲染且当前值与保留值不一致，则不更新
-    if (initial) {
-      if (state.searchText != textFieldState.text) {
-        textFieldState.edit {
-          replace(0, length, state.searchText)
-        }
-      }
-
-      if (state.searchBarValue != searchBarState.currentValue) {
-        if (state.searchBarValue == SearchBarValue.Expanded) {
-          searchBarState.snapTo(1F)
-        } else {
-          searchBarState.snapTo(0F)
-        }
-      } else if (searchBarState.currentValue == SearchBarValue.Collapsed) {
-        scope.launch { searchBarState.animateToCollapsed() }
-      }
-      initial = false
-      return@LaunchedEffect
-    }
     viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
       closeSearchBar()
