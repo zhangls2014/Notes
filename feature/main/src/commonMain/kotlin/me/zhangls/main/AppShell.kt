@@ -3,7 +3,6 @@ package me.zhangls.main
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
@@ -11,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.window.core.layout.WindowSizeClass
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
@@ -21,7 +19,9 @@ import me.zhangls.theme.icon.Home
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Settings
 import me.zhangls.theme.layout.LocalNavigationPlacement
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.NavigationPlacement
+import me.zhangls.theme.layout.isExtraLargeWidthOrWider
 import notes.feature.main.generated.resources.Res
 import notes.feature.main.generated.resources.main_label_favorites
 import notes.feature.main.generated.resources.main_label_home
@@ -69,9 +69,9 @@ fun AppShell(
     return
   }
 
-  // 用 V2 而不是 `currentWindowAdaptiveInfo()`：后者走的是只含 {0, 600, 840} 的档位集，
-  // 宽度档位封顶在 Expanded，Large / ExtraLarge 根本不存在（见 [navigationSuiteType]）。
-  val adaptiveInfo = currentWindowAdaptiveInfoV2()
+  // 窗口形态由组合根算一次后下发（`App` → `LocalWindowAdaptiveInfo`）。
+  // 外壳不自己算：一个窗口只有一种形态，两处各算一次会在分屏拖拽 / 折叠时得到互相矛盾的答案。
+  val adaptiveInfo = LocalWindowAdaptiveInfo.current
   val layoutType = remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
   val navigationPlacement = remember(layoutType) { layoutType.toNavigationPlacement() }
 
@@ -113,10 +113,7 @@ fun AppShell(
  */
 private fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
   val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(this)
-  val extraLargeOrWider = windowSizeClass.isWidthAtLeastBreakpoint(
-    WindowSizeClass.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND
-  )
-  return if (recommended == NavigationSuiteType.WideNavigationRailCollapsed && extraLargeOrWider) {
+  return if (recommended == NavigationSuiteType.WideNavigationRailCollapsed && isExtraLargeWidthOrWider) {
     NavigationSuiteType.WideNavigationRailExpanded
   } else {
     recommended
