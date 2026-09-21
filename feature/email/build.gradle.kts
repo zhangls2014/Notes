@@ -15,12 +15,11 @@ kotlin {
         // 依赖 email 契约(api)；实现类 EmailEntryImpl 通过 Koin 绑定到 EmailEntry
         implementation(projects.feature.emailApi)
 
-        // 自适应布局
+        // 自适应布局：列表-详情双栏（PaneScaffold 与它的导航器）
         implementation(kmp.jetbrains.compose.material3.window.size)
         implementation(kmp.jetbrains.compose.material3.adaptive)
         implementation(kmp.jetbrains.compose.material3.adaptive.layout)
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation)
-        implementation(kmp.jetbrains.compose.material3.adaptive.navigation.suite)
 
         // Paging3
         implementation(kmp.androidx.paging.compose)

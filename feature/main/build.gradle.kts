@@ -21,11 +21,10 @@ kotlin {
 
         implementation(projects.feature.settingsApi)
 
-        // 自适应布局
+        // 自适应布局：导航套件（Rail / 底部导航栏）与窗口尺寸类。
+        // adaptive-layout 与 adaptive-navigation 由本模块的代码直接用不到，故不显式声明
         implementation(kmp.jetbrains.compose.material3.window.size)
         implementation(kmp.jetbrains.compose.material3.adaptive)
-        implementation(kmp.jetbrains.compose.material3.adaptive.layout)
-        implementation(kmp.jetbrains.compose.material3.adaptive.navigation)
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation.suite)
       }
     }
