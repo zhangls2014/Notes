@@ -1,10 +1,10 @@
-package me.zhangls.login
+package me.zhangls.login.api
 
 import kotlinx.serialization.Serializable
 import me.zhangls.framework.nav.Destination
 
 /**
- * 登录页：登录守卫（[me.zhangls.framework.nav.RequireLogin]）拦下未登录访问时的落点。
+ * 登录页：登录守卫（`me.zhangls.framework.nav.RequireLogin`）拦下未登录访问时的落点。
  *
  * @property redirectTo 被拦下的原始目标；为空表示登录成功后就进默认首屏。
  *

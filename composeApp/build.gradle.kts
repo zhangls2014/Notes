@@ -18,11 +18,14 @@ kotlin {
         implementation(projects.core.preference)
         implementation(projects.core.network)
         implementation(projects.core.framework)
+        // 依赖 email 契约(api)；AppNavHost 引用 EmailDetailDestination
+        implementation(projects.feature.emailApi)
         implementation(projects.feature.email)
-        // 依赖 main 契约(api)；AppNavHost 引用 TabDestination 与 AppShell
+        // 依赖 main 契约(api)；AppNavHost 引用 TabDestination
         implementation(projects.feature.mainApi)
+        // 外壳 AppShell 在实现模块，由组合根装配
         implementation(projects.feature.main)
-        // 依赖 login 契约(api)；AppNavHost 引用 LoginResult
+        // 依赖 login 契约(api)；AppNavHost 引用 LoginResult 与 LoginDestination
         implementation(projects.feature.loginApi)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)

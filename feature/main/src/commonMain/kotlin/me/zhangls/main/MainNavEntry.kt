@@ -2,21 +2,13 @@ package me.zhangls.main
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import kotlinx.serialization.modules.SerializersModule
 import me.zhangls.email.api.EmailEntry
-import me.zhangls.framework.nav.registerDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.settings.api.SettingsResult
 import org.koin.compose.koinInject
-
-val mainNavModule = SerializersModule {
-  registerDestination(HomeDestination::class, HomeDestination.serializer())
-  registerDestination(FavoritesDestination::class, FavoritesDestination.serializer())
-  registerDestination(SettingsDestination::class, SettingsDestination.serializer())
-}
 
 /**
  * 主界面三个 Tab 的导航条目。
@@ -26,6 +18,8 @@ val mainNavModule = SerializersModule {
  *
  * 跨 feature 的跳转直接表达为回调参数（如 [navigateToEmailDetail] 携带邮件 id），
  * 而不是把路由降级成宿主可识别的"结果"再翻译回 key —— 后者要求每加一条路由就改三处。
+ *
+ * key 与它们的序列化登记都在契约模块（[me.zhangls.main.api.MainNavigation]）。
  *
  * @param navigateToEmailDetail 收藏列表点击邮件
  * @param onLogout 设置页登出

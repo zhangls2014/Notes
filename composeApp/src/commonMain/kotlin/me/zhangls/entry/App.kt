@@ -24,10 +24,14 @@ fun App(
 ) {
   val viewModel: AppViewModel = koinViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
+  // 各 feature 对导航的贡献由它们自己的 Koin 模块以多绑定登记，这里一处收集
+  val navigationRegistry = rememberNavigationRegistry()
   // remember 住解析结果：parseDeepLink 每次调用都会新建对象，不记住的话这个参数会随每次
   // 重组变化。下游需要按**引用**区分"首帧带进来的 DeepLink"与"运行期新来的同一条
   // DeepLink"，参数不稳定会让这个判断失准（等于把每次重组都当成一次新导航）。
-  val deepLinkDestination = remember(deepLinkUrl) { parseDeepLink(deepLinkUrl) }
+  val deepLinkDestination = remember(deepLinkUrl, navigationRegistry) {
+    parseDeepLink(deepLinkUrl, navigationRegistry.deepLinkMatchers)
+  }
   val darkTheme = DarkThemePreference.isDark(state.darkTheme)
   val fontScale = state.fontSize.value
 

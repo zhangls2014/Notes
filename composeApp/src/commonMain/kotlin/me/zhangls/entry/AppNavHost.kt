@@ -14,24 +14,20 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
-import kotlinx.serialization.modules.plus
-import me.zhangls.email.detail.EmailDetailDestination
+import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.emailNavEntry
-import me.zhangls.email.emailNavModule
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.Destination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
 import me.zhangls.framework.nav.RequireLogin
-import me.zhangls.login.LoginDestination
+import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
-import me.zhangls.login.loginNavModule
 import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.TabDestination
 import me.zhangls.main.mainNavEntries
-import me.zhangls.main.mainNavModule
 
 /**
  * @author zhangls
@@ -52,11 +48,17 @@ fun AppNavHost(
     return
   }
 
+  // 各 feature 对导航的贡献（key 的序列化登记 + DeepLink 匹配）由它们自己的 Koin 模块以
+  // 多绑定登记，组合根只收集，不持有任何 feature 的路由知识：新增 feature 时这里零改动。
+  val navigationRegistry = rememberNavigationRegistry()
+
   // 返回栈的序列化配置。remember 住：每次重组新建一个 SerializersModule 毫无意义，
   // 还会让 rememberNavBackStack 依赖的配置对象持续变化。
-  val config = remember {
+  // 漏登记某个 key 的后果是重建时 SerializationException（编译期无提示），
+  // NavBackStackSerializationTest 用同一份注册表做往返守卫。
+  val config = remember(navigationRegistry) {
     SavedStateConfiguration {
-      serializersModule = mainNavModule + loginNavModule + emailNavModule
+      serializersModule = navigationRegistry.navModule
     }
   }
 
