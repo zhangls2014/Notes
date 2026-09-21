@@ -97,7 +97,6 @@ internal fun ThreePaneScaffoldPaneScope.HomeDetailPane(
     AnimatedPane {
       EmailDetail(
         emailId = emailId,
-        isStandalone = false,
         viewModel = viewModel,
         onBackPressed = onBackPressed
       )

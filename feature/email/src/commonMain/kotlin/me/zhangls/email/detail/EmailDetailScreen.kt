@@ -1,24 +1,26 @@
 package me.zhangls.email.detail
 
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import me.zhangls.email.component.EmailDetail
 import me.zhangls.email.mvi.EmailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+/**
+ * 邮件详情页：作为独立的导航目的地渲染。
+ *
+ * 外壳（导航套件）由 `AppShell` 统一提供，本页只渲染内容 —— 页面因此不需要知道
+ * "自己是否被外壳包住"，内边距统一按 `LocalNavigationPlacement` 换算。
+ */
 @Composable
 internal fun EmailDetailScreen(
   emailId: Long,
   viewModel: EmailViewModel = koinViewModel(),
   onBackPressed: () -> Unit = {}
 ) {
-  // 独立导航目的地：内容占满整屏（isStandalone），不参与导航套件的内容内边距换算
   EmailDetail(
     emailId = emailId,
-    isStandalone = true,
     viewModel = viewModel,
-    onBackPressed = onBackPressed
+    onBackPressed = onBackPressed,
   )
 }

@@ -3,7 +3,7 @@ package me.zhangls.entry
 import me.zhangls.email.detail.EmailDetailDestination
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.deeplink.parseDeepLinkUrl
-import me.zhangls.main.MainDestination
+import me.zhangls.main.api.HomeDestination
 
 private const val HTTPS = "https"
 private const val NOTES_HOST = "notes.zhangls.me"
@@ -16,7 +16,7 @@ fun parseDeepLink(url: String?): DeepLinkDestination? {
   if (request.host != NOTES_HOST) return null
 
   return when (request.path) {
-    PATH_HOME -> MainDestination
+    PATH_HOME -> HomeDestination
     PATH_EMAIL -> {
       val emailId = request.queries["id"]?.toLongOrNull() ?: return null
       EmailDetailDestination(emailId = emailId)

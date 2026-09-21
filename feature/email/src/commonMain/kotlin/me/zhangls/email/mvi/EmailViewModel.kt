@@ -74,11 +74,10 @@ internal class EmailViewModel(
     /**
      * 首页列表所用的 ViewModel key。
      *
-     * 首页与收藏页同属 `MainDestination` 这一个 NavEntry，因而共用一个 `ViewModelStore`。
-     * 两个列表各自是一屏，分页缓存 / 多选 / 草稿这些"屏幕状态"应当各归其主；都用默认 key
-     * （即类名）时会落到同一个实例上，"一屏的状态"就变成了"整个应用的状态"。
-     * 今天靠 `isFavorite` 分支（收藏页不开放多选、也没有草稿入口）掩盖了这个差异 ——
-     * 一旦收藏页也支持多选，共用实例就会立刻表现为跨 tab 串味。
+     * 判据是"一屏一个实例"：分页缓存 / 多选 / 草稿这些"屏幕状态"必须各归其主。首页与收藏页
+     * 现在各自是独立的导航目的地，`ViewModelStore` 天然分开；显式给 key 是为了不依赖
+     * "同一个 store 里恰好只有一个列表"这个偶然事实 —— 早先两个 tab 同属一个 NavEntry 时，
+     * 共用实例表现为跨 tab 串味，只是被收藏页不开放多选掩盖着。
      */
     const val KEY_HOME = "email_view_model_home"
 
