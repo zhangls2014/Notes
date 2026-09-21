@@ -25,8 +25,6 @@ import me.zhangls.data.model.EmailModel
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar
-import me.zhangls.theme.layout.LocalNavigationPlacement
-import me.zhangls.theme.layout.toContentPadding
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_email_reply
 import notes.feature.email.generated.resources.email_action_email_reply_all
@@ -46,7 +44,6 @@ internal fun EmailDetail(
   val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
   val model by emailFlow.collectAsStateWithLifecycle(null)
   val threads = threadFlow.collectAsLazyPagingItems()
-  val navigationPlacement = LocalNavigationPlacement.current
 
   Scaffold(
     topBar = {
@@ -55,11 +52,10 @@ internal fun EmailDetail(
       }
     }
   ) { padding ->
-    // 内容内边距按导航方位换算：外壳由 AppShell 统一提供，本组件无论作为首页分栏的详情、
-    // 还是作为独立的导航目的地，都在同一个外壳内，因此不需要"我是否独立"这个参数
-    val contentPadding = padding.toContentPadding(navigationPlacement)
-
-    LazyColumn(contentPadding = contentPadding) {
+    // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉，
+    // 读到的是"内容区真正可用"的内边距。本组件无论作为首页分栏的详情、还是作为独立的
+    // 导航目的地，都在同一个外壳内，因此也不需要"我是否独立"这个参数。
+    LazyColumn(contentPadding = padding) {
       item {
         model?.let {
           EmailDetailItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
