@@ -2,8 +2,10 @@ package me.zhangls.main
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -67,27 +69,11 @@ fun AppShell(
     return
   }
 
-  val adaptiveInfo = currentWindowAdaptiveInfo()
-  val windowSizeClass = adaptiveInfo.windowSizeClass
-  // 布局类型仅由窗口尺寸类决定，用 remember 避免每次重组重复计算
-  val customLayoutType = remember(windowSizeClass) {
-    with(windowSizeClass) {
-      if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_LARGE_LOWER_BOUND)) {
-        NavigationSuiteType.WideNavigationRailExpanded
-      } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
-        NavigationSuiteType.WideNavigationRailCollapsed
-      } else if (isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
-        if (minWidthDp > minHeightDp) {
-          NavigationSuiteType.WideNavigationRailCollapsed
-        } else {
-          NavigationSuiteType.ShortNavigationBarMedium
-        }
-      } else {
-        NavigationSuiteType.ShortNavigationBarCompact
-      }
-    }
-  }
-  val navigationPlacement = remember(customLayoutType) { customLayoutType.toNavigationPlacement() }
+  // 用 V2 而不是 `currentWindowAdaptiveInfo()`：后者走的是只含 {0, 600, 840} 的档位集，
+  // 宽度档位封顶在 Expanded，Large / ExtraLarge 根本不存在（见 [navigationSuiteType]）。
+  val adaptiveInfo = currentWindowAdaptiveInfoV2()
+  val layoutType = remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
+  val navigationPlacement = remember(layoutType) { layoutType.toNavigationPlacement() }
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {
@@ -100,7 +86,7 @@ fun AppShell(
         )
       }
     },
-    layoutType = customLayoutType,
+    layoutType = layoutType,
   ) {
     // 导航方位在此下发：各 feature 的内容区据此换算内边距，契约里因此不需要任何布局参数
     CompositionLocalProvider(LocalNavigationPlacement provides navigationPlacement) {
@@ -110,21 +96,53 @@ fun AppShell(
 }
 
 /**
+ * 导航套件该用哪种形态。
+ *
+ * 交给库的推荐策略 [NavigationSuiteScaffoldDefaults.navigationSuiteType]，本应用只对
+ * **与库默认不同**的那一档做显式覆盖。原先这里是一条手写分档链，三个问题：
+ *
+ * 1. **口径错**：`WindowSizeClass.minWidthDp` / `minHeightDp` 是**分档下限**，不是窗口宽高 ——
+ *    档位是按"不超过实际宽度的最大档位下限"量化出来的，于是拿这两个值互相比较来推断
+ *    "是不是横屏"，比较的其实是 600 与 480/900 两组被量化过的数。库的策略用
+ *    `minWidth` / `minHeight` 与 `windowPosture` 表达，语义是对的。
+ * 2. **漏姿态**：手写链不看 `windowPosture.isTabletop`，折叠设备半开时会给出 Rail，
+ *    而这是最不该给 Rail 的场景（竖向空间被铰链切断）。
+ * 3. **有死分支**：原先第一档判断 `isWidthAtLeastBreakpoint(1200)`，而 V1 档位集下
+ *    `minWidthDp` 最大只有 840，`840 >= 1200` 恒假 —— `WideNavigationRailExpanded` 写了却
+ *    永远不可达。改用 V2 后该分支才第一次真正可命中，因此本函数把它显式表达出来。
+ */
+private fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
+  val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(this)
+  val extraLargeOrWider = windowSizeClass.isWidthAtLeastBreakpoint(
+    WindowSizeClass.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND
+  )
+  return if (recommended == NavigationSuiteType.WideNavigationRailCollapsed && extraLargeOrWider) {
+    NavigationSuiteType.WideNavigationRailExpanded
+  } else {
+    recommended
+  }
+}
+
+/**
  * 把 [NavigationSuiteScaffold] 的布局类型归类为"导航套件占哪一侧"。
  *
  * 归类结果是宿主布局对内容区唯一的承诺，经 `LocalNavigationPlacement` 下发。
  * 原先这里是一个 `isBottomNavigationBar: Boolean`，穿透了 3 个 feature 的公开契约、
  * 在 15 个文件间手工传递 47 次，且被三处当成了三种不同含义（内边距 / 搜索栏形态 / 屏幕尺寸）。
+ *
+ * 这里**正面列出"占侧边"的形态**，而不是反向列出"底部那三个"。原写法把
+ * [NavigationSuiteType.NavigationDrawer]（模态抽屉，覆盖在内容之上、并不占位）与
+ * [NavigationSuiteType.None]（不渲染导航套件）都扫进了 `else -> Side`，
+ * 内容会因此白白让出一侧内边距。
+ *
+ * `else` 无法避免：[NavigationSuiteType] 是 `@JvmInline value class`（内部包一个 String），
+ * 不是 enum，`when` 不具备穷尽性检查。
  */
-private fun NavigationSuiteType.toNavigationPlacement(): NavigationPlacement {
-  val bottomNavigationTypes = arrayOf(
-    NavigationSuiteType.ShortNavigationBarCompact,
-    NavigationSuiteType.ShortNavigationBarMedium,
-    NavigationSuiteType.NavigationBar
-  )
-  return if (bottomNavigationTypes.contains(this)) {
-    NavigationPlacement.Bottom
-  } else {
-    NavigationPlacement.Side
-  }
+private fun NavigationSuiteType.toNavigationPlacement(): NavigationPlacement = when (this) {
+  NavigationSuiteType.NavigationRail,
+  NavigationSuiteType.WideNavigationRailCollapsed,
+  NavigationSuiteType.WideNavigationRailExpanded,
+  -> NavigationPlacement.Side
+
+  else -> NavigationPlacement.Bottom
 }
