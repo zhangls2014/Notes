@@ -2,6 +2,7 @@ package me.zhangls.entry
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -10,6 +11,8 @@ import me.zhangls.framework.toast.showSystemToast
 import me.zhangls.model.AppLanguage
 import me.zhangls.preference.DarkThemePreference
 import me.zhangls.theme.ComposeAppTheme
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.rememberWindowAdaptiveInfo
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -45,21 +48,28 @@ fun App(
     onDarkThemeChanged(darkTheme)
   }
 
-  ComposeAppTheme(
-    darkTheme = darkTheme,
-    dynamicScheme = if (state.dynamicColor) onDynamicColorChanged(darkTheme) else null,
-    fontScale = fontScale,
-  ) {
-    AppNavHost(
-      viewModel = viewModel,
-      deepLinkDestination = deepLinkDestination,
-      onDeepLinkConsumed = onDeepLinkConsumed
-    )
+  // 窗口形态在这里算一次，向下只下发事实。放在 ComposeAppTheme **之上**：尺寸类是用
+  // LocalDensity 把容器像素换算成 dp 得到的，而主题会覆写 LocalDensity（字号设置）——
+  // 让"窗口多大"依赖"字号设置"是隐性错误耦合。
+  val windowAdaptiveInfo = rememberWindowAdaptiveInfo()
 
-    LaunchedEffect(Unit) {
-      viewModel.toast.collect { effect ->
-        val message = getString(effect.resId)
-        showSystemToast(message, longDuration = message.length > 20)
+  CompositionLocalProvider(LocalWindowAdaptiveInfo provides windowAdaptiveInfo) {
+    ComposeAppTheme(
+      darkTheme = darkTheme,
+      dynamicScheme = if (state.dynamicColor) onDynamicColorChanged(darkTheme) else null,
+      fontScale = fontScale,
+    ) {
+      AppNavHost(
+        viewModel = viewModel,
+        deepLinkDestination = deepLinkDestination,
+        onDeepLinkConsumed = onDeepLinkConsumed
+      )
+
+      LaunchedEffect(Unit) {
+        viewModel.toast.collect { effect ->
+          val message = getString(effect.resId)
+          showSystemToast(message, longDuration = message.length > 20)
+        }
       }
     }
   }
