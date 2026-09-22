@@ -269,7 +269,9 @@ LaunchedEffect(searchBarState.currentValue) {
   `BottomSheetDefaults.SheetMaxWidth = 640.dp`，库内部以 `maxWidth = sheetMaxWidth`
   施于弹层容器并居中（`ModalBottomSheet.kt:100,162`）。宽窗口下它本来就收窄，
   不是"横跨整屏"。这里唯一值得记的是 `rememberModalBottomSheetState` 已被
-  `rememberBottomSheetState` 取代（编译告警），属另一件事。
+  `rememberBottomSheetState` 取代（编译告警）——该告警已于 `004f9188` 处理：
+  改为显式声明 `enabledValues = {Hidden, Expanded}`（旧 API 会**按运行期测出的弹层高度**
+  自行剔除 `PartiallyExpanded`，同一份代码在不同屏幕上档位可能不同）。
 - ~~搜索历史 `FlowRow` 铺满~~ **撤回**。它渲染在 `ExpandedDockedSearchBar`
   （宽窗口）/`ExpandedFullScreenSearchBar`（紧凑窗口）内部，两者自身的宽度已经受限，
   不存在"铺满窗口"的路径。
