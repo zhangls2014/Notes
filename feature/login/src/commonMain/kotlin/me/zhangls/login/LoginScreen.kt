@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -96,6 +97,12 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
       modifier = Modifier
         .fillMaxSize()
         .verticalScroll(state = rememberScrollState())
+        // 底部交给系统导航栏与键盘，不要把输入框压在它们下面。
+        // imePadding 必须在 verticalScroll **之内**（即链尾）：它给滚动内容补上键盘高度的
+        // 底部留白，于是滚动区域的内容变高，聚焦的输入框能被自动滚进键盘上方的可视区。
+        // 全仓原先没有任何一处处理 IME，实测键盘会完全盖住下方输入框。
+        .padding(bottom = padding.calculateBottomPadding())
+        .imePadding()
     ) {
       Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -22,7 +22,7 @@
 | **D5** | 搜索栏形态由 `NavigationPlacement` 反推窗口宽度 —— 老的 `isBottomNavigationBar` 三用途之一原样保留 | 结构 |
 | **D6** | 旋转后搜索栏状态失同步 → 手写同步补丁（`initial` 标志 + `snapTo`） | 结构 |
 | **D7** | 收藏页在大屏**不分栏**，首页分栏 —— 同一个用户动作两种表现 | 结构 |
-| **D8** | 无任何内容宽度约束（设置页 / 详情 / 写邮件 / 搜索历史）→ 1200dp+ 行宽不可读 | 缺陷（体验） |
+| **D8** | 无内容宽度上限（设置页 / 详情正文）→ 1200dp+ 行宽不可读 | 缺陷（体验） |
 | **D9** | insets 四套机制并存互不知情；`toContentPadding` 硬编码 LTR | 结构（含 RTL 缺陷） |
 | **D10** | 全仓没有一处 IME inset 处理 → 键盘遮挡输入框 | 缺陷 |
 | **D11** | 无 `configChanges`（本身可接受），但状态补偿散落各处 | 观察 |
@@ -260,14 +260,26 @@ LaunchedEffect(searchBarState.currentValue) {
 | 位置 | 问题 |
 |---|---|
 | `feature/settings/.../SettingsScreen.kt:60-71` | `LazyColumn` 行铺满窗口宽 → 1600dp 窗口上一行设置项横跨 1600dp |
-| `feature/email/.../component/EmailDetail.kt:62-76` | 正文 `LazyColumn` 只有 16dp 横向内边距 → 单行文本长度远超可读上限 |
-| `feature/email/.../component/NewEmailSheet.kt:60-66` | `ModalBottomSheet` + `fillMaxWidth` → 输入框横跨整屏；大屏本该换成 SideSheet/Dialog |
-| `feature/email/.../search/EmailSearchBar.kt:265-270` | 搜索历史 `FlowRow` 铺满 |
-| `feature/email/.../component/EmailList.kt` / `EmailPagedList.kt` | 列表项 `padding(horizontal = 16.dp)`，在 3 栏 directive 下栏宽虽受限，但栏内仍无上限 |
+| `feature/email/.../component/EmailDetail.kt:62-76` | 正文 `LazyColumn` 只有 16dp 横向内边距；Expanded 窗口下详情栏可宽到 800dp 以上 |
 
-**修法**：在 `core:theme` 增加一个通用宽度约束组件（如 `AdaptiveContent(maxWidth = ...)` /
-`Modifier.contentWidth()`），设置页与详情页正文用它；写邮件在非 Compact 宽度改用 SideSheet/对话框。
-这与项目已有判据一致：「同一段 Compose 渲染在 ≥2 处出现 → 下沉 `core:theme`」。
+**两处经复核后撤回**（原先的判断不成立，记录在此以免再被引用）：
+
+- ~~`NewEmailSheet`：`ModalBottomSheet` + `fillMaxWidth` → 输入框横跨整屏~~
+  **撤回**。`ModalBottomSheet` 有 `sheetMaxWidth` 参数，默认取
+  `BottomSheetDefaults.SheetMaxWidth = 640.dp`，库内部以 `maxWidth = sheetMaxWidth`
+  施于弹层容器并居中（`ModalBottomSheet.kt:100,162`）。宽窗口下它本来就收窄，
+  不是"横跨整屏"。这里唯一值得记的是 `rememberModalBottomSheetState` 已被
+  `rememberBottomSheetState` 取代（编译告警），属另一件事。
+- ~~搜索历史 `FlowRow` 铺满~~ **撤回**。它渲染在 `ExpandedDockedSearchBar`
+  （宽窗口）/`ExpandedFullScreenSearchBar`（紧凑窗口）内部，两者自身的宽度已经受限，
+  不存在"铺满窗口"的路径。
+- ~~`EmailPagedList` 列表项无上限~~ **降级**。列表项是行式内容而非正文，
+  行宽上限不是它的诉求；且经 S5 之后列表总是处在列表栏或紧凑窗口内。
+
+**修法**：在 `core:theme` 增加一个通用宽度约束组件 `AdaptiveContent(maxWidth)`，
+设置页与详情页正文用它。注意这不是"多形态适配"——它是**可读性常量**，
+与窗口形态无关（形态适配是 `LocalWindowAdaptiveInfo` 与场景策略的职责）；
+两处都用到，符合项目已有判据「同一段 Compose 渲染在 ≥2 处出现 → 下沉 `core:theme`」。
 
 ---
 
@@ -490,7 +502,7 @@ fun AdaptiveContent(
 ```
 
 消费点：`SettingsScreen`（列表限宽或按尺寸类切双栏设置）、`EmailDetail` 正文、
-`NewEmailSheet`（非 Compact 宽度改 `SideSheet` / `AlertDialog` 形态）、搜索历史。
+（写邮件弹层不需要：`ModalBottomSheet` 自带 `sheetMaxWidth = 640.dp`，见 D8 的撤回说明）。
 
 ### 3.6 测试 / 预览入口
 
@@ -528,7 +540,7 @@ fun ProvideWindowAdaptiveInfo(
 | **S3** | 宿主 `consumeWindowInsets`，删 `toContentPadding`；`EmailTopBar` 的 `statusBarsPadding()` 改为统一 inset 策略 | 内边距只剩一套真相；RTL 隐患消失 |
 | **S4** | `EmailSearchBar` 改读尺寸类，删 `initial` 同步补丁 | 旋转不再需要补丁；搜索栏形态与"是否有横向空间"直接对应 |
 | **S5** | 列表-详情接 `rememberListDetailSceneStrategy`；删 `PaneScaffold` expect/actual 与首页私有 navigator | 收藏页获得分栏；两端 directive 一致；预测性返回两端一致 |
-| **S6** | `AdaptiveContent` 下沉 + 设置页/详情/写邮件接入；`LoginScreen` 加 `imePadding()`，manifest 加 `windowSoftInputMode` | 宽屏可读；键盘不再遮挡 |
+| **S6** | `AdaptiveContent` 下沉 + 设置页/详情正文接入；`LoginScreen` 加 `imePadding()`，manifest 加 `windowSoftInputMode` | 宽屏可读；键盘不再遮挡 |
 | **S7** | 多尺寸 `@Preview` + `commonTest` 断言；补 `androidx-window-core` 显式依赖（或把 `WindowSizeClass` 收进 core） | 回归门禁 |
 
 S1 是**单文件、零架构风险**的净收益，建议先落地。
