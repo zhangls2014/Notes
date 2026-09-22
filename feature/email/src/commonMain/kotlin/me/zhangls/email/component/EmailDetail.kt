@@ -25,6 +25,7 @@ import me.zhangls.data.model.EmailModel
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.theme.component.AdaptiveContent
+import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.component.CenteredTopAppBar
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_email_reply
@@ -60,7 +61,7 @@ internal fun EmailDetail(
     // 正文再限一个可读宽度：Expanded 窗口（840dp 起）上详情栏可以宽到 800dp 以上，
     // 一行正文过长会显著降低可读性。这是可读性常量，与窗口形态无关，
     // 因此不属于"多形态适配"（那部分由 LocalWindowAdaptiveInfo 与场景策略负责）。
-    AdaptiveContent(maxWidth = DetailMaxWidth) {
+    AdaptiveContent(maxWidth = ContentWidth.Article) {
       LazyColumn(contentPadding = padding) {
         item {
           model?.let {
@@ -79,9 +80,6 @@ internal fun EmailDetail(
     }
   }
 }
-
-/** 邮件正文的可读宽度上限。 */
-private val DetailMaxWidth = 720.dp
 
 @Composable
 fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
