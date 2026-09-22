@@ -81,10 +81,12 @@ Android 侧用 lint（`detekt` 只 apply 在根项目且根项目无源集，跑
   - 内部面：`impl/`（`datastore/`、`mapper/`、`repository/`（实现）），实现类与 Koin provider 均为 `internal`
   - **硬规则一：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
   - **硬规则二：对 `core:database` 只能用 `implementation`**（见上），一旦改成 `api` 或 `implementation` 丢失，隔离即刻失效
-- `:core:theme`: 主题、颜色、图标、通用组件（`TooltipIconButton` / `SimpleDialog` / `CenteredTopAppBar` / `ContainedLoadingIndicator` / `AdaptiveContent`）、布局环境（`layout/WindowAdaptiveInfo.kt`）
+- `:core:theme`: 主题、颜色、图标、通用组件（`TooltipIconButton` / `SimpleDialog` / `CenteredTopAppBar` / `ContainedLoadingIndicator` / `AdaptiveContent`）、布局环境（`layout/`）
   - **通用控件的判据**：同一段 Compose 渲染在 ≥2 处出现时下沉到这里，而不是在各自 feature 里复制。`TooltipIconButton` 就是这么来的 —— "图标按钮 + 提示气泡"曾在三处各写一遍（设置页顶部入口 / 多选操作栏 / 搜索栏返回键）；`AdaptiveContent`（可读宽度上限）是同一判据：设置页与邮件详情正文都要用
-  - `layout/WindowAdaptiveInfo.kt`：**全应用唯一的窗口事实来源**。`LocalWindowAdaptiveInfo`（当前窗口的尺寸类 + 姿态）+ `rememberWindowAdaptiveInfo()`（唯一读取点，只能在组合根调用）+ `ProvideWindowAdaptiveInfo()`（`@Preview` / 测试的替换入口）+ 语义化读法 `isCompactWidth` / `isExpandedWidthOrWider` / `isExtraLargeWidthOrWider`（消费方不必接触断点常量）。**宿主布局信息走 CompositionLocal，不进 feature 契约**（见「导航」一节）
-  - 本模块对 `material3-adaptive` 与 `androidx-window-core` 都用 `api`：两者的类型出现在本模块公开 API 里，消费方因此不必各自声明、也就不再可能各自调 `currentWindowAdaptiveInfo*()`
+  - `layout/ContentWidth.kt`：**宽度上限（measure）的唯一来源**。`ContentWidth.Form`(480) / `.Article`(720) / `.Prose`(840) + `Modifier.contentWidth()`（窄窗口填满、宽窗口封顶；先 `widthIn` 后 `fillMaxWidth`，顺序不能反）。这些是**与窗口无关的可读性常量**，不是多形态适配分支 —— 各 feature 不要再自己写私有常量与裸 `widthIn`（登录页的 `FormMaxWidth` 曾是一例，现已并入这里）
+  - `layout/WindowAdaptiveInfo.kt`：**全应用的窗口事实来源**。`LocalWindowAdaptiveInfo`（尺寸类 + 姿态）+ `rememberWindowAdaptiveInfo()`（唯一读取点，只能在组合根调用）+ `ProvideWindowAdaptiveInfo()`（`@Preview` / 测试的替换入口）+ 语义化读法 `isCompactWidth` / `isExpandedWidthOrWider` / `isExtraLargeWidthOrWider`；以及**派生事实** `LocalPaneScaffoldDirective` + `rememberPaneScaffoldDirective(adaptiveInfo)` + `canShowSideBySidePanes` / `canShowStackedPanes`（"能并排/叠放几栏"—— 分区数由库算，应用不维护断点）。**布局信息走 CompositionLocal，不进 feature 契约**（见「导航」一节）
+  - `rememberPaneScaffoldDirective` 刻意接收已读到的 `WindowAdaptiveInfo` 而不是自己再读一次窗口：否则同一帧里两次窗口读取，分屏拖拽 / 折叠时会不一致
+  - 本模块对 `material3-adaptive`、`material3-adaptive-layout` 与 `androidx-window-core` 都用 `api`：三者的类型都出现在本模块公开 API 里，消费方因此不必各自声明、也就不再可能各自调 `currentWindowAdaptiveInfo*()` 或各自算 directive
 - `:core:preference`: 设置项的**展示元数据 + 配套通用控件**（`me.zhangls.preference`）
   - 元数据 = `PreferenceSpec` 词表（`Toggle` / `Select<T>` / `Action` + `PreferenceOption<T>`）+ 每个设置项一个 `object`（`LanguagePreference` / `DarkThemePreference` / `DynamicColorPreference` / `FontSizePreference` / `LogoutPreference`，统一只暴露 `spec`）+ 专属文案（composeResources）+ "由取值推导展示结果"的纯函数（如 `DarkThemePreference.isDark`）
   - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染：`PreferenceRow`（列表行形态，含 `Toggle` / `Select<T>` / `Action` 三类行）、`SelectIconButton`（图标形态：图标按钮 + 长按提示 + 下拉单选）、`ProvidePreferenceLocals`（行控件的 locals 容器）。**同一 spec 的每种形态都在此实现一次** —— 登录页用图标形态、设置页用行形态，展示同一批 spec，两边都不写渲染代码。新增**设置项**不必改任何 feature 的渲染；新增**形态**才需要在这里加控件
