@@ -125,11 +125,12 @@ val PaneScaffoldDirective.canShowSideBySidePanes: Boolean
   get() = maxHorizontalPartitions >= 2
 
 /**
- * 当前窗口能否**上下叠放**两个窗格：桌面支架姿态（折叠半开，横向铰链把窗口切成两半），
- * 或"窄而高"的窗口（只有一栏横向分区、但高度已到 Expanded）。
+ * 窗口是否被**横向铰链**切成两半（折叠设备半开，即桌面支架姿态）。
  *
- * 这一档优先级高于 [canShowSideBySidePanes]：桌面支架下横向铰链把窗口拦腰切断，
- * 内容跨过铰链比"少用一点空间"糟糕得多。
+ * 这是"内容该不该上下分区"的判据，而不是 [canShowSideBySidePanes] 那种"能放几栏"的容量问题 ——
+ * 两者的区别在实测里暴露得很清楚：411×914dp 的普通高屏手机**容量上**也满足
+ * `maxVerticalPartitions == 2`（窄、且高度已到 Expanded），但它没有铰链，把一张两字段的表单
+ * 摊成上下半屏只会摊出一段空白。真正需要避开铰链的只有这一种姿态。
  */
-val PaneScaffoldDirective.canShowStackedPanes: Boolean
-  get() = maxVerticalPartitions >= 2
+val WindowAdaptiveInfo.isTabletopPosture: Boolean
+  get() = windowPosture.isTabletop
