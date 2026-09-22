@@ -15,11 +15,13 @@ kotlin {
         // 依赖 email 契约(api)；实现类 EmailEntryImpl 通过 Koin 绑定到 EmailEntry
         implementation(projects.feature.emailApi)
 
-        // 自适应布局：列表-详情双栏（PaneScaffold 与它的导航器）
+        // 自适应布局：列表-详情由 Nav3 的场景策略在宿主侧装配，本模块只负责
+        // ① 是"列表内容"还是"详情内容"，② 详情页要不要显示返回键（读 LocalListDetailSceneScope）。
+        // 因此这里不再需要 adaptive-navigation（旧的 NavigableListDetailPaneScaffold）
         implementation(kmp.jetbrains.compose.material3.window.size)
         implementation(kmp.jetbrains.compose.material3.adaptive)
         implementation(kmp.jetbrains.compose.material3.adaptive.layout)
-        implementation(kmp.jetbrains.compose.material3.adaptive.navigation)
+        implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)
 
         // Paging3
         implementation(kmp.androidx.paging.compose)

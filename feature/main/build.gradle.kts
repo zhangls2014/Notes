@@ -26,6 +26,9 @@ kotlin {
         implementation(kmp.jetbrains.compose.material3.window.size)
         implementation(kmp.jetbrains.compose.material3.adaptive)
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation.suite)
+        // 列表-详情场景：mainNavEntries 用 ListDetailSceneStrategy 给 Tab 打窗格标注。
+        // Nav3 的"哪个目的地进列表栏、哪个进详情栏"由场景策略决定，宿主不再自建 pane scaffold
+        implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)
       }
     }
   }

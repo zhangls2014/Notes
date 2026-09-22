@@ -13,6 +13,12 @@ import me.zhangls.framework.nav.RequireLogin
  * （如 `Long`）再由宿主翻译回 key —— 后者每加一条路由要改三处。
  *
  * @property emailId 邮件 id
+ * @property scene 从哪个列表打开的（也就是它属于哪一套列表-详情分栏）。
+ *   见 [EmailListScene]：它决定分栏归属，也决定返回时回到哪个列表。
+ *   DeepLink 直达时用默认值 —— 外部链接没有"来自哪个列表"的概念。
  */
 @Serializable
-data class EmailDetailDestination(val emailId: Long) : DeepLinkDestination, RequireLogin
+data class EmailDetailDestination(
+  val emailId: Long,
+  val scene: EmailListScene = EmailListScene.Home,
+) : DeepLinkDestination, RequireLogin

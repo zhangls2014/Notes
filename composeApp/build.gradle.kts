@@ -31,6 +31,12 @@ kotlin {
         implementation(projects.feature.settings)
 
         implementation(kmp.androidx.lifecycle.viewmodel.navigation3)
+        // 列表-详情场景策略：NavDisplay 的 sceneStrategies 用它装配"列表栏 + 详情栏"，
+        // 于是"首页分栏 / 收藏页整页替换"这两种表现合一，且两端 directive 口径一致
+        implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)
+        // 场景策略的 directive 由组合根用 LocalWindowAdaptiveInfo 现算（而不是吃库的默认参数），
+        // 于是同一帧里只有一个窗口读取点
+        implementation(kmp.jetbrains.compose.material3.adaptive.layout)
       }
     }
 
