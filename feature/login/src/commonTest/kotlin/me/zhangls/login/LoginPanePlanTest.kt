@@ -33,7 +33,16 @@ class LoginPanePlanTest {
   @Test
   fun compactPhoneShowsFormOnly() {
     val plan = plan(widthDp = 360, heightDp = 800)
-    assertEquals(PaneAdaptedValue.Hidden, plan.value[SupportingPaneScaffoldRole.Supporting])
+    assertEquals(
+      PaneAdaptedValue.Hidden,
+      plan.value[SupportingPaneScaffoldRole.Main],
+      "窄窗口上品牌（Main，leading/左侧）应被收起，表单独占整幅",
+    )
+    assertEquals(
+      PaneAdaptedValue.Expanded,
+      plan.value[SupportingPaneScaffoldRole.Supporting],
+      "窄窗口上表单（Supporting）应独占",
+    )
     assertEquals(false, plan.isBrandPaneShown, "窄窗口上品牌区不显示，logo 应留在表单列")
   }
 
@@ -42,33 +51,45 @@ class LoginPanePlanTest {
     // 600–839dp 且高度未到 Expanded 时维持单栏。这是**有意**的：
     // 表单 480dp + 栏间 24dp + 品牌区 ≈ 864dp > 839dp，塞不下。
     plan(widthDp = 700, heightDp = 800).also {
-      assertEquals(PaneAdaptedValue.Hidden, it.value[SupportingPaneScaffoldRole.Supporting])
+      assertEquals(PaneAdaptedValue.Hidden, it.value[SupportingPaneScaffoldRole.Main])
     }
     plan(widthDp = 839, heightDp = 880).also {
-      assertEquals(PaneAdaptedValue.Hidden, it.value[SupportingPaneScaffoldRole.Supporting])
+      assertEquals(PaneAdaptedValue.Hidden, it.value[SupportingPaneScaffoldRole.Main])
     }
   }
 
   @Test
   fun expandedWidthShowsBrandPaneSideBySide() {
-    // ≥840dp：表单与品牌并排（表单在起始侧、品牌在末侧，方向由库的窗格顺序定，RTL 自动跟随）
+    // ≥840dp：品牌（Main/左侧）与表单（Supporting/右侧）并排
     plan(widthDp = 840, heightDp = 800).also {
-      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Supporting])
+      assertEquals(
+        PaneAdaptedValue.Expanded,
+        it.value[SupportingPaneScaffoldRole.Main],
+        "宽窗口下品牌（leading/左）应被库的 Hide 放行而 Expand",
+      )
+      assertEquals(
+        PaneAdaptedValue.Expanded,
+        it.value[SupportingPaneScaffoldRole.Supporting],
+        "宽窗口下表单（trailing/右）应 Expand 并排",
+      )
       assertTrue(it.isFormPaneSideBySide)
     }
     plan(widthDp = 1066, heightDp = 1200).also {
+      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
       assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Supporting])
     }
     plan(widthDp = 1600, heightDp = 900).also {
+      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
       assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Supporting])
     }
   }
 
   @Test
   fun landscapePhoneShowsBrandPaneSideBySide() {
-    // 横屏手机 914×411dp：宽度到 Expanded → 表单与品牌并排。
+    // 横屏手机 914×411dp：宽度到 Expanded → 品牌左、表单右并排。
     // 这比"把一列塞进 411dp 高"更省竖向空间。
     plan(widthDp = 914, heightDp = 411).also {
+      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
       assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Supporting])
     }
   }
@@ -83,13 +104,24 @@ class LoginPanePlanTest {
     assertEquals(1, directive.maxHorizontalPartitions)
     assertTrue(directive.maxVerticalPartitions >= 2, "本条的前提：竖向容量确实够两栏")
     val plan = loginPanePlan(adaptiveInfo, directive)
-    assertEquals(PaneAdaptedValue.Hidden, plan.value[SupportingPaneScaffoldRole.Supporting])
+    assertEquals(
+      PaneAdaptedValue.Hidden,
+      plan.value[SupportingPaneScaffoldRole.Main],
+      "竖屏手机不是桌面支架，品牌应被收起；不能按竖向容量去叠放",
+    )
+    assertEquals(
+      PaneAdaptedValue.Expanded,
+      plan.value[SupportingPaneScaffoldRole.Supporting],
+      "窄窗口下表单应独占（被设为当前目的地）",
+    )
   }
 
   @Test
   fun tabletopStacksBrandInsteadOfSplittingColumns() {
     // 折叠半开（桌面支架）：横向铰链把窗口切成两半。此时窗口**同时**具备横排与竖排容量 ——
     // 若不把横向分区压到 1，库会给出两栏并排，两栏各自横跨铰链。
+    // 桌面支架下品牌在 Main 位（顶/左），表单（Supporting）Reflow 到同一分区下方，
+    // 与原 Stacked「品牌在上、表单在下」的视觉一致。
     val (adaptiveInfo, directive) = windowAndDirective(
       widthDp = 1600, heightDp = 1000, posture = Posture(isTabletop = true),
     )
@@ -97,9 +129,14 @@ class LoginPanePlanTest {
     val plan = loginPanePlan(adaptiveInfo, directive)
     assertEquals(1, plan.directive.maxHorizontalPartitions, "桌面支架下必须压到单横向分区")
     assertEquals(
+      PaneAdaptedValue.Expanded,
+      plan.value[SupportingPaneScaffoldRole.Main],
+      "桌面支架下品牌留在 Main 位（顶/左），不被 Hide",
+    )
+    assertEquals(
       PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
       plan.value[SupportingPaneScaffoldRole.Supporting],
-      "品牌区应叠到表单之下，而不是与表单并排跨过铰链",
+      "桌面支架下表单（Supporting）应 Reflow 到 Main 分区下方，而不是与品牌并排跨过铰链",
     )
     assertTrue(plan.isBrandPaneReflowed)
   }
@@ -108,6 +145,7 @@ class LoginPanePlanTest {
   fun tabletopOnNarrowWindowAlsoStacks() {
     // 窄窗口 + 桌面支架同样叠放：这一档与"宽度够不够两栏"无关。
     plan(widthDp = 700, heightDp = 900, posture = Posture(isTabletop = true)).also {
+      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
       assertEquals(
         PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
         it.value[SupportingPaneScaffoldRole.Supporting],
