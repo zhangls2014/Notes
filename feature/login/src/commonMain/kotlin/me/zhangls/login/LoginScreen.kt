@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,9 +64,10 @@ import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
 import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.canShowSideBySidePanes
-import me.zhangls.theme.layout.canShowStackedPanes
 import me.zhangls.theme.layout.contentWidth
+import me.zhangls.theme.layout.isTabletopPosture
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_brand_name
@@ -93,13 +95,17 @@ internal enum class LoginArrangement {
 }
 
 /**
- * 由窗格排布指令决定登录页怎么摆。
+ * 由窗口形态与窗格排布指令决定登录页怎么摆。
  *
  * 顺序即优先级，三条都不是随手排的：
  *
- * 1. [LoginArrangement.Stacked] 优先 —— 能竖排只可能有两种情形：桌面支架姿态（横向铰链把
- *    窗口拦腰切断），或"窄而高"的窗口（只有一栏横向分区、高度却已到 Expanded）。
- *    让内容跨过铰链，比少用一点横向空间糟糕得多，所以它压过横排。
+ * 1. [LoginArrangement.Stacked] —— 仅当窗口**被横向铰链切成两半**（桌面支架姿态）。
+ *    这是"必须上下分区"的唯一情形：内容跨过铰链比少用一点空间糟糕得多。
+ *
+ *    ⚠️ 判据是**姿态**，不是"竖向有空间"。早先这里读的是 directive 的
+ *    `maxVerticalPartitions >= 2`，它在"窄而高"的窗口上也为真 —— 于是 411×914dp 的普通
+ *    高屏手机也被判成竖排：品牌占掉上半屏、两个字段落到下半屏，中间摊出一大段空白。
+ *    容量够 ≠ 应该这么排；手机上没有铰链要避。
  * 2. [LoginArrangement.SideBySide] —— Expanded 及以上（≥ 840dp）。用左右空间换掉
  *    "表单居中 + 两侧各留几百 dp"。
  * 3. [LoginArrangement.Single] —— Compact / Medium。
@@ -107,10 +113,14 @@ internal enum class LoginArrangement {
  *    塞不下；要塞就得把表单压到 400dp 上下，那就成了第二个 measure 值 ——
  *    多一个需要维护的数字，换不来实际收益。
  *
- * 写成纯函数是为了能用真实 dp 尺寸做守卫测试（见 commonTest），不必真机旋转。
+ * 写成纯函数是为了能用真实 dp 尺寸做守卫测试（见 commonTest），不必真机旋转、
+ * 也不必找一台折叠设备。
  */
-internal fun loginArrangementFor(directive: PaneScaffoldDirective): LoginArrangement = when {
-  directive.canShowStackedPanes -> LoginArrangement.Stacked
+internal fun loginArrangementFor(
+  adaptiveInfo: WindowAdaptiveInfo,
+  directive: PaneScaffoldDirective,
+): LoginArrangement = when {
+  adaptiveInfo.isTabletopPosture -> LoginArrangement.Stacked
   directive.canShowSideBySidePanes -> LoginArrangement.SideBySide
   else -> LoginArrangement.Single
 }
@@ -138,7 +148,8 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
   }
 
   val directive = LocalPaneScaffoldDirective.current
-  val arrangement = remember(directive) { loginArrangementFor(directive) }
+  val adaptiveInfo = LocalWindowAdaptiveInfo.current
+  val arrangement = remember(adaptiveInfo, directive) { loginArrangementFor(adaptiveInfo, directive) }
 
   Scaffold { padding ->
     Column(
