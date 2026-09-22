@@ -19,9 +19,10 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +56,19 @@ internal fun NewEmailSheet(
   onSave: () -> Unit,
 ) {
   if (!visible) return
-  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  // 只允许 Hidden / Expanded 两档：中间的 PartiallyExpanded 对这个弹层没有意义 ——
+  // 它的内容是一组收件人 chip + 两个输入框 + 操作按钮，半展开会把输入框拦腰截断。
+  //
+  // 不再用 `rememberModalBottomSheetState(skipPartiallyExpanded = true)`：那个 API 已废弃，
+  // 原因是它在内部**替调用方**做了一件事 —— 弹层高度不足半屏时自动把 PartiallyExpanded
+  // 剔除。于是"能停在哪几档"取决于运行期测出的高度，同一份代码在不同屏幕上档位不同。
+  // 现在由调用方显式声明 enabledValues，档位只由这里决定。
+  // 初始值必须是 Hidden：`ModalBottomSheet` 内部靠 `LaunchedEffect { show() }` 展开
+  // （`if (sheetState.hasExpandedState)` 守卫，锚点建好后才会触发）。
+  val sheetState = rememberBottomSheetState(
+    initialValue = SheetValue.Hidden,
+    enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+  )
 
   ModalBottomSheet(onDismissRequest = { if (!isSending) onDismiss() }, sheetState = sheetState) {
     Column(
