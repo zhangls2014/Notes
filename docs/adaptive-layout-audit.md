@@ -601,7 +601,7 @@ S1 是**单文件、零架构风险**的净收益，建议先落地。
 ### 7.2 派生事实也只在组合根算一次
 
 `LocalPaneScaffoldDirective` + `rememberPaneScaffoldDirective(adaptiveInfo)` +
-`canShowSideBySidePanes` / `canShowStackedPanes`。原先 `AppNavHost` 自己算 directive；
+`canShowSideBySidePanes`（+ `WindowAdaptiveInfo.isTabletopPosture`）。原先 `AppNavHost` 自己算 directive；
 登录页若也要用就成了第二个派生点 —— 纯函数今天必然一致，但参数一旦被谁改掉就会静默分叉，
 那正是"窗口形态三处各读一次"的病根以另一种形式重来。
 注意 `calculatePaneScaffoldDirective` 是 `@ExperimentalMaterial3AdaptiveApi`，而 `PaneScaffoldDirective`
@@ -609,15 +609,15 @@ S1 是**单文件、零架构风险**的净收益，建议先落地。
 
 ### 7.3 登录页：由分区能力决定排布，而不是靠一个数字
 
-`loginArrangementFor(directive)`（纯函数，见 `feature/login` 的 commonTest）：
+`loginArrangementFor(adaptiveInfo, directive)`（纯函数，见 `feature/login` 的 commonTest）：
 
-| 条件 | 排布 | 实机窗口 |
+| 条件 | 排布 | 实测窗口（应用自己看到的 dp） |
 |---|---|---|
-| `canShowStackedPanes` | 竖排：品牌在上、表单在下 | 700×1200dp、桌面支架 |
-| `canShowSideBySidePanes` | 横排：品牌占左侧剩余、表单在右且封顶 | 841dp、1600dp |
-| 其余 | 单栏（同改造前） | 360dp、700×800dp |
+| `isTabletopPosture`（横向铰链切分） | 竖排：品牌在上、表单在下 | 桌面支架（模拟器无法复现，由 commonTest 覆盖） |
+| `canShowSideBySidePanes` | 横排：品牌占左侧剩余、表单在右且封顶 | 841×701dp、1600×900dp、914×411dp（横屏手机） |
+| 其余 | 单栏（同改造前） | 411×914dp（竖屏手机）、360×780dp、700×800dp |
 
-- 优先级有序：桌面支架下横向铰链把窗口拦腰切断，竖排压过横排。
+- **竖排的判据是姿态，不是容量** —— 这一条是复查时用实机纠正过来的，见 §8.2。
 - **横排下表单取精确 measure**：`Row` 的剩余空间已由 `weight` 交给品牌区，表单再 `fillMaxWidth`
   会把整行吃掉。栏间留白用 `directive.horizontalPartitionSpacerSize`（24dp），与列表-详情同一套间隔。
 - 顶部两个全局入口（深色模式 / 语言）归入**表单区**：原先 `align(End)` 贴窗口右缘，
@@ -640,4 +640,65 @@ S1 是**单文件、零架构风险**的净收益，建议先落地。
 子项被无界高度测量，Column 只包裹内容，没有余量可分配。现状其实是**顶部对齐 + 底部留白**
 （实测 841dp 窗口：内容到 y≈1452 结束，而窗口高 1840，底部余 388px）。这也解释了为什么大屏上
 表单看起来"往上挤"。本轮的排布改造顺带让两区各自居中，不再依赖这个失效参数。
+
+---
+
+## 8. 复查：还有没有没适配多窗口形态的页面
+
+### 8.1 方法：先量准"应用自己看到的窗口"
+
+复查中两次得出相反结论，根因是**拿 `wm size` / `wm density` 推算应用窗口的 dp 尺寸**。
+本机 AVD 是桌面窗口模式（且窗口相对显示器有旋转），应用窗口的尺寸与密度是它**自己的**：
+
+```
+adb shell dumpsys window windows | grep -m1 -oE "w[0-9]+dp h[0-9]+dp [0-9]+dpi [a-z]+"
+```
+
+实测同一时刻：显示器是 `wm size 2400x1350 / density 240`，而应用看到的是
+`w514dp h914dp 420dpi`（窗口 1350×2400px、物理密度 420、`mDisplayRotation=ROTATION_90`）。
+按 `wm` 值推算会得到"900×1600dp、应该横排"，与实机（Compact 宽度 → 单栏）矛盾。
+**一切"应用在什么窗口下做了什么"的判断，都要以这条 Configuration 为准。**
+
+### 8.2 复查结果
+
+| 界面 | 大/异常窗口下的行为 | 结论 |
+|---|---|---|
+| 外壳（Rail / 底部栏） | `navigationSuiteType()`：Compact·Medium 或桌面支架 → 底部栏；Expanded → Rail；≥1600dp → 展开 Rail | ✓ |
+| 首页 / 收藏（列表-详情） | 按 directive：≥2 横分区 → 左右双栏 + 详情空态；1 分区 → 单栏，详情整页并给返回键 | ✓ |
+| 邮件详情正文 | `ContentWidth.Article`(720dp) 封顶居中（实测 777dp 详情栏内正文收在 ~708dp） | ✓ |
+| 搜索 | `isCompactWidth` → 全屏搜索栏 / docked 面板 | ✓ |
+| 写邮件弹层 | `ModalBottomSheet` 自带 640dp 上限 | ✓ |
+| 设置 | `ContentWidth.Prose`(840dp) 封顶居中；**有意**不做 list-detail（该列表是扁平的，没有分类层级） | ✓ |
+| 加载遮罩 / 对话框 / 头像 | 与窗口无关（固定尺寸、居中、或被系统弹窗承载） | ✓ |
+| 登录 | 见 §7.3 | ✓ |
+
+**没有发现"完全没适配"的页面**；但查出一个**本轮自己引入的回归**，见下。
+
+### 8.3 修掉的回归：竖屏手机被摊成上下半屏
+
+初版把"竖排"判据写成 directive 的 `maxVerticalPartitions >= 2`。它在两种窗口上都为真：
+桌面支架（横向铰链 —— 该竖排），以及"窄而高"（1 个横向分区 且 高度为 Expanded）——
+而 **411×914dp 的普通竖屏手机正是后者**。于是手机上的登录页变成：品牌占上半屏、
+两个字段落到下半屏、中间空出一大段（实机截图可见）。
+
+改法：竖排只认 `WindowAdaptiveInfo.isTabletopPosture`（真的被横向铰链切分），
+并删掉 `canShowStackedPanes` —— 它只在登录页用过，而用法本身把"容量"当成了"理由"。
+**容量够 ≠ 应该这么排**，这条已钉进 commonTest：
+
+- `tallPhoneStaysSingleColumn`：411×914dp —— 先断言它的 `maxVerticalPartitions >= 2`（容量确实够），
+  再断言决策为单栏；
+- `verticalCapacityIsNotAReasonToStack`：700×1200dp 同理。
+
+**反向验证**：把判据临时改回 `maxVerticalPartitions >= 2`，恰好且仅这两条失败
+（`expected:<Single> but was:<Stacked>`），其余 8 条通过；恢复后 10 条全过。
+
+### 8.4 顺带观察（非缺陷，但值得记）
+
+- 桌面窗口模式 + 窗口旋转会让应用报出**桌面支架姿态**（`isTabletop = true`）。这是本机 AVD
+  的自由窗口与旋转组合造成的，不是应用逻辑；应用的反应（不跨越"铰链"）自洽。
+- 桌面支架下列表-详情退化为单栏详情：`calculateThreePaneScaffoldValue` 只在
+  `maxHorizontalPartitions == 1` 时才考虑重排（`checkReflowedPane`），且
+  `ListDetailPaneScaffoldDefaults.adaptStrategies()` 三个角色都是 `AdaptStrategy.Hide`
+  —— 是库的行为，应用侧没有可改的开关。
+
 
