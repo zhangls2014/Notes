@@ -583,3 +583,61 @@ S1 是**单文件、零架构风险**的净收益，建议先落地。
 | 跨平台列表-详情场景策略 | `adaptive-navigation3-1.3.0-rc01` `commonMain/…/ListDetailSceneStrategy.kt:79-101` |
 | NavDisplay 支持 sceneStrategies | `navigation3-ui-1.1.1` `commonMain/…/NavDisplay.kt:334-358` |
 | 合并后清单无 configChanges / windowSoftInputMode | `androidApp/build/intermediates/merged_manifest/…/AndroidManifest.xml` |
+
+---
+
+## 7. 追加：measure 机制收敛与登录页分区
+
+审计原本把 D8 的修法写成"加一个 `AdaptiveContent`"。落地后发现真正的结构问题是**同一个概念被两套机制表达**，
+现在收敛掉，并顺手处理了登录页"一列居中 + 四周留白"。
+
+### 7.1 measure（宽度上限）集中到一处
+
+`core:theme/layout/ContentWidth.kt`：`ContentWidth.Form`(480) / `.Article`(720) / `.Prose`(840)
++ `Modifier.contentWidth()`（窄窗口填满、宽窗口封顶）。原先三处各自为政 ——
+`AdaptiveContent` 的默认值 840、`EmailDetail` 的私有 `DetailMaxWidth = 720`、
+登录页的私有 `FormMaxWidth = 480` + 裸 `widthIn` —— 没人能一眼看出"这个 480 与那个 480 是不是一回事"。
+
+### 7.2 派生事实也只在组合根算一次
+
+`LocalPaneScaffoldDirective` + `rememberPaneScaffoldDirective(adaptiveInfo)` +
+`canShowSideBySidePanes` / `canShowStackedPanes`。原先 `AppNavHost` 自己算 directive；
+登录页若也要用就成了第二个派生点 —— 纯函数今天必然一致，但参数一旦被谁改掉就会静默分叉，
+那正是"窗口形态三处各读一次"的病根以另一种形式重来。
+注意 `calculatePaneScaffoldDirective` 是 `@ExperimentalMaterial3AdaptiveApi`，而 `PaneScaffoldDirective`
+本身不是，所以 `@OptIn` 留在 core:theme 内部，公开 API 保持稳定类型。
+
+### 7.3 登录页：由分区能力决定排布，而不是靠一个数字
+
+`loginArrangementFor(directive)`（纯函数，见 `feature/login` 的 commonTest）：
+
+| 条件 | 排布 | 实机窗口 |
+|---|---|---|
+| `canShowStackedPanes` | 竖排：品牌在上、表单在下 | 700×1200dp、桌面支架 |
+| `canShowSideBySidePanes` | 横排：品牌占左侧剩余、表单在右且封顶 | 841dp、1600dp |
+| 其余 | 单栏（同改造前） | 360dp、700×800dp |
+
+- 优先级有序：桌面支架下横向铰链把窗口拦腰切断，竖排压过横排。
+- **横排下表单取精确 measure**：`Row` 的剩余空间已由 `weight` 交给品牌区，表单再 `fillMaxWidth`
+  会把整行吃掉。栏间留白用 `directive.horizontalPartitionSpacerSize`（24dp），与列表-详情同一套间隔。
+- 顶部两个全局入口（深色模式 / 语言）归入**表单区**：原先 `align(End)` 贴窗口右缘，
+  841dp 上离表单约 400dp、1600dp 上约 800dp；归入后窄窗口下（表单与窗口同宽）观感不变。
+
+### 7.4 明确否决的两条
+
+- **`SupportingPaneSceneStrategy`**：它的窗格必须来自**返回栈条目**
+  （`SupportingPaneSceneStrategy.calculateScene` 从栈顶收集带 pane 元数据的 entry，
+  `adaptive-navigation3-1.3.0-rc01` `commonMain/…/SupportingPaneSceneStrategy.kt:135,145`）。
+  品牌栏是静态 UI 不是目的地，塞进导航模型会让返回栈表达出并不存在的"用户去过品牌页"。
+  对照 `EmailDetailDestination.scene`：那里 `scene` 是**路由**信息（哪张列表打开的），所以它该在 key 里。
+- **`BoxWithConstraints` 插值 / `fillMaxWidth(fraction)`**：版式随窗口连续变化、不可预期，
+  且会让表单在大窗口上突破那个真正该守的可读上限。
+
+### 7.5 对本文档的一处更正
+
+原正文（D12 一节）说登录页表单"垂直居中于整幅高度 → 上下两头空"。**这个说法不准确**：
+`verticalArrangement = Arrangement.Center` 在 `verticalScroll` 内部是**失效的** ——
+子项被无界高度测量，Column 只包裹内容，没有余量可分配。现状其实是**顶部对齐 + 底部留白**
+（实测 841dp 窗口：内容到 y≈1452 结束，而窗口高 1840，底部余 388px）。这也解释了为什么大屏上
+表单看起来"往上挤"。本轮的排布改造顺带让两区各自居中，不再依赖这个失效参数。
+
