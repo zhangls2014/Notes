@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3AdaptiveApi::class)
+
 package me.zhangls.login
 
 import androidx.compose.foundation.Image
@@ -5,10 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -23,8 +23,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.AdaptStrategy
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValue
+import androidx.compose.material3.adaptive.layout.calculateThreePaneScaffoldValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,7 +74,6 @@ import me.zhangls.theme.icon.VisibilityOff
 import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
-import me.zhangls.theme.layout.canShowSideBySidePanes
 import me.zhangls.theme.layout.contentWidth
 import me.zhangls.theme.layout.isTabletopPosture
 import notes.feature.login.generated.resources.Res
@@ -78,51 +86,95 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * 登录页的三种排布。
+ * 登录页的窗格方案：交给库的窗格脚手架之后，本页只剩"用哪份指令 + 得到什么窗格取值"。
  *
- * 注意这里**没有**宽度断点：判断依据来自 `PaneScaffoldDirective`（库按窗口形态算出的
- * 分区能力），本应用不自己维护"多少 dp 该分两栏"这套数字。
+ * 为什么不再自己排布（原先是一个 `loginArrangementFor` 纯函数 + 自绘 Row/Column）：
+ * 自绘排布**看不到铰链**。2026-09-22 的实测里，书本式折叠设备半开（竖向铰链落在 `x=884`）时，
+ * 居中于窗口的表单其输入框横跨 `x=[338,1430]` —— 铰链线正好穿过输入框中心；
+ * 而列表-详情那边因为走库的窗格装配，内容被自动限制在铰链一侧。同一个窗口两种待遇，
+ * 差别只在"有没有消费 directive"。
+ *
+ * 现在换成 [SupportingPaneScaffold]：主窗格 = 表单，支持窗格 = 品牌。
+ * 竖向铰链由 `directive.excludedBounds` 交给 `ThreePaneScaffold` 切分区，内容自然不跨铰链；
+ * 横向铰链（桌面支架）则见 [loginPanePlan]。
  */
-internal enum class LoginArrangement {
-  /** 单栏：品牌（logo）与表单叠在一列里，居中。 */
-  Single,
+internal class LoginPanePlan(
+  /** 实际交给脚手架的指令 —— 桌面支架下与 [PaneScaffoldDirective] 传来的那份不同，见 [loginPanePlan]。 */
+  val directive: PaneScaffoldDirective,
+  val value: ThreePaneScaffoldValue,
+) {
+  private val supportingValue: PaneAdaptedValue
+    get() = value[SupportingPaneScaffoldRole.Supporting]
 
-  /** 横排：品牌区占左侧剩余空间，表单区占右侧且宽度封顶。 */
-  SideBySide,
+  /**
+   * 品牌窗格此刻是否真的显示。
+   *
+   * 窄窗口上它不显示，此时 logo 留在表单列顶部（否则页面上会一个图标都没有）；
+   * 两区排布时 logo 归品牌区，表单列里不再重复画一遍。
+   */
+  val isBrandPaneShown: Boolean
+    get() = supportingValue != PaneAdaptedValue.Hidden
 
-  /** 竖排：品牌区在上、表单区在下。 */
-  Stacked,
+  /** 品牌窗格是否被**叠到表单之下**（桌面支架：窗口被横向铰链切成两半）。 */
+  val isBrandPaneReflowed: Boolean
+    get() = supportingValue is PaneAdaptedValue.Reflowed
+
+  /** 表单窗格当前是否与品牌窗格**并排**（而非独占整幅宽度）。 */
+  val isFormPaneSideBySide: Boolean
+    get() = supportingValue == PaneAdaptedValue.Expanded
 }
 
 /**
- * 由窗口形态与窗格排布指令决定登录页怎么摆。
+ * 由窗口形态与窗格指令算出登录页的窗格方案。**纯函数**，因此能用真实 dp 尺寸做守卫测试
+ * （见 commonTest），不必真机旋转、也不必找一台折叠设备。
  *
- * 顺序即优先级，三条都不是随手排的：
+ * 两处决策都属"本页的意图声明"，而不是重新实现窗格算法：
  *
- * 1. [LoginArrangement.Stacked] —— 仅当窗口**被横向铰链切成两半**（桌面支架姿态）。
- *    这是"必须上下分区"的唯一情形：内容跨过铰链比少用一点空间糟糕得多。
+ * 1. **桌面支架（横向铰链）下把横向分区压到 1**。库的窗格排版只切**竖向**铰链
+ *    （`ThreePaneScaffold` 用的 `directive.excludedBounds` 由 `getExcludedVerticalBounds`
+ *    算出，只有竖向）；横向铰链靠 `maxVerticalPartitions` + `AdaptStrategy.Reflow`
+ *    把窗格**上下叠放**来避让。而 reflow 的前提是 `maxHorizontalPartitions == 1`
+ *    （见 `calculateThreePaneScaffoldValue` 的 `checkReflowedPane`）——
+ *    不压这一档，宽窗口上的桌面支架会拿到两栏并排，**两栏各自横跨铰链**。
+ * 2. **品牌窗格的两种不显示方式**：
+ *    - 空间不够（只有 1 个横向分区，且没有横向铰链）→ [AdaptStrategy.Hide]，整块不显示；
+ *    - 桌面支架 → [AdaptStrategy.Reflow]，叠到表单之下（同一个横向分区里的第二个竖向分区）。
  *
- *    ⚠️ 判据是**姿态**，不是"竖向有空间"。早先这里读的是 directive 的
- *    `maxVerticalPartitions >= 2`，它在"窄而高"的窗口上也为真 —— 于是 411×914dp 的普通
- *    高屏手机也被判成竖排：品牌占掉上半屏、两个字段落到下半屏，中间摊出一大段空白。
- *    容量够 ≠ 应该这么排；手机上没有铰链要避。
- * 2. [LoginArrangement.SideBySide] —— Expanded 及以上（≥ 840dp）。用左右空间换掉
- *    "表单居中 + 两侧各留几百 dp"。
- * 3. [LoginArrangement.Single] —— Compact / Medium。
- *    **600–839dp 不做两区不是偷懒**：表单 480dp + 栏间 24dp + 品牌区 ≈ 864dp > 839dp，
- *    塞不下；要塞就得把表单压到 400dp 上下，那就成了第二个 measure 值 ——
- *    多一个需要维护的数字，换不来实际收益。
- *
- * 写成纯函数是为了能用真实 dp 尺寸做守卫测试（见 commonTest），不必真机旋转、
- * 也不必找一台折叠设备。
+ *    ⚠️ 判据是**姿态**，不是"竖向有空间"。directive 的 `maxVerticalPartitions == 2` 在
+ *    "窄而高"的普通竖屏手机上也成立（411×914dp 实测），按它选 reflow 会把手机摊成
+ *    上下半屏：品牌占掉上半屏、两个字段落到下半屏、中间空出一大段。手机上没有铰链要避。
  */
-internal fun loginArrangementFor(
+internal fun loginPanePlan(
   adaptiveInfo: WindowAdaptiveInfo,
   directive: PaneScaffoldDirective,
-): LoginArrangement = when {
-  adaptiveInfo.isTabletopPosture -> LoginArrangement.Stacked
-  directive.canShowSideBySidePanes -> LoginArrangement.SideBySide
-  else -> LoginArrangement.Single
+): LoginPanePlan {
+  val isTabletop = adaptiveInfo.isTabletopPosture
+
+  // 桌面支架：压到单横向分区，让 reflow 生效（理由见上文第 1 条）
+  val effectiveDirective = if (isTabletop) {
+    directive.copy(maxHorizontalPartitions = 1)
+  } else {
+    directive
+  }
+
+  val adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
+    supportingPaneAdaptStrategy = if (isTabletop) {
+      AdaptStrategy.Reflow(SupportingPaneScaffoldRole.Main)
+    } else {
+      AdaptStrategy.Hide
+    },
+  )
+
+  // 本页没有窗格间的导航（不支持在"品牌 / 表单"之间跳转），所以当前目的地恒为 null：
+  // 优先级回落到 Primary → Secondary → Tertiary，正是"表单优先、品牌其次"。
+  val value = calculateThreePaneScaffoldValue(
+    maxHorizontalPartitions = effectiveDirective.maxHorizontalPartitions,
+    adaptStrategies = adaptStrategies,
+    currentDestination = null,
+    maxVerticalPartitions = effectiveDirective.maxVerticalPartitions,
+  )
+
+  return LoginPanePlan(effectiveDirective, value)
 }
 
 /**
@@ -147,74 +199,33 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
     }
   }
 
-  val directive = LocalPaneScaffoldDirective.current
-  val adaptiveInfo = LocalWindowAdaptiveInfo.current
-  val arrangement = remember(adaptiveInfo, directive) { loginArrangementFor(adaptiveInfo, directive) }
+  val plan = rememberLoginPanePlan()
 
   Scaffold { padding ->
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(state = rememberScrollState())
-        // 顶部系统内边距加在最外层：品牌区与表单区都在它之下，两边不必各算一次
-        .padding(
-          top = padding.calculateTopPadding(),
-          bottom = padding.calculateBottomPadding(),
-        )
-        // 底部还要留给键盘，不要把输入框压在它下面。imePadding 必须在 verticalScroll
-        // **之内**（即链尾）：它给滚动内容补上键盘高度的底部留白，于是滚动区域的内容变高，
-        // 聚焦的输入框能被自动滚进键盘上方的可视区。
-        .imePadding()
-    ) {
-      // 表单区的宽度：三种排布下都**不超过** ContentWidth.Form，差别只在由谁提供剩余空间。
-      val formModifier = when (arrangement) {
-        // 横排：取精确 measure —— Row 里的剩余空间已经由 weight 交给品牌区，
-        // 表单这边再 fillMaxWidth 会把整行吃掉。两区只在 ≥840dp 出现，480dp 必定放得下。
-        LoginArrangement.SideBySide -> Modifier.width(ContentWidth.Form)
-        // 单栏 / 竖排：窄窗口填满、宽窗口封顶（父级 CenterHorizontally 负责居中）
-        else -> Modifier.contentWidth(ContentWidth.Form)
-      }
-
-      when (arrangement) {
-        LoginArrangement.Single -> FormRegion(
-          modifier = formModifier,
-          showLogo = true,
-          state = state,
-          onIntent = viewModel::sendIntent,
-          onLoginClick = loginClick,
-        )
-
-        LoginArrangement.SideBySide -> Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.Center,
-          modifier = Modifier.fillMaxWidth(),
-        ) {
-          BrandPane(modifier = Modifier.weight(1f))
-          // 栏间留白用 directive 的值：与列表-详情用的是同一套间隔，全应用视觉一致
-          Spacer(modifier = Modifier.width(directive.horizontalPartitionSpacerSize))
-          FormRegion(
-            modifier = formModifier,
-            showLogo = false,
+    SupportingPaneScaffold(
+      directive = plan.directive,
+      value = plan.value,
+      // 系统栏内边距加在脚手架外层：两个窗格都在安全区内，各自不必再算一次。
+      // 键盘内边距则要加在**表单窗格内部**（见 [FormPane]）—— 桌面支架下键盘占的是下半屏，
+      // 也就是品牌窗格那一侧，套在外层会让表单跟着缩，反而把内容挤走。
+      modifier = Modifier.padding(padding),
+      mainPane = {
+        AnimatedPane {
+          FormPane(
+            showLogo = !plan.isBrandPaneShown,
             state = state,
             onIntent = viewModel::sendIntent,
             onLoginClick = loginClick,
           )
         }
-
-        LoginArrangement.Stacked -> {
-          BrandPane(modifier = Modifier.fillMaxWidth())
-          Spacer(modifier = Modifier.height(directive.verticalPartitionSpacerSize))
-          FormRegion(
-            modifier = formModifier,
-            showLogo = false,
-            state = state,
-            onIntent = viewModel::sendIntent,
-            onLoginClick = loginClick,
-          )
+      },
+      supportingPane = {
+        AnimatedPane {
+          // 被叠到表单之下时竖向空间至多一半，省掉那句说明，避免在小窗格里被裁
+          BrandPane(showTagline = !plan.isBrandPaneReflowed)
         }
-      }
-    }
+      },
+    )
   }
 
   if (state.isLoading) {
@@ -222,99 +233,122 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
   }
 }
 
+@Composable
+private fun rememberLoginPanePlan(): LoginPanePlan {
+  val adaptiveInfo = LocalWindowAdaptiveInfo.current
+  val directive = LocalPaneScaffoldDirective.current
+  return remember(adaptiveInfo, directive) { loginPanePlan(adaptiveInfo, directive) }
+}
+
 /**
- * 表单区：顶部两个全局入口 + （可选的）logo + 账户/密码输入 + 登录按钮。
+ * 表单窗格（主窗格）：顶部两个全局入口 + （窄窗口下的）logo + 账户/密码输入 + 登录按钮。
  *
- * @param showLogo 单栏排布时 logo 留在这里；两区排布时它由 [BrandPane] 承担，避免重复出现。
+ * @param showLogo 品牌窗格不显示时（窄窗口）logo 留在这里，否则由 [BrandPane] 承担，避免重复出现。
  */
 @Composable
-private fun FormRegion(
-  modifier: Modifier = Modifier,
+private fun FormPane(
   showLogo: Boolean,
   state: LoginState,
   onIntent: (LoginIntent) -> Unit,
   onLoginClick: () -> Unit,
 ) {
-  Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
-    // 深色模式 / 语言两个入口属于**表单区**，而不是窗口的角落。
-    // 原先它们 `align(End)` 贴的是窗口右缘：窗口越宽离表单越远（841dp 上差约 400dp，
-    // 1600dp 上差约 800dp）。归入表单区后，窄窗口下表单与窗口同宽、观感与原先一致；
-    // 宽窗口下则始终贴着表单。
-    Row(
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier
-        .align(Alignment.End)
-        .padding(top = 16.dp, end = 16.dp),
-    ) {
-      SelectIconButton(
-        spec = DarkThemePreference.spec,
-        value = state.darkTheme,
-        onValueChange = { onIntent(LoginIntent.UpdateDarkTheme(it)) },
-      )
-
-      SelectIconButton(
-        spec = LanguagePreference.spec,
-        value = state.appLanguage,
-        onValueChange = { onIntent(LoginIntent.UpdateLanguage(it)) },
-      )
-    }
-
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier = Modifier
+      .fillMaxSize()
+      .verticalScroll(state = rememberScrollState())
+      // imePadding 必须在 verticalScroll **之内**（即链尾）：它给滚动内容补上键盘高度的底部
+      // 留白，于是滚动区域的内容变高，聚焦的输入框能被自动滚进键盘上方的可视区。
+      .imePadding(),
+  ) {
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.padding(vertical = 32.dp),
+      // 窗格可以宽到 800dp 以上（1600dp 窗口下的并排），表单仍受可读上限约束、并在窗格内居中
+      modifier = Modifier.contentWidth(ContentWidth.Form),
     ) {
-      if (showLogo) {
-        Image(imageVector = AppLogo, contentDescription = null)
+      // 深色模式 / 语言两个入口属于**表单区**，而不是窗口的角落。
+      // 原先它们 `align(End)` 贴的是窗口右缘：窗口越宽离表单越远（841dp 上差约 400dp，
+      // 1600dp 上差约 800dp）。归入表单区后，窄窗口下表单与窗口同宽、观感与原先一致；
+      // 宽窗口下则始终贴着表单。
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+          .align(Alignment.End)
+          .padding(top = 16.dp, end = 16.dp),
+      ) {
+        SelectIconButton(
+          spec = DarkThemePreference.spec,
+          value = state.darkTheme,
+          onValueChange = { onIntent(LoginIntent.UpdateDarkTheme(it)) },
+        )
+
+        SelectIconButton(
+          spec = LanguagePreference.spec,
+          value = state.appLanguage,
+          onValueChange = { onIntent(LoginIntent.UpdateLanguage(it)) },
+        )
       }
 
-      AccountInput(
-        modifier = Modifier.padding(top = 40.dp),
-        account = state.account,
-        accountError = state.accountError,
-        onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
-        onClearAccount = { onIntent(LoginIntent.ClearAccount) }
-      )
-
-      PasswordInput(
-        modifier = Modifier.padding(top = 16.dp),
-        password = state.password,
-        passwordError = state.passwordError,
-        passwordVisible = state.passwordVisible,
-        onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
-        onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
-        onLogin = onLoginClick,
-      )
-
-      Button(
-        onClick = onLoginClick,
-        enabled = state.isInputValid,
-        shape = RoundedCornerShape(24.dp),
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(start = 32.dp, end = 32.dp, top = 32.dp)
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(vertical = 32.dp),
       ) {
-        Text(text = stringResource(Res.string.login_action_login), fontSize = 16.sp)
+        if (showLogo) {
+          Image(imageVector = AppLogo, contentDescription = null)
+        }
+
+        AccountInput(
+          modifier = Modifier.padding(top = 40.dp),
+          account = state.account,
+          accountError = state.accountError,
+          onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
+          onClearAccount = { onIntent(LoginIntent.ClearAccount) }
+        )
+
+        PasswordInput(
+          modifier = Modifier.padding(top = 16.dp),
+          password = state.password,
+          passwordError = state.passwordError,
+          passwordVisible = state.passwordVisible,
+          onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
+          onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
+          onLogin = onLoginClick,
+        )
+
+        Button(
+          onClick = onLoginClick,
+          enabled = state.isInputValid,
+          shape = RoundedCornerShape(24.dp),
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 32.dp, end = 32.dp, top = 32.dp)
+        ) {
+          Text(text = stringResource(Res.string.login_action_login), fontSize = 16.sp)
+        }
       }
     }
   }
 }
 
 /**
- * 品牌区：logo + 应用名 + 一句说明。
+ * 品牌窗格（支持窗格）：logo + 应用名 + 一句说明。
  *
- * 只在两区排布（横排 / 竖排）出现 —— 它承接的是"表单封顶之后剩下的空间"，
- * 而不是把 logo 再画一遍。
+ * 只在空间够放两区时出现 —— 它承接的是"表单封顶之后剩下的空间"，而不是把 logo 再画一遍。
  *
  * 文案是**占位**：`login_brand_name` 与 Android 侧的 `app_name` 取同一值；
  * `login_brand_tagline` 是随手拟的一句，有正式文案时替换这两个字符串即可。
+ *
+ * @param showTagline 叠到表单之下时竖向空间减半，此时省略那句说明。
  */
 @Composable
-private fun BrandPane(modifier: Modifier = Modifier) {
+private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
-    modifier = modifier.padding(vertical = 32.dp, horizontal = 24.dp),
+    modifier = modifier
+      .fillMaxSize()
+      .padding(vertical = 32.dp, horizontal = 24.dp),
   ) {
     Image(imageVector = AppLogo, contentDescription = null)
 
@@ -324,16 +358,18 @@ private fun BrandPane(modifier: Modifier = Modifier) {
       modifier = Modifier.padding(top = 24.dp),
     )
 
-    Text(
-      text = stringResource(Res.string.login_brand_tagline),
-      style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-      textAlign = TextAlign.Center,
-      // 一句话也是"一行文本"，同样受可读上限约束：品牌区可以很宽，句子不该跟着变很宽
-      modifier = Modifier
-        .padding(top = 8.dp)
-        .width(ContentWidth.Form),
-    )
+    if (showTagline) {
+      Text(
+        text = stringResource(Res.string.login_brand_tagline),
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        // 一句话也是"一行文本"，同样受可读上限约束：品牌区可以很宽，句子不该跟着变很宽
+        modifier = Modifier
+          .padding(top = 8.dp)
+          .width(ContentWidth.Form),
+      )
+    }
   }
 }
 
