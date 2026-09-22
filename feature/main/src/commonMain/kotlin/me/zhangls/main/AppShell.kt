@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ShortNavigationBarDefaults
@@ -15,17 +16,23 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.computeWindowSizeClass
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.api.TabDestination
+import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.icon.Favorite
 import me.zhangls.theme.icon.Home
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Settings
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import me.zhangls.theme.layout.isExtraLargeWidthOrWider
 import notes.feature.main.generated.resources.Res
 import notes.feature.main.generated.resources.main_label_favorites
@@ -114,8 +121,11 @@ fun AppShell(
  * 3. **有死分支**：原先第一档判断 `isWidthAtLeastBreakpoint(1200)`，而 V1 档位集下
  *    `minWidthDp` 最大只有 840，`840 >= 1200` 恒假 —— `WideNavigationRailExpanded` 写了却
  *    永远不可达。改用 V2 后该分支才第一次真正可命中，因此本函数把它显式表达出来。
+ *
+ * 对外可见是为了让 `NavigationSuitePolicyTest` 直接断言策略本身 —— 它是纯函数，
+ * 不必启动组合就能把四档宽度与折叠姿态钉住。
  */
-private fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
+fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
   val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(this)
   return if (
     recommended == NavigationSuiteType.WideNavigationRailCollapsed && isExtraLargeWidthOrWider
@@ -158,4 +168,44 @@ private fun NavigationSuiteType.navigationSuiteInsets(): WindowInsets = when (th
   // 旧三形态由 NavigationSuiteScaffold 自己消费；None 表示不渲染导航套件。
   // 这里再消费一次不会出错（consumeWindowInsets 会与已有值相减并夹到 0），但没必要。
   else -> WindowInsets(0, 0, 0, 0)
+}
+
+/**
+ * 多形态预览：同一份 `AppShell` 在四档宽度下的形态。
+ *
+ * 用 [ProvideWindowAdaptiveInfo] 直接注入窗口形态，而不是靠预览面板的尺寸 ——
+ * 形态由尺寸类决定，预览面板只负责让画布够大。这也是 `@Preview` 与真机
+ * `wm size` / iPad 分屏之外最省事的一条验证路径。
+ */
+@Preview(name = "compact 360dp", widthDp = 400, heightDp = 800)
+@Composable
+private fun AppShellCompactPreview() = AppShellPreview(widthDp = 360, heightDp = 800)
+
+@Preview(name = "medium 700dp", widthDp = 700, heightDp = 900)
+@Composable
+private fun AppShellMediumPreview() = AppShellPreview(widthDp = 700, heightDp = 1000)
+
+@Preview(name = "expanded 1000dp", widthDp = 1000, heightDp = 800)
+@Composable
+private fun AppShellExpandedPreview() = AppShellPreview(widthDp = 1000, heightDp = 800)
+
+@Preview(name = "extraLarge 1600dp", widthDp = 1200, heightDp = 800)
+@Composable
+private fun AppShellExtraLargePreview() = AppShellPreview(widthDp = 1600, heightDp = 900)
+
+@Composable
+private fun AppShellPreview(widthDp: Int, heightDp: Int) {
+  ProvideWindowAdaptiveInfo(
+    // 与库同一套量化方式：从实际 dp 推出档位，而不是手写档位下限 ——
+    // 手写下限会把"档位是怎么算出来的"这个被测对象本身写进测试前提里
+    windowSizeClass = WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(widthDp, heightDp),
+  ) {
+    ComposeAppTheme {
+      AppShell(selected = HomeDestination, onSelectTab = {}) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          Text(text = "content")
+        }
+      }
+    }
+  }
 }
