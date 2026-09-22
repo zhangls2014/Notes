@@ -17,17 +17,30 @@ import androidx.compose.runtime.Composable
 interface EmailEntry {
   /**
    * 以内联方式渲染首页邮件列表（作为主界面的一个 Tab，而非独立导航目的地）。
+   *
+   * 只渲染**列表**：详情栏由宿主用 Nav3 的列表-详情场景策略装配 —— 详情的渲染与返回
+   * 都随导航返回栈走，所以"点开邮件"必须表达成一次真实的导航，而不是本模块内部
+   * 自己维护的一个私有 navigator。
+   *
+   * @param openedEmailId 当前正在详情栏展示的邮件 id，用于列表项的"已打开"态；
+   *   由宿主从返回栈派生并传入（返回栈在宿主手里）
+   * @param navigateToDetail 点击邮件后的回调，携带邮件 id
    */
   @Composable
-  fun HomeScreen()
+  fun HomeScreen(
+    openedEmailId: Long? = null,
+    navigateToDetail: (Long) -> Unit = {},
+  )
 
   /**
    * 以内联方式渲染收藏邮件列表（作为主界面的一个 Tab，而非独立导航目的地）。
    *
+   * @param openedEmailId 当前正在详情栏展示的邮件 id，语义同 [HomeScreen]
    * @param navigateToDetail 点击邮件后的回调，携带邮件 id
    */
   @Composable
   fun FavoritesScreen(
+    openedEmailId: Long? = null,
     navigateToDetail: (Long) -> Unit = {},
   )
 
@@ -35,7 +48,8 @@ interface EmailEntry {
    * 渲染邮件详情页（作为独立导航目的地，由导航装配调用）。
    *
    * @param emailId 邮件 id
-   * @param onBackPressed 返回上一页的回调
+   * @param onBackPressed 返回上一页的回调。**是否显示返回键由实现自己判断**：
+   *   宽窗口下列表与详情同屏，详情一侧不该有返回键；只有详情独占窗口时才有意义
    */
   @Composable
   fun DetailScreen(

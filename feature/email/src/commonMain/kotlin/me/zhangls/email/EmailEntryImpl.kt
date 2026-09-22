@@ -18,15 +18,23 @@ import org.koin.core.annotation.Singleton
 @Singleton(binds = [EmailEntry::class])
 class EmailEntryImpl : EmailEntry {
   @Composable
-  override fun HomeScreen() {
-    HomeScreenImpl()
+  override fun HomeScreen(
+    openedEmailId: Long?,
+    navigateToDetail: (Long) -> Unit,
+  ) {
+    HomeScreenImpl(
+      openedEmailId = openedEmailId,
+      navigateToDetail = navigateToDetail,
+    )
   }
 
   @Composable
   override fun FavoritesScreen(
+    openedEmailId: Long?,
     navigateToDetail: (Long) -> Unit,
   ) {
     FavoritesScreenImpl(
+      openedEmailId = openedEmailId,
       navigateToDetail = navigateToDetail,
     )
   }
