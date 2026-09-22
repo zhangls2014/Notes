@@ -1,7 +1,6 @@
 package me.zhangls.entry
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +32,7 @@ import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.TabDestination
 import me.zhangls.main.mainNavEntries
-import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 
 /**
  * @author zhangls
@@ -104,18 +103,17 @@ fun AppNavHost(
   // 列表-详情由**场景策略**装配：哪个目的地进列表栏、哪个进详情栏写在各自的条目元数据里
   // （见 `mainNavEntries`），窗格的数量与宽度由 directive 按窗口形态决定。
   //
-  // directive 来自 `LocalWindowAdaptiveInfo`（组合根算的那一份），而不是库的默认参数 ——
-  // 默认参数会自己再调一次 `currentWindowAdaptiveInfoV2()`，于是同一帧里出现第二个
-  // 窗口读取点，分屏拖拽 / 折叠时可能与外壳读到的不一致。
+  // directive 来自 `LocalPaneScaffoldDirective`（组合根算的那一份），既不自己算、
+  // 也不吃库的默认参数 —— 默认参数会自己再调一次 `currentWindowAdaptiveInfoV2()`，
+  // 于是同一帧里出现第二个窗口读取点，分屏拖拽 / 折叠时可能与外壳读到的不一致。
   //
   // `shouldHandleSinglePaneLayout = true`：单栏时也由场景接管（而不是让位给单栏策略），
   // 这样宽窗口上"列表栏 + 详情栏空态"从第一帧就成立，选中邮件时列表不会突然缩窄；
   // 窄窗口上列表↔详情的转场与预测性返回由场景内部的 `NavigationBackHandler` 处理
   // （拖动时实时 scrub 窗格位移），与 Nav3 用的是同一套 navigation-event 基础设施。
-  val adaptiveInfo = LocalWindowAdaptiveInfo.current
   val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>(
     shouldHandleSinglePaneLayout = true,
-    directive = remember(adaptiveInfo) { calculatePaneScaffoldDirective(adaptiveInfo) },
+    directive = LocalPaneScaffoldDirective.current,
   )
 
   // 外壳（Rail / 底部导航栏）是 NavDisplay 的容器，不是返回栈里的一个条目：

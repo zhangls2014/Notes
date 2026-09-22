@@ -55,8 +55,9 @@ internal fun SettingsScreen(
   ) { padding ->
     // 行的渲染全在 core:preference（PreferenceRow），本屏只负责列表装配与顺序
     ProvidePreferenceLocals {
-      // 行宽上限：1200dp 以上的窗口上，一行设置项如果横跨整幅宽度，既难读也难扫；
-      // 上限之外居中留白。设置页没有分栏，所以它确实是全仓唯一"内容会被拉满整幅宽度"的页面
+      // 行宽上限取 ContentWidth.Prose：1200dp 以上的窗口上，一行设置项如果横跨整幅宽度，
+      // 既难读也难扫；上限之外居中留白。设置页不做分栏，所以它确实是全仓内容最容易被
+      // 拉满整幅宽度的页面。
       AdaptiveContent {
         LazyColumn(
           modifier = Modifier.fillMaxSize(),
