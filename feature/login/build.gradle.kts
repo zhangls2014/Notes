@@ -19,5 +19,12 @@ kotlin {
         implementation(projects.feature.loginApi)
       }
     }
+
+    commonTest {
+      dependencies {
+        // 守卫测试只断言排布决策这个纯函数，不需要 Compose 运行时或测试宿主
+        implementation(kmp.kotlin.test)
+      }
+    }
   }
 }
