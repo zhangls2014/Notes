@@ -31,5 +31,12 @@ kotlin {
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)
       }
     }
+
+    commonTest {
+      dependencies {
+        // 守卫测试只断言纯函数（形态策略），不需要 Compose 运行时或测试宿主
+        implementation(kmp.kotlin.test)
+      }
+    }
   }
 }

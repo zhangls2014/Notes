@@ -81,9 +81,10 @@ Android 侧用 lint（`detekt` 只 apply 在根项目且根项目无源集，跑
   - 内部面：`impl/`（`datastore/`、`mapper/`、`repository/`（实现）），实现类与 Koin provider 均为 `internal`
   - **硬规则一：对外模型与仓库接口签名中不得出现任何 Room 类型**（实体 / 查询载体），映射统一走 `impl/mapper/EmailMappers.kt`
   - **硬规则二：对 `core:database` 只能用 `implementation`**（见上），一旦改成 `api` 或 `implementation` 丢失，隔离即刻失效
-- `:core:theme`: 主题、颜色、图标、通用组件（`TooltipIconButton` / `SimpleDialog` / `CenteredTopAppBar` / `ContainedLoadingIndicator`）、布局环境（`layout/NavigationPlacement.kt`）
-  - **通用控件的判据**：同一段 Compose 渲染在 ≥2 处出现时下沉到这里，而不是在各自 feature 里复制。`TooltipIconButton` 就是这么来的 —— "图标按钮 + 提示气泡"曾在三处各写一遍（设置页顶部入口 / 多选操作栏 / 搜索栏返回键）
-  - `layout/NavigationPlacement.kt`：`LocalNavigationPlacement`（导航套件占哪一侧）+ `PaddingValues.toContentPadding(placement)`（把 Scaffold 内边距换算成内容内边距）。**宿主布局信息走 CompositionLocal，不进 feature 契约**（见「导航」一节）
+- `:core:theme`: 主题、颜色、图标、通用组件（`TooltipIconButton` / `SimpleDialog` / `CenteredTopAppBar` / `ContainedLoadingIndicator` / `AdaptiveContent`）、布局环境（`layout/WindowAdaptiveInfo.kt`）
+  - **通用控件的判据**：同一段 Compose 渲染在 ≥2 处出现时下沉到这里，而不是在各自 feature 里复制。`TooltipIconButton` 就是这么来的 —— "图标按钮 + 提示气泡"曾在三处各写一遍（设置页顶部入口 / 多选操作栏 / 搜索栏返回键）；`AdaptiveContent`（可读宽度上限）是同一判据：设置页与邮件详情正文都要用
+  - `layout/WindowAdaptiveInfo.kt`：**全应用唯一的窗口事实来源**。`LocalWindowAdaptiveInfo`（当前窗口的尺寸类 + 姿态）+ `rememberWindowAdaptiveInfo()`（唯一读取点，只能在组合根调用）+ `ProvideWindowAdaptiveInfo()`（`@Preview` / 测试的替换入口）+ 语义化读法 `isCompactWidth` / `isExpandedWidthOrWider` / `isExtraLargeWidthOrWider`（消费方不必接触断点常量）。**宿主布局信息走 CompositionLocal，不进 feature 契约**（见「导航」一节）
+  - 本模块对 `material3-adaptive` 与 `androidx-window-core` 都用 `api`：两者的类型出现在本模块公开 API 里，消费方因此不必各自声明、也就不再可能各自调 `currentWindowAdaptiveInfo*()`
 - `:core:preference`: 设置项的**展示元数据 + 配套通用控件**（`me.zhangls.preference`）
   - 元数据 = `PreferenceSpec` 词表（`Toggle` / `Select<T>` / `Action` + `PreferenceOption<T>`）+ 每个设置项一个 `object`（`LanguagePreference` / `DarkThemePreference` / `DynamicColorPreference` / `FontSizePreference` / `LogoutPreference`，统一只暴露 `spec`）+ 专属文案（composeResources）+ "由取值推导展示结果"的纯函数（如 `DarkThemePreference.isDark`）
   - 控件（`ui/` 子包）= 基于 `PreferenceSpec` 的通用渲染：`PreferenceRow`（列表行形态，含 `Toggle` / `Select<T>` / `Action` 三类行）、`SelectIconButton`（图标形态：图标按钮 + 长按提示 + 下拉单选）、`ProvidePreferenceLocals`（行控件的 locals 容器）。**同一 spec 的每种形态都在此实现一次** —— 登录页用图标形态、设置页用行形态，展示同一批 spec，两边都不写渲染代码。新增**设置项**不必改任何 feature 的渲染；新增**形态**才需要在这里加控件
@@ -127,10 +128,11 @@ Android 专用：
 
 使用 Jetpack Navigation 3（`NavDisplay` / `NavBackStack` / `NavKey`）：
 
-- `core:framework` 的 `Destination` 是各 feature 导航目的地的抽象（如 `MainDestination`、`LoginDestination`、`EmailDetailDestination`），导航操作统一为 `NavEffect`（Navigate/Replace/Restart/Popup）
-- `composeApp` 的 `AppNavHost.kt` 装配各 feature 的 nav entry（`mainNavEntry`/`loginNavEntry`/`emailNavEntry`），并实现 `RequireLogin` 登录拦截：未登录访问受限页面时先跳登录，登录成功后恢复目标页面
-- 根据登录状态决定首屏（`MainDestination` 或 `LoginDestination`），支持 DeepLink
-- **宿主布局信息（导航套件占哪一侧）走 `LocalNavigationPlacement`，不进 feature 的 `-api` 契约**：契约里出现布局参数，等于把宿主细节泄漏给兄弟 feature，且同一个参数会被各消费方按不同含义使用。历史上 `isBottomNavigationBar: Boolean` 曾穿透 3 个契约、出现在 15 个文件 47 处，并被当成"内容内边距"、"搜索栏形态（其实是屏幕尺寸）"、"硬编码常量"三种用途，它派生出的内边距换算还在两个 feature 各写一遍并已分叉。现在的口径是：`feature:main` 只下发 `NavigationPlacement`，各页面用 `PaddingValues.toContentPadding(placement)` 自行换算
+- `core:framework` 的 `Destination` 是各 feature 导航目的地的抽象（如 `HomeDestination`、`LoginDestination`、`EmailDetailDestination`），导航操作统一为 `NavEffect`（Navigate/Replace/Restart/Popup）
+- `composeApp` 的 `AppNavHost.kt` 装配各 feature 的 nav entry（`mainNavEntries`/`loginNavEntry`/`emailNavEntry`），并实现 `RequireLogin` 登录拦截：未登录访问受限页面时先跳登录，登录成功后恢复目标页面
+- 根据登录状态决定首屏（`HomeDestination` 或 `LoginDestination`），支持 DeepLink
+- **列表-详情由 Nav3 的 `SceneStrategy` 装配，feature 不判断窗口**：`mainNavEntries` 用 `ListDetailSceneStrategy.listPane(sceneKey = …)` 标注"我是列表栏"，邮件详情条目是详情栏；窗格数量与宽度由 `calculatePaneScaffoldDirective(LocalWindowAdaptiveInfo.current)` 决定。首页与收藏分属两个 `EmailListScene` —— 两处共用一个场景标识时，切 Tab 会退化成内容原地替换、转场动画静默消失。detail 侧要不要返回键由实现读 `LocalListDetailSceneScope` 判断，不拿窗口宽度当代理
+- **宿主对内容区唯一的承诺是"消费掉导航套件占用的系统内边距"**（`AppShell` 的 `consumeWindowInsets`），窗口形态经 `LocalWindowAdaptiveInfo` 下发，**路径参数里没有布局信息**：历史上 `isBottomNavigationBar: Boolean` 曾穿透 3 个契约、出现在 15 个文件 47 处，并被当成"内容内边距"、"搜索栏形态（其实是屏幕尺寸）"、"硬编码常量"三种用途。此后又出现过"把 `NavigationPlacement` 再反推回窗口宽度"的同类错位（`EmailSearchBar` 用"导航在不在底部"决定搜索栏形态）—— **推导后的值不要互相代理，要下发事实本身**
 
 ### MVI 架构
 
@@ -140,23 +142,27 @@ Android 专用：
 
 ### 主要组件
 
-#### 主屏幕 (MainScreen)
+#### 应用外壳 (AppShell)
 
-位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/MainScreen.kt`，使用 `NavigationSuiteScaffold` 自适应布局（小屏底部导航栏，中大屏 Navigation Rail），包含三个 Tab，通过 Koin 注入的 `EmailEntry` / `SettingsEntry` 内联渲染：
+位于 `feature/main/src/commonMain/kotlin/me/zhangls/main/AppShell.kt`，使用 `NavigationSuiteScaffold` 自适应布局。三个 Tab 的条目装配在 `main/MainNavEntry.kt`（`mainNavEntries`），通过 Koin 注入的 `EmailEntry` / `SettingsEntry` 内联渲染：
 
-- HOME: 首页，显示邮件列表（`EmailEntry.HomeScreen()`）
-- FAVORITES: 收藏页（`EmailEntry.FavoritesScreen`）
-- SETTINGS: 设置页（`SettingsEntry.Screen`）
+- HOME: 首页邮件列表（`EmailEntry.HomeScreen`），同时是列表-详情场景的列表栏
+- FAVORITES: 收藏（`EmailEntry.FavoritesScreen`），同样是列表栏，与首页分属两个场景
+- SETTINGS: 设置页（`SettingsEntry.Screen`），无窗格标注、无分栏
 
-宿主职责只有两件：把 `NavigationSuiteType` 归类为 `NavigationPlacement`（`Bottom` / `Side`），再经 `CompositionLocalProvider` 下发给内容区。三个入口调用因此都不带布局参数 —— 内容内边距由各 feature 用 `toContentPadding()` 自行换算。
+宿主的职责只有两件：
+1. **形态决策交给库** —— `NavigationSuiteScaffoldDefaults.navigationSuiteType(adaptiveInfo)`，本应用只对 ExtraLarge 宽度（≥1600dp）用展开 Rail 这一档做显式覆盖（这一档曾经写了但永远不可达：旧的 `currentWindowAdaptiveInfo()` 走的档位集宽度封顶在 Expanded）；
+2. **消费掉导航套件占用的系统内边距** —— `NavigationSuiteScaffold` 只对 `NavigationBar` / `NavigationRail` / `NavigationDrawer` 三种旧形态消费 insets，本应用使用的 `ShortNavigationBar*` / `WideNavigationRail*` 全落在它的 `else -> NoWindowInsets` 分支上，必须由外壳补上。
+
+外壳**不下发**"导航在哪一侧"：内容区直接用 `Scaffold` 给出的 padding（`toContentPadding` 那套手写归零已删除）。
 
 #### 邮件相关 (feature:email)
 
-- 首页列表：`feature/email/src/commonMain/kotlin/me/zhangls/email/home/HomeScreen.kt`（列表-详情双栏的装配写在 commonMain；平台差异只有 `home/PaneScaffold.kt` 的一层 expect/actual 包裹 —— Android 走 `NavigableListDetailPaneScaffold`，iOS 走 `ListDetailPaneScaffold` + 自适应 directive。**不要**再各平台写一份完整 HomeScreen）
-- 收藏页：`feature/email/src/commonMain/kotlin/me/zhangls/email/favorites/FavoritesScreen.kt`
+- 首页列表：`feature/email/src/commonMain/kotlin/me/zhangls/email/home/HomeScreen.kt`（**只渲染列表**；详情是独立目的地 `EmailDetailDestination`，由宿主用 Nav3 列表-详情场景策略装配成同一屏。**不要**再在 feature 内部自建 pane scaffold —— 那会让首页与收藏页表现不一致、详情不进返回栈、两端 directive 口径也不同）
+- 收藏页：`feature/email/src/commonMain/kotlin/me/zhangls/email/favorites/FavoritesScreen.kt`（与首页同构，细节见上）
 - 邮件列表组件：`feature/email/src/commonMain/kotlin/me/zhangls/email/component/`（`EmailList` 为编排层，`EmailTopBar`/`EmailFab`/`EmailPagedList`/`NewEmailSheet` 等按职责拆分；`EmailHeader` 是列表项与详情项**共用**的卡片头部（头像 + 发件人/时间 + 收藏按钮），差异由 `EmailHeaderVariant` 表达 —— 收藏按钮的图标与无障碍文案只维护这一处）
 - 邮件详情：`feature/email/src/commonMain/kotlin/me/zhangls/email/detail/EmailDetailScreen.kt`
-- 搜索：`feature/email/src/commonMain/kotlin/me/zhangls/email/search/`
+- 搜索：`feature/email/src/commonMain/kotlin/me/zhangls/email/search/`（搜索栏形态按 `isCompactWidth` 选全屏 / docked）
 
 #### 设置相关 (feature:settings + core:preference)
 
