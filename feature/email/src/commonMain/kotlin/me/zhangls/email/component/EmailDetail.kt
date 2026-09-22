@@ -24,6 +24,7 @@ import androidx.paging.compose.itemKey
 import me.zhangls.data.model.EmailModel
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
+import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_email_reply
@@ -55,23 +56,32 @@ internal fun EmailDetail(
     // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉，
     // 读到的是"内容区真正可用"的内边距。本组件无论作为首页分栏的详情、还是作为独立的
     // 导航目的地，都在同一个外壳内，因此也不需要"我是否独立"这个参数。
-    LazyColumn(contentPadding = padding) {
-      item {
-        model?.let {
-          EmailDetailItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
-            viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
+    //
+    // 正文再限一个可读宽度：Expanded 窗口（840dp 起）上详情栏可以宽到 800dp 以上，
+    // 一行正文过长会显著降低可读性。这是可读性常量，与窗口形态无关，
+    // 因此不属于"多形态适配"（那部分由 LocalWindowAdaptiveInfo 与场景策略负责）。
+    AdaptiveContent(maxWidth = DetailMaxWidth) {
+      LazyColumn(contentPadding = padding) {
+        item {
+          model?.let {
+            EmailDetailItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
+              viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
+            }
           }
         }
-      }
-      items(count = threads.itemCount, key = threads.itemKey { it.id }) {
-        val item = threads[it] ?: return@items
-        EmailDetailItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
-          viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
+        items(count = threads.itemCount, key = threads.itemKey { it.id }) {
+          val item = threads[it] ?: return@items
+          EmailDetailItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
+            viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
+          }
         }
       }
     }
   }
 }
+
+/** 邮件正文的可读宽度上限。 */
+private val DetailMaxWidth = 720.dp
 
 @Composable
 fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {

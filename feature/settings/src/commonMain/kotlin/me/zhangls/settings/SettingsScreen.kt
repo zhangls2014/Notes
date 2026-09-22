@@ -17,6 +17,7 @@ import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.settings.mvi.SettingsViewModel
 import me.zhangls.settings.ui.toDialogUiModel
 import me.zhangls.settings.ui.toPreferenceUiModels
+import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
 import notes.feature.settings.generated.resources.Res
@@ -54,17 +55,21 @@ internal fun SettingsScreen(
   ) { padding ->
     // 行的渲染全在 core:preference（PreferenceRow），本屏只负责列表装配与顺序
     ProvidePreferenceLocals {
-      LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
-        contentPadding = padding,
-      ) {
-        items(
-          count = preferences.size,
-          key = { index -> preferences[index].spec.key },
-          contentType = { index -> preferences[index]::class }
-        ) { index ->
-          PreferenceRow(model = preferences[index])
+      // 行宽上限：1200dp 以上的窗口上，一行设置项如果横跨整幅宽度，既难读也难扫；
+      // 上限之外居中留白。设置页没有分栏，所以它确实是全仓唯一"内容会被拉满整幅宽度"的页面
+      AdaptiveContent {
+        LazyColumn(
+          modifier = Modifier.fillMaxSize(),
+          // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
+          contentPadding = padding,
+        ) {
+          items(
+            count = preferences.size,
+            key = { index -> preferences[index].spec.key },
+            contentType = { index -> preferences[index]::class }
+          ) { index ->
+            PreferenceRow(model = preferences[index])
+          }
         }
       }
     }
