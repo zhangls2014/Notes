@@ -101,18 +101,37 @@ Feature API 定义实现 `Destination` 的类型安全目的地和导航贡献�
 
 ### 本地配置
 
-在项目根目录创建或更新 `local.properties`：
+Android SDK 路径使用机器级环境变量，所有 Git worktree 共用。例如 macOS 默认安装位置：
 
-```properties
-sdk.dir=/path/to/Android/sdk
-
-signing.path=/path/to/your.jks
-signing.storePassword=***
-signing.keyAlias=***
-signing.keyPassword=***
+```bash
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$PATH:$ANDROID_HOME/platform-tools"
 ```
 
-当前 Android debug/release 构建都会读取签名配置，请使用自己的本地凭据，不要提交 `local.properties`。
+请确保启动 Android Studio、Codex 或运行 Gradle 的进程能读取到 `ANDROID_HOME`。
+仅在终端的交互式 shell 配置该变量，可能不会传给从桌面启动的应用。
+也可以在执行构建时显式传入，例如：
+
+```bash
+ANDROID_HOME="$HOME/Library/Android/sdk" ./gradlew :androidApp:assembleDebug
+```
+
+Release 签名信息保存在用户级 `~/.gradle/gradle.properties`，供所有 worktree 使用：
+
+```properties
+notes.signing.path=/absolute/path/to/your.jks
+notes.signing.storePassword=***
+notes.signing.keyAlias=***
+notes.signing.keyPassword=***
+```
+
+CI 可分别使用 `NOTES_SIGNING_PATH`、`NOTES_SIGNING_STORE_PASSWORD`、
+`NOTES_SIGNING_KEY_ALIAS` 和 `NOTES_SIGNING_KEY_PASSWORD` 环境变量。
+优先级为 Gradle 属性、环境变量、现有 `local.properties` 中的 `signing.*` 值。
+Debug 构建不需要 Release 签名；
+缺少任意签名值时，不配置 Release 签名。Android Studio 仍可能生成被 Git 忽略的
+`local.properties`，无需把它复制到新 worktree，也不要提交凭据。已有的
+`local.properties` 签名配置仍然可用。
 
 ## 构建与运行
 

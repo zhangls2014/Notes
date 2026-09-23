@@ -47,14 +47,42 @@ kotlin {
   }
 }
 
-val localProperties: Provider<Properties> = providers
+val legacySigningProperties = providers
   .fileContents(rootProject.layout.projectDirectory.file("local.properties"))
   .asText
   .map { content ->
-    val props = Properties()
-    props.load(content.reader())
-    props
+    Properties().apply { load(content.reader()) }
   }
+  .orElse(Properties())
+
+fun signingProperty(
+  gradleProperty: String,
+  environmentVariable: String,
+  legacyProperty: String,
+): Provider<String> = providers
+  .gradleProperty(gradleProperty)
+  .orElse(providers.environmentVariable(environmentVariable))
+  .orElse(legacySigningProperties.map { it.getProperty(legacyProperty, "") })
+
+val signingPath = signingProperty("notes.signing.path", "NOTES_SIGNING_PATH", "signing.path")
+val signingStorePassword = signingProperty(
+  "notes.signing.storePassword",
+  "NOTES_SIGNING_STORE_PASSWORD",
+  "signing.storePassword",
+)
+val signingKeyAlias = signingProperty("notes.signing.keyAlias", "NOTES_SIGNING_KEY_ALIAS", "signing.keyAlias")
+val signingKeyPassword = signingProperty(
+  "notes.signing.keyPassword",
+  "NOTES_SIGNING_KEY_PASSWORD",
+  "signing.keyPassword",
+)
+
+val hasReleaseSigning = listOf(
+  signingPath,
+  signingStorePassword,
+  signingKeyAlias,
+  signingKeyPassword,
+).all { it.orNull?.isNotBlank() == true }
 
 android {
   namespace = "me.zhangls.notes"
@@ -79,14 +107,12 @@ android {
   }
 
   signingConfigs {
-    create("release") {
-      // 仅在 local.properties 提供签名信息时配置，避免无密钥环境无法构建
-      val storeFilePath = localProperties.map { it.getProperty("signing.path") }.getOrElse("")
-      if (storeFilePath.isNotEmpty()) {
-        storeFile = file(storeFilePath)
-        storePassword = localProperties.map { it.getProperty("signing.storePassword") }.getOrElse("")
-        keyAlias = localProperties.map { it.getProperty("signing.keyAlias") }.getOrElse("")
-        keyPassword = localProperties.map { it.getProperty("signing.keyPassword") }.getOrElse("")
+    if (hasReleaseSigning) {
+      create("release") {
+        storeFile = file(signingPath.get())
+        storePassword = signingStorePassword.get()
+        keyAlias = signingKeyAlias.get()
+        keyPassword = signingKeyPassword.get()
       }
     }
   }
@@ -98,7 +124,9 @@ android {
     release {
       isMinifyEnabled = true
       isShrinkResources = true
-      signingConfig = signingConfigs.getByName("release")
+      if (hasReleaseSigning) {
+        signingConfig = signingConfigs.getByName("release")
+      }
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
