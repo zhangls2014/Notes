@@ -160,6 +160,8 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 `core:theme/layout` 是物理安全区域的唯一实现。`HingeGeometry` 在窗口像素坐标中处理横向、纵向、多铰链、零宽折痕、窗口裁剪和局部原点；`HingeSafeContent`、`HingeSafeColumn` 和 `HingeSafeDialog` 将页面或弹层限制到计算出的安全区域。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格和导航稳定。
 
+铰链适配必须是隔离分支：平台没有报告相关铰链时，`HingeSafeContent` 直接渲染原内容，不增加 `Layout`、强制尺寸、裁剪或额外 insets；页面继续使用原有 `NavigationSuiteScaffold`、Material 搜索栏、`ModalBottomSheet`、Preference 弹窗和普通 `Dialog`。只有存在铰链时才切换到安全布局或安全弹层。
+
 约束如下：
 
 - Feature 不直接调用 `currentWindowAdaptiveInfo*()`，也不自己维护窗口断点。

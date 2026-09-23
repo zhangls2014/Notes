@@ -17,6 +17,9 @@ val WindowAdaptiveInfo.hasHinges: Boolean get() = windowPosture.hingeList.isNotE
 val WindowAdaptiveInfo.hasHorizontalHinge: Boolean
   get() = windowPosture.hingeList.any { !it.isVertical }
 
+fun shouldUseHingeLayout(hinges: List<HingeInfo>, horizontalOnly: Boolean): Boolean =
+  hinges.any { !horizontalOnly || !it.isVertical }
+
 /** Keep posture facts intact; only layout policy treats a flat fold like a half-open fold. */
 fun WindowAdaptiveInfo.forStableLayout(): WindowAdaptiveInfo = WindowAdaptiveInfo(
   windowSizeClass,
@@ -26,7 +29,6 @@ fun WindowAdaptiveInfo.forStableLayout(): WindowAdaptiveInfo = WindowAdaptiveInf
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun calculateAppPaneScaffoldDirective(info: WindowAdaptiveInfo): PaneScaffoldDirective {
   val directive = calculatePaneScaffoldDirective(info.forStableLayout(), HingePolicy.AlwaysAvoid)
-  // ThreePaneScaffold assumes sorted, non-overlapping vertical bounds.
   val merged = mutableListOf<Rect>()
   directive.excludedBounds.sortedBy { it.left }.forEach { next ->
     val last = merged.lastOrNull()
@@ -44,12 +46,7 @@ fun calculateAppPaneScaffoldDirective(info: WindowAdaptiveInfo): PaneScaffoldDir
   return directive.copy(excludedBounds = merged)
 }
 
-/**
- * Split the actual viewport at every intersecting hinge, including zero-thickness folds.
- * Both arguments and results use window pixels, so insets and navigation offsets are not guessed.
- * Splitting is intentionally conservative for a partially intersecting hinge: content occupies a
- * rectangle on one side, never a non-rectangular region wrapping around the hinge's end.
- */
+/** Split a viewport at every intersecting physical hinge, using window-pixel coordinates. */
 fun safeRegions(bounds: Rect, hinges: List<HingeInfo>): List<Rect> {
   if (bounds.width <= 0 || bounds.height <= 0) return emptyList()
   var regions = listOf(bounds)
@@ -58,29 +55,23 @@ fun safeRegions(bounds: Rect, hinges: List<HingeInfo>): List<Rect> {
     regions = regions.flatMap { region ->
       val horizontalOverlap = h.right > region.left && h.left < region.right
       val verticalOverlap = h.bottom > region.top && h.top < region.bottom
-      if (hinge.isVertical) {
-        if (!verticalOverlap || !horizontalOverlap) {
-          listOf(region)
-        } else {
-          listOf(
-            Rect(region.left, region.top, maxOf(region.left, h.left), region.bottom),
-            Rect(minOf(region.right, h.right), region.top, region.right, region.bottom),
-          ).filter { it.width > 0 }
-        }
+      if (!horizontalOverlap || !verticalOverlap) {
+        listOf(region)
+      } else if (hinge.isVertical) {
+        listOf(
+          Rect(region.left, region.top, maxOf(region.left, h.left), region.bottom),
+          Rect(minOf(region.right, h.right), region.top, region.right, region.bottom),
+        ).filter { it.width > 0 }
       } else {
-        if (!horizontalOverlap || !verticalOverlap) {
-          listOf(region)
-        } else {
-          listOf(
-            Rect(region.left, region.top, region.right, maxOf(region.top, h.top)),
-            Rect(region.left, minOf(region.bottom, h.bottom), region.right, region.bottom),
-          ).filter { it.height > 0 }
-        }
+        listOf(
+          Rect(region.left, region.top, region.right, maxOf(region.top, h.top)),
+          Rect(region.left, minOf(region.bottom, h.bottom), region.right, region.bottom),
+        ).filter { it.height > 0 }
       }
     }
   }
   return regions.sortedWith(compareBy({ it.top }, { it.left }))
 }
 
-/** Stable physical order breaks equal-area ties; folding state and hinge reporting order do not. */
+/** Stable physical order breaks equal-area ties; folding state and reporting order do not. */
 fun largestSafeRegion(regions: List<Rect>): Rect? = regions.maxByOrNull { it.width * it.height }

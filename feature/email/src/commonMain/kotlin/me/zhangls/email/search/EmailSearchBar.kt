@@ -152,6 +152,7 @@ internal fun EmailSearchBar(
       SearchHistory(
         searchHistory = state.searchHistory,
         scrollState = historyScrollState,
+        scrollable = adaptiveInfo.hasHinges,
         onHistoryClick = {
           textFieldState.edit { replace(0, length, it) }
           viewModel.sendIntent(SearchIntent.SelectSearchHistory(it))
@@ -187,15 +188,19 @@ internal fun EmailSearchBar(
    * （框内文本经 300ms 防抖才回写，旋转若落在防抖窗口内，VM 比用户输入旧）——
    * 也就是说它会吃掉用户刚敲的字。
    */
-  LaunchedEffect(searchBarState.currentValue, searchBarState.targetValue) {
+  LaunchedEffect(searchBarState.currentValue, searchBarState.targetValue, adaptiveInfo.hasHinges) {
     viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
-    // During the first expansion frame currentValue may still be Collapsed. Do not
-    // clear the query or launch a competing collapse animation while opening.
-    if (searchBarState.currentValue == SearchBarValue.Collapsed &&
-      searchBarState.targetValue == SearchBarValue.Collapsed
-    ) {
-      textFieldState.clearText()
-      viewModel.sendIntent(SearchIntent.UpdateSearchText(""))
+    if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+      if (adaptiveInfo.hasHinges) {
+        // The first hinge-dialog expansion frame still reports Collapsed as the current value.
+        if (searchBarState.targetValue == SearchBarValue.Collapsed) {
+          textFieldState.clearText()
+          viewModel.sendIntent(SearchIntent.UpdateSearchText(""))
+        }
+      } else {
+        // Preserve the original Material search-bar behavior on ordinary windows.
+        closeSearchBar()
+      }
     }
   }
 
@@ -303,6 +308,7 @@ private fun SearchResults(
 private fun SearchHistory(
   searchHistory: List<String>,
   scrollState: ScrollState,
+  scrollable: Boolean,
   onHistoryClick: (String) -> Unit,
   onHistoryDelete: (String) -> Unit,
 ) {
@@ -317,7 +323,7 @@ private fun SearchHistory(
   FlowRow(
     modifier = Modifier
       .fillMaxWidth()
-      .verticalScroll(scrollState)
+      .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
       .padding(horizontal = 16.dp, vertical = 12.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -28,8 +28,10 @@ fun HingeSafeContent(
   enabled: Boolean = true,
   content: @Composable () -> Unit,
 ) {
-  val hinges = LocalWindowHinges.current.filter {
-    enabled && (!horizontalOnly || !it.isVertical)
+  val hinges = LocalWindowHinges.current.filter { !horizontalOnly || !it.isVertical }
+  if (!enabled || hinges.isEmpty()) {
+    content()
+    return
   }
   Layout(
     content = {

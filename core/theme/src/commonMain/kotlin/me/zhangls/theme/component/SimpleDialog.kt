@@ -30,6 +30,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.hasHinges
 
 /**
  * 纯文本内容的便捷重载，委托给 [AnnotatedString] 版本。
@@ -80,14 +83,15 @@ fun SimpleDialog(
   dismissText: String? = null,
   dismiss: (() -> Unit)? = null,
 ) {
-  HingeSafeDialog(onDismissRequest = {}) {
+  val hasHinges = LocalWindowAdaptiveInfo.current.hasHinges
+  val dialogContent = @Composable {
     Column(
       modifier = Modifier
         .background(
           color = MaterialTheme.colorScheme.surfaceContainerHigh,
           shape = MaterialTheme.shapes.extraLarge,
         )
-        .verticalScroll(rememberScrollState()),
+        .then(if (hasHinges) Modifier.verticalScroll(rememberScrollState()) else Modifier),
     ) {
       Spacer(modifier = Modifier.height(20.dp))
 
@@ -151,6 +155,11 @@ fun SimpleDialog(
 
       Spacer(modifier = Modifier.height(20.dp))
     }
+  }
+  if (hasHinges) {
+    HingeSafeDialog(onDismissRequest = {}, content = dialogContent)
+  } else {
+    Dialog(onDismissRequest = {}, content = dialogContent)
   }
 }
 
