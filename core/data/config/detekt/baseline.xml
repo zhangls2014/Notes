@@ -7,9 +7,9 @@
     <ID>FinalNewline:AccountModel.kt:me.zhangls.data.model.AccountModel.kt</ID>
     <ID>FinalNewline:AppDataStore.kt:me.zhangls.data.impl.datastore.AppDataStore.kt</ID>
     <ID>FinalNewline:AppFileManager.kt:me.zhangls.data.util.AppFileManager.kt</ID>
-    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return dataStore.data .map { it[key]?.decode() } .distinctUntilChanged() }</ID>
-    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return json.decodeFromString(serializer, this) }</ID>
+    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return dataStore.data .map { it[key]?.decodeOrNull() } .distinctUntilChanged() }</ID>
     <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return json.encodeToString(serializer, this) }</ID>
+    <ID>FunctionExpressionBody:AppDataStore.kt:AppDataStore${ return runCatching { json.decodeFromString(serializer, this) }.getOrNull() }</ID>
     <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getCacheDir(), Environment.DIRECTORY_PICTURES) .apply { if (exists().not()) mkdirs() }.absolutePath }</ID>
     <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getCacheImageDir(), filename).apply { if (exists().not()) createNewFile() }.absolutePath }</ID>
     <ID>FunctionExpressionBody:AppFileManager.kt:AppFileManager${ return File(getImageDir(), filename).apply { if (exists().not()) createNewFile() }.absolutePath }</ID>

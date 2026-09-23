@@ -11,11 +11,12 @@
     <ID>FinalNewline:MviEffect.kt:me.zhangls.framework.mvi.MviEffect.kt</ID>
     <ID>FinalNewline:MviIntent.kt:me.zhangls.framework.mvi.MviIntent.kt</ID>
     <ID>FinalNewline:MviState.kt:me.zhangls.framework.mvi.MviState.kt</ID>
-    <ID>FinalNewline:NavEffect.kt:me.zhangls.framework.nav.NavEffect.kt</ID>
     <ID>FinalNewline:RequireLogin.kt:me.zhangls.framework.nav.RequireLogin.kt</ID>
     <ID>FinalNewline:ToastEffect.kt:me.zhangls.framework.toast.ToastEffect.kt</ID>
     <ID>FinalNewline:ToastGlobalNotifier.kt:me.zhangls.framework.toast.ToastGlobalNotifier.kt</ID>
     <ID>FunctionExpressionBody:MviViewModel.kt:MviViewModel${ return block(_state.value) }</ID>
+    <ID>FunctionSignature:DestinationRegistry.kt:fun &lt;T : Destination&gt; SerializersModuleBuilder.registerDestination</ID>
+    <ID>ImportOrdering:DestinationRegistry.kt:import androidx.navigation3.runtime.NavKey import kotlin.reflect.KClass import kotlinx.serialization.KSerializer import kotlinx.serialization.modules.SerializersModuleBuilder import kotlinx.serialization.modules.polymorphic</ID>
     <ID>ImportOrdering:MviViewModel.kt:import androidx.lifecycle.SavedStateHandle import androidx.lifecycle.ViewModel import androidx.lifecycle.serialization.saved import androidx.lifecycle.viewModelScope import kotlin.properties.ReadWriteProperty import kotlin.reflect.KProperty import kotlinx.coroutines.flow.MutableSharedFlow import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.asSharedFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.flow.update import kotlinx.coroutines.launch import kotlinx.serialization.KSerializer</ID>
     <ID>MatchingDeclarationName:DeepLinkParser.kt:DeepLinkRequest</ID>
     <ID>NewLineAtEndOfFile:FrameworkModule.kt:me.zhangls.framework.FrameworkModule.kt</ID>
@@ -23,7 +24,6 @@
     <ID>NewLineAtEndOfFile:MviEffect.kt:me.zhangls.framework.mvi.MviEffect.kt</ID>
     <ID>NewLineAtEndOfFile:MviIntent.kt:me.zhangls.framework.mvi.MviIntent.kt</ID>
     <ID>NewLineAtEndOfFile:MviState.kt:me.zhangls.framework.mvi.MviState.kt</ID>
-    <ID>NewLineAtEndOfFile:NavEffect.kt:me.zhangls.framework.nav.NavEffect.kt</ID>
     <ID>NewLineAtEndOfFile:RequireLogin.kt:me.zhangls.framework.nav.RequireLogin.kt</ID>
     <ID>NewLineAtEndOfFile:ToastEffect.kt:me.zhangls.framework.toast.ToastEffect.kt</ID>
     <ID>NewLineAtEndOfFile:ToastGlobalNotifier.kt:me.zhangls.framework.toast.ToastGlobalNotifier.kt</ID>
@@ -32,7 +32,7 @@
     <ID>NoConsecutiveBlankLines:ToastEffect.kt: </ID>
     <ID>ReturnCount:DeepLinkParser.kt:fun parseDeepLinkUrl: DeepLinkRequest?</ID>
     <ID>TrailingCommaOnCallSite:ToastGlobalNotifier.kt:ToastGlobalNotifier$( extraBufferCapacity = TOAST_BUFFER_SIZE, onBufferOverflow = BufferOverflow.DROP_OLDEST )</ID>
-    <ID>TrailingCommaOnDeclarationSite:MviViewModel.kt:MviViewModel$( initialState: S, stateSerializer: KSerializer&lt;S&gt;, savedStateHandle: SavedStateHandle, // 当保存的 key 为 null 时，则不保存（纯内存态，进程销毁即丢失） savedKey: String? = "state" )</ID>
+    <ID>TrailingCommaOnDeclarationSite:MviViewModel.kt:MviViewModel$( initialState: S, stateSerializer: KSerializer&lt;S&gt;, savedStateHandle: SavedStateHandle, // 安全默认：不保存（纯内存态，进程销毁即丢失）。 // // 默认值刻意取 null 而非某个 key —— State 普遍含敏感数据（登录密码、 // accessToken / refreshToken）或大对象（分页列表、账户集），一旦写进 // SavedStateHandle 就会随 instance state 落盘，并可能触发 TransactionTooLarge。 // "默认持久化 + 各自记得关掉"这种约定必然漏（本项目就漏了登录态与搜索态两处）， // 而漏掉的后果是静默的凭证泄漏。故改为：确需跨进程恢复时才显式给 key， // 且给 key 的那一刻必须确认该 State 不含敏感数据。 savedKey: String? = null )</ID>
     <ID>TrailingCommaOnDeclarationSite:ToastEffect.kt:ToastEffect$( val resId: StringResource, val timestamp: Long = Clock.System.now().toEpochMilliseconds() )</ID>
   </CurrentIssues>
 </SmellBaseline>
