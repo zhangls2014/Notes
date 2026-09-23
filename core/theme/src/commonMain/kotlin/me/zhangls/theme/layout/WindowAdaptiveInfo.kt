@@ -5,7 +5,6 @@ import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
-import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -63,6 +62,8 @@ fun ProvideWindowAdaptiveInfo(
 ) {
   CompositionLocalProvider(
     LocalWindowAdaptiveInfo provides WindowAdaptiveInfo(windowSizeClass, posture),
+    LocalWindowHinges provides posture.hingeList,
+    LocalPaneScaffoldDirective provides calculateAppPaneScaffoldDirective(WindowAdaptiveInfo(windowSizeClass, posture)),
     content = content,
   )
 }
@@ -113,7 +114,7 @@ val LocalPaneScaffoldDirective = staticCompositionLocalOf<PaneScaffoldDirective>
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun rememberPaneScaffoldDirective(adaptiveInfo: WindowAdaptiveInfo): PaneScaffoldDirective =
-  remember(adaptiveInfo) { calculatePaneScaffoldDirective(adaptiveInfo) }
+  remember(adaptiveInfo) { calculateAppPaneScaffoldDirective(adaptiveInfo) }
 
 /**
  * 窗口是否被**横向铰链**切成两半（折叠设备半开，即桌面支架姿态）。

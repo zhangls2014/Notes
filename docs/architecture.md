@@ -156,16 +156,21 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 ### 自适应布局
 
-窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。
+窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 和 `LocalWindowHinges` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。directive 使用 `HingePolicy.AlwaysAvoid`，所以同一铰链几何在半开和全开之间不会从排除区消失。
+
+`core:theme/layout` 是物理安全区域的唯一实现。`HingeGeometry` 在窗口像素坐标中处理横向、纵向、多铰链、零宽折痕、窗口裁剪和局部原点；`HingeSafeContent`、`HingeSafeColumn` 和 `HingeSafeDialog` 将页面或弹层限制到计算出的安全区域。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格和导航稳定。
 
 约束如下：
 
 - Feature 不直接调用 `currentWindowAdaptiveInfo*()`，也不自己维护窗口断点。
+- Feature 不缓存铰链、不按 `isSeparating` 过滤铰链，也不另算安全区。
 - 搜索栏等局部形态读取窗口事实，不得从“导航在底部还是侧边”反推宽度。
-- `AppShell` 用库策略选择导航形态，只为 ExtraLarge 展开 Rail 做显式覆盖。
-- `AppShell` 消费导航套件占用的系统内边距，Feature 不接收导航方位参数。
+- `AppShell` 用稳定姿态和库策略选择导航形态，只为 ExtraLarge 展开 Rail 做显式覆盖。
+- `AppShell` 消费导航套件占用的系统内边距，并将内容和导航限制在物理安全区域；Feature 不接收导航方位参数。
 - 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
-- 登录页用 `SupportingPaneScaffold` 消费 directive 和铰链排除区。
+- Nav3 继续负责竖向列表—详情分区；横向折叠由宿主先限定安全带。
+- 登录页在横向折叠时按真实安全带放置品牌与表单，其他形态继续使用 `SupportingPaneScaffold`。
+- 搜索、写邮件、设置选择和确认对话框在折叠设备上使用共享安全弹层，并把查询、草稿、滚动和选择状态保留在形态分支之外。
 
 ### 设置项
 

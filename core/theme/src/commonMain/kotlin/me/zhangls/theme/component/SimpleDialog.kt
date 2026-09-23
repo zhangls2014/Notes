@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +30,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 
 /**
  * 纯文本内容的便捷重载，委托给 [AnnotatedString] 版本。
@@ -79,13 +80,14 @@ fun SimpleDialog(
   dismissText: String? = null,
   dismiss: (() -> Unit)? = null,
 ) {
-  Dialog(onDismissRequest = {}) {
+  HingeSafeDialog(onDismissRequest = {}) {
     Column(
       modifier = Modifier
         .background(
           color = MaterialTheme.colorScheme.surfaceContainerHigh,
-          shape = MaterialTheme.shapes.extraLarge
+          shape = MaterialTheme.shapes.extraLarge,
         )
+        .verticalScroll(rememberScrollState()),
     ) {
       Spacer(modifier = Modifier.height(20.dp))
 

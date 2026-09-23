@@ -9,10 +9,10 @@ import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
-import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.ui.geometry.Rect
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
+import me.zhangls.theme.layout.calculateAppPaneScaffoldDirective
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -103,7 +103,7 @@ class LoginPanePlanTest {
     val (adaptiveInfo, directive) = windowAndDirective(widthDp = 411, heightDp = 914)
     assertEquals(1, directive.maxHorizontalPartitions)
     assertTrue(directive.maxVerticalPartitions >= 2, "本条的前提：竖向容量确实够两栏")
-    val plan = loginPanePlan(adaptiveInfo, directive)
+    val plan = loginPanePlan(directive)
     assertEquals(
       PaneAdaptedValue.Hidden,
       plan.value[SupportingPaneScaffoldRole.Main],
@@ -117,40 +117,17 @@ class LoginPanePlanTest {
   }
 
   @Test
-  fun tabletopStacksBrandInsteadOfSplittingColumns() {
-    // 折叠半开（桌面支架）：横向铰链把窗口切成两半。此时窗口**同时**具备横排与竖排容量 ——
-    // 若不把横向分区压到 1，库会给出两栏并排，两栏各自横跨铰链。
-    // 桌面支架下品牌在 Main 位（顶/左），表单（Supporting）Reflow 到同一分区下方，
-    // 与原 Stacked「品牌在上、表单在下」的视觉一致。
-    val (adaptiveInfo, directive) = windowAndDirective(
-      widthDp = 1600, heightDp = 1000, posture = Posture(isTabletop = true),
+  fun flatAndHalfOpenVerticalFoldHaveIdenticalPanePlan() {
+    fun folded(flat: Boolean) = Posture(
+      hingeList = listOf(
+        HingeInfo(Rect(420f, 0f, 430f, 900f), flat, true, !flat, false),
+      ),
     )
-    assertTrue(directive.maxHorizontalPartitions >= 2, "本条的前提：宽窗口本会拿到两个横向分区")
-    val plan = loginPanePlan(adaptiveInfo, directive)
-    assertEquals(1, plan.directive.maxHorizontalPartitions, "桌面支架下必须压到单横向分区")
-    assertEquals(
-      PaneAdaptedValue.Expanded,
-      plan.value[SupportingPaneScaffoldRole.Main],
-      "桌面支架下品牌留在 Main 位（顶/左），不被 Hide",
-    )
-    assertEquals(
-      PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
-      plan.value[SupportingPaneScaffoldRole.Supporting],
-      "桌面支架下表单（Supporting）应 Reflow 到 Main 分区下方，而不是与品牌并排跨过铰链",
-    )
-    assertTrue(plan.isBrandPaneReflowed)
-  }
-
-  @Test
-  fun tabletopOnNarrowWindowAlsoStacks() {
-    // 窄窗口 + 桌面支架同样叠放：这一档与"宽度够不够两栏"无关。
-    plan(widthDp = 700, heightDp = 900, posture = Posture(isTabletop = true)).also {
-      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
-      assertEquals(
-        PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
-        it.value[SupportingPaneScaffoldRole.Supporting],
-      )
-    }
+    val half = plan(1000, 900, folded(false))
+    val flat = plan(1000, 900, folded(true))
+    assertEquals(half.directive, flat.directive)
+    assertEquals(half.value, flat.value)
+    assertEquals(1, flat.directive.excludedBounds.size)
   }
 
   @Test
@@ -173,10 +150,10 @@ class LoginPanePlanTest {
         ),
       ),
     )
-    val plan = loginPanePlan(adaptiveInfo, calculatePaneScaffoldDirective(adaptiveInfo))
+    val plan = loginPanePlan(calculateAppPaneScaffoldDirective(adaptiveInfo))
     assertTrue(
       plan.directive.excludedBounds.isNotEmpty(),
-      "竖向分离铰链应出现在交给脚手架的指令里（HingePolicy 默认 AvoidSeparating）",
+      "竖向分离铰链应出现在交给脚手架的指令里（应用策略 AlwaysAvoid）",
     )
   }
 }
@@ -187,7 +164,7 @@ private fun plan(
   posture: Posture = Posture(),
 ): LoginPanePlan {
   val (adaptiveInfo, directive) = windowAndDirective(widthDp, heightDp, posture)
-  return loginPanePlan(adaptiveInfo, directive)
+  return loginPanePlan(directive)
 }
 
 private fun windowAndDirective(
@@ -199,5 +176,5 @@ private fun windowAndDirective(
     windowSizeClass = WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(widthDp, heightDp),
     windowPosture = posture,
   )
-  return adaptiveInfo to calculatePaneScaffoldDirective(adaptiveInfo)
+  return adaptiveInfo to calculateAppPaneScaffoldDirective(adaptiveInfo)
 }
