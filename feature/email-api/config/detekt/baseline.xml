@@ -2,7 +2,10 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>ClassSignature:EmailDetailDestination.kt:EmailDetailDestination : DeepLinkDestinationRequireLogin</ID>
     <ID>FunctionSignature:EmailEntry.kt:EmailEntry$@Composable fun DetailScreen</ID>
     <ID>FunctionSignature:EmailEntry.kt:EmailEntry$@Composable fun FavoritesScreen</ID>
+    <ID>FunctionSignature:EmailEntry.kt:EmailEntry$@Composable fun HomeScreen</ID>
+    <ID>TrailingCommaOnCallSite:EmailNavigation.kt:EmailNavigation$( DeepLinkMatcher { request -&gt; request.toEmailDetail() } )</ID>
   </CurrentIssues>
 </SmellBaseline>

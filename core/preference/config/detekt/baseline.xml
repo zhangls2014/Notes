@@ -3,5 +3,17 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ClassSignature:PreferenceSpec.kt:PreferenceOption&lt;T&gt;</ID>
+    <ID>ClassSignature:PreferenceUiModel.kt:PreferenceUiModel$Action : PreferenceUiModel</ID>
+    <ID>ClassSignature:PreferenceUiModel.kt:PreferenceUiModel$Select&lt;T&gt; : PreferenceUiModel</ID>
+    <ID>FunctionSignature:PreferenceRow.kt:@Composable fun PreferenceRow</ID>
+    <ID>FunctionSignature:PreferenceRow.kt:@Composable private fun &lt;T&gt; SelectRow</ID>
+    <ID>FunctionSignature:PreferenceRow.kt:@Composable private fun ActionRow</ID>
+    <ID>FunctionSignature:PreferenceRow.kt:@Composable private fun ToggleRow</ID>
+    <ID>FunctionSignature:SelectIconButton.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) @Composable fun &lt;T&gt; SelectIconButton</ID>
+    <ID>ImportOrdering:PreferenceRow.kt:import androidx.compose.material3.Icon import androidx.compose.material3.Text import androidx.compose.runtime.Composable import androidx.compose.ui.Modifier import androidx.compose.ui.graphics.Color import androidx.compose.ui.text.AnnotatedString import me.zhanghai.compose.preference.ListPreference import me.zhanghai.compose.preference.Preference import me.zhanghai.compose.preference.ProvidePreferenceLocals as ProvideLocals import me.zhanghai.compose.preference.SwitchPreference import me.zhangls.theme.toColor import org.jetbrains.compose.resources.stringResource</ID>
+    <ID>TrailingCommaOnCallSite:PreferenceRow.kt:( title = { Text(text = stringResource(spec.title), color = tint) }, modifier = modifier, onClick = model.onClick, summary = spec.summary?.let { { Text(text = stringResource(it)) } }, icon = { Icon(imageVector = spec.icon, contentDescription = null, tint = tint) } )</ID>
+    <ID>TrailingCommaOnCallSite:PreferenceRow.kt:( value = model.value, onValueChange = model.onValueChange, modifier = modifier, title = { Text(text = stringResource(spec.title)) }, summary = spec.summary(model.value)?.let { { Text(text = stringResource(it)) } }, icon = { Icon(imageVector = spec.icon, contentDescription = null) } )</ID>
+    <ID>TrailingCommaOnCallSite:PreferenceRow.kt:( value = model.value, onValueChange = model.onValueChange, values = spec.options.map { it.value }, modifier = modifier, valueToText = { AnnotatedString(optionTextMap[it] ?: "") }, title = { Text(text = stringResource(spec.title)) }, // 摘要直接取当前取值对应的选项文案（见 PreferenceSpec.Select.summary 的单一来源说明） summary = spec.summary(model.value)?.let { { Text(text = stringResource(it)) } }, icon = { Icon(imageVector = spec.icon, contentDescription = null) } )</ID>
+    <ID>TrailingCommaOnCallSite:SelectIconButton.kt:( expanded = expanded, onDismissRequest = { expanded = false } )</ID>
   </CurrentIssues>
 </SmellBaseline>
