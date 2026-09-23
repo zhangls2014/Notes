@@ -32,7 +32,6 @@ import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.TabDestination
 import me.zhangls.main.mainNavEntries
-import me.zhangls.theme.layout.HingeSafeContent
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 
 /**
@@ -120,12 +119,11 @@ fun AppNavHost(
   // 外壳（Rail / 底部导航栏）是 NavDisplay 的容器，不是返回栈里的一个条目：
   // 它读返回栈的**根**决定选中哪个 Tab，因此推入详情页时导航套件依然可见、可达，
   // 宽屏上不会从"列表 + 详情"突然变成全屏页。根是登录页时不显示外壳。
-  HingeSafeContent(horizontalOnly = true, enabled = backStack.tabSelection() != null) {
-    AppShell(
-      selected = backStack.tabSelection(),
-      onSelectTab = { navHandler(Restart(it)) },
-    ) {
-      NavDisplay(
+  AppShell(
+    selected = backStack.tabSelection(),
+    onSelectTab = { navHandler(Restart(it)) },
+  ) {
+    NavDisplay(
         backStack = backStack,
         // 每个 NavEntry 一个 ViewModelStore：ViewModel 随 entry 一起创建、随 entry 出栈一起清除。
         // 少了这一项，NavDisplay 只挂 SaveableStateHolder，所有 ViewModel 都会落到宿主（Activity）
@@ -163,8 +161,7 @@ fun AppNavHost(
             }
           }
         },
-      )
-    }
+    )
   }
 }
 

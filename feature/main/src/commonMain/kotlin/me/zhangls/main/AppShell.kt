@@ -8,14 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ShortNavigationBarDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.WideNavigationRailDefaults
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuite
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -36,8 +33,6 @@ import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Settings
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
-import me.zhangls.theme.layout.forStableLayout
-import me.zhangls.theme.layout.hasHinges
 import me.zhangls.theme.layout.isExtraLargeWidthOrWider
 import notes.feature.main.generated.resources.Res
 import notes.feature.main.generated.resources.main_label_favorites
@@ -92,30 +87,22 @@ fun AppShell(
   val adaptiveInfo = LocalWindowAdaptiveInfo.current
   val layoutType = remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
 
-  val items: NavigationSuiteScope.() -> Unit = {
-    MainTab.entries.forEach { tab ->
-      item(
-        icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
-        label = { Text(stringResource(tab.label)) },
-        selected = tab.destination == selected,
-        onClick = { onSelectTab(tab.destination) },
-      )
+  NavigationSuiteScaffold(
+    navigationSuiteItems = {
+      MainTab.entries.forEach { tab ->
+        item(
+          icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
+          label = { Text(stringResource(tab.label)) },
+          selected = tab.destination == selected,
+          onClick = { onSelectTab(tab.destination) },
+        )
+      }
+    },
+    layoutType = layoutType,
+  ) {
+    Box(Modifier.consumeWindowInsets(layoutType.navigationSuiteInsets())) {
+      content()
     }
-  }
-  val insetContent = @Composable {
-    Box(Modifier.consumeWindowInsets(layoutType.navigationSuiteInsets())) { content() }
-  }
-  if (adaptiveInfo.hasHinges) {
-    Surface {
-      HingeNavigationLayout(
-        isRail = layoutType == NavigationSuiteType.WideNavigationRailCollapsed ||
-          layoutType == NavigationSuiteType.WideNavigationRailExpanded,
-        navigation = { NavigationSuite(layoutType = layoutType, content = items) },
-        content = insetContent,
-      )
-    }
-  } else {
-    NavigationSuiteScaffold(navigationSuiteItems = items, layoutType = layoutType, content = insetContent)
   }
 }
 
@@ -139,7 +126,7 @@ fun AppShell(
  * 不必启动组合就能把四档宽度与折叠姿态钉住。
  */
 fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
-  val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(forStableLayout())
+  val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(this)
   return if (
     recommended == NavigationSuiteType.WideNavigationRailCollapsed && isExtraLargeWidthOrWider
   ) {

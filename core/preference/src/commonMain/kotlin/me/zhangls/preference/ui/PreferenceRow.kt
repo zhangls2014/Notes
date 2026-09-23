@@ -3,18 +3,12 @@ package me.zhangls.preference.ui
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.SwitchPreference
-import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
-import me.zhangls.theme.layout.hasHinges
 import me.zhangls.theme.toColor
 import org.jetbrains.compose.resources.stringResource
 import me.zhanghai.compose.preference.ProvidePreferenceLocals as ProvideLocals
@@ -84,30 +78,9 @@ private fun <T> SelectRow(
   modifier: Modifier = Modifier,
 ) {
   val spec = model.spec
-  var selectionOpen by rememberSaveable { mutableStateOf(false) }
-  if (LocalWindowAdaptiveInfo.current.hasHinges) {
-    // Foldables keep an app-owned dialog in both half-open and flat states. Its open state and
-    // geometry therefore survive a posture-only change instead of switching popup implementations.
-    Preference(
-      title = { Text(stringResource(spec.title)) },
-      modifier = modifier,
-      onClick = { selectionOpen = true },
-      summary = spec.summary(model.value)?.let { { Text(stringResource(it)) } },
-      icon = { Icon(spec.icon, contentDescription = null) },
-    )
-    if (selectionOpen) {
-      PreferenceSelectionDialog(
-        spec = spec,
-        value = model.value,
-        onValueChange = model.onValueChange,
-        onDismissRequest = { selectionOpen = false },
-      )
-    }
-    return
+  val optionTextMap = spec.options.associate {
+    it.value to stringResource(it.label)
   }
-
-  // Preserve the native preference interaction on devices without physical folds.
-  val optionTextMap = spec.options.associate { it.value to stringResource(it.label) }
   ListPreference(
     value = model.value,
     onValueChange = model.onValueChange,
@@ -115,8 +88,13 @@ private fun <T> SelectRow(
     modifier = modifier,
     valueToText = { AnnotatedString(optionTextMap[it] ?: "") },
     title = { Text(text = stringResource(spec.title)) },
-    summary = spec.summary(model.value)?.let { { Text(text = stringResource(it)) } },
-    icon = { Icon(imageVector = spec.icon, contentDescription = null) },
+    // 摘要直接取当前取值对应的选项文案（见 PreferenceSpec.Select.summary 的单一来源说明）
+    summary = spec.summary(model.value)?.let {
+      { Text(text = stringResource(it)) }
+    },
+    icon = {
+      Icon(imageVector = spec.icon, contentDescription = null)
+    }
   )
 }
 

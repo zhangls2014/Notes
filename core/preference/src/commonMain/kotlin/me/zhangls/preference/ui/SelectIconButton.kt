@@ -12,13 +12,11 @@ import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import me.zhangls.preference.PreferenceSpec
 import me.zhangls.theme.component.TooltipIconButton
-import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
-import me.zhangls.theme.layout.hasHinges
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -51,7 +49,7 @@ fun <T> SelectIconButton(
   modifier: Modifier = Modifier,
 ) {
   val label = stringResource(spec.title)
-  var expanded by rememberSaveable { mutableStateOf(false) }
+  var expanded by remember { mutableStateOf(false) }
 
   Box(modifier = modifier) {
     TooltipIconButton(
@@ -62,34 +60,23 @@ fun <T> SelectIconButton(
       tooltipPosition = TooltipAnchorPosition.Below,
     )
 
-    if (LocalWindowAdaptiveInfo.current.hasHinges) {
-      if (expanded) {
-        PreferenceSelectionDialog(
-          spec = spec,
-          value = value,
-          onValueChange = onValueChange,
-          onDismissRequest = { expanded = false },
-        )
-      }
-    } else {
-      DropdownMenuPopup(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
+    DropdownMenuPopup(
+      expanded = expanded,
+      onDismissRequest = { expanded = false }
+    ) {
+      DropdownMenuGroup(
+        shapes = MenuDefaults.groupShapes(),
       ) {
-        DropdownMenuGroup(
-          shapes = MenuDefaults.groupShapes(),
-        ) {
-          spec.options.forEach { option ->
-            DropdownMenuItem(
-              text = { Text(text = stringResource(option.label)) },
-              shapes = MenuDefaults.itemShapes(),
-              checked = option.value == value,
-              onCheckedChange = {
-                expanded = false
-                onValueChange(option.value)
-              },
-            )
-          }
+        spec.options.forEach { option ->
+          DropdownMenuItem(
+            text = { Text(text = stringResource(option.label)) },
+            shapes = MenuDefaults.itemShapes(),
+            checked = option.value == value,
+            onCheckedChange = {
+              expanded = false
+              onValueChange(option.value)
+            },
+          )
         }
       }
     }

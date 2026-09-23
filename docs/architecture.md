@@ -156,16 +156,16 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 ### 自适应布局
 
-窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 和 `LocalWindowHinges` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。directive 使用 `HingePolicy.AlwaysAvoid`，所以同一铰链几何在半开和全开之间不会从排除区消失。
+窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。directive 使用 `HingePolicy.AlwaysAvoid`，所以同一铰链几何在半开和全开之间不会从排除区消失。
 
-`core:theme/layout` 是物理安全区域的唯一实现。`HingeGeometry` 在窗口像素坐标中处理横向、纵向、多铰链、零宽折痕、窗口裁剪和局部原点；`HingeSafeContent`、`HingeSafeColumn` 和 `HingeSafeDialog` 将页面或弹层限制到计算出的安全区域。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格和导航稳定。
+`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者；它们本来就会根据窗口能力形成两栏或上下窗格。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
 
-铰链适配必须是隔离分支：平台没有报告相关铰链时，`HingeSafeContent` 直接渲染原内容，不增加 `Layout`、强制尺寸、裁剪或额外 insets；页面继续使用原有 `NavigationSuiteScaffold`、Material 搜索栏、`ModalBottomSheet`、Preference 弹窗和普通 `Dialog`。只有存在铰链时才切换到安全布局或安全弹层。
+单栏 UI 不参与铰链适配。应用导航、设置、搜索、普通页面、`ModalBottomSheet`、Preference 弹窗、tooltip 和 `Dialog` 始终使用标准组件，不读取铰链，也不因铰链存在而切换组件树、尺寸、滚动或弹出位置。是否避让铰链由实际窗格布局决定，而不是由整个应用统一套一层安全区域决定。
 
 约束如下：
 
 - Feature 不直接调用 `currentWindowAdaptiveInfo*()`，也不自己维护窗口断点。
-- Feature 不缓存铰链、不按 `isSeparating` 过滤铰链，也不另算安全区。
+- Feature 不缓存铰链、不按 `isSeparating` 过滤铰链，也不另算安全区；非窗格 Feature 不读取铰链。
 - 搜索栏等局部形态读取窗口事实，不得从“导航在底部还是侧边”反推宽度。
 - `AppShell` 用稳定姿态和库策略选择导航形态，只为 ExtraLarge 展开 Rail 做显式覆盖。
 - `AppShell` 消费导航套件占用的系统内边距，并将内容和导航限制在物理安全区域；Feature 不接收导航方位参数。

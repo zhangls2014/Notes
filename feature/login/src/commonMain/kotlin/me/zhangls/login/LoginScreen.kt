@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
@@ -72,11 +73,10 @@ import me.zhangls.theme.icon.Lock
 import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
 import me.zhangls.theme.layout.ContentWidth
-import me.zhangls.theme.layout.HingeSafeColumn
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.contentWidth
-import me.zhangls.theme.layout.hasHorizontalHinge
+import me.zhangls.theme.layout.isTabletopPosture
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_brand_name
@@ -86,30 +86,53 @@ import notes.feature.login.generated.resources.login_hint_login_password
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-/** The library owns vertical panes; horizontal folds use actual physical bands below. */
 internal class LoginPanePlan(val directive: PaneScaffoldDirective, val value: ThreePaneScaffoldValue) {
+  private val mainValue: PaneAdaptedValue
+    get() = value[SupportingPaneScaffoldRole.Main]
+  private val supportingValue: PaneAdaptedValue
+    get() = value[SupportingPaneScaffoldRole.Supporting]
+
   val isBrandPaneShown: Boolean
-    get() = value[SupportingPaneScaffoldRole.Main] != PaneAdaptedValue.Hidden
+    get() = mainValue != PaneAdaptedValue.Hidden
+  val isBrandPaneReflowed: Boolean
+    get() = supportingValue is PaneAdaptedValue.Reflowed
   val isFormPaneSideBySide: Boolean
-    get() = value[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Expanded &&
-      value[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded
+    get() = mainValue == PaneAdaptedValue.Expanded && supportingValue == PaneAdaptedValue.Expanded
 }
 
-internal fun loginPanePlan(directive: PaneScaffoldDirective): LoginPanePlan {
-  val destination = if (directive.maxHorizontalPartitions == 1) {
+internal fun loginPanePlan(
+  adaptiveInfo: WindowAdaptiveInfo,
+  directive: PaneScaffoldDirective,
+): LoginPanePlan {
+  val isTabletop = adaptiveInfo.isTabletopPosture
+  val effectiveDirective = if (isTabletop) {
+    directive.copy(maxHorizontalPartitions = 1)
+  } else {
+    directive
+  }
+  val adaptStrategies = if (isTabletop) {
+    SupportingPaneScaffoldDefaults.adaptStrategies(
+      supportingPaneAdaptStrategy = AdaptStrategy.Reflow(SupportingPaneScaffoldRole.Main),
+    )
+  } else {
+    SupportingPaneScaffoldDefaults.adaptStrategies(
+      supportingPaneAdaptStrategy = AdaptStrategy.Hide,
+    )
+  }
+  val destination = if (isTabletop) {
+    null
+  } else if (effectiveDirective.maxHorizontalPartitions == 1) {
     ThreePaneScaffoldDestinationItem<Unit>(SupportingPaneScaffoldRole.Supporting)
   } else {
     null
   }
   return LoginPanePlan(
-    directive,
+    effectiveDirective,
     calculateThreePaneScaffoldValue(
-      maxHorizontalPartitions = directive.maxHorizontalPartitions,
-      adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
-        supportingPaneAdaptStrategy = AdaptStrategy.Hide,
-      ),
+      maxHorizontalPartitions = effectiveDirective.maxHorizontalPartitions,
+      adaptStrategies = adaptStrategies,
       currentDestination = destination,
-      maxVerticalPartitions = directive.maxVerticalPartitions,
+      maxVerticalPartitions = effectiveDirective.maxVerticalPartitions,
     ),
   )
 }
@@ -138,37 +161,25 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
   val plan = rememberLoginPanePlan()
 
-  val hasHorizontalHinge = LocalWindowAdaptiveInfo.current.hasHorizontalHinge
   Scaffold { padding ->
-    if (hasHorizontalHinge) {
-      // Reflow only splits by preferred heights; it does not avoid physical horizontal hinges.
-      HingeSafeColumn(
-        modifier = Modifier.padding(padding),
-        first = { BrandPane(showTagline = false, scrollable = true) },
-        second = {
-          FormPane(showLogo = false, state = state, onIntent = viewModel::sendIntent, onLoginClick = loginClick)
-        },
-      )
-    } else {
-      SupportingPaneScaffold(
-        directive = plan.directive,
-        value = plan.value,
-        modifier = Modifier.padding(padding),
-        mainPane = {
-          AnimatedPane { BrandPane(showTagline = true) }
-        },
-        supportingPane = {
-          AnimatedPane {
-            FormPane(
-              showLogo = !plan.isBrandPaneShown,
-              state = state,
-              onIntent = viewModel::sendIntent,
-              onLoginClick = loginClick,
-            )
-          }
-        },
-      )
-    }
+    SupportingPaneScaffold(
+      directive = plan.directive,
+      value = plan.value,
+      modifier = Modifier.padding(padding),
+      mainPane = {
+        AnimatedPane { BrandPane(showTagline = !plan.isBrandPaneReflowed) }
+      },
+      supportingPane = {
+        AnimatedPane {
+          FormPane(
+            showLogo = !plan.isBrandPaneShown,
+            state = state,
+            onIntent = viewModel::sendIntent,
+            onLoginClick = loginClick,
+          )
+        }
+      },
+    )
   }
 
   if (state.isLoading) {
@@ -178,8 +189,9 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
 @Composable
 private fun rememberLoginPanePlan(): LoginPanePlan {
+  val adaptiveInfo = LocalWindowAdaptiveInfo.current
   val directive = LocalPaneScaffoldDirective.current
-  return remember(directive) { loginPanePlan(directive) }
+  return remember(adaptiveInfo, directive) { loginPanePlan(adaptiveInfo, directive) }
 }
 
 /**
@@ -284,13 +296,12 @@ private fun FormPane(
  * @param showTagline 叠到表单之下时竖向空间减半，此时省略那句说明。
  */
 @Composable
-private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier, scrollable: Boolean = false) {
+private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
     modifier = modifier
       .fillMaxSize()
-      .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
       .padding(vertical = 32.dp, horizontal = 24.dp),
   ) {
     Image(imageVector = AppLogo, contentDescription = null)
