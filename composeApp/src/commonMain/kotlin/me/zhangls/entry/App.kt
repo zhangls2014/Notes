@@ -13,11 +13,11 @@ import me.zhangls.preference.DarkThemePreference
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.LocalWindowHinges
 import me.zhangls.theme.layout.rememberPaneScaffoldDirective
 import me.zhangls.theme.layout.rememberWindowAdaptiveInfo
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.viewmodel.koinViewModel
-
 
 @Composable
 fun App(
@@ -61,6 +61,7 @@ fun App(
 
   CompositionLocalProvider(
     LocalWindowAdaptiveInfo provides windowAdaptiveInfo,
+    LocalWindowHinges provides windowAdaptiveInfo.windowPosture.hingeList,
     LocalPaneScaffoldDirective provides paneScaffoldDirective,
   ) {
     ComposeAppTheme(

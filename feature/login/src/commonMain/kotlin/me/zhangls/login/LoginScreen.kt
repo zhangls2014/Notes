@@ -24,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
@@ -73,10 +72,11 @@ import me.zhangls.theme.icon.Lock
 import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
 import me.zhangls.theme.layout.ContentWidth
+import me.zhangls.theme.layout.HingeSafeColumn
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.contentWidth
-import me.zhangls.theme.layout.isTabletopPosture
+import me.zhangls.theme.layout.hasHorizontalHinge
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_brand_name
@@ -86,125 +86,32 @@ import notes.feature.login.generated.resources.login_hint_login_password
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-/**
- * 登录页的窗格方案：交给库的窗格脚手架之后，本页只剩"用哪份指令 + 得到什么窗格取值"。
- *
- * 为什么不再自己排布（原先是一个 `loginArrangementFor` 纯函数 + 自绘 Row/Column）：
- * 自绘排布**看不到铰链**。2026-09-22 的实测里，书本式折叠设备半开（竖向铰链落在 `x=884`）时，
- * 居中于窗口的表单其输入框横跨 `x=[338,1430]` —— 铰链线正好穿过输入框中心；
- * 而列表-详情那边因为走库的窗格装配，内容被自动限制在铰链一侧。同一个窗口两种待遇，
- * 差别只在"有没有消费 directive"。
- *
- * 现在换成 [SupportingPaneScaffold]：主窗格 = 品牌（放在 leading 侧 = LTR 的左侧），
- * 支持窗格 = 表单（放在 trailing 侧 = LTR 的右侧）—— 与修复前自绘 `Row { BrandPane; FormRegion }`
- * 的视觉顺序一致。竖向铰链由 `directive.excludedBounds` 交给 `ThreePaneScaffold` 切分区，内容
- * 自然不跨铰链；横向铰链（桌面支架）则见 [loginPanePlan]。
- */
-internal class LoginPanePlan(
-  /** 实际交给脚手架的指令 —— 桌面支架下与 [PaneScaffoldDirective] 传来的那份不同，见 [loginPanePlan]。 */
-  val directive: PaneScaffoldDirective,
-  val value: ThreePaneScaffoldValue,
-) {
-  private val mainValue: PaneAdaptedValue
-    get() = value[SupportingPaneScaffoldRole.Main]         // 品牌（左侧）
-  private val supportingValue: PaneAdaptedValue
-    get() = value[SupportingPaneScaffoldRole.Supporting]    // 表单（右侧）
-
-  /**
-   * 品牌窗格此刻是否真的显示。
-   *
-   * 窄窗口上它不显示，此时 logo 留在表单列顶部（否则页面上会一个图标都没有）；
-   * 两区排布时 logo 归品牌区，表单列里不再重复画一遍。
-   */
+/** The library owns vertical panes; horizontal folds use actual physical bands below. */
+internal class LoginPanePlan(val directive: PaneScaffoldDirective, val value: ThreePaneScaffoldValue) {
   val isBrandPaneShown: Boolean
-    get() = mainValue != PaneAdaptedValue.Hidden
-
-  /**
-   * 品牌窗格是否处于**上下叠放**状态（桌面支架：窗口被横向铰链切成两半）。
-   *
-   * 在这种状态下品牌在 Main 位（顶/左），表单（Supporting）被 Reflow 到同一分区下方；
-   * 这里读 Supporting 的取值来判断"是否走了叠放分支"。
-   */
-  val isBrandPaneReflowed: Boolean
-    get() = supportingValue is PaneAdaptedValue.Reflowed
-
-  /** 表单窗格当前是否与品牌窗格**并排**（两区均 Expanded，而非独占整幅宽度）。 */
+    get() = value[SupportingPaneScaffoldRole.Main] != PaneAdaptedValue.Hidden
   val isFormPaneSideBySide: Boolean
-    get() = mainValue == PaneAdaptedValue.Expanded && supportingValue == PaneAdaptedValue.Expanded
+    get() = value[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Expanded &&
+      value[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded
 }
 
-/**
- * 由窗口形态与窗格指令算出登录页的窗格方案。**纯函数**，因此能用真实 dp 尺寸做守卫测试
- * （见 commonTest），不必真机旋转、也不必找一台折叠设备。
- *
- * 三处决策都属"本页的意图声明"，而不是重新实现窗格算法：
- *
- * 1. **桌面支架（横向铰链）下把横向分区压到 1**。库的窗格排版只切**竖向**铰链
- *    （`ThreePaneScaffold` 用的 `directive.excludedBounds` 由 `getExcludedVerticalBounds`
- *    算出，只有竖向）；横向铰链靠 `maxVerticalPartitions` + `AdaptStrategy.Reflow`
- *    把窗格**上下叠放**来避让。而 reflow 的前提是 `maxHorizontalPartitions == 1`
- *    （见 `calculateThreePaneScaffoldValue` 的 `checkReflowedPane`）——
- *    不压这一档，宽窗口上的桌面支架会拿到两栏并排，**两栏各自横跨铰链**。
- * 2. **窄窗口上让表单独占**。原自绘版在 600dp 以下让品牌区直接消失，logo 留在表单列顶部；
- *    用脚手架时**没有"自动隐藏 Main"的策略可设**（`AdaptStrategy.Hide` 在 Main 位上对 maxHP=1
- *    无效，实测见 LoginPanePlanTest），改用 `currentDestination = Supporting`：把表单
- *    标成"当前目的地"，库优先把唯一分区给 Supporting → Main（品牌）自然 Hidden，
- *    Supporting（表单）Expanded 独占。代价是窄窗口下表单成"当前目的地"，但本页没有窗格间的
- *    导航，目的地语义只影响渲染谁可见。
- * 3. **桌面支架下品牌与表单上下叠放**：用 `Reflow(Main)` 把 Supporting（表单）叠到
- *    Main（品牌）之下，brand 在 Main 位（顶/左）→ 视觉顺序与原 Stacked 一致（品牌在上）。
- *
- *    ⚠️ 桌面支架判据是**姿态**，不是"竖向有空间"。directive 的 `maxVerticalPartitions == 2`
- *    在"窄而高"的普通竖屏手机上也成立（411×914dp 实测），按它选 reflow 会把手机摊成
- *    上下半屏：品牌占掉上半屏、两个字段落到下半屏、中间空出一大段。手机上没有铰链要避。
- */
-internal fun loginPanePlan(
-  adaptiveInfo: WindowAdaptiveInfo,
-  directive: PaneScaffoldDirective,
-): LoginPanePlan {
-  val isTabletop = adaptiveInfo.isTabletopPosture
-
-  // 桌面支架：压到单横向分区，让 reflow 生效（理由见上文第 1 条）
-  val effectiveDirective = if (isTabletop) {
-    directive.copy(maxHorizontalPartitions = 1)
-  } else {
-    directive
-  }
-
-  // 桌面支架：表单（Supporting）Reflow 到 Main 分区下方（与原 Stacked 一致，品牌在顶/左）。
-  // 其余情形：显式把 supportingPaneAdaptStrategy 设为 Hide —— 库默认是
-  //   `Reflow(SupportingPaneScaffoldRole.Main)`，那会在 maxHP=1 + maxVP>1 时强制叠放，
-  //   我们不想这样。让库只靠 destination / 优先级决定谁占唯一分区。
-  val adaptStrategies = if (isTabletop) {
-    SupportingPaneScaffoldDefaults.adaptStrategies(
-      supportingPaneAdaptStrategy = AdaptStrategy.Reflow(SupportingPaneScaffoldRole.Main),
-    )
-  } else {
-    SupportingPaneScaffoldDefaults.adaptStrategies(
-      supportingPaneAdaptStrategy = AdaptStrategy.Hide,
-    )
-  }
-
-  // 桌面支架：两端都让默认优先级处理（Main 在顶，Supporting Reflow）。
-  // 非桌面支架且只能放一个横向分区时：把 Supporting 标成当前目的地，让它占下唯一的分区，
-  //   Main（品牌）落到 Hidden —— 这是窄窗口下"品牌不显示"的唯一办法。
-  // 非桌面支架且能放两个横向分区（Expanded）：两端都让默认优先级，都 Expanded 并排。
-  val currentDestination = if (isTabletop) {
-    null
-  } else if (effectiveDirective.maxHorizontalPartitions == 1) {
+internal fun loginPanePlan(directive: PaneScaffoldDirective): LoginPanePlan {
+  val destination = if (directive.maxHorizontalPartitions == 1) {
     ThreePaneScaffoldDestinationItem<Unit>(SupportingPaneScaffoldRole.Supporting)
   } else {
     null
   }
-
-  val value = calculateThreePaneScaffoldValue(
-    maxHorizontalPartitions = effectiveDirective.maxHorizontalPartitions,
-    adaptStrategies = adaptStrategies,
-    currentDestination = currentDestination,
-    maxVerticalPartitions = effectiveDirective.maxVerticalPartitions,
+  return LoginPanePlan(
+    directive,
+    calculateThreePaneScaffoldValue(
+      maxHorizontalPartitions = directive.maxHorizontalPartitions,
+      adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
+        supportingPaneAdaptStrategy = AdaptStrategy.Hide,
+      ),
+      currentDestination = destination,
+      maxVerticalPartitions = directive.maxVerticalPartitions,
+    ),
   )
-
-  return LoginPanePlan(effectiveDirective, value)
 }
 
 /**
@@ -231,32 +138,37 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
   val plan = rememberLoginPanePlan()
 
+  val hasHorizontalHinge = LocalWindowAdaptiveInfo.current.hasHorizontalHinge
   Scaffold { padding ->
-    SupportingPaneScaffold(
-      directive = plan.directive,
-      value = plan.value,
-      // 系统栏内边距加在脚手架外层：两个窗格都在安全区内，各自不必再算一次。
-      // 键盘内边距则要加在**表单窗格内部**（见 [FormPane]）—— 桌面支架下键盘占的是下半屏，
-      // 也就是表单窗格那一侧，套在外层会让表单跟着缩，反而把内容挤走。
-      modifier = Modifier.padding(padding),
-      mainPane = {
-        // Main = leading 侧（LTR 下是左）= 品牌 —— 与原自绘 Row 的视觉顺序一致
-        AnimatedPane {
-          BrandPane(showTagline = !plan.isBrandPaneReflowed)
-        }
-      },
-      supportingPane = {
-        // Supporting = trailing 侧（LTR 下是右）= 表单
-        AnimatedPane {
-          FormPane(
-            showLogo = !plan.isBrandPaneShown,
-            state = state,
-            onIntent = viewModel::sendIntent,
-            onLoginClick = loginClick,
-          )
-        }
-      },
-    )
+    if (hasHorizontalHinge) {
+      // Reflow only splits by preferred heights; it does not avoid physical horizontal hinges.
+      HingeSafeColumn(
+        modifier = Modifier.padding(padding),
+        first = { BrandPane(showTagline = false) },
+        second = {
+          FormPane(showLogo = false, state = state, onIntent = viewModel::sendIntent, onLoginClick = loginClick)
+        },
+      )
+    } else {
+      SupportingPaneScaffold(
+        directive = plan.directive,
+        value = plan.value,
+        modifier = Modifier.padding(padding),
+        mainPane = {
+          AnimatedPane { BrandPane(showTagline = true) }
+        },
+        supportingPane = {
+          AnimatedPane {
+            FormPane(
+              showLogo = !plan.isBrandPaneShown,
+              state = state,
+              onIntent = viewModel::sendIntent,
+              onLoginClick = loginClick,
+            )
+          }
+        },
+      )
+    }
   }
 
   if (state.isLoading) {
@@ -266,9 +178,8 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
 @Composable
 private fun rememberLoginPanePlan(): LoginPanePlan {
-  val adaptiveInfo = LocalWindowAdaptiveInfo.current
   val directive = LocalPaneScaffoldDirective.current
-  return remember(adaptiveInfo, directive) { loginPanePlan(adaptiveInfo, directive) }
+  return remember(directive) { loginPanePlan(directive) }
 }
 
 /**
@@ -379,6 +290,7 @@ private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier) {
     verticalArrangement = Arrangement.Center,
     modifier = modifier
       .fillMaxSize()
+      .verticalScroll(rememberScrollState())
       .padding(vertical = 32.dp, horizontal = 24.dp),
   ) {
     Image(imageVector = AppLogo, contentDescription = null)

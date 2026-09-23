@@ -1,17 +1,19 @@
 package me.zhangls.main
 
+import androidx.compose.material3.adaptive.HingeInfo
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.ui.geometry.Rect
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
+import me.zhangls.theme.layout.isCompactWidth
+import me.zhangls.theme.layout.isExpandedWidthOrWider
+import me.zhangls.theme.layout.isExtraLargeWidthOrWider
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import me.zhangls.theme.layout.isCompactWidth
-import me.zhangls.theme.layout.isExpandedWidthOrWider
-import me.zhangls.theme.layout.isExtraLargeWidthOrWider
 
 /**
  * 窗口形态策略的守卫测试。
@@ -30,6 +32,17 @@ import me.zhangls.theme.layout.isExtraLargeWidthOrWider
  * 而不是手写档位下限：手写下限会把"档位怎么算"这个被测对象本身写进测试前提。
  */
 class NavigationSuitePolicyTest {
+
+  @Test
+  fun horizontalHingeKeepsNavigationStableWhenOpenedFlat() {
+    fun posture(flat: Boolean) = Posture(
+      isTabletop = !flat,
+      hingeList = listOf(HingeInfo(Rect(0f, 350f, 1000f, 370f), flat, false, !flat, false)),
+    )
+    val halfOpen = window(1000, 800, posture(false)).navigationSuiteType()
+    val flat = window(1000, 800, posture(true)).navigationSuiteType()
+    assertEquals(halfOpen, flat, "Only hinge state changed; navigation must not resize the content")
+  }
 
   @Test
   fun compactWidthUsesShortBottomBar() {
@@ -107,7 +120,16 @@ class NavigationSuitePolicyTest {
     // 手写分档链当初完全不看姿态，这条用例就是为它守门。
     assertEquals(
       NavigationSuiteType.ShortNavigationBarMedium,
-      window(widthDp = 1000, heightDp = 800, posture = Posture(isTabletop = true))
+      window(
+        widthDp = 1000,
+        heightDp = 800,
+        posture = Posture(
+          isTabletop = true,
+          hingeList = listOf(
+            HingeInfo(Rect(0f, 390f, 1000f, 410f), false, false, true, false),
+          ),
+        ),
+      )
         .navigationSuiteType(),
     )
   }

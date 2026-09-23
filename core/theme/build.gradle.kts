@@ -6,6 +6,9 @@ plugins {
 
 kotlin {
   sourceSets {
+    commonTest {
+      dependencies { implementation(kmp.kotlin.test) }
+    }
     commonMain {
       dependencies {
         // 窗口形态：WindowAdaptiveInfo / Posture 出现在本模块的公开 API 里

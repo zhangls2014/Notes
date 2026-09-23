@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
@@ -29,6 +30,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.AccountModel
+import me.zhangls.theme.component.HingeSafeDialog
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.hasHinges
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.allDrawableResources
 import notes.feature.email.generated.resources.email_action_cancel
@@ -70,12 +74,13 @@ internal fun NewEmailSheet(
     enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
   )
 
-  ModalBottomSheet(onDismissRequest = { if (!isSending) onDismiss() }, sheetState = sheetState) {
+  val formScrollState = rememberScrollState()
+  val form = @Composable {
     Column(
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp, vertical = 8.dp)
-        .verticalScroll(state = rememberScrollState()),
+        .verticalScroll(state = formScrollState),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Text(
@@ -132,6 +137,17 @@ internal fun NewEmailSheet(
           Text(text = stringResource(Res.string.email_action_save))
         }
       }
+    }
+  }
+  if (LocalWindowAdaptiveInfo.current.hasHinges) {
+    HingeSafeDialog(onDismissRequest = { if (!isSending) onDismiss() }) {
+      Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        form()
+      }
+    }
+  } else {
+    ModalBottomSheet(onDismissRequest = { if (!isSending) onDismiss() }, sheetState = sheetState) {
+      form()
     }
   }
 }
