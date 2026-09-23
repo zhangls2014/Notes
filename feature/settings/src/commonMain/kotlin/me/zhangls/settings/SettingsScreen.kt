@@ -20,7 +20,6 @@ import me.zhangls.settings.ui.toPreferenceUiModels
 import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
-import me.zhangls.theme.layout.HingeSafeContent
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_label_settings
 import org.jetbrains.compose.resources.stringResource
@@ -49,30 +48,28 @@ internal fun SettingsScreen(
     }
   }
 
-  HingeSafeContent {
-    Scaffold(
-      topBar = {
-        CenteredTopAppBar(title = stringResource(Res.string.settings_label_settings))
-      }
-    ) { padding ->
-      // 行的渲染全在 core:preference（PreferenceRow），本屏只负责列表装配与顺序
-      ProvidePreferenceLocals {
-        // 行宽上限取 ContentWidth.Prose：1200dp 以上的窗口上，一行设置项如果横跨整幅宽度，
-        // 既难读也难扫；上限之外居中留白。设置页不做分栏，所以它确实是全仓内容最容易被
-        // 拉满整幅宽度的页面。
-        AdaptiveContent {
-          LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
-            contentPadding = padding,
-          ) {
-            items(
-              count = preferences.size,
-              key = { index -> preferences[index].spec.key },
-              contentType = { index -> preferences[index]::class }
-            ) { index ->
-              PreferenceRow(model = preferences[index])
-            }
+  Scaffold(
+    topBar = {
+      CenteredTopAppBar(title = stringResource(Res.string.settings_label_settings))
+    }
+  ) { padding ->
+    // 行的渲染全在 core:preference（PreferenceRow），本屏只负责列表装配与顺序
+    ProvidePreferenceLocals {
+      // 行宽上限取 ContentWidth.Prose：1200dp 以上的窗口上，一行设置项如果横跨整幅宽度，
+      // 既难读也难扫；上限之外居中留白。设置页不做分栏，所以它确实是全仓内容最容易被
+      // 拉满整幅宽度的页面。
+      AdaptiveContent {
+        LazyColumn(
+          modifier = Modifier.fillMaxSize(),
+          // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
+          contentPadding = padding,
+        ) {
+          items(
+            count = preferences.size,
+            key = { index -> preferences[index].spec.key },
+            contentType = { index -> preferences[index]::class }
+          ) { index ->
+            PreferenceRow(model = preferences[index])
           }
         }
       }

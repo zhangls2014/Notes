@@ -11,7 +11,6 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import me.zhangls.theme.layout.LocalWindowHinges
 
 /**
  * 带长按提示的图标按钮。
@@ -38,14 +37,6 @@ fun TooltipIconButton(
   modifier: Modifier = Modifier,
   tooltipPosition: TooltipAnchorPosition = TooltipAnchorPosition.Above,
 ) {
-  // Platform tooltip popups are not bounded by a pane. Keep the labeled accessible button
-  // on foldables; a tooltip must not become the only content that crosses a physical hinge.
-  if (LocalWindowHinges.current.isNotEmpty()) {
-    IconButton(onClick = onClick, modifier = modifier) {
-      Icon(imageVector = icon, contentDescription = label)
-    }
-    return
-  }
   TooltipBox(
     positionProvider = TooltipDefaults.rememberTooltipPositionProvider(tooltipPosition),
     state = rememberTooltipState(),

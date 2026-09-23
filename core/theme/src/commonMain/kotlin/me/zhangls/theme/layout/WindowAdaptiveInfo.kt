@@ -62,7 +62,6 @@ fun ProvideWindowAdaptiveInfo(
 ) {
   CompositionLocalProvider(
     LocalWindowAdaptiveInfo provides WindowAdaptiveInfo(windowSizeClass, posture),
-    LocalWindowHinges provides posture.hingeList,
     LocalPaneScaffoldDirective provides calculateAppPaneScaffoldDirective(WindowAdaptiveInfo(windowSizeClass, posture)),
     content = content,
   )
@@ -129,4 +128,4 @@ fun rememberPaneScaffoldDirective(adaptiveInfo: WindowAdaptiveInfo): PaneScaffol
  * `SupportingPaneScaffold` / 场景策略即可，不必先换算成一个布尔。）
  */
 val WindowAdaptiveInfo.isTabletopPosture: Boolean
-  get() = windowPosture.isTabletop
+  get() = windowPosture.hingeList.any { !it.isVertical }

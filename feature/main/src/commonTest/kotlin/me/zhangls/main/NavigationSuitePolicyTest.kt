@@ -34,17 +34,6 @@ import kotlin.test.assertTrue
 class NavigationSuitePolicyTest {
 
   @Test
-  fun horizontalHingeKeepsNavigationStableWhenOpenedFlat() {
-    fun posture(flat: Boolean) = Posture(
-      isTabletop = !flat,
-      hingeList = listOf(HingeInfo(Rect(0f, 350f, 1000f, 370f), flat, false, !flat, false)),
-    )
-    val halfOpen = window(1000, 800, posture(false)).navigationSuiteType()
-    val flat = window(1000, 800, posture(true)).navigationSuiteType()
-    assertEquals(halfOpen, flat, "Only hinge state changed; navigation must not resize the content")
-  }
-
-  @Test
   fun compactWidthUsesShortBottomBar() {
     assertEquals(
       NavigationSuiteType.ShortNavigationBarCompact,

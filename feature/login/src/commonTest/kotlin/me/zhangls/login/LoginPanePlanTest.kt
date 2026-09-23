@@ -103,7 +103,7 @@ class LoginPanePlanTest {
     val (adaptiveInfo, directive) = windowAndDirective(widthDp = 411, heightDp = 914)
     assertEquals(1, directive.maxHorizontalPartitions)
     assertTrue(directive.maxVerticalPartitions >= 2, "本条的前提：竖向容量确实够两栏")
-    val plan = loginPanePlan(directive)
+    val plan = loginPanePlan(adaptiveInfo, directive)
     assertEquals(
       PaneAdaptedValue.Hidden,
       plan.value[SupportingPaneScaffoldRole.Main],
@@ -114,6 +114,34 @@ class LoginPanePlanTest {
       plan.value[SupportingPaneScaffoldRole.Supporting],
       "窄窗口下表单应独占（被设为当前目的地）",
     )
+  }
+
+  @Test
+  fun tabletopStacksBrandInsteadOfSplittingColumns() {
+    val (adaptiveInfo, directive) = windowAndDirective(
+      widthDp = 1600,
+      heightDp = 1000,
+      posture = tabletopPosture(),
+    )
+    assertTrue(directive.maxHorizontalPartitions >= 2)
+    val plan = loginPanePlan(adaptiveInfo, directive)
+    assertEquals(1, plan.directive.maxHorizontalPartitions)
+    assertEquals(PaneAdaptedValue.Expanded, plan.value[SupportingPaneScaffoldRole.Main])
+    assertEquals(
+      PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
+      plan.value[SupportingPaneScaffoldRole.Supporting],
+    )
+  }
+
+  @Test
+  fun tabletopOnNarrowWindowAlsoStacks() {
+    plan(widthDp = 700, heightDp = 900, posture = tabletopPosture()).also {
+      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
+      assertEquals(
+        PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
+        it.value[SupportingPaneScaffoldRole.Supporting],
+      )
+    }
   }
 
   @Test
@@ -150,7 +178,7 @@ class LoginPanePlanTest {
         ),
       ),
     )
-    val plan = loginPanePlan(calculateAppPaneScaffoldDirective(adaptiveInfo))
+    val plan = loginPanePlan(adaptiveInfo, calculateAppPaneScaffoldDirective(adaptiveInfo))
     assertTrue(
       plan.directive.excludedBounds.isNotEmpty(),
       "竖向分离铰链应出现在交给脚手架的指令里（应用策略 AlwaysAvoid）",
@@ -158,13 +186,20 @@ class LoginPanePlanTest {
   }
 }
 
+private fun tabletopPosture() = Posture(
+  isTabletop = true,
+  hingeList = listOf(
+    HingeInfo(Rect(0f, 440f, 1600f, 460f), false, false, true, false),
+  ),
+)
+
 private fun plan(
   widthDp: Int,
   heightDp: Int,
   posture: Posture = Posture(),
 ): LoginPanePlan {
   val (adaptiveInfo, directive) = windowAndDirective(widthDp, heightDp, posture)
-  return loginPanePlan(directive)
+  return loginPanePlan(adaptiveInfo, directive)
 }
 
 private fun windowAndDirective(
