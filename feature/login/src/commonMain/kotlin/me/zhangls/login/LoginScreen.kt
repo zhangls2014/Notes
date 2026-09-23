@@ -144,7 +144,7 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
       // Reflow only splits by preferred heights; it does not avoid physical horizontal hinges.
       HingeSafeColumn(
         modifier = Modifier.padding(padding),
-        first = { BrandPane(showTagline = false) },
+        first = { BrandPane(showTagline = false, scrollable = true) },
         second = {
           FormPane(showLogo = false, state = state, onIntent = viewModel::sendIntent, onLoginClick = loginClick)
         },
@@ -284,13 +284,13 @@ private fun FormPane(
  * @param showTagline 叠到表单之下时竖向空间减半，此时省略那句说明。
  */
 @Composable
-private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier) {
+private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier, scrollable: Boolean = false) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
     modifier = modifier
       .fillMaxSize()
-      .verticalScroll(rememberScrollState())
+      .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
       .padding(vertical = 32.dp, horizontal = 24.dp),
   ) {
     Image(imageVector = AppLogo, contentDescription = null)
