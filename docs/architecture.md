@@ -158,7 +158,9 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。directive 使用 `HingePolicy.AlwaysAvoid`，所以同一铰链几何在半开和全开之间不会从排除区消失。
 
-`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者；它们本来就会根据窗口能力形成两栏或上下窗格。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
+`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者。邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
+
+登录页设置入口位于表单区域右上角。Logo、输入框与按钮组成的表单主体在高度足够时居中；高度不足时保持原有尺寸和间距，由纵向滚动与 IME 留白处理。
 
 单栏 UI 不参与铰链适配。应用导航、设置、搜索、普通页面、`ModalBottomSheet`、Preference 弹窗、tooltip 和 `Dialog` 始终使用标准组件，不读取铰链，也不因铰链存在而切换组件树、尺寸、滚动或弹出位置。是否避让铰链由实际窗格布局决定，而不是由整个应用统一套一层安全区域决定。
 
@@ -171,7 +173,7 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 - `AppShell` 消费导航套件占用的系统内边距，并将内容和导航限制在物理安全区域；Feature 不接收导航方位参数。
 - 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
 - Nav3 继续负责竖向列表—详情分区；横向折叠由宿主先限定安全带。
-- 登录页在横向折叠时按真实安全带放置品牌与表单，其他形态继续使用 `SupportingPaneScaffold`。
+- 登录页只按 `maxHorizontalPartitions` 决定左侧品牌区与右侧表单区是否同时展开。横向铰链不触发上下重排：宽度足够时仍左右分栏，宽度不足时使用单列表单。
 - 搜索、写邮件、设置选择和确认对话框在折叠设备上使用共享安全弹层，并把查询、草稿、滚动和选择状态保留在形态分支之外。
 
 ### 设置项

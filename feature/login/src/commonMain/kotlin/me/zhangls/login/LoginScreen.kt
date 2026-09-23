@@ -5,6 +5,7 @@ package me.zhangls.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,9 +76,7 @@ import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
 import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
-import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.contentWidth
-import me.zhangls.theme.layout.isTabletopPosture
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_brand_name
@@ -94,45 +94,27 @@ internal class LoginPanePlan(val directive: PaneScaffoldDirective, val value: Th
 
   val isBrandPaneShown: Boolean
     get() = mainValue != PaneAdaptedValue.Hidden
-  val isBrandPaneReflowed: Boolean
-    get() = supportingValue is PaneAdaptedValue.Reflowed
   val isFormPaneSideBySide: Boolean
     get() = mainValue == PaneAdaptedValue.Expanded && supportingValue == PaneAdaptedValue.Expanded
 }
 
-internal fun loginPanePlan(
-  adaptiveInfo: WindowAdaptiveInfo,
-  directive: PaneScaffoldDirective,
-): LoginPanePlan {
-  val isTabletop = adaptiveInfo.isTabletopPosture
-  val effectiveDirective = if (isTabletop) {
-    directive.copy(maxHorizontalPartitions = 1)
-  } else {
-    directive
-  }
-  val adaptStrategies = if (isTabletop) {
-    SupportingPaneScaffoldDefaults.adaptStrategies(
-      supportingPaneAdaptStrategy = AdaptStrategy.Reflow(SupportingPaneScaffoldRole.Main),
-    )
-  } else {
-    SupportingPaneScaffoldDefaults.adaptStrategies(
-      supportingPaneAdaptStrategy = AdaptStrategy.Hide,
-    )
-  }
-  val destination = if (isTabletop) {
-    null
-  } else if (effectiveDirective.maxHorizontalPartitions == 1) {
+internal fun loginPanePlan(directive: PaneScaffoldDirective): LoginPanePlan {
+  val horizontalOnlyDirective = directive.copy(maxVerticalPartitions = 1)
+  val adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
+    supportingPaneAdaptStrategy = AdaptStrategy.Hide,
+  )
+  val destination = if (horizontalOnlyDirective.maxHorizontalPartitions == 1) {
     ThreePaneScaffoldDestinationItem<Unit>(SupportingPaneScaffoldRole.Supporting)
   } else {
     null
   }
   return LoginPanePlan(
-    effectiveDirective,
+    horizontalOnlyDirective,
     calculateThreePaneScaffoldValue(
-      maxHorizontalPartitions = effectiveDirective.maxHorizontalPartitions,
+      maxHorizontalPartitions = horizontalOnlyDirective.maxHorizontalPartitions,
       adaptStrategies = adaptStrategies,
       currentDestination = destination,
-      maxVerticalPartitions = effectiveDirective.maxVerticalPartitions,
+      maxVerticalPartitions = horizontalOnlyDirective.maxVerticalPartitions,
     ),
   )
 }
@@ -167,7 +149,7 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
       value = plan.value,
       modifier = Modifier.padding(padding),
       mainPane = {
-        AnimatedPane { BrandPane(showTagline = !plan.isBrandPaneReflowed) }
+        AnimatedPane { BrandPane() }
       },
       supportingPane = {
         AnimatedPane {
@@ -189,9 +171,8 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
 
 @Composable
 private fun rememberLoginPanePlan(): LoginPanePlan {
-  val adaptiveInfo = LocalWindowAdaptiveInfo.current
   val directive = LocalPaneScaffoldDirective.current
-  return remember(adaptiveInfo, directive) { loginPanePlan(adaptiveInfo, directive) }
+  return remember(directive) { loginPanePlan(directive) }
 }
 
 /**
@@ -206,79 +187,88 @@ private fun FormPane(
   onIntent: (LoginIntent) -> Unit,
   onLoginClick: () -> Unit,
 ) {
-  Column(
-    horizontalAlignment = Alignment.CenterHorizontally,
-    modifier = Modifier
-      .fillMaxSize()
-      .verticalScroll(state = rememberScrollState())
-      // imePadding 必须在 verticalScroll **之内**（即链尾）：它给滚动内容补上键盘高度的底部
-      // 留白，于是滚动区域的内容变高，聚焦的输入框能被自动滚进键盘上方的可视区。
-      .imePadding(),
-  ) {
+  BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    val viewportHeight = constraints.maxHeight
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
-      // 窗格可以宽到 800dp 以上（1600dp 窗口下的并排），表单仍受可读上限约束、并在窗格内居中
-      modifier = Modifier.contentWidth(ContentWidth.Form),
+      modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(state = rememberScrollState())
+        // 保留原有 IME 留白，键盘出现时输入框与按钮仍能滚动到可见区域。
+        .imePadding(),
     ) {
-      // 深色模式 / 语言两个入口属于**表单区**，而不是窗口的角落。
-      // 原先它们 `align(End)` 贴的是窗口右缘：窗口越宽离表单越远（841dp 上差约 400dp，
-      // 1600dp 上差约 800dp）。归入表单区后，窄窗口下表单与窗口同宽、观感与原先一致；
-      // 宽窗口下则始终贴着表单。
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-          .align(Alignment.End)
-          .padding(top = 16.dp, end = 16.dp),
-      ) {
-        SelectIconButton(
-          spec = DarkThemePreference.spec,
-          value = state.darkTheme,
-          onValueChange = { onIntent(LoginIntent.UpdateDarkTheme(it)) },
+      Layout(
+        modifier = Modifier.contentWidth(ContentWidth.Form),
+        content = {
+          // 设置入口归属表单区域，而不是整个窗口的右上角。
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 16.dp, end = 16.dp),
+          ) {
+            SelectIconButton(
+              spec = DarkThemePreference.spec,
+              value = state.darkTheme,
+              onValueChange = { onIntent(LoginIntent.UpdateDarkTheme(it)) },
+            )
+
+            SelectIconButton(
+              spec = LanguagePreference.spec,
+              value = state.appLanguage,
+              onValueChange = { onIntent(LoginIntent.UpdateLanguage(it)) },
+            )
+          }
+
+          Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(vertical = 32.dp),
+          ) {
+            if (showLogo) {
+              Image(imageVector = AppLogo, contentDescription = null)
+            }
+
+            AccountInput(
+              modifier = Modifier.padding(top = 40.dp),
+              account = state.account,
+              accountError = state.accountError,
+              onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
+              onClearAccount = { onIntent(LoginIntent.ClearAccount) }
+            )
+
+            PasswordInput(
+              modifier = Modifier.padding(top = 16.dp),
+              password = state.password,
+              passwordError = state.passwordError,
+              passwordVisible = state.passwordVisible,
+              onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
+              onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
+              onLogin = onLoginClick,
+            )
+
+            Button(
+              onClick = onLoginClick,
+              enabled = state.isInputValid,
+              shape = RoundedCornerShape(24.dp),
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp, top = 32.dp)
+            ) {
+              Text(text = stringResource(Res.string.login_action_login), fontSize = 16.sp)
+            }
+          }
+        },
+      ) { measurables, layoutConstraints ->
+        val childConstraints = layoutConstraints.copy(
+          minWidth = 0,
+          minHeight = 0,
+          maxHeight = Constraints.Infinity,
         )
-
-        SelectIconButton(
-          spec = LanguagePreference.spec,
-          value = state.appLanguage,
-          onValueChange = { onIntent(LoginIntent.UpdateLanguage(it)) },
-        )
-      }
-
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(vertical = 32.dp),
-      ) {
-        if (showLogo) {
-          Image(imageVector = AppLogo, contentDescription = null)
-        }
-
-        AccountInput(
-          modifier = Modifier.padding(top = 40.dp),
-          account = state.account,
-          accountError = state.accountError,
-          onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
-          onClearAccount = { onIntent(LoginIntent.ClearAccount) }
-        )
-
-        PasswordInput(
-          modifier = Modifier.padding(top = 16.dp),
-          password = state.password,
-          passwordError = state.passwordError,
-          passwordVisible = state.passwordVisible,
-          onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
-          onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
-          onLogin = onLoginClick,
-        )
-
-        Button(
-          onClick = onLoginClick,
-          enabled = state.isInputValid,
-          shape = RoundedCornerShape(24.dp),
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 32.dp, end = 32.dp, top = 32.dp)
-        ) {
-          Text(text = stringResource(Res.string.login_action_login), fontSize = 16.sp)
+        val settings = measurables[0].measure(childConstraints)
+        val body = measurables[1].measure(childConstraints)
+        val placement = loginFormPlacement(viewportHeight, settings.height, body.height)
+        layout(layoutConstraints.maxWidth, placement.height) {
+          settings.placeRelative(layoutConstraints.maxWidth - settings.width, 0)
+          body.placeRelative((layoutConstraints.maxWidth - body.width) / 2, placement.bodyTop)
         }
       }
     }
@@ -292,11 +282,9 @@ private fun FormPane(
  *
  * 文案是**占位**：`login_brand_name` 与 Android 侧的 `app_name` 取同一值；
  * `login_brand_tagline` 是随手拟的一句，有正式文案时替换这两个字符串即可。
- *
- * @param showTagline 叠到表单之下时竖向空间减半，此时省略那句说明。
  */
 @Composable
-private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier) {
+private fun BrandPane(modifier: Modifier = Modifier) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
@@ -312,18 +300,16 @@ private fun BrandPane(showTagline: Boolean, modifier: Modifier = Modifier) {
       modifier = Modifier.padding(top = 24.dp),
     )
 
-    if (showTagline) {
-      Text(
-        text = stringResource(Res.string.login_brand_tagline),
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        // 一句话也是"一行文本"，同样受可读上限约束：品牌区可以很宽，句子不该跟着变很宽
-        modifier = Modifier
-          .padding(top = 8.dp)
-          .width(ContentWidth.Form),
-      )
-    }
+    Text(
+      text = stringResource(Res.string.login_brand_tagline),
+      style = MaterialTheme.typography.bodyLarge,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      textAlign = TextAlign.Center,
+      // 一句话也是"一行文本"，同样受可读上限约束：品牌区可以很宽，句子不该跟着变很宽
+      modifier = Modifier
+        .padding(top = 8.dp)
+        .width(ContentWidth.Form),
+    )
   }
 }
 

@@ -22,8 +22,7 @@ import kotlin.test.assertTrue
  *
  * 与 `feature:main` 的形态策略测试同一思路：钉住**决策**而不是渲染 —— 方案由纯函数算出，
  * 不必启动组合、不必真机旋转，也不必找一台折叠设备。这里出错的代价是静默的：
- * 布局看起来正常，只是"宽窗口上品牌区不见了"、"手机被摊成上下半屏"，或者
- * "折叠半开时表单横跨在铰链上"。
+ * 布局看起来正常，只是"宽窗口上品牌区不见了"或"横向铰链下错误地改成上下分栏"。
  *
  * 尺寸用 dp 给出，交给与库同一套的 `computeWindowSizeClass` 量化（手写档位下限等于把
  * "档位怎么算"这个被测对象写进测试前提）。
@@ -103,7 +102,7 @@ class LoginPanePlanTest {
     val (adaptiveInfo, directive) = windowAndDirective(widthDp = 411, heightDp = 914)
     assertEquals(1, directive.maxHorizontalPartitions)
     assertTrue(directive.maxVerticalPartitions >= 2, "本条的前提：竖向容量确实够两栏")
-    val plan = loginPanePlan(adaptiveInfo, directive)
+    val plan = loginPanePlan(directive)
     assertEquals(
       PaneAdaptedValue.Hidden,
       plan.value[SupportingPaneScaffoldRole.Main],
@@ -117,31 +116,50 @@ class LoginPanePlanTest {
   }
 
   @Test
-  fun tabletopStacksBrandInsteadOfSplittingColumns() {
-    val (adaptiveInfo, directive) = windowAndDirective(
+  fun horizontalHingeOnWideWindowKeepsSideBySidePanes() {
+    val (_, directive) = windowAndDirective(
       widthDp = 1600,
       heightDp = 1000,
       posture = tabletopPosture(),
     )
     assertTrue(directive.maxHorizontalPartitions >= 2)
-    val plan = loginPanePlan(adaptiveInfo, directive)
-    assertEquals(1, plan.directive.maxHorizontalPartitions)
+    val plan = loginPanePlan(directive)
+    assertEquals(directive.maxHorizontalPartitions, plan.directive.maxHorizontalPartitions)
     assertEquals(PaneAdaptedValue.Expanded, plan.value[SupportingPaneScaffoldRole.Main])
     assertEquals(
-      PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
+      PaneAdaptedValue.Expanded,
       plan.value[SupportingPaneScaffoldRole.Supporting],
     )
+    assertTrue(plan.isFormPaneSideBySide)
   }
 
   @Test
-  fun tabletopOnNarrowWindowAlsoStacks() {
+  fun horizontalHingeOnNarrowWindowKeepsSingleForm() {
     plan(widthDp = 700, heightDp = 900, posture = tabletopPosture()).also {
-      assertEquals(PaneAdaptedValue.Expanded, it.value[SupportingPaneScaffoldRole.Main])
+      assertEquals(PaneAdaptedValue.Hidden, it.value[SupportingPaneScaffoldRole.Main])
       assertEquals(
-        PaneAdaptedValue.Reflowed(SupportingPaneScaffoldRole.Main),
+        PaneAdaptedValue.Expanded,
         it.value[SupportingPaneScaffoldRole.Supporting],
       )
     }
+  }
+
+  @Test
+  fun flatAndHalfOpenHorizontalFoldHaveIdenticalPanePlan() {
+    fun folded(flat: Boolean) = Posture(
+      hingeList = listOf(
+        HingeInfo(Rect(0f, 440f, 1600f, 460f), flat, false, !flat, false),
+      ),
+    )
+    val half = plan(1600, 1000, folded(false))
+    val flat = plan(1600, 1000, folded(true))
+    assertEquals(half.directive, flat.directive)
+    assertEquals(half.value, flat.value)
+    assertEquals(PaneAdaptedValue.Expanded, flat.value[SupportingPaneScaffoldRole.Main])
+    assertEquals(
+      PaneAdaptedValue.Expanded,
+      flat.value[SupportingPaneScaffoldRole.Supporting],
+    )
   }
 
   @Test
@@ -178,7 +196,7 @@ class LoginPanePlanTest {
         ),
       ),
     )
-    val plan = loginPanePlan(adaptiveInfo, calculateAppPaneScaffoldDirective(adaptiveInfo))
+    val plan = loginPanePlan(calculateAppPaneScaffoldDirective(adaptiveInfo))
     assertTrue(
       plan.directive.excludedBounds.isNotEmpty(),
       "竖向分离铰链应出现在交给脚手架的指令里（应用策略 AlwaysAvoid）",
@@ -199,7 +217,7 @@ private fun plan(
   posture: Posture = Posture(),
 ): LoginPanePlan {
   val (adaptiveInfo, directive) = windowAndDirective(widthDp, heightDp, posture)
-  return loginPanePlan(adaptiveInfo, directive)
+  return loginPanePlan(directive)
 }
 
 private fun windowAndDirective(
