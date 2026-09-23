@@ -1,5 +1,9 @@
 # 多形态屏幕适配审查与目标架构（Notes / KMP）
 
+> **文档状态：历史审计。** 本文前半部分记录 2026-09-21 改造前的问题，后续提交已经完成主要收敛，§7–§8 记录了部分落地与复查结果。请勿把“现状”和“建议的落地顺序”当作当前实现；当前规则以 [项目架构](../architecture.md) 为准，可重复的设备操作见 [Android 模拟器测试](../testing/android-emulator.md)。
+>
+> **后续状态：** 窗口事实与 pane directive 已收敛到组合根，列表—详情由 Navigation 3 场景策略装配，内容宽度和 IME insets 已统一处理，登录页已使用 `SupportingPaneScaffold` 消费铰链排除区。
+
 > 审查日期：2026-09-21。范围：全仓（`composeApp` / `core` / `feature` / `androidApp` / `iosApp` / 构建脚本）。
 > 结论类型：**只做审查与设计，未改业务代码**。所有库行为断言均对照本地 Gradle 缓存中的源码核实，
 > 出处写在每条的「证据」里。
@@ -700,5 +704,4 @@ adb shell dumpsys window windows | grep -m1 -oE "w[0-9]+dp h[0-9]+dp [0-9]+dpi [
   `maxHorizontalPartitions == 1` 时才考虑重排（`checkReflowedPane`），且
   `ListDetailPaneScaffoldDefaults.adaptStrategies()` 三个角色都是 `AdaptStrategy.Hide`
   —— 是库的行为，应用侧没有可改的开关。
-
 
