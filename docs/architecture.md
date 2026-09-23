@@ -1,0 +1,217 @@
+# Notes 当前架构
+
+本文描述仓库当前实现，是模块职责和依赖边界的权威说明。构建与测试命令见 [AGENTS.md](../AGENTS.md)，历史问题和验证证据见 [文档索引](README.md)。
+
+## 1. 总体结构
+
+Notes 是 Kotlin Multiplatform 应用，共享业务逻辑和 Compose UI 位于 `commonMain`，Android 与 iOS 复用同一套 Feature 实现。依赖从应用组合根流向 Feature，再流向 Core；实现模块之间不直接依赖。
+
+```text
+androidApp / iosApp
+        |
+   :composeApp                 应用组合根、导航、Koin 装配
+        |
+        +-- feature 实现 ------ feature API
+        |         |                  |
+        |         +------------------+
+        |                            |
+        +----------------------- core 基础模块
+```
+
+Gradle 中启用的模块：
+
+```text
+:androidApp
+:composeApp
+
+:core:model
+:core:database
+:core:data
+:core:theme
+:core:preference
+:core:network
+:core:framework
+
+:feature:main       :feature:main-api
+:feature:login      :feature:login-api
+:feature:email      :feature:email-api
+:feature:settings   :feature:settings-api
+
+:android:baselineprofile
+:android:output:login
+```
+
+`iosApp` 是 Xcode 工程，不是 `settings.gradle.kts` 中的 Gradle 模块。
+
+## 2. 模块职责
+
+### 应用与平台入口
+
+| 目录或模块 | 职责 |
+|---|---|
+| `androidApp` | Android `Application`、Activity、Manifest、平台初始化和 APK 输出 |
+| `iosApp` | iOS 应用入口和 Xcode 工程 |
+| `composeApp` | 共享应用入口、Koin 组合根、根返回栈、Deep Link、Feature 导航装配和启动数据初始化 |
+| `android:baselineprofile` | Android 基线配置文件生成 |
+| `android:output:login` | 登录能力的实验性 Fused Library 输出 |
+
+`composeApp` 可以依赖所有 Feature 实现以完成装配，但不承载 Feature 业务实现。平台入口只负责启动共享应用和提供平台能力。
+
+### Core
+
+| 模块 | 所有权与边界 |
+|---|---|
+| `core:model` | 跨数据层和 UI 基础模块使用的稳定值类型；不含 Compose |
+| `core:database` | Room entity、DAO、converter、迁移、数据库工厂和事务助手 |
+| `core:data` | 对外模型、Repository 接口和数据实现；隐藏数据库实现类型 |
+| `core:theme` | 主题、图标、通用 Compose 组件、内容宽度和窗口事实 |
+| `core:preference` | 设置项展示元数据、通用设置控件和渲染契约 |
+| `core:network` | Ktor 客户端、认证、响应和错误封装 |
+| `core:framework` | MVI 基类、Navigation 3 抽象、Deep Link 和全局 Effect |
+
+`core:model` 的准入条件是：类型出现在数据模块的公开签名中，或同时被数据层与含 Compose 的基础模块消费。只服务一个 Feature 的类型留在该 Feature。
+
+### Feature
+
+每个 Feature 由同级的 API 模块和实现模块组成：
+
+| API / 实现 | 职责 |
+|---|---|
+| `feature:main-api` / `feature:main` | 顶层 Tab 目的地和应用外壳 |
+| `feature:login-api` / `feature:login` | 登录目的地、入口契约和登录 UI |
+| `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
+| `feature:settings-api` / `feature:settings` | 设置入口契约和设置行为/UI |
+
+API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
+
+## 3. 依赖规则
+
+### Feature 边界
+
+- Feature 实现必须依赖自身 `-api`。
+- Feature 实现可以依赖其他 Feature 的 `-api`，不得依赖其他 Feature 的实现。
+- Feature API 不依赖任何 Feature 实现；跨 Feature 共享的静态 UI 数据应下沉到合适的 Core 模块。
+- 只有 `composeApp` 依赖全部实现模块，并将实现绑定到 API 契约。
+- Core 不依赖 Feature。
+
+当前先例是 `feature:main` 依赖 `feature:email-api` 和 `feature:settings-api`，通过 `EmailEntry`、`SettingsEntry` 渲染内容，而不引用对方实现类型。
+
+### `api` 与 `implementation`
+
+默认使用 `implementation`。只有依赖模块的类型出现在当前模块公开 Kotlin API 中时才使用 `api`。
+
+两个关键隔离边界：
+
+1. `core:data` 必须以 `implementation` 依赖 `core:database`。这样 Feature 无法看到 Room entity、DAO 或查询载体。
+2. `core:preference` 必须以 `implementation` 依赖底层 Compose Preference 库。Feature 只看到本项目的 `PreferenceSpec`、`PreferenceUiModel` 和通用控件。
+
+`internal` 不能代替模块边界。Room 生成代码会要求部分数据库类型公开，真正阻止外泄的是 Gradle `implementation`。
+
+### 数据公开面
+
+`core:data` 分成两层：
+
+- 公开面：`model/`、`repository/`、`util/` 和 `DataModule.kt`；
+- 内部面：`impl/datastore/`、`impl/mapper/`、`impl/repository/`，实现类与 provider 为 `internal`。
+
+Repository 接口和对外模型不得出现 Room 类型。数据库模型与公开模型的转换集中在 mapper 中。
+
+## 4. 构建约定
+
+`build-logic` 提供四个预编译约定插件：
+
+| 插件 | 用途 |
+|---|---|
+| `me.zhangls.kmp-library` | KMP、Android/iOS target、namespace 和 framework 基础配置 |
+| `me.zhangls.kmp-compose` | Compose runtime、foundation、UI、resources 和 Material 3 |
+| `me.zhangls.kmp-compose-api` | 仅为 Feature API 注入 Compose runtime 与编译器 |
+| `me.zhangls.kmp-koin` | Koin 注解、BOM 和 KSP 编译器 |
+
+新增 Feature API 使用 `me.zhangls.kmp-compose-api`，不要自行重复配置 Compose 插件。依赖版本统一来自 `gradle/kmp.versions.toml`。
+
+## 5. 运行时架构
+
+### Koin 装配
+
+各模块声明自己的 Koin 注解和 provider，`composeApp` 的 `NotesModule` 是组合根。实现模块负责实现并提供自己的 Entry；调用方只依赖 API 接口。
+
+### MVI
+
+`MviViewModel` 提供 Intent → State (+ Effect) 的单向数据流。Feature 的 `Intent`、`Action`、`State`、`Reducer` 和 `ViewModel` 放在实现模块的 `mvi/` 包。
+
+状态跨进程持久化是 opt-in：`savedKey` 默认 `null`。只有确认状态体积小、可序列化且不含密码、token 或其他敏感数据时，才允许传入 key。`AppViewModel` 显式使用 `savedKey = "state"`；邮件、搜索和登录状态有意保持为纯内存态。
+
+### Navigation 3
+
+`core:framework` 定义：
+
+- `Destination`：所有目的地的共同抽象；
+- `NavEffect`：`Navigate`、`Replace`、`Restart`、`Popup`；
+- `RequireLogin`：受登录状态保护的目的地；
+- Deep Link 与导航贡献注册机制。
+
+Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
+
+首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
+
+### 自适应布局
+
+窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。
+
+约束如下：
+
+- Feature 不直接调用 `currentWindowAdaptiveInfo*()`，也不自己维护窗口断点。
+- 搜索栏等局部形态读取窗口事实，不得从“导航在底部还是侧边”反推宽度。
+- `AppShell` 用库策略选择导航形态，只为 ExtraLarge 展开 Rail 做显式覆盖。
+- `AppShell` 消费导航套件占用的系统内边距，Feature 不接收导航方位参数。
+- 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
+- 登录页用 `SupportingPaneScaffold` 消费 directive 和铰链排除区。
+
+### 设置项
+
+设置项拆成四部分：
+
+1. 展示元数据和通用渲染位于 `core:preference`；
+2. 当前值来自 `core:data` 的 `SettingsModel`；
+3. 行为由 `feature:settings` 的 Intent/ViewModel 拥有；
+4. `SettingsPreferenceMapper` 将 spec、值和回调装配为 `PreferenceUiModel`。
+
+`PreferenceSpec` 不持有状态或 Feature Intent。设置清单和顺序属于 `feature:settings`，平台差异通过能力位过滤。
+
+## 6. 数据与资源规则
+
+- Room 字段或 schema 变化必须配置 AutoMigration，并更新 `core/database/schemas/`。
+- `AppDatabase` 的包名与 schema 目录耦合；移动类时必须同步迁移以全限定名命名的 schema 目录。
+- 数据库文件路径由 `core:data` 的 `AppFileManager` 提供，平台建库差异由 `AppDatabaseFactory` 的 expect/actual 承担。
+- `AppDataStore` 当前只做 JSON 序列化，没有静态加密；Android 的 `AESUtils` 尚未接入读写链路，不得将现状描述为 Keystore 已保护用户 token。
+- Compose Resources 的格式化占位符必须带位置，例如 `%1$s`；无位置的 `%s` 不会被正确替换。
+- 同一段通用 Compose 渲染在两个或更多位置出现时，评估下沉到 `core:theme` 或 `core:preference`，但单一 Feature 的业务组件仍留在 Feature。
+
+## 7. 变更检查清单
+
+### 新增 Feature
+
+- 创建同级的 `feature/<name>` 与 `feature/<name>-api`。
+- API 只放目的地、Entry 和必要参数；实现依赖自身 API。
+- 需要其他 Feature 时只依赖其 API。
+- 在 `composeApp` 加入实现模块并完成 Koin/导航装配。
+- 使用现有约定插件，并运行相关平台编译和测试。
+
+### 移动共享类型
+
+- 先确认真实消费者和所有者，不因“可能复用”提前下沉。
+- 检查移动后是否引入 Core → Feature、数据层 → UI 或 Feature 实现互相依赖。
+- 若类型出现在公开签名，核对 Gradle 依赖应为 `api` 还是 `implementation`。
+
+### 修改数据库
+
+- 更新 entity/DAO 与 mapper，不向 `core:data` 公开面泄漏 Room 类型。
+- 配置 AutoMigration 并核对 schema 导出。
+- 运行 `core:data` 的 iOS 模拟器测试和相关应用编译。
+
+### 修改自适应布局
+
+- 使用 `LocalWindowAdaptiveInfo` 或 `LocalPaneScaffoldDirective`，不新增窗口读取点。
+- 优先表达实际事实或库计算出的能力，不用其他 UI 形态作代理。
+- 覆盖紧凑、横屏、宽屏和折叠姿态；模拟器步骤见 [Android 模拟器测试](testing/android-emulator.md)。
+- 结束测试前恢复模拟器分辨率、密度和旋转设置。
