@@ -11,7 +11,7 @@
     <string name="email_action_favorite">Favorite</string>
     <string name="email_action_cancel_favorite">Unfavorite</string>
     <string name="email_action_delete">Delete</string>
-    <string name="email_delete_confirm_title">Delete emails?</string>
+    <string name="email_delete_confirm_title">Delete emails</string>
     <string name="email_delete_confirm_message">Selected emails: %1$d. Delete them?</string>
     <string name="email_action_cancel">Cancel</string>
     <string name="email_action_save">Save</string>
