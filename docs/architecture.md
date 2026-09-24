@@ -152,7 +152,7 @@ Repository 接口和对外模型不得出现 Room 类型。数据库模型与公
 
 Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
 
-首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
+首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。有多个分区时始终保留列表—详情场景和详情空态；只有一个分区时交给 Navigation 3 的页面场景。页面进入向左滑动、普通返回向右滑动，由根 `NavDisplay` 配置；预测返回使用 Navigation 3 默认动画。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
 
 ### 自适应布局
 
