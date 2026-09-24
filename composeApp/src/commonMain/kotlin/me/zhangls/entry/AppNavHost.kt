@@ -21,7 +21,6 @@ import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import me.zhangls.email.api.EmailDetailDestination
-import me.zhangls.email.api.EmailListScene
 import me.zhangls.email.emailNavEntry
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.Destination
@@ -128,47 +127,50 @@ fun AppNavHost(
     onSelectTab = { navHandler(Restart(it)) },
   ) {
     NavDisplay(
-        backStack = backStack,
-        // 每个 NavEntry 一个 ViewModelStore：ViewModel 随 entry 一起创建、随 entry 出栈一起清除。
-        // 少了这一项，NavDisplay 只挂 SaveableStateHolder，所有 ViewModel 都会落到宿主（Activity）
-        // 的 store 里，于是登录页的 ViewModel 永不 onCleared（明文密码残留），详情页与列表页也会
-        // 共用同一个实例。
-        // 顺序不能反：SaveableStateHolder 装饰器负责提供 SavedStateRegistryOwner，
-        // ViewModelStore 装饰器要读它才能给每个 entry 的 ViewModel 装配 SavedStateHandle。
-        entryDecorators = listOf(
-          rememberSaveableStateHolderNavEntryDecorator(),
-          rememberViewModelStoreNavEntryDecorator(),
-        ),
-        sceneStrategies = listOf(listDetailSceneStrategy, SinglePaneSceneStrategy()),
-        // 页面进入向左滑动、普通返回向右滑动；预测返回使用 NavDisplay 默认动画。
-        transitionSpec = {
-          slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-        },
-        popTransitionSpec = {
-          slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
-        entryProvider = entryProvider {
-          mainNavEntries(
-            // 详情是返回栈里的一个真实条目，"哪封邮件正被打开"因此可以从返回栈派生。
-            // 放在参数里而不是让列表自己去查：返回栈在宿主手里，列表不该知道导航结构。
-            openedDetail = backStack.lastOrNull() as? EmailDetailDestination,
-            navigateToEmailDetail = { scene, emailId ->
-              navHandler(NavEffect.Navigate(EmailDetailDestination(emailId, scene)))
-            },
-            onLogout = { navHandler(Restart(LoginDestination())) },
-          )
+      backStack = backStack,
+      // 每个 NavEntry 一个 ViewModelStore：ViewModel 随 entry 一起创建、随 entry 出栈一起清除。
+      // 少了这一项，NavDisplay 只挂 SaveableStateHolder，所有 ViewModel 都会落到宿主（Activity）
+      // 的 store 里，于是登录页的 ViewModel 永不 onCleared（明文密码残留），详情页与列表页也会
+      // 共用同一个实例。
+      // 顺序不能反：SaveableStateHolder 装饰器负责提供 SavedStateRegistryOwner，
+      // ViewModelStore 装饰器要读它才能给每个 entry 的 ViewModel 装配 SavedStateHandle。
+      entryDecorators = listOf(
+        rememberSaveableStateHolderNavEntryDecorator(),
+        rememberViewModelStoreNavEntryDecorator(),
+      ),
+      sceneStrategies = listOf(listDetailSceneStrategy, SinglePaneSceneStrategy()),
+      // 页面进入向左滑动；普通返回与预测返回都向右滑动，并使用相同的变换。
+      transitionSpec = {
+        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+      },
+      popTransitionSpec = {
+        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+      },
+      predictivePopTransitionSpec = {
+        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+      },
+      entryProvider = entryProvider {
+        mainNavEntries(
+          // 详情是返回栈里的一个真实条目，"哪封邮件正被打开"因此可以从返回栈派生。
+          // 放在参数里而不是让列表自己去查：返回栈在宿主手里，列表不该知道导航结构。
+          openedDetail = backStack.lastOrNull() as? EmailDetailDestination,
+          navigateToEmailDetail = { scene, emailId ->
+            navHandler(NavEffect.Navigate(EmailDetailDestination(emailId, scene)))
+          },
+          onLogout = { navHandler(Restart(LoginDestination())) },
+        )
 
-          emailNavEntry { effect -> navHandler(effect) }
+        emailNavEntry { effect -> navHandler(effect) }
 
-          loginNavEntry { result, destination ->
-            if (result == LoginResult.Success) {
-              // 去向取自登录页 key 自身携带的 redirectTo：它随返回栈一起被序列化恢复，
-              // 因此 Activity 重建后依然成立；为空则进主页。
-              // isLogin 显式传 true —— 此刻 AppViewModel 里的登录态可能还没回调到位。
-              navHandler(NavEffect.Replace(destination.redirectTo ?: HomeDestination), isLogin = true)
-            }
+        loginNavEntry { result, destination ->
+          if (result == LoginResult.Success) {
+            // 去向取自登录页 key 自身携带的 redirectTo：它随返回栈一起被序列化恢复，
+            // 因此 Activity 重建后依然成立；为空则进主页。
+            // isLogin 显式传 true —— 此刻 AppViewModel 里的登录态可能还没回调到位。
+            navHandler(NavEffect.Replace(destination.redirectTo ?: HomeDestination), isLogin = true)
           }
-        },
+        }
+      },
     )
   }
 }
