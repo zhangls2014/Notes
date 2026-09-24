@@ -7,11 +7,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import me.zhangls.email.search.EmailSearchBar
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailState
+import me.zhangls.theme.component.SimpleDialog
 import me.zhangls.theme.icon.Cancel
 import me.zhangls.theme.icon.Delete
 import me.zhangls.theme.icon.Icons
@@ -22,6 +28,9 @@ import notes.feature.email.generated.resources.email_action_cancel
 import notes.feature.email.generated.resources.email_action_cancel_favorite
 import notes.feature.email.generated.resources.email_action_delete
 import notes.feature.email.generated.resources.email_action_favorite
+import notes.feature.email.generated.resources.email_delete_confirm_message
+import notes.feature.email.generated.resources.email_delete_confirm_title
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * 首页顶栏：未选中邮件时展示搜索栏，多选时切换为多选操作栏。
@@ -44,6 +53,11 @@ internal fun EmailTopBar(
   onIntent: (EmailIntent) -> Unit,
   onResultClick: (Long) -> Unit,
 ) {
+  var showDeleteConfirmation by remember { mutableStateOf(false) }
+  LaunchedEffect(state.selectedItems.isEmpty()) {
+    if (state.selectedItems.isEmpty()) showDeleteConfirmation = false
+  }
+
   Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
     if (state.selectedItems.isEmpty()) {
       EmailSearchBar(
@@ -60,7 +74,7 @@ internal fun EmailTopBar(
           onIntent(EmailIntent.MultiCancelFavorite)
         },
         ActionItem(Icons.Rounded.Delete, Res.string.email_action_delete) {
-          onIntent(EmailIntent.MultiDelete)
+          showDeleteConfirmation = true
         },
         ActionItem(Icons.Rounded.Cancel, Res.string.email_action_cancel) {
           onIntent(EmailIntent.ClearSelectedEmail)
@@ -68,5 +82,19 @@ internal fun EmailTopBar(
       )
       EmailActionBar(modifier = Modifier.statusBarsPadding(), items = items, onClick = { it.onAction() })
     }
+  }
+
+  if (showDeleteConfirmation && state.selectedItems.isNotEmpty()) {
+    SimpleDialog(
+      title = stringResource(Res.string.email_delete_confirm_title),
+      content = stringResource(Res.string.email_delete_confirm_message, state.selectedItems.size),
+      confirmText = stringResource(Res.string.email_action_delete),
+      confirm = {
+        showDeleteConfirmation = false
+        onIntent(EmailIntent.MultiDelete)
+      },
+      dismissText = stringResource(Res.string.email_action_cancel),
+      dismiss = { showDeleteConfirmation = false },
+    )
   }
 }
