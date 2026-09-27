@@ -104,24 +104,17 @@ class NavigationSuitePolicyTest {
   }
 
   @Test
-  fun tabletopPostureAvoidsRail() {
-    // 折叠设备半开：竖向空间被铰链切断，最不该给 Rail。
-    // 手写分档链当初完全不看姿态，这条用例就是为它守门。
-    assertEquals(
-      NavigationSuiteType.ShortNavigationBarMedium,
-      window(
-        widthDp = 1000,
-        heightDp = 800,
-        posture = Posture(
-          isTabletop = true,
-          hingeList = listOf(
-            HingeInfo(Rect(0f, 390f, 1000f, 410f), false, false, true, false),
-          ),
-        ),
-      )
-        .navigationSuiteType(),
-    )
+  fun foldingStateDoesNotMoveNavigationOrContent() {
+    for ((width, height) in listOf(400 to 800, 1000 to 800, 1600 to 1000, 900 to 400)) {
+      val flat = window(width, height)
+      val half = window(width, height, Posture(
+        isTabletop = true,
+        hingeList = listOf(HingeInfo(Rect(0f, 390f, width.toFloat(), 410f), false, false, true, false)),
+      ))
+      assertEquals(flat.navigationSuiteType(), half.navigationSuiteType())
+    }
   }
+
 }
 
 /**

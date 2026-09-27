@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ShortNavigationBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.WideNavigationRailDefaults
+import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
@@ -107,26 +108,14 @@ fun AppShell(
 }
 
 /**
- * 导航套件该用哪种形态。
- *
- * 交给库的推荐策略 [NavigationSuiteScaffoldDefaults.navigationSuiteType]，本应用只对
- * **与库默认不同**的那一档做显式覆盖。原先这里是一条手写分档链，三个问题：
- *
- * 1. **口径错**：`WindowSizeClass.minWidthDp` / `minHeightDp` 是**分档下限**，不是窗口宽高 ——
- *    档位是按"不超过实际宽度的最大档位下限"量化出来的，于是拿这两个值互相比较来推断
- *    "是不是横屏"，比较的其实是 600 与 480/900 两组被量化过的数。库的策略用
- *    `minWidth` / `minHeight` 与 `windowPosture` 表达，语义是对的。
- * 2. **漏姿态**：手写链不看 `windowPosture.isTabletop`，折叠设备半开时会给出 Rail，
- *    而这是最不该给 Rail 的场景（竖向空间被铰链切断）。
- * 3. **有死分支**：原先第一档判断 `isWidthAtLeastBreakpoint(1200)`，而 V1 档位集下
- *    `minWidthDp` 最大只有 840，`840 >= 1200` 恒假 —— `WideNavigationRailExpanded` 写了却
- *    永远不可达。改用 V2 后该分支才第一次真正可命中，因此本函数把它显式表达出来。
- *
- * 对外可见是为了让 `NavigationSuitePolicyTest` 直接断言策略本身 —— 它是纯函数，
- * 不必启动组合就能把四档宽度与折叠姿态钉住。
+ * Navigation is a single-pane surface: only window size controls its placement.
+ * Passing the changing tabletop posture to the library would switch rail/bar at
+ * identical window geometry, moving every content pane when a fold opens.
+ * Physical hinge avoidance remains the responsibility of pane layouts.
  */
 fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
-  val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(this)
+  val sizeOnlyInfo = WindowAdaptiveInfo(windowSizeClass, Posture())
+  val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(sizeOnlyInfo)
   return if (
     recommended == NavigationSuiteType.WideNavigationRailCollapsed && isExtraLargeWidthOrWider
   ) {

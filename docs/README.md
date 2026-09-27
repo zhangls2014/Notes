@@ -12,6 +12,8 @@
 
 - [Android 模拟器测试](testing/android-emulator.md)：多尺寸、旋转、折叠姿态测试，以及显示设置的强制还原流程。
 
+- [自适应 UI 回归](testing/adaptive-ui.md)：宿主行为测试、候选截图与人工批准视觉基线流程。
+
 ## 历史审计
 
 以下文档记录特定日期的代码状态，正文中的“现状”和“待调整”可能已经过期。每份报告顶部列出了后续状态。
@@ -19,6 +21,8 @@
 - [2026-09-21 多形态屏幕适配审计](audits/2026-09-21-adaptive-layout.md)
 - [2026-09-22 Android 17 多形态适配审计](audits/2026-09-22-android-17-multiform-factor.md)
 - [2026-09-23 折叠屏铰链避让与姿态稳定性审计](audits/2026-09-23-foldable-hinge.md)
+
+- [2026-09-25 自适应 UI 与架构审计](audits/2026-09-25-adaptive-ui-review.md)
 
 ## 设计与实施记录
 

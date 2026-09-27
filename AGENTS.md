@@ -22,6 +22,9 @@ Notes 是 Kotlin Multiplatform 应用，使用 Compose Multiplatform、Navigatio
 ./gradlew :composeApp:iosSimulatorArm64Test
 ./gradlew :core:data:iosSimulatorArm64Test
 
+# 自适应 UI 宿主测试；截图候选与基线命令见 docs/testing/adaptive-ui.md
+./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*'
+
 # Android lint；根 detekt 无源集，不作为有效检查
 ./gradlew :androidApp:lintDevFullDebug
 
@@ -60,6 +63,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 窗口事实只在 `composeApp` 调用 `rememberWindowAdaptiveInfo()` 读取，通过 `LocalWindowAdaptiveInfo` 下发。
 - `PaneScaffoldDirective` 只在组合根从同一窗口事实计算，通过 `LocalPaneScaffoldDirective` 下发，并统一使用 `HingePolicy.AlwaysAvoid`。Feature 不直接调用 `currentWindowAdaptiveInfo*()`，不维护第二套断点。
 - 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 消费 `LocalPaneScaffoldDirective`。单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。同一铰链几何在半开和全开之间必须保持窗格稳定。
+- 登录页保留左右分栏，不在窗格内避让横向铰链，不因横向折痕缩减内容高度。
 - Feature 不用导航方位、设备名称等派生值反推窗口宽度或姿态。
 - 内容宽度统一使用 `core:theme` 的 `ContentWidth` 和 `Modifier.contentWidth()`，不要在 Feature 中复制裸 `widthIn` 常量。
 - 列表—详情由 Navigation 3 `SceneStrategy` 在根导航装配；邮件 Feature 不自建 pane scaffold。

@@ -8,6 +8,8 @@ android-buildTools = "37.0.0"
 jvm-target = "21"
 
 agp = "9.3.2"
+robolectric = "4.17"
+roborazzi = "1.75.0"
 androidx-activity = "1.13.0"
 androidx-lifecycle = "2.11.0"
 androidx-window = "1.5.0"
@@ -30,6 +32,7 @@ detekt = "2.0.0-alpha.6"
 
 
 [plugins]
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 android-lint = { id = "com.android.lint", version.ref = "agp" }
@@ -49,6 +52,9 @@ detekt = { id = "dev.detekt", version.ref = "detekt" }
 
 
 [libraries]
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
+jetbrains-compose-ui-test-junit4 = { group = "org.jetbrains.compose.ui", name = "ui-test-junit4", version.ref = "jetbrains-compose" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version = "2.4.0" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version = "1.4.1" }
