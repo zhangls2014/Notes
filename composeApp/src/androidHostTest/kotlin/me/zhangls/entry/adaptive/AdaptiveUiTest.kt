@@ -1,5 +1,7 @@
 package me.zhangls.entry.adaptive
 
+import androidx.activity.BackEventCompat
+import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
@@ -9,12 +11,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -106,6 +116,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   private var flat by mutableStateOf(scenario.fold?.endsWith("flat") == true)
   private var verticalHingeCenter: Float? = null
   private lateinit var focusManager: androidx.compose.ui.focus.FocusManager
+  private lateinit var inputModeManager: InputModeManager
   private lateinit var composeView: android.view.View
 
   @Before fun start() {
@@ -124,6 +135,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   private fun launch() {
     compose.setContent {
       composeView = androidx.compose.ui.platform.LocalView.current
+      inputModeManager = androidx.compose.ui.platform.LocalInputModeManager.current
       focusManager = androidx.compose.ui.platform.LocalFocusManager.current
       Box(Modifier.fillMaxSize()) {
         Box(Modifier.requiredSize(width.dp, scenario.height.dp).testTag("screen")) {
@@ -302,6 +314,109 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
     }
     settle()
+  }
+
+  @Test fun returningFromDetailKeepsSearchCollapsed() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x1000")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    compose.onNodeWithText("Adaptive review").performTouchInput { click() }
+    waitFor("Reply all")
+    settle()
+    compose.runOnIdle {
+      val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
+      dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 500f, 0f, BackEventCompat.EDGE_LEFT))
+      dispatcher.dispatchOnBackProgressed(BackEventCompat(180f, 500f, 0.6f, BackEventCompat.EDGE_LEFT))
+    }
+    settle()
+    compose.runOnIdle {
+      checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
+    }
+    waitFor("Adaptive review")
+    settle()
+    compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
+    compose.onAllNodes(hasSetTextAction()).onLast().assertIsFocused()
+  }
+
+  @Test fun landscapeSearchExpansionDoesNotJumpToFinalHeight() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x500")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    compose.mainClock.autoAdvance = false
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    repeat(4) {
+      compose.mainClock.advanceTimeByFrame()
+      compose.waitForIdle()
+    }
+    val popup = compose.onNode(androidx.compose.ui.test.isPopup())
+    val duringExpansion = popup.fetchSemanticsNode().boundsInWindow
+    compose.mainClock.autoAdvance = true
+    settle()
+    val expanded = popup.fetchSemanticsNode().boundsInWindow
+    org.junit.Assert.assertTrue(
+      "Search must keep animating instead of resetting to its final height: $duringExpansion -> $expanded",
+      duringExpansion.height < expanded.height,
+    )
+    org.junit.Assert.assertEquals(expanded.left, duringExpansion.left, 1f)
+    org.junit.Assert.assertEquals(expanded.top, duringExpansion.top, 1f)
+  }
+
+  @Test fun expandedSearchKeepsQueryWhenWindowWidthChanges() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x500")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    compose.onAllNodes(hasSetTextAction()).onLast().performTextInput("Adaptive")
+    for (newWidth in listOf(400, 900)) {
+      compose.runOnIdle { width = newWidth }
+      settle()
+      compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
+      org.junit.Assert.assertEquals(
+        "Adaptive",
+        compose.onAllNodes(hasSetTextAction()).onLast().fetchSemanticsNode()
+          .config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+      )
+    }
+  }
+
+  @Test fun searchCanReopenAfterCancellation() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    repeat(3) {
+      compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+      settle()
+      compose.onAllNodes(hasSetTextAction()).onLast().assertIsFocused()
+      compose.onAllNodes(hasSetTextAction()).onLast().performTextInput("Adaptive")
+      compose.onAllNodesWithContentDescription("Close search").onLast().performTouchInput { click() }
+      settle()
+      compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    }
+  }
+
+  @Test fun collapsedSearchRemainsKeyboardAccessible() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x1000")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.runOnIdle { inputModeManager.requestInputMode(InputMode.Keyboard) }
+    compose.onNodeWithContentDescription("Search").performSemanticsAction(SemanticsActions.RequestFocus)
+    compose.onNodeWithContentDescription("Search").assertIsFocused()
+    compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    compose.onNodeWithContentDescription("Search").performKeyInput { pressKey(Key.DirectionDown) }
+    settle()
+    compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
+    compose.onAllNodes(hasSetTextAction()).onLast().performTextInput("Adaptive")
   }
 
   @Test fun mainDestinationsAndOverlays() {
