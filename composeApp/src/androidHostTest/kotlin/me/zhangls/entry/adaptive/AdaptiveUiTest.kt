@@ -89,6 +89,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       }
       add(arrayOf(Scenario("desktop", 1600, 1000)))
       add(arrayOf(Scenario("large-font", 400, 500, fontScale = 1.5f)))
+      add(arrayOf(Scenario("landscape-large-font", 610, 320, fontScale = 2f)))
       add(arrayOf(Scenario("dark", 400, 500, dark = true)))
       add(arrayOf(Scenario("book-half", 900, 1000, fold = "book-half")))
       add(arrayOf(Scenario("book-flat", 900, 1000, fold = "book-flat")))
@@ -246,18 +247,21 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     fun paneBounds() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes()
       .filter { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange) }
       .map { it.boundsInRoot }.sortedBy { it.left }
+    val withoutCutout = paneBounds()
+    org.junit.Assert.assertEquals(2, withoutCutout.size)
+    org.junit.Assert.assertTrue("The rail reserves horizontal space", withoutCutout[0].left > 0f)
     displayCutout(right = 62)
     val rightCutout = paneBounds()
     org.junit.Assert.assertEquals(2, rightCutout.size)
     org.junit.Assert.assertEquals(360f, rightCutout[0].width, 1f)
-    org.junit.Assert.assertEquals(478f, rightCutout[1].width, 1f)
+    org.junit.Assert.assertEquals(withoutCutout[1].width - 62f, rightCutout[1].width, 1f)
     org.junit.Assert.assertEquals(rightCutout[0].right, rightCutout[1].left, 1f)
     org.junit.Assert.assertEquals(838f, rightCutout[1].right, 1f)
     displayCutout(left = 62)
     val leftCutout = paneBounds()
-    org.junit.Assert.assertEquals(62f, leftCutout[0].left, 1f)
+    org.junit.Assert.assertEquals(withoutCutout[0].left + 62f, leftCutout[0].left, 1f)
     org.junit.Assert.assertEquals(360f, leftCutout[0].width, 1f)
-    org.junit.Assert.assertEquals(478f, leftCutout[1].width, 1f)
+    org.junit.Assert.assertEquals(rightCutout[1].width, leftCutout[1].width, 1f)
     org.junit.Assert.assertEquals(leftCutout[0].right, leftCutout[1].left, 1f)
     org.junit.Assert.assertEquals(900f, leftCutout[1].right, 1f)
   }
@@ -417,6 +421,31 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
     compose.onAllNodes(hasSetTextAction()).onLast().performTextInput("Adaptive")
+  }
+
+  @Test fun compactHeightNavigationIsVerticalAndAllDestinationsRemainReachable() {
+    org.junit.Assume.assumeTrue(scenario.width >= 600 && scenario.height < 480)
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val tabs = listOf("Home", "Favorites", "Settings").map {
+      compose.onNodeWithText(it).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+    }
+    org.junit.Assert.assertTrue(tabs.zipWithNext().all { (a, b) -> a.bottom <= b.top })
+    val screen = compose.onNodeWithTag("screen").fetchSemanticsNode().boundsInRoot
+    org.junit.Assert.assertTrue("All labels fit fully inside the window", tabs.all {
+      it.left >= screen.left && it.right <= screen.right &&
+        it.top >= screen.top && it.bottom <= screen.bottom
+    })
+    org.junit.Assert.assertTrue(tabs.all { it.center.x < 150f })
+    capture("navigation-rail")
+    compose.onNodeWithText("Settings").performClick()
+    waitFor("Font size")
+    compose.onNodeWithText("Favorites").performClick()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Home").performClick()
+    waitFor("Adaptive review")
   }
 
   @Test fun mainDestinationsAndOverlays() {

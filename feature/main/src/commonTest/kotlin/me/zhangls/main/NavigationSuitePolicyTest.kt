@@ -42,13 +42,24 @@ class NavigationSuitePolicyTest {
   }
 
   @Test
-  fun mediumWidthWithCompactHeightUsesBottomBar() {
-    // 800×400：宽度已到 Medium，但高度不足 480dp —— 竖向空间本就不够，不该给 Rail。
-    // 这条正是原先"minWidthDp > minHeightDp 当横屏判断"会算错的那类窗口。
+  fun mediumWidthWithCompactHeightUsesCollapsedRail() {
+    // 宽度充足而高度紧凑时，侧栏为列表与正文释放纵向空间。
     assertEquals(
-      NavigationSuiteType.ShortNavigationBarMedium,
+      NavigationSuiteType.WideNavigationRailCollapsed,
       window(widthDp = 800, heightDp = 400).navigationSuiteType(),
     )
+  }
+
+  @Test
+  fun compactHeightRailRespectsWidthBoundary() {
+    assertEquals(NavigationSuiteType.ShortNavigationBarCompact, window(599, 400).navigationSuiteType())
+    assertEquals(NavigationSuiteType.WideNavigationRailCollapsed, window(600, 400).navigationSuiteType())
+  }
+
+  @Test
+  fun compactHeightTakesPriorityOverExtraLargeExpansion() {
+    assertEquals(NavigationSuiteType.WideNavigationRailCollapsed, window(1600, 479).navigationSuiteType())
+    assertEquals(NavigationSuiteType.WideNavigationRailExpanded, window(1600, 480).navigationSuiteType())
   }
 
   @Test

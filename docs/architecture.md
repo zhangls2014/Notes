@@ -171,7 +171,7 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 - Feature 不直接调用 `currentWindowAdaptiveInfo*()`，也不自己维护窗口断点。
 - Feature 不缓存铰链、不按 `isSeparating` 过滤铰链，也不另算安全区；非窗格 Feature 不读取铰链。
 - 搜索栏等局部形态读取窗口事实，不得从“导航在底部还是侧边”反推宽度。
-- `AppShell` 只把窗口尺寸交给库策略选择导航形态，为 ExtraLarge 展开 Rail 做显式覆盖；折叠状态变化不切换底栏/侧栏，避免相同几何下内容窗格移动。
+- `AppShell` 根据统一窗口尺寸选择导航形态：宽度 ≥600dp 且高度 <480dp 优先使用折叠 Rail，为内容保留纵向空间；其余沿用库策略，并在高度充足的 ExtraLarge（≥1600dp）窗口展开 Rail。窄窗口保留底栏，不比较尺寸档位下限来推断横竖屏；折叠状态变化不切换底栏/侧栏，避免相同几何下内容窗格移动。
 - `AppShell` 消费导航套件占用的系统内边距；Feature 不接收导航方位参数，外壳不另算铰链安全区域。
 - 列表—详情场景的安全区策略由 `AppNavHost` 按唯一窗口事实选择：没有平台报告的铰链时，`SafeAreaSceneStrategy` 先预留并消费整个场景剩余的 `WindowInsets.safeDrawing`，再采用库默认的列表首选宽度（通常 360dp，ExtraLarge 为 412dp），详情占剩余宽度。详情空态也采用相同分配策略。有铰链时不预扣全局安全区，仍按 directive 的物理排除区域分区；NavEntry 装饰器通过 `PaneWindowInsets` 消费窗格外的空间，各窗格的标准 `Scaffold` 仅避让实际相交的系统安全区。铰链几何优先于首选宽度，单页场景不增加包装。
 - 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
