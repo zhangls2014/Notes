@@ -19,8 +19,12 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.defaultPopTransitionSpec
+import androidx.navigation3.ui.defaultPredictivePopTransitionSpec
+import androidx.navigation3.ui.defaultTransitionSpec
 import androidx.savedstate.serialization.SavedStateConfiguration
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.emailNavEntry
@@ -33,7 +37,9 @@ import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.main.AppShell
+import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
+import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.api.TabDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
@@ -147,7 +153,7 @@ fun AppNavHost(
         rememberSaveableStateHolderNavEntryDecorator(),
         rememberViewModelStoreNavEntryDecorator(),
         remember(hasHinge) {
-          NavEntryDecorator<NavKey> { entry ->
+          NavEntryDecorator { entry ->
             if (!hasHinge || LocalListDetailSceneScope.current == null) {
               entry.Content()
             } else {
@@ -161,15 +167,27 @@ fun AppNavHost(
         },
       ),
       sceneStrategies = listOf(paneSceneStrategy, SinglePaneSceneStrategy()),
-      // 页面进入向左滑动；普通返回与预测返回都向右滑动，并使用相同的变换。
+      // Tab 页面之间使用平台默认转场；详情等页面保留横向滑动与一致的预测返回。
       transitionSpec = {
-        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+        if (initialState.isTabPage() && targetState.isTabPage()) {
+          defaultTransitionSpec<NavKey>().invoke(this)
+        } else {
+          slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+        }
       },
       popTransitionSpec = {
-        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        if (initialState.isTabPage() && targetState.isTabPage()) {
+          defaultPopTransitionSpec<NavKey>().invoke(this)
+        } else {
+          slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        }
       },
-      predictivePopTransitionSpec = {
-        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+      predictivePopTransitionSpec = { swipeEdge ->
+        if (initialState.isTabPage() && targetState.isTabPage()) {
+          defaultPredictivePopTransitionSpec<NavKey>().invoke(this, swipeEdge)
+        } else {
+          slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        }
       },
       entryProvider = entryProvider {
         mainNavEntries(
@@ -290,3 +308,14 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
 private fun Destination.guardedByLogin(isLogin: Boolean): Destination {
   return if (this is RequireLogin && !isLogin) LoginDestination(redirectTo = this) else this
 }
+
+// NavEntry 默认以 destination.toString() 作为 contentKey；检查顶层条目，避免将
+// 含邮件详情的列表—详情场景误判成 Tab 页面切换。
+private fun Scene<NavKey>.isTabPage(): Boolean =
+  entries.lastOrNull()?.contentKey in tabPageContentKeys
+
+private val tabPageContentKeys = setOf(
+  HomeDestination.toString(),
+  FavoritesDestination.toString(),
+  SettingsDestination.toString(),
+)
