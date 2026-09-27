@@ -27,10 +27,14 @@ import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -82,8 +86,10 @@ internal fun EmailSearchBar(
   val useFullScreenSearchBar = LocalWindowAdaptiveInfo.current.isCompactWidth
 
   val textFieldState = rememberTextFieldState(initialText = state.searchText)
-  val searchBarState = rememberSearchBarState(initialValue = state.searchBarValue)
+  val initialSearchBarValue = remember { state.searchBarValue }
+  val searchBarState = rememberSearchBarState(initialValue = initialSearchBarValue)
   val scope = rememberCoroutineScope()
+  val inputModeManager = LocalInputModeManager.current
 
   val closeSearchBar: () -> Unit = {
     textFieldState.clearText()
@@ -96,6 +102,12 @@ internal fun EmailSearchBar(
       searchBarState = searchBarState,
       textFieldState = textFieldState,
       readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
+      // 系统预测返回可能把焦点交给重新出现的输入框；触摸模式下这会自动展开搜索。
+      // 收起时由 InputField 的点击处理启动展开，键盘模式仍允许 Tab 聚焦。
+      modifier = Modifier.focusProperties {
+        canFocus = searchBarState.currentValue == SearchBarValue.Expanded ||
+          inputModeManager.inputMode != InputMode.Touch
+      },
       onSearch = { closeSearchBar() },
       placeholder = {
         Text(
@@ -149,22 +161,9 @@ internal fun EmailSearchBar(
     }
   }
 
-  /**
-   * 把搜索栏的展开 / 收起状态回写给 ViewModel。
-   *
-   * 这里**不再需要**"首帧手工对齐"那段补丁（原先用 `initial` 标志 + `snapTo`：
-   * 旋转时 [ExpandedFullScreenSearchBar] 与 [ExpandedDockedSearchBar] 换了一个渲染，
-   * 于是强行把值搬过去）。两处状态本来就是框架负责恢复的：
-   *
-   * - [rememberTextFieldState] 内部是 `rememberSaveable`（无 input），保存值优先；
-   * - [rememberSearchBarState] 内部是 `rememberSaveable(initialValue, ...)`，
-   *   以 `initialValue` 为 input —— 于是 ViewModel 的值变化时它会自动重置，
-   *   不需要手工 `snapTo`。
-   *
-   * 原先那段补丁还有一处反向伤害：它把输入框内容**覆盖成 ViewModel 里的旧值**
-   * （框内文本经 300ms 防抖才回写，旋转若落在防抖窗口内，VM 比用户输入旧）——
-   * 也就是说它会吃掉用户刚敲的字。
-   */
+  // 展开状态回写只用于 ViewModel 快照，不能再作为变化中的 rememberSaveable input。
+  // 否则动画途中会重建 SearchBarState，丢失布局坐标，并让点击回调和聚焦逻辑
+  // 持有不同的状态对象。初始值只读取一次；重建页面时由 rememberSearchBarState 恢复。
   LaunchedEffect(searchBarState.currentValue) {
     viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
