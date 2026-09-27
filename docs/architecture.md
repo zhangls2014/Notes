@@ -158,7 +158,7 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。directive 使用 `HingePolicy.AlwaysAvoid`，所以同一铰链几何在半开和全开之间不会从排除区消失。
 
-`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者。邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
+`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者。邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。Material directive 的排除区域仅包含竖向铰链；按用户审阅截图后的决定，登录页不在窗格内避让横向铰链，品牌与表单使用完整可用高度，保持原有居中与滚动行为。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
 
 登录页设置入口位于表单区域右上角。Logo、输入框与按钮组成的表单主体在高度足够时居中；高度不足时保持原有尺寸和间距，由纵向滚动与 IME 留白处理。
 
@@ -169,12 +169,12 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 - Feature 不直接调用 `currentWindowAdaptiveInfo*()`，也不自己维护窗口断点。
 - Feature 不缓存铰链、不按 `isSeparating` 过滤铰链，也不另算安全区；非窗格 Feature 不读取铰链。
 - 搜索栏等局部形态读取窗口事实，不得从“导航在底部还是侧边”反推宽度。
-- `AppShell` 用稳定姿态和库策略选择导航形态，只为 ExtraLarge 展开 Rail 做显式覆盖。
-- `AppShell` 消费导航套件占用的系统内边距，并将内容和导航限制在物理安全区域；Feature 不接收导航方位参数。
+- `AppShell` 只把窗口尺寸交给库策略选择导航形态，为 ExtraLarge 展开 Rail 做显式覆盖；折叠状态变化不切换底栏/侧栏，避免相同几何下内容窗格移动。
+- `AppShell` 消费导航套件占用的系统内边距；Feature 不接收导航方位参数，外壳不另算铰链安全区域。
 - 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
-- Nav3 继续负责竖向列表—详情分区；横向折叠由宿主先限定安全带。
+- Nav3 SceneStrategy 消费组合根提供的 directive，负责列表—详情分区；宿主不增加安全带包装。
 - 登录页只按 `maxHorizontalPartitions` 决定左侧品牌区与右侧表单区是否同时展开。横向铰链不触发上下重排：宽度足够时仍左右分栏，宽度不足时使用单列表单。
-- 搜索、写邮件、设置选择和确认对话框在折叠设备上使用共享安全弹层，并把查询、草稿、滚动和选择状态保留在形态分支之外。
+- 搜索、写邮件、设置选择和确认对话框使用标准组件，不增加铰链安全弹层；查询、草稿、滚动和选择状态独立于布局形态。
 
 ### 设置项
 

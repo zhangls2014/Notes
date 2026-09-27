@@ -5,10 +5,25 @@ plugins {
   id("me.zhangls.kmp-compose")
   id("me.zhangls.kmp-koin")
   alias(kmp.plugins.buildKonfig)
+  alias(kmp.plugins.roborazzi)
 }
 
 kotlin {
+  android {
+    compilations.withType<com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation>().configureEach {
+      isIncludeAndroidResources = true
+    }
+  }
   sourceSets {
+    androidHostTest.dependencies {
+      implementation(kmp.junit)
+      implementation(kmp.androidx.test.espresso)
+      implementation(kmp.androidx.test.ext.junit)
+      implementation(kmp.androidx.paging.common)
+      implementation(kmp.robolectric)
+      implementation(kmp.roborazzi)
+      implementation(kmp.jetbrains.compose.ui.test.junit4)
+    }
     commonMain {
       dependencies {
         // Module
@@ -66,4 +81,17 @@ buildkonfig {
   defaultConfigs {
     buildConfigField(STRING, "BASE_URL", "https://www.mxnzp.com/")
   }
+}
+
+// UI rendering is memory intensive; keep tests sequential and separate from device services.
+tasks.withType<Test>().configureEach {
+  maxHeapSize = "4g"
+  // Robolectric API 37 shared-memory support accesses the JDK file descriptor bridge.
+  jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+  maxParallelForks = 1
+  systemProperty("notes.screenshots.candidates", providers.gradleProperty("notes.screenshots.candidates").orElse("false").get())
+}
+
+roborazzi {
+  outputDir.set(layout.projectDirectory.dir("src/androidHostTest/screenshots"))
 }
