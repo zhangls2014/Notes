@@ -86,8 +86,8 @@ private fun EmailDetailDestination.emailIdIn(scene: EmailListScene): Long? =
 /**
  * 宽窗口下详情栏还没有内容时的空态。
  *
- * 宽窗口上列表栏与详情栏是同时存在的（列表栏按 directive 的 `defaultPanePreferredWidth`
- * 取固定宽度），所以"还没选邮件"需要一个交代；否则列表会先拉满整幅宽度，
+ * 宽窗口上列表栏与详情栏是同时存在的，无铰链时列表采用 directive 的默认首选宽度，
+ * 详情占安全内容区的剩余宽度；有铰链时物理分区优先。空态避免列表先拉满整幅宽度，
  * 选中第一封邮件时又突然缩窄。
  */
 @Composable

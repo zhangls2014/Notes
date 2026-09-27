@@ -7,6 +7,7 @@ import androidx.compose.material3.adaptive.layout.HingePolicy
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.dp
 
 /** Treat every physical horizontal hinge consistently, regardless of its reported folding state. */
 private fun WindowAdaptiveInfo.forPaneLayout(): WindowAdaptiveInfo = WindowAdaptiveInfo(
@@ -34,5 +35,9 @@ fun calculateAppPaneScaffoldDirective(info: WindowAdaptiveInfo): PaneScaffoldDir
       merged.add(next)
     }
   }
-  return directive.copy(excludedBounds = merged)
+  return directive.copy(
+    horizontalPartitionSpacerSize = 0.dp,
+    verticalPartitionSpacerSize = 0.dp,
+    excludedBounds = merged,
+  )
 }

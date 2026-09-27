@@ -4,6 +4,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +14,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -35,6 +37,7 @@ import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.TabDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 
 /**
  * @author zhangls
@@ -113,11 +116,17 @@ fun AppNavHost(
   // 单栏预测返回只把窗格推进约 10%，无法完整预览上一页。有多个分区时即使当前
   // 只有列表条目，也保留场景与详情空态，避免打开第一封邮件时列表突然缩窄。
   val paneDirective = LocalPaneScaffoldDirective.current
+  val hasHinge = LocalWindowAdaptiveInfo.current.windowPosture.hingeList.isNotEmpty()
   val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>(
     shouldHandleSinglePaneLayout =
       paneDirective.maxHorizontalPartitions > 1 || paneDirective.maxVerticalPartitions > 1,
     directive = paneDirective,
   )
+  val paneSceneStrategy = remember(listDetailSceneStrategy, hasHinge) {
+    // 无铰链：先预留整个场景的系统安全区，再按默认首选宽度分配列表与详情。
+    // 有铰链：保留物理分区的坐标，仅在各窗格内消费其实际遇到的系统安全区。
+    if (hasHinge) listDetailSceneStrategy else SafeAreaSceneStrategy(listDetailSceneStrategy)
+  }
 
   // 外壳（Rail / 底部导航栏）是 NavDisplay 的容器，不是返回栈里的一个条目：
   // 它读返回栈的**根**决定选中哪个 Tab，因此推入详情页时导航套件依然可见、可达，
@@ -137,8 +146,21 @@ fun AppNavHost(
       entryDecorators = listOf(
         rememberSaveableStateHolderNavEntryDecorator(),
         rememberViewModelStoreNavEntryDecorator(),
+        remember(hasHinge) {
+          NavEntryDecorator<NavKey> { entry ->
+            if (!hasHinge || LocalListDetailSceneScope.current == null) {
+              entry.Content()
+            } else {
+              // SceneStrategy 只分配窗格位置，不会消费窗格外的系统安全区。
+              // 按实际边界重算，让内侧边缘不再重复避让屏幕另一端的挖孔。
+              PaneWindowInsets {
+                entry.Content()
+              }
+            }
+          }
+        },
       ),
-      sceneStrategies = listOf(listDetailSceneStrategy, SinglePaneSceneStrategy()),
+      sceneStrategies = listOf(paneSceneStrategy, SinglePaneSceneStrategy()),
       // 页面进入向左滑动；普通返回与预测返回都向右滑动，并使用相同的变换。
       transitionSpec = {
         slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
