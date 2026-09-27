@@ -114,6 +114,13 @@ fun AppShell(
  * Physical hinge avoidance remains the responsibility of pane layouts.
  */
 fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
+  // 矮而宽的窗口优先保留内容高度；即使达到 ExtraLarge 也不展开侧栏。
+  if (
+    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
+    !windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+  ) {
+    return NavigationSuiteType.WideNavigationRailCollapsed
+  }
   val sizeOnlyInfo = WindowAdaptiveInfo(windowSizeClass, Posture())
   val recommended = NavigationSuiteScaffoldDefaults.navigationSuiteType(sizeOnlyInfo)
   return if (
@@ -169,6 +176,10 @@ private fun NavigationSuiteType.navigationSuiteInsets(): WindowInsets = when (th
 @Preview(name = "compact 360dp", widthDp = 400, heightDp = 800)
 @Composable
 private fun AppShellCompactPreview() = AppShellPreview(widthDp = 360, heightDp = 800)
+
+@Preview(name = "landscape 800x400dp", widthDp = 800, heightDp = 400)
+@Composable
+private fun AppShellLandscapePreview() = AppShellPreview(widthDp = 800, heightDp = 400)
 
 @Preview(name = "medium 700dp", widthDp = 700, heightDp = 900)
 @Composable
