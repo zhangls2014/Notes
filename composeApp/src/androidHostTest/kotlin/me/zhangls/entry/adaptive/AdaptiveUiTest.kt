@@ -14,6 +14,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasScrollAction
@@ -36,6 +40,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.printToString
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.adaptive.Posture
@@ -133,8 +138,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @After fun stop() { stopKoin() }
 
-  private fun launch() {
-    compose.setContent {
+  private fun launch(restoration: StateRestorationTester? = null) {
+    val content: @androidx.compose.runtime.Composable () -> Unit = {
       composeView = androidx.compose.ui.platform.LocalView.current
       inputModeManager = androidx.compose.ui.platform.LocalInputModeManager.current
       focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -151,6 +156,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
         }
       }
     }
+    if (restoration == null) compose.setContent(content) else restoration.setContent(content)
   }
 
   private fun posture(): Posture {
@@ -448,6 +454,149 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
   }
 
+  @Test fun tabStateRestoresInactiveStacksAndScrollAfterRecreation() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x1000")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    val restoration = StateRestorationTester(compose)
+    launch(restoration)
+    waitFor("Adaptive review")
+    compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(5)
+    settle()
+    val homeBounds = compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot
+    compose.onNodeWithText("Favorites").performClick()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    compose.onNodeWithText("Settings").performClick()
+    waitFor("Font size")
+    restoration.emulateSavedInstanceStateRestore()
+    settle()
+    compose.onNodeWithText("Font size").assertIsDisplayed()
+    compose.onNodeWithText("Favorites").performClick()
+    waitFor("Reply all")
+    compose.onNodeWithText("Home").performClick()
+    settle()
+    waitFor("Window layout 6")
+    org.junit.Assert.assertEquals(homeBounds, compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot)
+  }
+
+  @Test fun tabStateRestoresScrollAndSelectionIndependently() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(5)
+    compose.onNodeWithText("Window layout 6").performTouchInput { longClick() }
+    settle()
+    compose.onNodeWithText("Window layout 6").assertIsSelected()
+    val homeBounds = compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot
+
+    compose.onNodeWithText("Favorites").performClick()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").assertIsNotSelected()
+    compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(2)
+    settle()
+    val favoriteBounds = compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot
+    compose.onNodeWithText("Settings").performClick()
+    waitFor("Font size")
+    compose.onNodeWithText("Home").performClick()
+    settle()
+    compose.onNodeWithText("Window layout 6").assertIsSelected()
+    org.junit.Assert.assertEquals(homeBounds, compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot)
+    compose.onNodeWithText("Favorites").performClick()
+    settle()
+    compose.onNodeWithText("Window layout 5").assertIsNotSelected()
+    org.junit.Assert.assertEquals(favoriteBounds, compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot)
+  }
+
+  @Test fun tabStateRestoresEachOpenedDetail() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    compose.onNodeWithText("Favorites").performClick()
+    waitFor("Window layout 3")
+    compose.onNodeWithText("Window layout 3").performClick()
+    waitFor("Reply all")
+    compose.onNodeWithText("Settings").performClick()
+    waitFor("Font size")
+    compose.onNodeWithText("Home").performClick()
+    settle()
+    compose.onNodeWithText("Reply all").assertIsDisplayed()
+    compose.onAllNodesWithText("Adaptive review").onLast().assertIsDisplayed()
+    compose.onNodeWithText("Favorites").performClick()
+    settle()
+    compose.onNodeWithText("Reply all").assertIsDisplayed()
+    compose.onAllNodesWithText("Window layout 3").onLast().assertIsDisplayed()
+  }
+
+  @Test fun tabRootsReleaseBackAndDetailsReturnToFavorites() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    for (tab in listOf("Favorites", "Settings")) {
+      compose.onNodeWithText(tab).performClick()
+      settle()
+      compose.runOnIdle {
+        val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
+        org.junit.Assert.assertFalse("$tab root must release system Back", dispatcher.hasEnabledCallbacks())
+      }
+    }
+    compose.onNodeWithText("Favorites").performClick()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    compose.onNodeWithText("Favorites").performClick()
+    compose.onNodeWithText("Reply all").assertExists()
+    // 双栏已同时展示列表和详情；收窄后再验证页面级返回的归属。
+    compose.runOnIdle { width = 400 }
+    settle()
+    compose.runOnIdle {
+      checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
+    }
+    settle()
+    compose.onNodeWithText("Reply all").assertDoesNotExist()
+    compose.onNodeWithText("Adaptive review").assertIsDisplayed()
+    compose.onNodeWithText("Favorites").assertIsSelected()
+  }
+
+  @Test fun tabSwitchDisposesAnInFlightDetailTransition() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onNodeWithText("Adaptive review").performClick()
+      compose.mainClock.advanceTimeByFrame()
+      compose.onNodeWithText("Settings").performClick()
+      compose.mainClock.advanceTimeByFrame()
+      compose.waitForIdle()
+      compose.onNodeWithText("Font size").assertExists()
+      compose.onNodeWithText("Reply all").assertDoesNotExist()
+      compose.onNodeWithText("Adaptive review").assertDoesNotExist()
+      // 连续切换只展示目标 Tab；切回首页恢复详情，不恢复中途的动画。
+      compose.onNodeWithText("Favorites").performClick()
+      compose.mainClock.advanceTimeByFrame()
+      compose.onNodeWithText("Home").performClick()
+      compose.mainClock.advanceTimeBy(1000)
+      compose.onNodeWithText("Reply all").assertExists()
+      compose.onNodeWithText("Font size").assertDoesNotExist()
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+    waitFor("Reply all")
+  }
+
   @Test fun mainDestinationsAndOverlays() {
     users.userFlow.value = UserModel("test", "Reviewer", "test-only", emailSearchHistory = listOf("Adaptive", "Window"))
     launch()
@@ -473,6 +622,14 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Font size")
     capture("settings")
     compose.onNodeWithText("Home").performClick()
+    // 首页恢复刚才的详情；先在单栏返回列表，再继续验证列表浮层。
+    compose.runOnIdle { width = 400 }
+    settle()
+    compose.runOnIdle {
+      checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
+    }
+    settle()
+    compose.runOnIdle { width = scenario.width }
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("New email").performClick()
     waitFor("Recipients")

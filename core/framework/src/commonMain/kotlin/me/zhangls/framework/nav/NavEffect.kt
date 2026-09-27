@@ -17,9 +17,7 @@ sealed interface NavEffect : MviEffect {
   /**
    * 以该目的地重建返回堆栈：清空后压入。
    *
-   * 用于"切换到某个容器"这类动作 —— 登出回登录页、点击切换 Tab。被压入的目的地若不是栈底
-   * 容器（如非起始 Tab），宿主会先垫上起始 Tab，这样"按返回回起始 Tab"就是返回栈自身的语义，
-   * 不需要额外的返回键拦截。
+   * 用于退出登录等需要重置导航历史的流程。顶层 Tab 选择由组合根单独处理。
    */
   data class Restart(val dest: Destination) : NavEffect
 
