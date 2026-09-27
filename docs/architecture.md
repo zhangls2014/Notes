@@ -147,7 +147,7 @@ Repository 接口和对外模型不得出现 Room 类型。数据库模型与公
 
 `AppNavigationState` 使用 `rememberNavBackStack` 分别保存各 Tab 栈和当前根选择。各栈的 `rememberDecoratedNavEntries`、SaveableStateHolder 和 ViewModelStore 装饰器在内容切换区域外持续存在；非活动 Tab 不绘制，但保留 Entry 的可保存状态及 ViewModel。邮件首次加载指示在列表外绘制，避免单个占位条目把待恢复滚动索引重置为 0。滚动位置可随保存状态恢复；邮件多选等 ViewModel 状态仅在当前进程保留，不启用敏感/大型 MVI 状态的跨进程保存。退出登录清空全部栈并释放对应 Entry；登录成功释放登录 Entry。
 
-`AppShell` 始终包裹内容区；`NavDisplay` 仅接收当前 Tab 的装饰后 Entry，并以当前栈根作为组合 key。切换 Tab 释放旧显示及其在途转场，不播放跨 Tab 动画，也不清除外层保存的 Entry 状态。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
+`AppShell` 始终包裹内容区，并在内容容器使用 `clipToBounds()`，使页面转场的绘制不越过侧栏或底部导航边界；`NavDisplay` 仅接收当前 Tab 的装饰后 Entry，并以当前栈根作为组合 key。切换 Tab 释放旧显示及其在途转场，不播放跨 Tab 动画，也不清除外层保存的 Entry 状态。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
 
 `core:framework` 定义：
 

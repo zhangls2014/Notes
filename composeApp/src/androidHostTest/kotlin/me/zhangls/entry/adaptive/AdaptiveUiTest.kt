@@ -13,6 +13,8 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performScrollToIndex
@@ -452,6 +454,55 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
     compose.onNodeWithText("Home").performClick()
     waitFor("Adaptive review")
+  }
+
+  @Test fun landscapeDetailTransitionsStayOutsideNavigationRail() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("610x400", "610x500"))
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val baseline = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
+    // 取侧栏标签覆盖的横向范围，整段高度都不能被页面动画覆盖。
+    val railRight = compose.onNodeWithText("Favorites").fetchSemanticsNode().boundsInRoot.right.toInt()
+    fun assertRailUnchanged(phase: String) {
+      val frame = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
+      var changed = 0
+      for (y in 0 until baseline.height) for (x in 0 until railRight) {
+        if (baseline[x, y] != frame[x, y]) changed++
+      }
+      org.junit.Assert.assertEquals("$phase must not paint over the rail", 0, changed)
+    }
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onNodeWithText("Adaptive review").performClick()
+      compose.mainClock.advanceTimeBy(80)
+      assertRailUnchanged("enter")
+      compose.mainClock.advanceTimeBy(1000)
+      compose.runOnIdle {
+        val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
+        dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
+        dispatcher.dispatchOnBackProgressed(BackEventCompat(180f, 200f, 0.5f, BackEventCompat.EDGE_LEFT))
+      }
+      compose.mainClock.advanceTimeBy(80)
+      assertRailUnchanged("predictive back")
+      compose.runOnIdle {
+        checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.dispatchOnBackCancelled()
+      }
+      compose.mainClock.advanceTimeBy(1000)
+      compose.runOnIdle {
+        checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
+      }
+      compose.mainClock.advanceTimeBy(80)
+      assertRailUnchanged("pop")
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
   }
 
   @Test fun tabStateRestoresInactiveStacksAndScrollAfterRecreation() {
