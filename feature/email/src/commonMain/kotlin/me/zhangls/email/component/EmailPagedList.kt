@@ -35,48 +35,52 @@ internal fun EmailPagedList(
   navigateToDetail: (Long) -> Unit,
   onIntent: (EmailIntent) -> Unit,
 ) {
-  LazyColumn(
-    modifier = Modifier.fillMaxSize(),
-    contentPadding = contentPadding,
-    state = listState
-  ) {
-    if (emailItems.loadState.refresh == LoadState.Loading) {
-      item { Loading(modifier = Modifier.fillParentMaxSize()) }
-    }
-    if (emailItems.loadState.refresh is LoadState.NotLoading && emailItems.itemCount == 0) {
-      item {
-        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-          Text(text = stringResource(Res.string.email_msg_no_emails))
+  Box(Modifier.fillMaxSize()) {
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding = contentPadding,
+      state = listState
+    ) {
+      if (emailItems.loadState.refresh is LoadState.NotLoading && emailItems.itemCount == 0) {
+        item {
+          Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = stringResource(Res.string.email_msg_no_emails))
+          }
         }
       }
-    }
-    if (emailItems.loadState.prepend == LoadState.Loading) {
-      item { Loading(modifier = Modifier.fillParentMaxWidth()) }
-    }
+      if (emailItems.loadState.prepend == LoadState.Loading) {
+        item { Loading(modifier = Modifier.fillParentMaxWidth()) }
+      }
 
-    items(count = emailItems.itemCount, key = emailItems.itemKey { it.id }) { index ->
-      val item = emailItems[index] ?: return@items
-      EmailListItem(
-        model = item,
-        modifier = Modifier
-          .padding(horizontal = 16.dp, vertical = 8.dp)
-          .animateItem(),
-        isMultiSelect = if (isFavorite) false else selectedItems.isNotEmpty(),
-        isOpened = item.id == openedEmailId,
-        isSelected = if (isFavorite) false else selectedItems.contains(item.id),
-        navigateToDetail = navigateToDetail,
-        toggleSelection = {
-          if (isFavorite) return@EmailListItem
-          onIntent(EmailIntent.UpdateSelectedEmail(it))
-        },
-        onFavoriteClick = {
-          onIntent(EmailIntent.UpdateFavorite(it))
-        },
-      )
-    }
+      items(count = emailItems.itemCount, key = emailItems.itemKey { it.id }) { index ->
+        val item = emailItems[index] ?: return@items
+        EmailListItem(
+          model = item,
+          modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .animateItem(),
+          isMultiSelect = if (isFavorite) false else selectedItems.isNotEmpty(),
+          isOpened = item.id == openedEmailId,
+          isSelected = if (isFavorite) false else selectedItems.contains(item.id),
+          navigateToDetail = navigateToDetail,
+          toggleSelection = {
+            if (isFavorite) return@EmailListItem
+            onIntent(EmailIntent.UpdateSelectedEmail(it))
+          },
+          onFavoriteClick = {
+            onIntent(EmailIntent.UpdateFavorite(it))
+          },
+        )
+      }
 
-    if (emailItems.loadState.append == LoadState.Loading) {
-      item { Loading(modifier = Modifier.fillParentMaxWidth()) }
+      if (emailItems.loadState.append == LoadState.Loading) {
+        item { Loading(modifier = Modifier.fillParentMaxWidth()) }
+      }
+    }
+    // 首次加载不能作为唯一列表项，否则会把恢复中的滚动索引压回 0。
+    // 空列表会保留待恢复位置，等真实分页数据到达后再进行布局。
+    if (emailItems.loadState.refresh == LoadState.Loading && emailItems.itemCount == 0) {
+      Loading(modifier = Modifier.align(Alignment.Center))
     }
   }
 }
