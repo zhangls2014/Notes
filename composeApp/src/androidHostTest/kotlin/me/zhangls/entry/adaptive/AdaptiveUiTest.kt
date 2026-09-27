@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithText
@@ -103,7 +104,9 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   private val users = AdaptiveUsers()
   private var width by mutableStateOf(scenario.width)
   private var flat by mutableStateOf(scenario.fold?.endsWith("flat") == true)
+  private var verticalHingeCenter: Float? = null
   private lateinit var focusManager: androidx.compose.ui.focus.FocusManager
+  private lateinit var composeView: android.view.View
 
   @Before fun start() {
     initKoin {
@@ -120,6 +123,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   private fun launch() {
     compose.setContent {
+      composeView = androidx.compose.ui.platform.LocalView.current
       focusManager = androidx.compose.ui.platform.LocalFocusManager.current
       Box(Modifier.fillMaxSize()) {
         Box(Modifier.requiredSize(width.dp, scenario.height.dp).testTag("screen")) {
@@ -139,7 +143,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   private fun posture(): Posture {
     val fold = scenario.fold ?: return Posture()
     val vertical = fold.startsWith("book")
-    val bounds = if (vertical) Rect(width / 2f - 5, 0f, width / 2f + 5, scenario.height.toFloat())
+    val center = verticalHingeCenter ?: (width / 2f)
+    val bounds = if (vertical) Rect(center - 5, 0f, center + 5, scenario.height.toFloat())
       else Rect(0f, scenario.height / 2f - 5, width.toFloat(), scenario.height / 2f + 5)
     return Posture(!vertical && !flat, listOf(HingeInfo(bounds, flat, vertical, !flat, false)))
   }
@@ -203,6 +208,100 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.runOnIdle { width = if (width < 840) 900 else 400 }
     compose.onNodeWithText("reviewer").assertExists()
     compose.onNodeWithText("Log in").performScrollTo().assertIsDisplayed()
+  }
+
+  @Test fun noHingeKeepsThePreferredListWidthWithTheDetailPlaceholder() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x400")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val before = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
+    displayCutout(right = 62)
+    val after = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
+    org.junit.Assert.assertEquals(360f - 32f, before.width, 1f)
+    org.junit.Assert.assertEquals("The list keeps its preferred width inside the safe area", before, after)
+  }
+
+  @Test fun noHingeUsesPreferredWidthsInsideTheSafeAreaForEitherCutoutSide() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x400")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    settle()
+    fun paneBounds() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes()
+      .filter { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange) }
+      .map { it.boundsInRoot }.sortedBy { it.left }
+    displayCutout(right = 62)
+    val rightCutout = paneBounds()
+    org.junit.Assert.assertEquals(2, rightCutout.size)
+    org.junit.Assert.assertEquals(360f, rightCutout[0].width, 1f)
+    org.junit.Assert.assertEquals(478f, rightCutout[1].width, 1f)
+    org.junit.Assert.assertEquals(rightCutout[0].right, rightCutout[1].left, 1f)
+    org.junit.Assert.assertEquals(838f, rightCutout[1].right, 1f)
+    displayCutout(left = 62)
+    val leftCutout = paneBounds()
+    org.junit.Assert.assertEquals(62f, leftCutout[0].left, 1f)
+    org.junit.Assert.assertEquals(360f, leftCutout[0].width, 1f)
+    org.junit.Assert.assertEquals(478f, leftCutout[1].width, 1f)
+    org.junit.Assert.assertEquals(leftCutout[0].right, leftCutout[1].left, 1f)
+    org.junit.Assert.assertEquals(900f, leftCutout[1].right, 1f)
+  }
+
+  @Test fun singlePaneStillAvoidsDisplayCutout() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x400")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val before = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
+    displayCutout(right = 62)
+    val after = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
+    org.junit.Assert.assertEquals(before.left, after.left, 0.5f)
+    org.junit.Assert.assertEquals(before.right - 62, after.right, 0.5f)
+  }
+
+  @Test fun physicalHingeKeepsItsBoundaryWhenSystemInsetsChange() {
+    org.junit.Assume.assumeTrue(scenario.name == "book-half")
+    verticalHingeCenter = 320f
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    settle()
+    fun paneBounds() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes()
+      .filter { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange) }
+      .map { it.boundsInRoot }.sortedBy { it.left }
+    val before = paneBounds()
+    org.junit.Assert.assertEquals(2, before.size)
+    org.junit.Assert.assertEquals(315f, before[0].right, 1f)
+    org.junit.Assert.assertEquals(325f, before[1].left, 1f)
+    val replyBefore = compose.onNodeWithText("Reply all").fetchSemanticsNode().boundsInRoot
+    displayCutout(right = 62)
+    org.junit.Assert.assertEquals("A cutout must not move the physical pane split", before, paneBounds())
+    org.junit.Assert.assertTrue(
+      "The outside pane still avoids the cutout",
+      compose.onNodeWithText("Reply all").fetchSemanticsNode().boundsInRoot.right < replyBefore.right,
+    )
+    compose.runOnIdle { flat = true }
+    settle()
+    org.junit.Assert.assertEquals("The same physical hinge stays fixed when unfolded", before, paneBounds())
+  }
+
+  private fun displayCutout(left: Int = 0, right: Int = 0) {
+    compose.runOnIdle {
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(
+          androidx.core.view.WindowInsetsCompat.Type.displayCutout(),
+          androidx.core.graphics.Insets.of(left, 0, right, 0),
+        )
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
+    }
+    settle()
   }
 
   @Test fun mainDestinationsAndOverlays() {
