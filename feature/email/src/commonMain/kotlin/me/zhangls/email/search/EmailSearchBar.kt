@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AppBarWithSearch
@@ -97,26 +98,28 @@ internal fun EmailSearchBar(
     scope.launch { searchBarState.animateToCollapsed() }
   }
 
-  val inputField = @Composable {
+  val searchPlaceholder = stringResource(Res.string.email_hint_search)
+  val inputField = @Composable { modifier: Modifier, measuring: Boolean ->
     SearchBarDefaults.InputField(
-      searchBarState = searchBarState,
-      textFieldState = textFieldState,
-      readOnly = searchBarState.currentValue == SearchBarValue.Collapsed,
+      searchBarState = if (measuring) rememberSearchBarState() else searchBarState,
+      textFieldState = if (measuring) remember { TextFieldState() } else textFieldState,
+      enabled = !measuring,
+      readOnly = measuring || searchBarState.currentValue == SearchBarValue.Collapsed,
       // 系统预测返回可能把焦点交给重新出现的输入框；触摸模式下这会自动展开搜索。
       // 收起时由 InputField 的点击处理启动展开，键盘模式仍允许 Tab 聚焦。
-      modifier = Modifier.focusProperties {
-        canFocus = searchBarState.currentValue == SearchBarValue.Expanded ||
-          inputModeManager.inputMode != InputMode.Touch
+      modifier = modifier.focusProperties {
+        canFocus = !measuring && (searchBarState.currentValue == SearchBarValue.Expanded ||
+          inputModeManager.inputMode != InputMode.Touch)
       },
       onSearch = { closeSearchBar() },
       placeholder = {
         Text(
-          text = stringResource(Res.string.email_hint_search),
+          text = searchPlaceholder,
           modifier = Modifier.clearAndSetSemantics {}
         )
       },
       leadingIcon = {
-        if (searchBarState.currentValue == SearchBarValue.Expanded) {
+        if (!measuring && searchBarState.currentValue == SearchBarValue.Expanded) {
           // 返回键复用通用形态：图标 + 提示气泡，提示位置在 core:theme 里定
           TooltipIconButton(
             icon = Icons.Rounded.ArrowBackIosNew,
@@ -130,7 +133,7 @@ internal fun EmailSearchBar(
       trailingIcon = {
         state.user?.also {
           AvatarPicker(user = it) { kmpFile ->
-            viewModel.sendIntent(SearchIntent.UpdateSelectedAvatar(kmpFile))
+            if (!measuring) viewModel.sendIntent(SearchIntent.UpdateSelectedAvatar(kmpFile))
           }
         }
       },
@@ -183,7 +186,11 @@ internal fun EmailSearchBar(
   AppBarWithSearch(
     scrollBehavior = scrollBehavior,
     state = searchBarState,
-    inputField = inputField,
+    inputField = {
+      MeasuredSearchInput(measurementKey = searchPlaceholder) { measuring ->
+        inputField(Modifier, measuring)
+      }
+    },
     colors = SearchBarDefaults.appBarWithSearchColors(
       scrolledSearchBarContainerColor = Color.Unspecified,
       appBarContainerColor = Color.Unspecified,
@@ -194,13 +201,15 @@ internal fun EmailSearchBar(
   if (useFullScreenSearchBar) {
     ExpandedFullScreenSearchBar(
       state = searchBarState,
-      inputField = inputField,
+      // 全屏输入跟随 Material 的展开动画宽度。
+      inputField = { inputField(Modifier.fillMaxWidth(), false) },
       content = outputField
     )
   } else {
     ExpandedDockedSearchBar(
       state = searchBarState,
-      inputField = inputField,
+      // 只填满 Material 从收起态锚点读取的宽度。
+      inputField = { inputField(Modifier.fillMaxWidth(), false) },
       content = outputField
     )
   }
