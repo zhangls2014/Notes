@@ -28,9 +28,13 @@ import platform.UIKit.UIScreen
 import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowLevelAlert
+import org.koin.core.annotation.Singleton
 
-actual fun showSystemToast(message: String, longDuration: Boolean) {
-  NativeToast.show(message, if (longDuration) 3500L else 2000L)
+@Singleton(binds = [SystemToast::class])
+class IosSystemToast : SystemToast {
+  override fun show(message: String, longDuration: Boolean) {
+    NativeToast.show(message, if (longDuration) 3500L else 2000L)
+  }
 }
 
 /**

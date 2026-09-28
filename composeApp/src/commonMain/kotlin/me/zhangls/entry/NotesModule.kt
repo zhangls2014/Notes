@@ -1,5 +1,10 @@
 package me.zhangls.entry
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import me.zhangls.data.DataModule
 import me.zhangls.entry.data.InitData
 import me.zhangls.email.EmailModule
@@ -11,6 +16,7 @@ import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
 import org.koin.dsl.KoinAppDeclaration
+import org.koin.mp.KoinPlatform
 import org.koin.plugin.module.dsl.startKoin
 
 /**
@@ -39,6 +45,9 @@ fun initKoin(config: KoinAppDeclaration?) {
   startKoin<NotesApp>(config)
 }
 
+private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 fun initData() {
-  InitData.launch()
+  val task = KoinPlatform.getKoin().get<InitData>()
+  startupScope.launch { task.run() }
 }

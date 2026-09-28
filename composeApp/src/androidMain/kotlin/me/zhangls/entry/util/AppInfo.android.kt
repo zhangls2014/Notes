@@ -2,19 +2,19 @@ package me.zhangls.entry.util
 
 import android.content.Context
 import android.content.pm.PackageInfo
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.annotation.Singleton
 
-actual object AppInfo : KoinComponent {
-  private val context: Context by inject()
+@Singleton(binds = [AppInfo::class])
+class AndroidAppInfo(context: Context) : AppInfo {
+  private val applicationContext = context.applicationContext
 
   private fun packageInfo(): PackageInfo {
-    return with(context) {
+    return with(applicationContext) {
       packageManager.getPackageInfo(packageName, 0)
     }
   }
 
-  actual fun getVersionCode() = packageInfo().longVersionCode
+  override fun getVersionCode() = packageInfo().longVersionCode
 
-  actual fun getVersionName() = packageInfo().versionName ?: ""
+  override fun getVersionName() = packageInfo().versionName ?: ""
 }
