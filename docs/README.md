@@ -21,6 +21,7 @@
 - [2026-09-21 多形态屏幕适配审计](audits/2026-09-21-adaptive-layout.md)
 - [2026-09-22 Android 17 多形态适配审计](audits/2026-09-22-android-17-multiform-factor.md)
 - [2026-09-23 折叠屏铰链避让与姿态稳定性审计](audits/2026-09-23-foldable-hinge.md)
+- [2026-09-25 Koin 依赖注入边界审查与优化建议](audits/2026-09-25-koin-dependency-injection.md)
 
 - [2026-09-25 自适应 UI 与架构审计](audits/2026-09-25-adaptive-ui-review.md)
 

@@ -6,4 +6,6 @@ package me.zhangls.framework.toast
  * @param message 已解析的提示文本
  * @param longDuration 长时长（约 3.5s），否则短时长（约 2s）
  */
-expect fun showSystemToast(message: String, longDuration: Boolean)
+interface SystemToast {
+  fun show(message: String, longDuration: Boolean)
+}

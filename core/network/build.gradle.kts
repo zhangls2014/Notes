@@ -31,6 +31,5 @@ kotlin {
 }
 
 koinCompiler {
-  // TODO 0.4.1 版本，@Provided 注解无效，导致编译失败。所以暂时先禁用
-  compileSafety = false
+  compileSafety = true
 }
