@@ -39,6 +39,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.printToString
@@ -378,6 +379,93 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     )
     org.junit.Assert.assertEquals(expanded.left, duringExpansion.left, 1f)
     org.junit.Assert.assertEquals(expanded.top, duringExpansion.top, 1f)
+  }
+
+  @Test fun longSearchQueryKeepsMeasuredWidth() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "610x1000", "900x1000", "desktop"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val anchorBefore = compose.onNodeWithContentDescription("Search").fetchSemanticsNode().boundsInWindow
+    if (java.lang.Boolean.getBoolean("notes.screenshots.candidates")) capture("measured-search-collapsed")
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    val input = compose.onAllNodes(hasSetTextAction()).onLast()
+    val expandedBefore = input.fetchSemanticsNode().boundsInWindow
+    for (query in listOf("Long search query 搜索内容 ".repeat(20), "short", "")) {
+      input.performTextReplacement(query)
+      settle()
+      org.junit.Assert.assertEquals(expandedBefore, input.fetchSemanticsNode().boundsInWindow)
+      if (query.length > 100 && java.lang.Boolean.getBoolean("notes.screenshots.candidates")) {
+        captureRoots("measured-search-long-query")
+      }
+      input.assertIsFocused()
+      org.junit.Assert.assertEquals(
+        query, input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+      )
+      if (scenario.width >= 600) {
+        val anchor = compose.onAllNodes(hasSetTextAction()).onFirst().fetchSemanticsNode().boundsInWindow
+        org.junit.Assert.assertEquals(anchorBefore, anchor)
+        org.junit.Assert.assertEquals(anchor.width, input.fetchSemanticsNode().boundsInWindow.width, 1f)
+      }
+    }
+  }
+
+  @Test fun restoredSearchUsesEmptyQueryMeasuredWidth() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("610x1000", "desktop"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    val restoration = StateRestorationTester(compose)
+    launch(restoration)
+    waitFor("Adaptive review")
+    settle()
+    val initialWidth = compose.onNodeWithContentDescription("Search").fetchSemanticsNode().boundsInWindow.width
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    val query = "Restored long query 搜索 ".repeat(20)
+    compose.onAllNodes(hasSetTextAction()).onLast().performTextInput(query)
+    settle()
+    restoration.emulateSavedInstanceStateRestore()
+    settle()
+    val input = compose.onAllNodes(hasSetTextAction()).onLast()
+    org.junit.Assert.assertEquals(initialWidth, input.fetchSemanticsNode().boundsInWindow.width, 1f)
+    org.junit.Assert.assertEquals(
+      query, input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+    )
+    input.assertIsFocused()
+  }
+
+  @Test fun measuredSearchWidthShrinksAndRecoversWithWindow() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x500")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val initialWidth = compose.onNodeWithContentDescription("Search").fetchSemanticsNode().boundsInWindow.width
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    val query = "Long resizing query ".repeat(20)
+    compose.onAllNodes(hasSetTextAction()).onLast().performTextInput(query)
+    for (newWidth in listOf(320, 900)) {
+      compose.runOnIdle { width = newWidth }
+      settle()
+      val input = compose.onAllNodes(hasSetTextAction()).onLast()
+      org.junit.Assert.assertEquals(
+        query, input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+      )
+      input.assertIsFocused()
+      if (newWidth == 900) {
+        org.junit.Assert.assertEquals(initialWidth, input.fetchSemanticsNode().boundsInWindow.width, 1f)
+      } else {
+        // 测试只缩小页面约束，Dialog 仍使用 Robolectric 的实际宿主窗口尺寸。
+        val anchorWidth = compose.onAllNodes(hasSetTextAction()).onFirst().fetchSemanticsNode().boundsInWindow.width
+        org.junit.Assert.assertTrue("The anchor must obey the narrower page constraints", anchorWidth <= newWidth)
+        org.junit.Assert.assertTrue(
+          "Full-screen input must not be capped at the measured anchor width",
+          input.fetchSemanticsNode().boundsInWindow.width > anchorWidth,
+        )
+      }
+    }
   }
 
   @Test fun expandedSearchKeepsQueryWhenWindowWidthChanges() {
