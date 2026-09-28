@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -147,7 +148,7 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
     SupportingPaneScaffold(
       directive = plan.directive,
       value = plan.value,
-      modifier = Modifier.padding(padding),
+      modifier = Modifier.padding(padding).consumeWindowInsets(padding),
       mainPane = {
         AnimatedPane { BrandPane() }
       },
@@ -187,15 +188,13 @@ private fun FormPane(
   onIntent: (LoginIntent) -> Unit,
   onLoginClick: () -> Unit,
 ) {
-  BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+  BoxWithConstraints(modifier = Modifier.fillMaxSize().imePadding()) {
     val viewportHeight = constraints.maxHeight
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier
         .fillMaxSize()
-        .verticalScroll(state = rememberScrollState())
-        // 保留原有 IME 留白，键盘出现时输入框与按钮仍能滚动到可见区域。
-        .imePadding(),
+        .verticalScroll(state = rememberScrollState()),
     ) {
       Layout(
         modifier = Modifier.contentWidth(ContentWidth.Form),
