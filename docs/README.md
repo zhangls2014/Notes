@@ -24,6 +24,7 @@
 - [2026-09-25 Koin 依赖注入边界审查与优化建议](audits/2026-09-25-koin-dependency-injection.md)
 
 - [2026-09-25 自适应 UI 与架构审计](audits/2026-09-25-adaptive-ui-review.md)
+- [2026-09-28 输入页面 IME 遮挡排查与修复](audits/2026-09-28-ime-input-visibility.md)
 
 ## 设计与实施记录
 

@@ -232,6 +232,51 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Log in").performScrollTo().assertIsDisplayed()
   }
 
+  @Test fun loginScrollViewportShrinksAboveIme() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    launch()
+    compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
+    val scroll = compose.onNode(hasScrollAction())
+    val before = scroll.fetchSemanticsNode().boundsInWindow
+    compose.runOnIdle {
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, 220))
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), true)
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
+    }
+    settle()
+    val after = scroll.fetchSemanticsNode().boundsInWindow
+    org.junit.Assert.assertTrue("IME must reduce the form's scroll viewport: $before -> $after", after.height < before.height)
+    compose.onAllNodes(hasSetTextAction())[1].performClick()
+    compose.onAllNodes(hasSetTextAction())[1].performScrollTo()
+    compose.onAllNodes(hasSetTextAction())[1].assertIsDisplayed()
+  }
+
+  @Test fun draftActionsRemainReachableAboveIme() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithContentDescription("New email").performClick()
+    waitFor("Recipients")
+    settle()
+    val sheetScroll = compose.onAllNodes(hasScrollAction()).onLast()
+    val before = sheetScroll.fetchSemanticsNode().boundsInWindow
+    compose.runOnIdle {
+      val dialog = checkNotNull(org.robolectric.shadows.ShadowDialog.getLatestDialog())
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, 220))
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), true)
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(dialog.window!!.decorView, insets)
+    }
+    settle()
+    val after = sheetScroll.fetchSemanticsNode().boundsInWindow
+    org.junit.Assert.assertTrue("IME must reduce the draft viewport: $before -> $after", after.height < before.height)
+    compose.onNodeWithText("Save").performScrollTo().assertIsDisplayed()
+  }
+
   @Test fun noHingeKeepsThePreferredListWidthWithTheDetailPlaceholder() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
     users.userFlow.value = UserModel("test", "Reviewer", "test-only")
