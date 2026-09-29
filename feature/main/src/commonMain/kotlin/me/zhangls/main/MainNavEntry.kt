@@ -24,6 +24,20 @@ import notes.feature.main.generated.resources.main_msg_select_email
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
+// listPane 内部的 metadata 按实例比较。复用静态元数据，让弹栈后的列表 Scene
+// 与预测返回的目标保持相等，避免松手时动画目标变化并重新播放进入动画。
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+private val homePaneMetadata = ListDetailSceneStrategy.listPane(
+  sceneKey = EmailListScene.Home,
+  detailPlaceholder = { DetailPlaceholder() },
+)
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+private val favoritesPaneMetadata = ListDetailSceneStrategy.listPane(
+  sceneKey = EmailListScene.Favorites,
+  detailPlaceholder = { DetailPlaceholder() },
+)
+
 /**
  * 主界面三个 Tab 的导航条目。
  *
@@ -40,17 +54,13 @@ import org.koin.compose.koinInject
  * @param navigateToEmailDetail 打开一封邮件：入参是"从哪个列表打开"与邮件 id
  * @param onLogout 设置页登出
  */
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.mainNavEntries(
   openedDetail: EmailDetailDestination?,
   navigateToEmailDetail: (EmailListScene, Long) -> Unit,
   onLogout: () -> Unit,
 ) {
   entry<HomeDestination>(
-    metadata = ListDetailSceneStrategy.listPane(
-      sceneKey = EmailListScene.Home,
-      detailPlaceholder = { DetailPlaceholder() },
-    ),
+    metadata = homePaneMetadata,
   ) {
     koinInject<EmailEntry>().HomeScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Home),
@@ -59,11 +69,8 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   }
 
   entry<FavoritesDestination>(
-    // 与首页分属两个场景：分栏状态互不影响，切 Tab 时也才会被当成"换了个场景"而播放转场
-    metadata = ListDetailSceneStrategy.listPane(
-      sceneKey = EmailListScene.Favorites,
-      detailPlaceholder = { DetailPlaceholder() },
-    ),
+    // 与首页使用独立的 sceneKey，保持各自的列表—详情场景。
+    metadata = favoritesPaneMetadata,
   ) {
     koinInject<EmailEntry>().FavoritesScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Favorites),
