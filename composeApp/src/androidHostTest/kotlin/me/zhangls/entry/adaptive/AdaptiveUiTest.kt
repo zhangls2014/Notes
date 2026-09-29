@@ -589,6 +589,60 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
   }
 
+  @Test fun homePredictiveBackCommitKeepsFullyRevealedListInPlace() {
+    assertPredictiveBackCommitKeepsListInPlace("Home")
+  }
+
+  @Test fun favoritesPredictiveBackCommitKeepsFullyRevealedListInPlace() {
+    assertPredictiveBackCommitKeepsListInPlace("Favorites")
+  }
+
+  private fun assertPredictiveBackCommitKeepsListInPlace(tab: String) {
+    // 单栏由 SinglePaneScene 接管预测返回；使用真实的 Entry、装饰器和弹栈流程。
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithText(tab).performClick()
+    settle()
+    val baseline = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
+    compose.onNodeWithText("Adaptive review").performClick()
+    settle()
+    val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
+    fun assertListInPlace(phase: String) {
+      // 动画期间详情也可能保留同名节点；列表卡片必须始终位于完整显示时的位置。
+      val bounds = compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().map { it.boundsInRoot }
+      org.junit.Assert.assertTrue("$tab $phase: expected $baseline in $bounds", baseline in bounds)
+    }
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.runOnIdle {
+        dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
+      }
+      compose.mainClock.advanceTimeBy(100)
+      compose.runOnIdle {
+        dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 200f, 1f, BackEventCompat.EDGE_LEFT))
+      }
+      compose.mainClock.advanceTimeBy(300)
+      assertListInPlace("before release")
+      compose.runOnIdle { dispatcher.onBackPressed() }
+      // 只检查最终状态会漏掉松手后重新滑入的动画，因此覆盖提交后的连续帧。
+      repeat(30) { frame ->
+        compose.mainClock.advanceTimeByFrame()
+        assertListInPlace("after release, frame ${frame + 1}")
+      }
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+    settle()
+    compose.onNodeWithText("Adaptive review").assertIsDisplayed()
+  }
+
   @Test fun landscapeDetailTransitionsStayOutsideNavigationRail() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("610x400", "610x500"))
     android.provider.Settings.Global.putFloat(
