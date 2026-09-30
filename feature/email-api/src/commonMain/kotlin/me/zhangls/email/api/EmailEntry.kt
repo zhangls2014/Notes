@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
  * @author zhangls
  */
 interface EmailEntry {
+  // 跨模块 @Composable 抽象方法不声明默认参数：当前 Native 编译链会为实现生成
+  // IrLinkageError 占位方法。默认值仅留在模块内部的顶层 Screen 函数中。
   /**
    * 以内联方式渲染首页邮件列表（作为主界面的一个 Tab，而非独立导航目的地）。
    *
@@ -28,8 +30,8 @@ interface EmailEntry {
    */
   @Composable
   fun HomeScreen(
-    openedEmailId: Long? = null,
-    navigateToDetail: (Long) -> Unit = {},
+    openedEmailId: Long?,
+    navigateToDetail: (Long) -> Unit,
   )
 
   /**
@@ -40,8 +42,8 @@ interface EmailEntry {
    */
   @Composable
   fun FavoritesScreen(
-    openedEmailId: Long? = null,
-    navigateToDetail: (Long) -> Unit = {},
+    openedEmailId: Long?,
+    navigateToDetail: (Long) -> Unit,
   )
 
   /**
@@ -54,6 +56,6 @@ interface EmailEntry {
   @Composable
   fun DetailScreen(
     emailId: Long,
-    onBackPressed: () -> Unit = {},
+    onBackPressed: () -> Unit,
   )
 }
