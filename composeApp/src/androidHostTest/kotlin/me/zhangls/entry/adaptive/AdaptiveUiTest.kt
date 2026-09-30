@@ -253,6 +253,124 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onAllNodes(hasSetTextAction())[1].assertIsDisplayed()
   }
 
+  @Test fun loginImeSwitchKeepsViewportThroughKeyboardGap() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    launch()
+    compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
+    val scroll = compose.onNode(hasScrollAction())
+    val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
+    fun ime(height: Int) = dispatchLoginIme(height)
+    compose.onAllNodes(hasSetTextAction())[0].performClick()
+    ime(220)
+    settle()
+    val withIme = scroll.fetchSemanticsNode().boundsInWindow.height
+    org.junit.Assert.assertTrue(withIme < withoutIme)
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onAllNodes(hasSetTextAction())[1].performSemanticsAction(SemanticsActions.RequestFocus)
+      ime(0)
+      repeat(6) { frame ->
+        compose.mainClock.advanceTimeByFrame()
+        org.junit.Assert.assertEquals("Keyboard handoff must not expand the viewport at frame $frame", withIme,
+          scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      }
+      ime(260)
+      org.junit.Assert.assertTrue("Taller replacement keyboard must be avoided immediately",
+        scroll.fetchSemanticsNode().boundsInWindow.height < withIme)
+      ime(0)
+      compose.mainClock.advanceTimeBy(300)
+      org.junit.Assert.assertEquals("Real dismissal must release the inset even with input focus", withoutIme,
+        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
+  @Test fun loginImeSwitchReleasesSmallerKeyboardAndCancelsStaleRelease() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    launch()
+    compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
+    fun ime(height: Int) = dispatchLoginIme(height, navigationBarHeight = 24)
+    val scroll = compose.onNode(hasScrollAction())
+    ime(0)
+    val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
+    compose.onAllNodes(hasSetTextAction())[1].performSemanticsAction(SemanticsActions.RequestFocus)
+    ime(260)
+    settle()
+    val withIme = scroll.fetchSemanticsNode().boundsInWindow.height
+    org.junit.Assert.assertEquals("System bar space must not be counted twice", 236f,
+      withoutIme - withIme, 0.5f)
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onAllNodes(hasSetTextAction())[0].performSemanticsAction(SemanticsActions.RequestFocus)
+      ime(0)
+      compose.mainClock.advanceTimeBy(100)
+      ime(180)
+      compose.mainClock.advanceTimeBy(120)
+      org.junit.Assert.assertEquals("New smaller keyboard cancels the earlier zero-height release", withIme,
+        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      compose.mainClock.advanceTimeBy(150)
+      org.junit.Assert.assertEquals("Stable smaller keyboard releases excess space", withoutIme - 156f,
+        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      ime(0)
+      compose.mainClock.advanceTimeBy(80)
+      compose.onAllNodes(hasSetTextAction())[1].performSemanticsAction(SemanticsActions.RequestFocus)
+      ime(280)
+      compose.mainClock.advanceTimeBy(250)
+      org.junit.Assert.assertEquals("Old release must not overwrite a taller replacement", withoutIme - 256f,
+        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      ime(0)
+      compose.runOnIdle { focusManager.clearFocus() }
+      compose.mainClock.advanceTimeByFrame()
+      org.junit.Assert.assertEquals("Leaving the inputs releases protection immediately", withoutIme,
+        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
+  @Test fun loginImeDismissalTracksInsetsWithoutDelay() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    launch()
+    compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
+    val scroll = compose.onNode(hasScrollAction())
+    val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
+    compose.onAllNodes(hasSetTextAction())[0].performSemanticsAction(SemanticsActions.RequestFocus)
+    compose.mainClock.autoAdvance = false
+    try {
+      repeat(2) { round ->
+        dispatchLoginIme(220)
+        if (round == 1) {
+          compose.onAllNodes(hasSetTextAction())[1].performSemanticsAction(SemanticsActions.RequestFocus)
+          // A handoff with identical heights must also expire without another inset event.
+          compose.mainClock.advanceTimeBy(500)
+        }
+        for (height in listOf(160, 80, 0)) {
+          dispatchLoginIme(height)
+          org.junit.Assert.assertEquals("Dismissal must follow each inset frame, round=$round height=$height",
+            withoutIme - height, scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+        }
+      }
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
+  private fun dispatchLoginIme(height: Int, navigationBarHeight: Int = 0) {
+    compose.runOnIdle {
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, height))
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), height > 0)
+        .setInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars(),
+          androidx.core.graphics.Insets.of(0, 0, 0, navigationBarHeight))
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), navigationBarHeight > 0)
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
+    }
+    compose.mainClock.advanceTimeByFrame()
+    compose.waitForIdle()
+  }
+
   @Test fun draftActionsRemainReachableAboveIme() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
     users.userFlow.value = UserModel("test", "Reviewer", "test-only")

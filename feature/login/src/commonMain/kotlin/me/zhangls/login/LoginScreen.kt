@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -188,7 +188,10 @@ private fun FormPane(
   onIntent: (LoginIntent) -> Unit,
   onLoginClick: () -> Unit,
 ) {
-  BoxWithConstraints(modifier = Modifier.fillMaxSize().imePadding()) {
+  val inputFocus = remember { LoginInputFocusState() }
+  BoxWithConstraints(
+    modifier = Modifier.fillMaxSize().loginImePadding(inputFocus),
+  ) {
     val viewportHeight = constraints.maxHeight
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
@@ -227,7 +230,8 @@ private fun FormPane(
             }
 
             AccountInput(
-              modifier = Modifier.padding(top = 40.dp),
+              modifier = Modifier.padding(top = 40.dp)
+                .onFocusChanged { inputFocus.onFocusChanged(LoginInput.Account, it.isFocused) },
               account = state.account,
               accountError = state.accountError,
               onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
@@ -235,7 +239,8 @@ private fun FormPane(
             )
 
             PasswordInput(
-              modifier = Modifier.padding(top = 16.dp),
+              modifier = Modifier.padding(top = 16.dp)
+                .onFocusChanged { inputFocus.onFocusChanged(LoginInput.Password, it.isFocused) },
               password = state.password,
               passwordError = state.passwordError,
               passwordVisible = state.passwordVisible,
