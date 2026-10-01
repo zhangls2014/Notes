@@ -1,8 +1,5 @@
 package me.zhangls.entry
 
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
@@ -20,7 +17,6 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.SinglePaneSceneStrategy
-import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.emailNavEntry
@@ -181,23 +177,12 @@ fun AppNavHost(
     selected = backStack.tabSelection(),
     onSelectTab = navHandler::selectTab,
   ) {
-    // Tab 切换结束旧内容区的组合及其在途动画，不让两个 Tab 同时绘制。
-    // 详情 push/pop 不改变栈根，因此保留当前 NavDisplay、Entry 作用域与预测返回。
+    // Tab 切换结束旧内容区的组合；同一栈保留 Entry 作用域与预测返回。
     key(navigationState.selectedRoot) {
-      NavDisplay(
+      DeviceCornerNavDisplay(
         entries = entriesByRoot.getValue(navigationState.selectedRoot),
         onBack = { navHandler(NavEffect.Popup) },
         sceneStrategies = listOf(paneSceneStrategy, SinglePaneSceneStrategy()),
-        // 同一 Tab 内才执行页面导航动画；顶层切换由外层 key 直接替换。
-        transitionSpec = {
-          slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-        },
-        popTransitionSpec = {
-          slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
-        predictivePopTransitionSpec = {
-          slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-        },
       )
     }
   }

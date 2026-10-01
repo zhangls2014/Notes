@@ -151,7 +151,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 `AppNavigationState` 使用 `rememberNavBackStack` 分别保存各 Tab 栈和当前根选择。各栈的 `rememberDecoratedNavEntries`、SaveableStateHolder 和 ViewModelStore 装饰器在内容切换区域外持续存在；非活动 Tab 不绘制，但保留 Entry 的可保存状态及 ViewModel。邮件首次加载指示在列表外绘制，避免单个占位条目把待恢复滚动索引重置为 0。滚动位置可随保存状态恢复；邮件多选等 ViewModel 状态仅在当前进程保留，不启用敏感/大型 MVI 状态的跨进程保存。退出登录清空全部栈并释放对应 Entry；登录成功释放登录 Entry。
 
-`AppShell` 始终包裹内容区，并在内容容器使用 `clipToBounds()`，使页面转场的绘制不越过侧栏或底部导航边界；`NavDisplay` 仅接收当前 Tab 的装饰后 Entry，并以当前栈根作为组合 key。切换 Tab 释放旧显示及其在途转场，不播放跨 Tab 动画，也不清除外层保存的 Entry 状态。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
+`AppShell` 始终包裹内容区，不裁剪内部 UI；页面自身负责预测返回时的轮廓裁剪。侧栏和底部导航保持固定；`NavDisplay` 仅接收当前 Tab 的装饰后 Entry，并以当前栈根作为组合 key。切换 Tab 释放旧显示及其在途转场，不播放跨 Tab 动画，也不清除外层保存的 Entry 状态。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
 
 `core:framework` 定义：
 
@@ -162,7 +162,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
 
-首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。有多个分区时始终保留列表—详情场景和详情空态；只有一个分区时交给 Navigation 3 的页面场景。页面进入向左滑动、普通返回向右滑动，由根 `NavDisplay` 配置；预测返回使用 Navigation 3 默认动画。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
+首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。有多个分区时始终保留列表—详情场景和详情空态；只有一个分区时交给 Navigation 3 的页面场景。普通页面进入与返回直接切换，不使用转场动画。根导航通过 `DeviceCornerNavDisplay` 装配库的 SceneState 与返回事件；单页预测返回采用与新建邮件 Material 3 BottomSheet 相同的 CubicBezier(0.1, 0.1, 0, 1) 曲线、48dp 横向/24dp 纵向缩减和页面中央缩放原点，内容反向补偿以保持文字与图片比例。单页使用自身内容区尺寸计算缩放与页面中央原点，不测量或补偿页面相对窗口的偏移。背景和圆角裁剪放在内容比例修正后的可见页面层内，以该层的实际尺寸为裁剪边界，避免底部圆角落在页面之外或残留背景遮挡上一页。只有页面参与变换，外壳不缩放。缩放时在上一页与当前页面之间绘制灰色遮罩（最大 24%），遮罩不参与缩放或覆盖导航套件；取消或完成时于 220ms 内淡出。单页邮件详情的 Scaffold 全尺寸绘制，包括状态栏下方的安全区域背景；安全区仅用于页面内部内容避让，不在缩放层之外预留顶部 padding。系统状态栏图标不属于应用页面。绘制层直接读取当前手势状态，拖动不经过弹簧动画的时间采样；场景就绪前保留完整页面，释放后的取消/提交尾段由线性 Scene transition 管理。Android 12+ 在系统提供圆角数据时，对退出的单页 Scene 添加以页面实际边界为轮廓的物理圆角裁剪，半径按页面最终缩放比例补偿，拖动期间显示半径不随手势进度变化；取消返回时以 220ms 动画恢复原有未裁剪轮廓，动画完成后解除页面裁剪，避免非窗口角处突然变为直角。分栏 Scene、应用外壳与浮层不增加该变换或裁剪；旧 Android、未提供圆角的设备和 iOS 不做设备圆角匹配。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
 
 ### 自适应布局
 

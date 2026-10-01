@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
@@ -64,7 +63,7 @@ private enum class MainTab(
  * Rail / 底部栏随主界面一起消失：宽屏上"列表 + 详情"会突然变成全屏页，导航套件不再可达；
  * 同一个用户动作（点邮件）在首页与收藏页的表现还不一致（前者走分栏、后者走目的地）。
  *
- * 外壳消费导航套件占用的系统内边距，并将页面绘制裁剪在内容区内
+ * 外壳消费导航套件占用的系统内边距，允许内容超出自身布局边界绘制
  * （见 [navigationSuiteInsets]）。内容区因此不需要知道"导航在哪一侧"、
  * 更不需要自己换算"哪几边该少留白" —— 各页面直接使用 `Scaffold` 给出的 padding 即可。
  *
@@ -102,11 +101,9 @@ fun AppShell(
     },
     layoutType = layoutType,
   ) {
-    // 页面滑动允许超出自身布局边界，但不能越过内容区覆盖导航侧栏。
     Box(
       Modifier
-        .consumeWindowInsets(layoutType.navigationSuiteInsets())
-        .clipToBounds(),
+        .consumeWindowInsets(layoutType.navigationSuiteInsets()),
     ) {
       content()
     }

@@ -3,6 +3,9 @@ package me.zhangls.email.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -48,7 +52,11 @@ internal fun EmailDetail(
   val model by emailFlow.collectAsStateWithLifecycle(null)
   val threads = threadFlow.collectAsLazyPagingItems()
 
+  // Draw the page through the status-bar safe area. Insets belong to its inner content,
+  // so the background and safe area stay inside the navigation transform together.
   Scaffold(
+    modifier = Modifier.fillMaxSize().testTag("email-detail-page"),
+    contentWindowInsets = WindowInsets.safeDrawing,
     topBar = {
       model?.subject?.let {
         CenteredTopAppBar(title = it.toDisplaySubject(), navigate = onBackPressed)
