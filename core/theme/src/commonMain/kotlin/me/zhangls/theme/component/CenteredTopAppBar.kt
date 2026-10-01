@@ -5,6 +5,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -25,7 +27,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * @author zhangls
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CenteredTopAppBar(
   title: String,
@@ -39,7 +41,7 @@ fun CenteredTopAppBar(
     colors = TopAppBarDefaults.topAppBarColors(),
     navigationIcon = {
       if (navigate != null) {
-        IconButton(onClick = navigate) {
+        IconButton(onClick = navigate, shapes = IconButtonDefaults.shapes()) {
           Icon(
             imageVector = Icons.Rounded.ArrowBackIosNew,
             contentDescription = stringResource(Res.string.theme_action_navigate_before)

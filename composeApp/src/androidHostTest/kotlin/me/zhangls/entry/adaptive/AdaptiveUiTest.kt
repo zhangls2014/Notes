@@ -23,6 +23,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -39,6 +40,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
@@ -1002,6 +1004,27 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.mainClock.autoAdvance = true
     }
     waitFor("Reply all")
+  }
+
+  @Test fun settingsLogoutDialogKeepsCancelAndConfirmReachable() {
+    org.junit.Assume.assumeTrue(scenario.name in setOf("400x500", "large-font", "dark"))
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    compose.onAllNodesWithText("Settings").onFirst().performClick()
+    waitFor("Font size")
+    compose.onNode(hasScrollAction()).performScrollToNode(hasText("Log out"))
+    compose.onNodeWithText("Log out").performScrollTo().assertIsDisplayed().performClick()
+    waitFor("Confirm")
+    compose.onNodeWithText("Cancel").assertIsDisplayed()
+    compose.onAllNodesWithText("Log out").onLast().assertIsDisplayed()
+    compose.onNode(isDialog()).captureRoboImage(imagePath("logout-dialog"))
+    compose.onNodeWithText("Cancel").performClick()
+    compose.onNodeWithText("Confirm").assertDoesNotExist()
+    compose.onNodeWithText("Log out").performScrollTo().performClick()
+    waitFor("Confirm")
+    compose.onAllNodesWithText("Log out").onLast().performClick()
+    waitFor("Log in")
+    org.junit.Assert.assertEquals(2, compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size)
   }
 
   @Test fun mainDestinationsAndOverlays() {

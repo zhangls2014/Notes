@@ -1,39 +1,25 @@
 package me.zhangls.theme.component
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 
 /**
  * 纯文本内容的便捷重载，委托给 [AnnotatedString] 版本。
  *
- * 版式（间距 / 分隔线 / 按钮排布）只在下方那个重载里定义一次 —— 两个重载各写一份
+ * 版式由下方重载中的 Material AlertDialog 统一管理 —— 两个重载各写一份
  * 主体时，改一次样式要记得改两处，漏改不会报错，只会让两种对话框长得不一样。
  *
  * @author zhangls
@@ -70,6 +56,7 @@ private fun SimpleDialogPreview() {
   )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SimpleDialog(
   title: String,
@@ -79,77 +66,23 @@ fun SimpleDialog(
   dismissText: String? = null,
   dismiss: (() -> Unit)? = null,
 ) {
-  Dialog(onDismissRequest = {}) {
-    Column(
-      modifier = Modifier
-        .background(
-          color = MaterialTheme.colorScheme.surfaceContainerHigh,
-          shape = MaterialTheme.shapes.extraLarge
-        )
-    ) {
-      Spacer(modifier = Modifier.height(20.dp))
-
-      Text(
-        text = title,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 24.dp),
-        maxLines = 1,
-        style = MaterialTheme.typography.titleLarge,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
-        fontWeight = FontWeight.Bold
-      )
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      HorizontalDivider(thickness = 0.5.dp)
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      Text(
-        text = content,
-        style = MaterialTheme.typography.bodyLarge,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 24.dp),
-      )
-
-      Spacer(modifier = Modifier.height(24.dp))
-
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.End
-      ) {
-        dismissText?.let {
-          OutlinedButton(
-            onClick = { dismiss?.invoke() },
-            modifier = Modifier.weight(1F),
-            border = BorderStroke(
-              width = 1.dp,
-              color = MaterialTheme.colorScheme.outline,
-            )
-          ) {
-            Text(text = dismissText)
-          }
-
-          Spacer(modifier = Modifier.width(24.dp))
-        }
-
-        Button(
-          onClick = { confirm?.invoke() },
-          modifier = Modifier.weight(1F)
-        ) {
-          Text(text = confirmText)
+  AlertDialog(
+    onDismissRequest = {},
+    title = { Text(text = title) },
+    text = { Text(text = content) },
+    confirmButton = {
+      Button(onClick = { confirm?.invoke() }, shapes = ButtonDefaults.shapes()) {
+        Text(text = confirmText)
+      }
+    },
+    dismissButton = dismissText?.let { label ->
+      {
+        TextButton(onClick = { dismiss?.invoke() }) {
+          Text(text = label)
         }
       }
-
-      Spacer(modifier = Modifier.height(20.dp))
-    }
-  }
+    },
+  )
 }
 
 @Preview

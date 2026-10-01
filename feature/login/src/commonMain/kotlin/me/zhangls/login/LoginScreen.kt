@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@file:OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package me.zhangls.login
 
@@ -15,11 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,8 +48,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -56,7 +55,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.domain.AccountError
@@ -255,12 +253,12 @@ private fun FormPane(
             Button(
               onClick = onLoginClick,
               enabled = state.isInputValid,
-              shape = RoundedCornerShape(24.dp),
+              shapes = ButtonDefaults.shapes(),
               modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 32.dp, end = 32.dp, top = 32.dp)
             ) {
-              Text(text = stringResource(Res.string.login_action_login), fontSize = 16.sp)
+              Text(text = stringResource(Res.string.login_action_login))
             }
           }
         },
@@ -336,7 +334,8 @@ private fun AccountInput(
     onValueChange = { onAccountChange(it) },
     singleLine = true,
     isError = inputError.isNotEmpty(),
-    textStyle = TextStyle.Default.copy(fontSize = 14.sp, fontFamily = FontFamily.Monospace),
+    textStyle = MaterialTheme.typography.bodyLarge,
+    shape = MaterialTheme.shapes.large,
     placeholder = { Text(text = stringResource(Res.string.login_hint_login_account)) },
     modifier = modifier
       .padding(start = 32.dp, end = 32.dp, top = 16.dp)
@@ -354,7 +353,7 @@ private fun AccountInput(
     supportingText = {
       Text(
         text = inputError,
-        fontSize = 12.sp,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.padding(horizontal = 36.dp)
       )
@@ -381,7 +380,8 @@ private fun PasswordInput(
     onValueChange = { onPasswordChange(it) },
     singleLine = true,
     isError = inputError.isNotEmpty(),
-    textStyle = TextStyle.Default.copy(fontSize = 14.sp, fontFamily = FontFamily.Monospace),
+    textStyle = MaterialTheme.typography.bodyLarge,
+    shape = MaterialTheme.shapes.large,
     placeholder = { Text(text = stringResource(Res.string.login_hint_login_password)) },
     modifier = modifier
       .padding(horizontal = 32.dp)
@@ -402,7 +402,7 @@ private fun PasswordInput(
     supportingText = {
       Text(
         text = inputError,
-        fontSize = 12.sp,
+        style = MaterialTheme.typography.bodySmall,
         minLines = 2,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.padding(horizontal = 36.dp)

@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -85,7 +86,8 @@ internal fun EmailDetail(
 fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavoriteClick: (Long) -> Unit = {}) {
   Card(
     modifier = modifier,
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    shape = MaterialTheme.shapes.large,
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
   ) {
     Column(
       modifier = Modifier
@@ -102,8 +104,8 @@ fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavorite
 
       Text(
         text = model.subject.toDisplaySubject(),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.outline,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
       )
 
@@ -127,20 +129,20 @@ fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavorite
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ReplyButton(
   modifier: Modifier = Modifier,
   textRes: StringResource = Res.string.email_action_email_reply,
   onClick: () -> Unit = {}
 ) {
-  Button(
+  FilledTonalButton(
     onClick = onClick,
     modifier = modifier,
-    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceBright),
+    shapes = ButtonDefaults.shapes(),
   ) {
     Text(
       text = stringResource(textRes),
-      color = MaterialTheme.colorScheme.onSurface,
     )
   }
 }

@@ -43,17 +43,18 @@ fun EmailListItem(
   Card(
     modifier = modifier
       .semantics { selected = isSelected }
-      .clip(CardDefaults.shape)
+      .clip(MaterialTheme.shapes.large)
       .combinedClickable(
         onClick = {
           if (isMultiSelect) toggleSelection(model.id) else navigateToDetail(model.id)
         },
         onLongClick = { toggleSelection(model.id) },
       ),
+    shape = MaterialTheme.shapes.large,
     colors = CardDefaults.cardColors(
       containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
       else if (isOpened) MaterialTheme.colorScheme.secondaryContainer
-      else MaterialTheme.colorScheme.surfaceVariant,
+      else MaterialTheme.colorScheme.surfaceContainerLow,
     ),
   ) {
     Column(
@@ -72,7 +73,7 @@ fun EmailListItem(
 
       Text(
         text = model.subject.toDisplaySubject(),
-        style = MaterialTheme.typography.bodyLarge,
+        style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
       )
       Text(
