@@ -17,5 +17,5 @@ interface LoginEntry {
    * @param onLoginResult 登录页产生的对外结果回调，例如 [LoginResult.Success]
    */
   @Composable
-  fun Screen(onLoginResult: (LoginResult) -> Unit = {})
+  fun Screen(onLoginResult: (LoginResult) -> Unit)
 }

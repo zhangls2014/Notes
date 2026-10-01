@@ -22,6 +22,6 @@ interface SettingsEntry {
    */
   @Composable
   fun Screen(
-    onResult: (SettingsResult) -> Unit = {},
+    onResult: (SettingsResult) -> Unit,
   )
 }
