@@ -51,7 +51,7 @@ class EmailEntryDispatchTest {
     try {
       val screens: List<@Composable () -> Unit> = listOf(
         { login.Screen(onLoginResult = {}) },
-        { settings.Screen(onResult = {}) },
+        { settings.Screen {} },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {
