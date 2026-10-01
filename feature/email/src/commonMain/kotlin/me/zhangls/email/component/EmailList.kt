@@ -13,9 +13,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
+import me.zhangls.theme.component.CenteredTopAppBar
+import notes.feature.email.generated.resources.Res
+import notes.feature.email.generated.resources.email_label_favorites
+import org.jetbrains.compose.resources.stringResource
 
 /**
- * 邮件列表页骨架：组装顶栏（搜索/多选操作栏）、写邮件 FAB、分页列表与草稿 BottomSheet。
+ * 邮件列表页骨架：组装顶栏（收藏标题或搜索/多选操作栏）、写邮件 FAB、分页列表与草稿 BottomSheet。
  * 各子职责分别位于 [EmailTopBar]、[EmailFab]、[EmailPagedList]、[NewEmailSheet]。
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -38,13 +42,16 @@ internal fun EmailList(
   Scaffold(
     modifier = if (isFavorite) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     topBar = {
-      if (isFavorite) return@Scaffold
-      EmailTopBar(
-        state = state,
-        scrollBehavior = scrollBehavior,
-        onIntent = { viewModel.sendIntent(it) },
-        onResultClick = navigateToDetail
-      )
+      if (isFavorite) {
+        CenteredTopAppBar(title = stringResource(Res.string.email_label_favorites))
+      } else {
+        EmailTopBar(
+          state = state,
+          scrollBehavior = scrollBehavior,
+          onIntent = { viewModel.sendIntent(it) },
+          onResultClick = navigateToDetail
+        )
+      }
     },
     floatingActionButton = {
       if (isFavorite) return@Scaffold
