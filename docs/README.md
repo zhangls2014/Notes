@@ -13,6 +13,7 @@
 - [Android 模拟器测试](testing/android-emulator.md)：多尺寸、旋转、折叠姿态测试，以及显示设置的强制还原流程。
 
 - [自适应 UI 回归](testing/adaptive-ui.md)：宿主行为测试、候选截图与人工批准视觉基线流程。
+- [iOS Launch Screen](testing/ios-launch-screen.md)：Android 图标资源映射、系统启动页配置与验证。
 
 ## 历史审计
 
@@ -26,6 +27,7 @@
 - [2026-09-25 自适应 UI 与架构审计](audits/2026-09-25-adaptive-ui-review.md)
 - [2026-09-28 输入页面 IME 遮挡排查与修复](audits/2026-09-28-ime-input-visibility.md)
 - [2026-10-01 Material 3 Expressive 迁移可行性](audits/2026-10-01-material3-expressive-feasibility.md)
+- [2026-10-02 iOS 启动耗时调查](audits/2026-10-02-ios-startup.md)
 
 ## 设计与实施记录
 
