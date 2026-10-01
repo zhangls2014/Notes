@@ -30,6 +30,7 @@ import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
+import me.zhangls.theme.layout.ProvideModalViewport
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 
 /**
@@ -173,17 +174,19 @@ fun AppNavHost(
   // 外壳（Rail / 底部导航栏）是 NavDisplay 的容器，不是返回栈里的一个条目：
   // 它读返回栈的**根**决定选中哪个 Tab，因此推入详情页时导航套件依然可见、可达，
   // 宽屏上不会从"列表 + 详情"突然变成全屏页。根是登录页时不显示外壳。
-  AppShell(
-    selected = backStack.tabSelection(),
-    onSelectTab = navHandler::selectTab,
-  ) {
-    // Tab 切换结束旧内容区的组合；同一栈保留 Entry 作用域与预测返回。
-    key(navigationState.selectedRoot) {
-      DeviceCornerNavDisplay(
-        entries = entriesByRoot.getValue(navigationState.selectedRoot),
-        onBack = { navHandler(NavEffect.Popup) },
-        sceneStrategies = listOf(paneSceneStrategy, SinglePaneSceneStrategy()),
-      )
+  ProvideModalViewport {
+    AppShell(
+      selected = backStack.tabSelection(),
+      onSelectTab = navHandler::selectTab,
+    ) {
+      // Tab 切换结束旧内容区的组合；同一栈保留 Entry 作用域与预测返回。
+      key(navigationState.selectedRoot) {
+        DeviceCornerNavDisplay(
+          entries = entriesByRoot.getValue(navigationState.selectedRoot),
+          onBack = { navHandler(NavEffect.Popup) },
+          sceneStrategies = listOf(paneSceneStrategy, SinglePaneSceneStrategy()),
+        )
+      }
     }
   }
 }

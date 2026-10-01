@@ -5,7 +5,19 @@ plugins {
 }
 
 kotlin {
+  android {
+    compilations.withType<com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation>().configureEach {
+      isIncludeAndroidResources = true
+    }
+  }
   sourceSets {
+    androidHostTest.dependencies {
+      implementation(kmp.junit)
+      implementation(kmp.androidx.test.espresso)
+      implementation(kmp.androidx.test.ext.junit)
+      implementation(kmp.robolectric)
+      implementation(kmp.jetbrains.compose.ui.test.junit4)
+    }
     commonMain {
       dependencies {
         implementation(projects.core.data)
@@ -40,4 +52,9 @@ kotlin {
       }
     }
   }
+}
+
+// Robolectric API 37 accesses the JDK file descriptor bridge.
+tasks.withType<Test>().configureEach {
+  jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
 }

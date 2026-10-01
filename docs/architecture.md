@@ -168,6 +168,8 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 窗口事实只有一个读取点：`composeApp` 调用 `rememberWindowAdaptiveInfo()`，再通过 `LocalWindowAdaptiveInfo` 下发。`PaneScaffoldDirective` 也在组合根从同一份信息计算，并通过 `LocalPaneScaffoldDirective` 提供。directive 使用 `HingePolicy.AlwaysAvoid`，所以同一铰链几何在半开和全开之间不会从排除区消失。
 
+邮件编辑弹层通过 `core:theme/LocalModalViewport` 获取完整应用视口尺寸。`AppNavHost` 在导航外壳和列表—详情分栏之外使用 `ProvideModalViewport` 下发根布局的有限约束；它不再次读取平台窗口事实，也不增加安全区或铰链包装。iOS 邮件弹层使用显式完整视口大小的 Dialog 容器，并由 Material 3 `BottomSheet` 处理拖动和展开；Android 保留标准 `ModalBottomSheet`。完整容器和滚动表单均使用有限约束，保证旋转后弹窗的无界首选尺寸测量不会产生无限滚动约束、内容宽度溢出或错误的拖动锚点。
+
 窗格之间的普通水平、垂直间距统一为 `0.dp`；真实铰链的排除区域仍然保留，不因取消间距而压缩。页面内容（例如邮件卡片）自身的内外边距独立保留。
 
 `core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者。邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。Material directive 的排除区域仅包含竖向铰链；按用户审阅截图后的决定，登录页不在窗格内避让横向铰链，品牌与表单使用完整可用高度，保持原有居中与滚动行为。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
