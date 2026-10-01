@@ -787,6 +787,56 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
   }
 
+  @Test fun detailPredictiveBackIncludesStatusBarSafeArea() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.runOnIdle {
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars(),
+          androidx.core.graphics.Insets.of(0, 64, 0, 0))
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.statusBars(), true)
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
+    }
+    settle()
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    settle()
+    val page = compose.onNodeWithTag("email-detail-page")
+    val before = page.fetchSemanticsNode().boundsInRoot
+    org.junit.Assert.assertEquals("Page background includes the status area", 0f, before.top, 0.5f)
+    org.junit.Assert.assertTrue("Content still avoids status icons",
+      compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().all { it.boundsInRoot.top >= 64f })
+    val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.runOnIdle {
+        dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
+      }
+      compose.mainClock.advanceTimeBy(100)
+      compose.runOnIdle {
+        dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 200f, 1f, BackEventCompat.EDGE_LEFT))
+      }
+      repeat(3) { compose.mainClock.advanceTimeBy(300); compose.waitForIdle() }
+      val during = page.fetchSemanticsNode().boundsInRoot
+      org.junit.Assert.assertEquals("Safe area moves with the centered page",
+        (before.height - during.height) / 2f, during.top - before.top, 1f)
+      org.junit.Assert.assertEquals("Page center X stays fixed", before.center.x, during.center.x, 0.5f)
+      org.junit.Assert.assertEquals("Page center Y stays fixed", before.center.y, during.center.y, 0.5f)
+      // Material child correction preserves the page content aspect ratio, including its safe area.
+      org.junit.Assert.assertEquals("Scale includes safe-area height",
+        before.height * (1f - 48f / before.width), during.height, 1f)
+      compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
+      repeat(3) { compose.mainClock.advanceTimeBy(500); compose.waitForIdle() }
+      org.junit.Assert.assertEquals("Cancellation restores the complete page", before,
+        page.fetchSemanticsNode().boundsInRoot)
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
   @Test fun homePredictiveBackCommitKeepsFullyRevealedListInPlace() {
     assertPredictiveBackCommitKeepsListInPlace("Home")
   }
@@ -829,7 +879,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.mainClock.advanceTimeBy(300)
       assertListInPlace("before release")
       compose.runOnIdle { dispatcher.onBackPressed() }
-      // 只检查最终状态会漏掉松手后重新滑入的动画，因此覆盖提交后的连续帧。
+      // 覆盖提交后的连续帧，确认上一页始终保持已完全显示的位置。
       repeat(30) { frame ->
         compose.mainClock.advanceTimeByFrame()
         assertListInPlace("after release, frame ${frame + 1}")
