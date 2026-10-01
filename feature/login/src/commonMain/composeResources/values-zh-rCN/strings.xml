@@ -8,4 +8,9 @@
 
   <string name="login_brand_name">摘星</string>
   <string name="login_brand_tagline">邮件，各归其位。</string>
+  <string name="login_label_account">账户</string>
+  <string name="login_label_password">密码</string>
+  <string name="login_action_clear_account">清空账户</string>
+  <string name="login_action_show_password">显示密码</string>
+  <string name="login_action_hide_password">隐藏密码</string>
 </resources>
