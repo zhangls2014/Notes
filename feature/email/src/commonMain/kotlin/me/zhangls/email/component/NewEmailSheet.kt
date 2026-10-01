@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +47,7 @@ import notes.feature.email.generated.resources.email_label_subject
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun NewEmailSheet(
   recipients: List<AccountModel>,
@@ -117,6 +119,7 @@ internal fun NewEmailSheet(
       }
 
       OutlinedTextField(
+        shape = MaterialTheme.shapes.large,
         value = subject,
         onValueChange = onSubjectChange,
         enabled = !isSending,
@@ -125,6 +128,7 @@ internal fun NewEmailSheet(
       )
 
       OutlinedTextField(
+        shape = MaterialTheme.shapes.large,
         value = body,
         onValueChange = onBodyChange,
         enabled = !isSending,
@@ -141,7 +145,7 @@ internal fun NewEmailSheet(
           Text(text = stringResource(Res.string.email_action_cancel))
         }
         Spacer(modifier = Modifier.size(8.dp))
-        Button(enabled = !isSending, onClick = onSave) {
+        Button(enabled = !isSending, onClick = onSave, shapes = ButtonDefaults.shapes()) {
           Text(text = stringResource(Res.string.email_action_save))
         }
       }

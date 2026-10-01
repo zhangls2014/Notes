@@ -192,6 +192,14 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 - 登录页只按 `maxHorizontalPartitions` 决定左侧品牌区与右侧表单区是否同时展开。横向铰链不触发上下重排：宽度足够时仍左右分栏，宽度不足时使用单列表单。
 - 搜索、写邮件、设置选择和确认对话框使用标准组件，不增加铰链安全弹层；查询、草稿、滚动和选择状态独立于布局形态。
 
+### Material 3 Expressive 主题
+
+共享 UI 的主题入口是 `core:theme/ComposeAppTheme`，使用 `MaterialExpressiveTheme` 和 `MotionScheme.expressive()`。字体与形状分别由同模块的 `AppTypography`、`AppShapes` 提供；标题与操作标签使用强调字重，正文保留 Material 原有尺寸。Typography 显式使用带 fontFamily 的构造器，避免兼容无参构造器把强调样式映射回普通样式。
+
+主题保留内置品牌配色、动态色、深浅色和用户字号设置。Feature 从 `MaterialTheme` 读取颜色、字体与形状；关键按钮和共享图标按钮显式采用形变重载，自定义头像空间动画使用主题 MotionScheme。邮件列表与详情卡片使用主题 large 圆角和容器色，打开、多选、收藏状态各有语义颜色。确认对话框使用标准 AlertDialog，保留字符串与 AnnotatedString 重载，以及显式按钮回调关闭语义。
+
+`core:preference/PreferenceRow` 接收 `isGroupStart / isGroupEnd` 渲染外角与内角；分组清单、顺序和独立操作的选择仍由 `feature:settings` 负责。底层 Compose Preference 控件继续隐藏在 implementation 依赖之后。主题迁移不引入第二套窗口事实、导航策略或铰链避让。
+
 ### 设置项
 
 设置项拆成四部分：

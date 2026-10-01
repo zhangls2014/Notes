@@ -1,6 +1,8 @@
 package me.zhangls.settings
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -8,9 +10,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.preference.ui.PreferenceRow
+import me.zhangls.preference.ui.PreferenceUiModel
 import me.zhangls.preference.ui.ProvidePreferenceLocals
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.mvi.SettingsIntent
@@ -61,6 +65,7 @@ internal fun SettingsScreen(
       AdaptiveContent {
         LazyColumn(
           modifier = Modifier.fillMaxSize(),
+          verticalArrangement = Arrangement.spacedBy(2.dp),
           // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
           contentPadding = padding,
         ) {
@@ -69,7 +74,19 @@ internal fun SettingsScreen(
             key = { index -> preferences[index].spec.key },
             contentType = { index -> preferences[index]::class }
           ) { index ->
-            PreferenceRow(model = preferences[index])
+            val model = preferences[index]
+            val standalone = model is PreferenceUiModel.Action
+            PreferenceRow(
+              model = model,
+              isGroupStart = index == 0 || standalone || preferences[index - 1] is PreferenceUiModel.Action,
+              isGroupEnd = index == preferences.lastIndex || standalone || preferences[index + 1] is PreferenceUiModel.Action,
+              modifier = Modifier.padding(
+                start = 16.dp,
+                end = 16.dp,
+                top = if (index == 0 || standalone) 16.dp else 0.dp,
+                bottom = if (index == preferences.lastIndex) 16.dp else 0.dp,
+              ),
+            )
           }
         }
       }

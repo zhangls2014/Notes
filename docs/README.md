@@ -25,6 +25,7 @@
 
 - [2026-09-25 自适应 UI 与架构审计](audits/2026-09-25-adaptive-ui-review.md)
 - [2026-09-28 输入页面 IME 遮挡排查与修复](audits/2026-09-28-ime-input-visibility.md)
+- [2026-10-01 Material 3 Expressive 迁移可行性](audits/2026-10-01-material3-expressive-feasibility.md)
 
 ## 设计与实施记录
 

@@ -2,6 +2,8 @@ package me.zhangls.theme.component
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -29,6 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * @param tooltipPosition 提示相对按钮的位置。靠近页面顶部的按钮用 [TooltipAnchorPosition.Below]，
  *   否则提示会被屏幕边缘裁掉；默认 [TooltipAnchorPosition.Above]。
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TooltipIconButton(
   icon: ImageVector,
@@ -47,7 +50,7 @@ fun TooltipIconButton(
       }
     },
   ) {
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
       Icon(imageVector = icon, contentDescription = label)
     }
   }

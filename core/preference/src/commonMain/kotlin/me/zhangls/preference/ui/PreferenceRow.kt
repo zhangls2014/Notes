@@ -1,6 +1,8 @@
 package me.zhangls.preference.ui
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -39,16 +41,33 @@ fun ProvidePreferenceLocals(content: @Composable () -> Unit) {
  * 新增设置项不需要任何 feature 写渲染代码，新增**形态**也只需在这里加一个控件。
  *
  * 消费方只需保证自己在 [ProvidePreferenceLocals] 的子树内。
+ * [isGroupStart] / [isGroupEnd] 仅控制外角；分组清单和顺序由消费方拥有。
  */
 @Composable
 fun PreferenceRow(
   model: PreferenceUiModel,
   modifier: Modifier = Modifier,
+  isGroupStart: Boolean = true,
+  isGroupEnd: Boolean = true,
 ) {
-  when (model) {
-    is PreferenceUiModel.Toggle -> ToggleRow(model = model, modifier = modifier)
-    is PreferenceUiModel.Select<*> -> SelectRow(model = model, modifier = modifier)
-    is PreferenceUiModel.Action -> ActionRow(model = model, modifier = modifier)
+  val outer = MaterialTheme.shapes.extraLarge
+  val inner = MaterialTheme.shapes.extraSmall
+  val shape = outer.copy(
+    topStart = if (isGroupStart) outer.topStart else inner.topStart,
+    topEnd = if (isGroupStart) outer.topEnd else inner.topEnd,
+    bottomStart = if (isGroupEnd) outer.bottomStart else inner.bottomStart,
+    bottomEnd = if (isGroupEnd) outer.bottomEnd else inner.bottomEnd,
+  )
+  Surface(
+    modifier = modifier,
+    shape = shape,
+    color = MaterialTheme.colorScheme.surfaceContainerLow,
+  ) {
+    when (model) {
+      is PreferenceUiModel.Toggle -> ToggleRow(model = model)
+      is PreferenceUiModel.Select<*> -> SelectRow(model = model)
+      is PreferenceUiModel.Action -> ActionRow(model = model)
+    }
   }
 }
 

@@ -2,7 +2,8 @@ package me.zhangls.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
@@ -27,6 +28,12 @@ fun ComposeAppTheme(
   CompositionLocalProvider(
     LocalDensity provides Density(density = density.density, fontScale = fontScale),
   ) {
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialExpressiveTheme(
+      colorScheme = colorScheme,
+      motionScheme = MotionScheme.expressive(),
+      typography = AppTypography,
+      shapes = AppShapes,
+      content = content,
+    )
   }
 }

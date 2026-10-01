@@ -1,25 +1,22 @@
 package me.zhangls.email.component
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.AccountModel
@@ -37,10 +34,10 @@ import org.jetbrains.compose.resources.stringResource
  * @author zhangls
  */
 internal enum class EmailHeaderVariant {
-  /** 列表项：头像随选中态翻转，时间用默认内容色，收藏按钮底色更亮。 */
+  /** 列表项：头像随选中态翻转。 */
   ListItem,
 
-  /** 详情项：静态头像，时间用 outline 弱化，收藏按钮底色为 surfaceContainer。 */
+  /** 详情项：静态头像。 */
   Detail,
 }
 
@@ -51,7 +48,7 @@ internal enum class EmailHeaderVariant {
  * 其中收藏按钮的 `imageVector` 与无障碍文案是同一个三元表达式，两处逐字相同。同一份映射写两遍，
  * 改图标或改文案时漏改一处不会有任何编译期提示，只会让两种卡片的收藏按钮悄悄分叉。
  *
- * 两者的真实差异只有三处，由 [variant] 表达：头像是否带选中翻转、时间文字颜色、收藏按钮底色。
+ * [variant] 决定头像是否带选中翻转，时间与收藏按钮样式统一使用主题。
  *
  * @param account 发件人（头像与姓名来源）
  * @param createdAt 展示用的时间文本
@@ -60,6 +57,7 @@ internal enum class EmailHeaderVariant {
  * @param isSelected 仅列表项使用：多选态下驱动头像翻转
  * @param onFavoriteClick 收藏按钮回调
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun EmailHeader(
   account: AccountModel,
@@ -85,24 +83,24 @@ internal fun EmailHeader(
     ) {
       Text(
         text = account.firstName,
-        style = MaterialTheme.typography.labelMedium,
+        style = MaterialTheme.typography.labelLarge,
       )
       Text(
         text = createdAt,
-        style = MaterialTheme.typography.labelMedium,
-        color = if (variant == EmailHeaderVariant.Detail) MaterialTheme.colorScheme.outline
-        else Color.Unspecified,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
 
-    IconButton(
+    FilledTonalIconButton(
       onClick = onFavoriteClick,
-      modifier = Modifier
-        .clip(CircleShape)
-        .background(
-          if (variant == EmailHeaderVariant.Detail) MaterialTheme.colorScheme.surfaceContainer
-          else MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
+      shapes = IconButtonDefaults.shapes(),
+      colors = IconButtonDefaults.filledTonalIconButtonColors(
+        containerColor = if (isImportant) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (isImportant) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurfaceVariant,
+      ),
     ) {
       Icon(
         imageVector = if (isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
@@ -110,7 +108,6 @@ internal fun EmailHeader(
           if (isImportant) Res.string.email_action_cancel_favorite
           else Res.string.email_action_favorite
         ),
-        tint = MaterialTheme.colorScheme.outline,
       )
     }
   }
@@ -123,7 +120,7 @@ internal fun EmailHeader(
 private fun FlipAvatar(modifier: Modifier = Modifier, isSelected: Boolean, account: AccountModel) {
   val rotation by animateFloatAsState(
     targetValue = if (isSelected) 180F else 0F,
-    animationSpec = tween(durationMillis = 300),
+    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
     label = "rotation"
   )
 

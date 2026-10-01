@@ -1,5 +1,26 @@
 # 自适应 UI 回归
 
+## Material 3 Expressive 迁移（2026-10-01）
+
+共享主题已迁移为 MaterialExpressiveTheme，字体、容器和按钮形变也已统一。新增 `ExpressiveThemeTest` 验证普通组合子树的动态色、深浅色和字号切换，以及强调字重与正文尺寸；迁移前强调字重断言失败，迁移后两项通过。`Typography(fontFamily = FontFamily.Default)` 避免兼容无参构造器将强调样式映射回普通样式。
+
+新增 `settingsLogoutDialogKeepsCancelAndConfirmReachable`，覆盖紧凑、深色和大字号页面中的退出行滚动、取消保留登录态与确认后回到登录页。大字号下使用 LazyColumn 的 `performScrollToNode` 查找尚未组合的行，避免将惰性组合行为误判为入口消失。
+
+最终检查：Android 整包构建、iOS 模拟器 Kotlin 编译、Android lint 均通过；自适应测试 510 项中 76 项执行、434 项按场景跳过，主题测试另有 2 项通过，共 78 项实际执行，0 失败。lint 报告 22 条依赖/SDK 相关 Warning，0 Error。
+
+候选录制生成 190 张图片，位于 `composeApp/build/adaptive-candidates/`。已检查紧凑登录、设置、深色设置与详情、大字号设置与草稿、宽屏详情，以及退出确认弹窗。正式截图基线未覆盖，全量视觉 verify 未作为通过结论；前文记录的既有空白截图问题仍需独立处理。宿主截图关闭动画，不能代替 Android/iOS 设备上的按压形变、弹簧动效与真实输入体验验收。
+
+既有字号边界：Android 的独立 Dialog / Sheet window 重新提供窗口 density，因此父主题的应用内 `fontScale` 不一定进入弹窗。旧 SimpleDialog 与新 AlertDialog 最终使用同一 Dialog 机制，本迁移未新增该现象。主题测试只证明普通组合子树字号正确；弹窗截图和按钮可达性测试不证明弹窗字号已随应用设置缩放。
+
+最终命令（一个 Gradle 进程顺序装配检查，不并发启动构建）：
+
+```bash
+./gradlew :androidApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64 \
+  :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' --tests '*ExpressiveThemeTest*' \
+  :androidApp:lintDevFullDebug \
+  -Proborazzi.test.record=true -Pnotes.screenshots.candidates=true
+```
+
 ## 测试边界
 
 `composeApp/src/androidHostTest` 通过 Robolectric、Compose UI Test 与 Roborazzi 运行真实导航和 Feature，实现模块依赖仍只由组合根聚合。用户、设置、邮件使用确定性的内存仓库；测试不启动生产数据初始化、不访问数据库或网络。
