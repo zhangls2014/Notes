@@ -116,7 +116,7 @@ export PATH="$PATH:$ANDROID_HOME/platform-tools"
 ANDROID_HOME="$HOME/Library/Android/sdk" ./gradlew :androidApp:assembleDebug
 ```
 
-Release 签名信息保存在用户级 `~/.gradle/gradle.properties`，供所有 worktree 使用：
+Debug 和 Release 共用正式签名，签名信息保存在用户级 `~/.gradle/gradle.properties`，供所有 worktree 使用：
 
 ```properties
 notes.signing.path=/absolute/path/to/your.jks
@@ -127,11 +127,10 @@ notes.signing.keyPassword=***
 
 CI 可分别使用 `NOTES_SIGNING_PATH`、`NOTES_SIGNING_STORE_PASSWORD`、
 `NOTES_SIGNING_KEY_ALIAS` 和 `NOTES_SIGNING_KEY_PASSWORD` 环境变量。
-优先级为 Gradle 属性、环境变量、现有 `local.properties` 中的 `signing.*` 值。
-Debug 构建不需要 Release 签名；
-缺少任意签名值时，不配置 Release 签名。Android Studio 仍可能生成被 Git 忽略的
-`local.properties`，无需把它复制到新 worktree，也不要提交凭据。已有的
-`local.properties` 签名配置仍然可用。
+优先级为 Gradle 属性、环境变量，不再从 `local.properties` 读取签名信息。
+Debug 和 Release 始终使用正式签名配置，构建前必须补全上述配置；
+缺失或无效的签名配置会导致构建失败。Android Studio 仍可能生成被 Git 忽略的
+`local.properties`，无需把它复制到新 worktree，也不要提交凭据。
 
 ## 构建与运行
 
