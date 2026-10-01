@@ -26,6 +26,7 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -769,7 +770,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
     settle()
     val tabs = listOf("Home", "Favorites", "Settings").map {
-      compose.onNodeWithText(it).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+      compose.onNode(hasText(it) and hasClickAction()).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
     }
     org.junit.Assert.assertTrue(tabs.zipWithNext().all { (a, b) -> a.bottom <= b.top })
     val screen = compose.onNodeWithTag("screen").fetchSemanticsNode().boundsInRoot
@@ -781,7 +782,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     capture("navigation-rail")
     compose.onNodeWithText("Settings").performClick()
     waitFor("Font size")
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     compose.onNodeWithText("Home").performClick()
     waitFor("Adaptive review")
@@ -856,7 +857,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     users.userFlow.value = UserModel("test", "Reviewer", "test-only")
     launch()
     waitFor("Adaptive review")
-    compose.onNodeWithText(tab).performClick()
+    compose.onNode(hasText(tab) and hasClickAction()).performClick()
     settle()
     val baseline = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
     compose.onNodeWithText("Adaptive review").performClick()
@@ -904,7 +905,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     val baseline = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
     // 取侧栏标签覆盖的横向范围，整段高度都不能被页面动画覆盖。
-    val railRight = compose.onNodeWithText("Favorites").fetchSemanticsNode().boundsInRoot.right.toInt()
+    val railRight = compose.onNode(hasText("Favorites") and hasClickAction()).fetchSemanticsNode().boundsInRoot.right.toInt()
     fun assertRailUnchanged(phase: String) {
       val frame = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
       var changed = 0
@@ -949,7 +950,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(5)
     settle()
     val homeBounds = compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
     waitFor("Reply all")
@@ -958,7 +959,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     restoration.emulateSavedInstanceStateRestore()
     settle()
     compose.onNodeWithText("Font size").assertIsDisplayed()
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Reply all")
     compose.onNodeWithText("Home").performClick()
     settle()
@@ -977,7 +978,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Window layout 6").assertIsSelected()
     val homeBounds = compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot
 
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").assertIsNotSelected()
     compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(2)
@@ -989,7 +990,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onNodeWithText("Window layout 6").assertIsSelected()
     org.junit.Assert.assertEquals(homeBounds, compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot)
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     settle()
     compose.onNodeWithText("Window layout 5").assertIsNotSelected()
     org.junit.Assert.assertEquals(favoriteBounds, compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot)
@@ -1002,7 +1003,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
     waitFor("Reply all")
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Window layout 3")
     compose.onNodeWithText("Window layout 3").performClick()
     waitFor("Reply all")
@@ -1012,7 +1013,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onNodeWithText("Reply all").assertIsDisplayed()
     compose.onAllNodesWithText("Adaptive review").onLast().assertIsDisplayed()
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     settle()
     compose.onNodeWithText("Reply all").assertIsDisplayed()
     compose.onAllNodesWithText("Window layout 3").onLast().assertIsDisplayed()
@@ -1024,18 +1025,18 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     launch()
     waitFor("Adaptive review")
     for (tab in listOf("Favorites", "Settings")) {
-      compose.onNodeWithText(tab).performClick()
+      compose.onNode(hasText(tab) and hasClickAction()).performClick()
       settle()
       compose.runOnIdle {
         val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
         org.junit.Assert.assertFalse("$tab root must release system Back", dispatcher.hasEnabledCallbacks())
       }
     }
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
     waitFor("Reply all")
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     compose.onNodeWithText("Reply all").assertExists()
     // 双栏已同时展示列表和详情；收窄后再验证页面级返回的归属。
     compose.runOnIdle { width = 400 }
@@ -1046,7 +1047,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onNodeWithText("Reply all").assertDoesNotExist()
     compose.onNodeWithText("Adaptive review").assertIsDisplayed()
-    compose.onNodeWithText("Favorites").assertIsSelected()
+    compose.onNode(hasText("Favorites") and hasClickAction()).assertIsSelected()
   }
 
   @Test fun tabSwitchDisposesAnInFlightDetailTransition() {
@@ -1071,7 +1072,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.onNodeWithText("Reply all").assertDoesNotExist()
       compose.onNodeWithText("Adaptive review").assertDoesNotExist()
       // 连续切换只展示目标 Tab；切回首页恢复详情，不恢复中途的动画。
-      compose.onNodeWithText("Favorites").performClick()
+      compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
       compose.mainClock.advanceTimeByFrame()
       compose.onNodeWithText("Home").performClick()
       compose.mainClock.advanceTimeBy(1000)
@@ -1122,7 +1123,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.runOnIdle { width = if (width < 840) 900 else 400 }
     compose.onNodeWithText("Reply all").assertExists()
     compose.runOnIdle { width = scenario.width }
-    compose.onNodeWithText("Favorites").performClick()
+    compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     capture("favorites")
     compose.onAllNodesWithText("Settings").onFirst().performClick()

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="email_label_favorites">收藏</string>
     <string name="email_action_new_email">新建邮件</string>
     <string name="email_action_email_reply">回复</string>
     <string name="email_action_email_reply_all">回复全部</string>
