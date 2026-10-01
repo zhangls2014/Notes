@@ -5,13 +5,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.MapPreferences
+import me.zhanghai.compose.preference.Preferences
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.theme.toColor
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.compose.resources.stringResource
 import me.zhanghai.compose.preference.ProvidePreferenceLocals as ProvideLocals
 
@@ -30,7 +34,11 @@ import me.zhanghai.compose.preference.ProvidePreferenceLocals as ProvideLocals
  */
 @Composable
 fun ProvidePreferenceLocals(content: @Composable () -> Unit) {
-  ProvideLocals(content = content)
+  // 行控件的值和回调由消费方提供，不使用底层库的持久化存储。
+  // 默认 flow 会读取整个 NSUserDefaults 域；UIKit 写入的嵌套字典不受库支持，
+  // 导致 iOS 进入设置页时抛异常，也会意外引入第二套设置数据源。
+  val flow = remember { MutableStateFlow<Preferences>(MapPreferences()) }
+  ProvideLocals(flow = flow, content = content)
 }
 
 /**
