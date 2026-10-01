@@ -1,8 +1,7 @@
-package me.zhangls.login
+package me.zhangls.theme.layout
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -10,7 +9,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import kotlinx.coroutines.delay
@@ -20,7 +18,7 @@ private const val KeyboardHandoffDelayMillis = 200L
 private const val KeyboardHandoffWindowMillis = 400L
 
 @Composable
-internal actual fun Modifier.loginImePadding(focusState: LoginInputFocusState): Modifier {
+actual fun rememberImeHandoffInsets(focusState: ImeHandoffFocusState): WindowInsets {
   val ime = WindowInsets.ime
   val density = LocalDensity.current
   var expiredGeneration by remember(ime, density, focusState) {
@@ -48,13 +46,11 @@ internal actual fun Modifier.loginImePadding(focusState: LoginInputFocusState): 
       }
   }
 
-  val protectedIme = remember(ime, density, focusState) {
+  return remember(ime, density, focusState) {
     object : WindowInsets by ime {
       override fun getBottom(density: Density): Int =
         // Read during measurement: taller keyboards and normal dismissal never wait for a flow.
         maxOf(ime.getBottom(density), if (protectHandoff()) retainedBottom else 0)
     }
   }
-  // Keep normal inset consumption, including space already reserved for system bars.
-  return windowInsetsPadding(protectedIme)
 }

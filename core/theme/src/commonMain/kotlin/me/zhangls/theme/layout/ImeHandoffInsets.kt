@@ -1,25 +1,23 @@
-package me.zhangls.login
+package me.zhangls.theme.layout
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 
-internal enum class LoginInput { Account, Password }
-
-/** Records the handoff in the focus callback, before the keyboard can send new insets. */
+/** Records input handoffs in focus callbacks before the keyboard can send new insets. */
 @Stable
-internal class LoginInputFocusState {
-  var focusedInput by mutableStateOf<LoginInput?>(null)
+class ImeHandoffFocusState {
+  var focusedInput by mutableStateOf<Any?>(null)
     private set
   var handoffGeneration by mutableIntStateOf(0)
     private set
-  private var lastInput: LoginInput? = null
+  private var lastInput: Any? = null
 
-  fun onFocusChanged(input: LoginInput, focused: Boolean) {
+  fun onFocusChanged(input: Any, focused: Boolean) {
     if (focused) {
       if (lastInput != null && lastInput != input) handoffGeneration++
       lastInput = input
@@ -30,6 +28,6 @@ internal class LoginInputFocusState {
   }
 }
 
-/** Platform IME avoidance, including Android's ordinary/security keyboard handoff. */
+/** IME insets with temporary Android protection for handoffs between form fields. */
 @Composable
-internal expect fun Modifier.loginImePadding(focusState: LoginInputFocusState): Modifier
+expect fun rememberImeHandoffInsets(focusState: ImeHandoffFocusState): WindowInsets

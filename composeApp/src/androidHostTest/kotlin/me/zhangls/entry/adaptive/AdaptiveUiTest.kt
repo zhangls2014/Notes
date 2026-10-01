@@ -395,6 +395,57 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Save").performScrollTo().assertIsDisplayed()
   }
 
+  @Test fun draftKeyboardHandoffKeepsViewportWithoutDelayingDismissal() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithContentDescription("New email").performClick()
+    waitFor("Recipients")
+    settle()
+    val sheetScroll = compose.onAllNodes(hasScrollAction()).onLast()
+    val withoutIme = sheetScroll.fetchSemanticsNode().boundsInWindow.height
+    val dialog = checkNotNull(org.robolectric.shadows.ShadowDialog.getLatestDialog())
+    fun ime(height: Int) {
+      compose.runOnIdle {
+        val insets = androidx.core.view.WindowInsetsCompat.Builder()
+          .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, height))
+          .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), height > 0)
+          .build()
+        androidx.core.view.ViewCompat.dispatchApplyWindowInsets(dialog.window!!.decorView, insets)
+      }
+      compose.mainClock.advanceTimeByFrame()
+      compose.waitForIdle()
+    }
+    compose.onNodeWithText("Subject").performClick()
+    ime(220)
+    settle()
+    val withIme = sheetScroll.fetchSemanticsNode().boundsInWindow.height
+    org.junit.Assert.assertTrue(withIme < withoutIme)
+    org.junit.Assert.assertEquals("Sheet must reserve the keyboard once", 216f, withIme, 0.5f)
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onNodeWithText("Body").performClick()
+      ime(0)
+      repeat(6) { frame ->
+        compose.mainClock.advanceTimeByFrame()
+        org.junit.Assert.assertEquals("Draft handoff frame $frame", withIme,
+          sheetScroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      }
+      ime(260)
+      org.junit.Assert.assertTrue("Taller replacement keyboard must remain visible",
+        sheetScroll.fetchSemanticsNode().boundsInWindow.height < withIme)
+      val tallerViewport = sheetScroll.fetchSemanticsNode().boundsInWindow.height
+      compose.mainClock.advanceTimeBy(500)
+      ime(160)
+      val smallerViewport = sheetScroll.fetchSemanticsNode().boundsInWindow.height
+      org.junit.Assert.assertTrue("Normal dismissal grows the viewport on the first inset frame",
+        smallerViewport > tallerViewport && smallerViewport < withoutIme)
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
   @Test fun noHingeKeepsThePreferredListWidthWithTheDetailPlaceholder() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
     users.userFlow.value = UserModel("test", "Reviewer", "test-only")
