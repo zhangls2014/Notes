@@ -105,3 +105,7 @@ Compose Preview Screenshot Testing 的 Android 插件没有提供本项目所需
 开启候选录制时，新增 `*-measured-search-collapsed.png` 和 `*-measured-search-long-query-*.png`，仅写入 `composeApp/build/adaptive-candidates/`，不覆盖正式基线。
 
 本次 `AdaptiveUiTest` 全量执行 357 项，65 项通过、292 项按场景条件跳过，0 失败；iOS 模拟器 Kotlin 编译通过。候选图在桌面与 610dp 场景确认搜索框保持原有留白，长查询的停靠面板与锚点对齐。正式视觉基线未自动更新。
+
+## 登录输入框 UI（2026-10-01）
+
+账户和密码使用圆角描边与浮动标签，错误支持文本按需显示。`loginInputActionsAreAccessible` 在 400×500dp、深色、大字号场景验证清空账户、密码显隐、字段标签保留、短密码错误提示可达和登录禁用。原有 `loginFitsAndRetainsInputOnResize`、登录 IME 系列继续守卫 Tab 焦点、窗口变化、输入保留和键盘交接。候选图包括 `*-login.png`、`*-login-input-visible.png` 和 `*-login-input-error.png`，正式基线未更新。

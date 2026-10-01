@@ -15,6 +15,8 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performScrollToIndex
@@ -211,6 +213,31 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onAllNodes(isRoot()).fetchSemanticsNodes().indices.forEach { index ->
       compose.onAllNodes(isRoot())[index].captureRoboImage(imagePath("$screen-$index"))
     }
+  }
+
+  @Test fun loginInputActionsAreAccessible() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x500", "large-font", "dark"))
+    launch()
+    compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
+    compose.onAllNodes(hasSetTextAction())[0].performTextInput("reviewer")
+    compose.onNodeWithContentDescription("Clear account").assertHasClickAction().performClick()
+    org.junit.Assert.assertEquals("", compose.onAllNodes(hasSetTextAction())[0].fetchSemanticsNode()
+      .config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text)
+    compose.onAllNodes(hasSetTextAction())[1].performTextInput("Test1234")
+    compose.onNodeWithContentDescription("Show password").performClick()
+    compose.onNodeWithContentDescription("Hide password").assertHasClickAction()
+    compose.onNodeWithText("Test1234").assertExists()
+    capture("login-input-visible")
+    compose.onNodeWithContentDescription("Hide password").performClick()
+    compose.onNodeWithContentDescription("Show password").assertExists()
+    compose.onNodeWithText("Account").assertExists()
+    compose.onNodeWithText("Password").assertExists()
+    compose.onAllNodes(hasSetTextAction())[0].performTextInput("reviewer")
+    compose.onAllNodes(hasSetTextAction())[1].performTextReplacement("short")
+    compose.onNodeWithText("Password must be at least 8 characters").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Log in").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
+    compose.runOnIdle { focusManager.clearFocus() }
+    capture("login-input-error")
   }
 
   @Test fun loginFitsAndRetainsInputOnResize() {

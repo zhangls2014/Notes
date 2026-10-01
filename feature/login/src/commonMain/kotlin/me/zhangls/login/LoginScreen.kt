@@ -3,7 +3,6 @@
 package me.zhangls.login
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -22,10 +21,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -80,11 +81,14 @@ import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.contentWidth
 import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.login.generated.resources.Res
+import notes.feature.login.generated.resources.login_action_clear_account
+import notes.feature.login.generated.resources.login_action_hide_password
 import notes.feature.login.generated.resources.login_action_login
+import notes.feature.login.generated.resources.login_action_show_password
 import notes.feature.login.generated.resources.login_brand_name
 import notes.feature.login.generated.resources.login_brand_tagline
-import notes.feature.login.generated.resources.login_hint_login_account
-import notes.feature.login.generated.resources.login_hint_login_password
+import notes.feature.login.generated.resources.login_label_account
+import notes.feature.login.generated.resources.login_label_password
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -329,35 +333,32 @@ private fun AccountInput(
   val focusManager = LocalFocusManager.current
   val inputError = accountError.text()
 
-  TextField(
+  OutlinedTextField(
     value = account,
     onValueChange = { onAccountChange(it) },
     singleLine = true,
     isError = inputError.isNotEmpty(),
     textStyle = MaterialTheme.typography.bodyLarge,
     shape = MaterialTheme.shapes.large,
-    placeholder = { Text(text = stringResource(Res.string.login_hint_login_account)) },
+    label = { Text(text = stringResource(Res.string.login_label_account)) },
+    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
     modifier = modifier
-      .padding(start = 32.dp, end = 32.dp, top = 16.dp)
+      .padding(horizontal = 32.dp)
       .fillMaxWidth(),
     leadingIcon = { Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null) },
     trailingIcon = {
       if (account.isNotEmpty()) {
-        Icon(
-          imageVector = Icons.Rounded.Clear,
-          contentDescription = null,
-          modifier = Modifier.clickable { onClearAccount() }
-        )
+        IconButton(onClick = onClearAccount) {
+          Icon(
+            imageVector = Icons.Rounded.Clear,
+            contentDescription = stringResource(Res.string.login_action_clear_account),
+          )
+        }
       }
     },
-    supportingText = {
-      Text(
-        text = inputError,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.error,
-        modifier = Modifier.padding(horizontal = 36.dp)
-      )
-    },
+    supportingText = if (inputError.isNotEmpty()) {
+      { Text(text = inputError) }
+    } else null,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
   )
@@ -375,39 +376,33 @@ private fun PasswordInput(
 ) {
   val inputError = passwordError.text()
 
-  TextField(
+  OutlinedTextField(
     value = password,
     onValueChange = { onPasswordChange(it) },
     singleLine = true,
     isError = inputError.isNotEmpty(),
     textStyle = MaterialTheme.typography.bodyLarge,
     shape = MaterialTheme.shapes.large,
-    placeholder = { Text(text = stringResource(Res.string.login_hint_login_password)) },
+    label = { Text(text = stringResource(Res.string.login_label_password)) },
+    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
     modifier = modifier
       .padding(horizontal = 32.dp)
       .fillMaxWidth(),
     leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
     trailingIcon = {
-      Icon(
-        imageVector = if (passwordVisible) {
-          Icons.Rounded.VisibilityOff
-        } else {
-          Icons.Rounded.Visibility
-        },
-        contentDescription = null,
-        modifier = Modifier.clickable { onPasswordVisibleChange(passwordVisible.not()) }
-      )
+      IconButton(onClick = { onPasswordVisibleChange(!passwordVisible) }) {
+        Icon(
+          imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+          contentDescription = stringResource(
+            if (passwordVisible) Res.string.login_action_hide_password else Res.string.login_action_show_password,
+          ),
+        )
+      }
     },
     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-    supportingText = {
-      Text(
-        text = inputError,
-        style = MaterialTheme.typography.bodySmall,
-        minLines = 2,
-        color = MaterialTheme.colorScheme.error,
-        modifier = Modifier.padding(horizontal = 36.dp)
-      )
-    },
+    supportingText = if (inputError.isNotEmpty()) {
+      { Text(text = inputError) }
+    } else null,
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go, keyboardType = KeyboardType.Password),
     keyboardActions = KeyboardActions(onGo = { onLogin() })
   )
