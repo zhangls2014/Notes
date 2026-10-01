@@ -208,6 +208,7 @@ internal fun EmailSearchBar(
   } else {
     ExpandedDockedSearchBar(
       state = searchBarState,
+      properties = dockedSearchPopupProperties(),
       // 只填满 Material 从收起态锚点读取的宽度。
       inputField = { inputField(Modifier.fillMaxWidth(), false) },
       content = outputField
