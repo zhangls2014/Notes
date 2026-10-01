@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -76,8 +77,10 @@ import me.zhangls.theme.icon.Lock
 import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
 import me.zhangls.theme.layout.ContentWidth
+import me.zhangls.theme.layout.ImeHandoffFocusState
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.contentWidth
+import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_brand_name
@@ -188,9 +191,9 @@ private fun FormPane(
   onIntent: (LoginIntent) -> Unit,
   onLoginClick: () -> Unit,
 ) {
-  val inputFocus = remember { LoginInputFocusState() }
+  val inputFocus = remember { ImeHandoffFocusState() }
   BoxWithConstraints(
-    modifier = Modifier.fillMaxSize().loginImePadding(inputFocus),
+    modifier = Modifier.fillMaxSize().windowInsetsPadding(rememberImeHandoffInsets(inputFocus)),
   ) {
     val viewportHeight = constraints.maxHeight
     Column(
@@ -231,7 +234,7 @@ private fun FormPane(
 
             AccountInput(
               modifier = Modifier.padding(top = 40.dp)
-                .onFocusChanged { inputFocus.onFocusChanged(LoginInput.Account, it.isFocused) },
+                .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
               account = state.account,
               accountError = state.accountError,
               onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
@@ -240,7 +243,7 @@ private fun FormPane(
 
             PasswordInput(
               modifier = Modifier.padding(top = 16.dp)
-                .onFocusChanged { inputFocus.onFocusChanged(LoginInput.Password, it.isFocused) },
+                .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
               password = state.password,
               passwordError = state.passwordError,
               passwordVisible = state.passwordVisible,

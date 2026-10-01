@@ -1,6 +1,7 @@
 package me.zhangls.email.component
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -24,11 +26,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.AccountModel
+import me.zhangls.theme.layout.ImeHandoffFocusState
+import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.allDrawableResources
 import notes.feature.email.generated.resources.email_action_cancel
@@ -70,7 +76,14 @@ internal fun NewEmailSheet(
     enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
   )
 
-  ModalBottomSheet(onDismissRequest = { if (!isSending) onDismiss() }, sheetState = sheetState) {
+  val inputFocus = remember { ImeHandoffFocusState() }
+  ModalBottomSheet(
+    onDismissRequest = { if (!isSending) onDismiss() },
+    sheetState = sheetState,
+    contentWindowInsets = {
+      BottomSheetDefaults.modalWindowInsets.union(rememberImeHandoffInsets(inputFocus))
+    },
+  ) {
     Column(
       modifier = Modifier
         .fillMaxWidth()
@@ -108,7 +121,7 @@ internal fun NewEmailSheet(
         onValueChange = onSubjectChange,
         enabled = !isSending,
         label = { Text(text = stringResource(Res.string.email_label_subject)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().onFocusChanged { inputFocus.onFocusChanged("subject", it.isFocused) },
       )
 
       OutlinedTextField(
@@ -116,7 +129,7 @@ internal fun NewEmailSheet(
         onValueChange = onBodyChange,
         enabled = !isSending,
         label = { Text(text = stringResource(Res.string.email_label_body)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().onFocusChanged { inputFocus.onFocusChanged("body", it.isFocused) },
         minLines = 4,
       )
 
