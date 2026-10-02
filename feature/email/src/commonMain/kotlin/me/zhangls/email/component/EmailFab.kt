@@ -8,6 +8,12 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.zhangls.theme.icon.Edit
@@ -27,6 +33,22 @@ internal fun NewEmailFab(
   listState: LazyListState,
   onOpenDraft: () -> Unit,
 ) {
+  // LazyListState 只恢复位置，不恢复滚动方向；布局前 canScrollBackward 也为 false。
+  // 单独恢复展开状态，避免切回 Tab 时先展开再收起。
+  var expanded by rememberSaveable { mutableStateOf(true) }
+  LaunchedEffect(listState) {
+    snapshotFlow {
+      if (listState.isScrollInProgress &&
+        (listState.lastScrolledForward || listState.lastScrolledBackward)
+      ) {
+        listState.lastScrolledBackward || !listState.canScrollBackward
+      } else {
+        null
+      }
+    }.collect { scrollingExpanded ->
+      if (scrollingExpanded != null) expanded = scrollingExpanded
+    }
+  }
   ExtendedFloatingActionButton(
     text = {
       Text(
@@ -50,6 +72,6 @@ internal fun NewEmailFab(
       }
     },
     onClick = { if (!isSending) onOpenDraft() },
-    expanded = listState.lastScrolledBackward || listState.canScrollBackward.not(),
+    expanded = expanded,
   )
 }
