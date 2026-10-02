@@ -884,6 +884,48 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
   }
 
+  @Test fun singlePaneDetailAndToolbarBackUsePredictiveScale() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x500", "610x400"))
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    val listBefore = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onNodeWithText("Adaptive review").performClick()
+      compose.mainClock.advanceTimeBy(80)
+      val page = compose.onNodeWithTag("email-detail-page")
+      val entering = page.fetchSemanticsNode().boundsInRoot
+      compose.mainClock.advanceTimeBy(1000)
+      val full = page.fetchSemanticsNode().boundsInRoot
+      org.junit.Assert.assertTrue("Detail scales up on entry: $entering -> $full", entering.width < full.width - 1f)
+      org.junit.Assert.assertEquals("Entry keeps center X", full.center.x, entering.center.x, 1f)
+      org.junit.Assert.assertEquals("Entry keeps center Y", full.center.y, entering.center.y, 1f)
+      org.junit.Assert.assertEquals("Entry preserves aspect ratio", full.height / full.width, entering.height / entering.width, 0.01f)
+      compose.onNodeWithContentDescription("Back").performClick()
+      compose.mainClock.advanceTimeBy(80)
+      val exiting = page.fetchSemanticsNode().boundsInRoot
+      org.junit.Assert.assertTrue("Detail scales down on toolbar back: $full -> $exiting", exiting.width < full.width - 1f)
+      org.junit.Assert.assertEquals("Return keeps center X", full.center.x, exiting.center.x, 1f)
+      org.junit.Assert.assertEquals("Return keeps center Y", full.center.y, exiting.center.y, 1f)
+      org.junit.Assert.assertEquals("Return preserves aspect ratio", full.height / full.width, exiting.height / exiting.width, 0.01f)
+      org.junit.Assert.assertTrue("The revealed list stays in place",
+        compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().any { it.boundsInRoot == listBefore })
+      compose.mainClock.advanceTimeBy(1000)
+      org.junit.Assert.assertEquals(listBefore,
+        compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot)
+      page.assertDoesNotExist()
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
   @Test fun homePredictiveBackCommitKeepsFullyRevealedListInPlace() {
     assertPredictiveBackCommitKeepsListInPlace("Home")
   }
@@ -966,6 +1008,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.mainClock.advanceTimeBy(80)
       assertRailUnchanged("enter")
       compose.mainClock.advanceTimeBy(1000)
+      val detailFull = compose.onNodeWithTag("email-detail-page").fetchSemanticsNode().boundsInRoot
       compose.runOnIdle {
         val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
         dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
@@ -982,6 +1025,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       }
       compose.mainClock.advanceTimeBy(80)
       assertRailUnchanged("pop")
+      val afterCancellation = compose.onNodeWithTag("email-detail-page").fetchSemanticsNode().boundsInRoot
+      org.junit.Assert.assertTrue("Return still scales after cancelling a gesture", afterCancellation.width < detailFull.width - 1f)
+      org.junit.Assert.assertEquals(detailFull.center.x, afterCancellation.center.x, 1f)
+      org.junit.Assert.assertEquals(detailFull.center.y, afterCancellation.center.y, 1f)
     } finally {
       compose.mainClock.autoAdvance = true
     }

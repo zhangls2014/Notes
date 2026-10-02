@@ -1,5 +1,18 @@
 # 自适应 UI 回归
 
+## 单窗格详情进入与普通返回缩放（2026-10-02）
+
+单窗格详情进入与按钮/系统普通返回复用预测返回的中心缩放几何和曲线：进入时从缩小状态放大至完整页面，返回时缩小退出；时长 220ms，水平缩减 48dp、纵向缩减 24dp，内部比例补偿保持文字和图片比例。列表在转场期间保持原位，导航侧栏和底部栏不参与缩放；物理圆角与遮罩沿用预测返回的绘制层。取消预测返回后再执行普通返回，会恢复圆角可见度，避免沿用取消动画结束时的零圆角状态。
+
+`singlePaneDetailAndToolbarBackUsePredictiveScale` 在 400×500dp 和 610×400dp 下开启动画、固定时钟，检查进入与工具栏返回的中间帧缩放、页面中心及纵横比，并确认退出后详情移除、列表保持原位。修改前两组均在页面中心断言失败，修改后通过。`landscapeDetailTransitionsStayOutsideNavigationRail` 另检查取消手势后的普通返回仍有中心缩放，并以像素断言检查导航侧栏不被覆盖。既有首页/收藏预测返回提交和安全区回归通过。
+
+全套自适应行为回归 86 项实际执行、509 项按场景跳过，0 失败；Android DevFull Debug 构建与 iOS 模拟器 Kotlin 编译通过。补充取消手势后的缩放断言另在两组横屏配置通过。真机已断开，当前改动尚未完成设备视觉验收。
+
+```bash
+./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' \
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+```
+
 ## 搜索结果导航后返回与旋转恢复（2026-10-02）
 
 搜索结果点击原先并行启动收起动画与详情导航。单窗格导航移除列表组合时，会取消仍在进行的动画；Navigation Entry 保存的 `SearchBarState` 因而包含未完成的展开进度。返回后搜索弹层再次出现，旋转重建还会继续恢复这个进度。

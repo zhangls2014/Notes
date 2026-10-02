@@ -45,7 +45,7 @@ private const val PredictiveMotionDuration = 220
 private val SheetBackEasing = CubicBezierEasing(0.1f, 0.1f, 0f, 1f)
 private val LocalPredictiveGestureProgress = staticCompositionLocalOf<() -> Float?> { { null } }
 
-/** No opacity transitions. Predictive transforms follow the Material bottom sheet gesture curve. */
+/** Single-page entry, return and predictive back share the Material bottom sheet scale curve. */
 @Composable
 internal fun <T : Any> DeviceCornerNavDisplay(
   entries: List<NavEntry<T>>,
@@ -106,13 +106,12 @@ private data class DeviceCornerScene<T : Any>(
     val gestureProgress = readGestureProgress()
     var predictiveExit by remember { mutableStateOf(false) }
     val cornerVisibility = remember { Animatable(1f) }
-    // Keep predictive scenes alive for gesture completion/cancellation only.
+    // Keep both pages mounted during entry/return; the list underneath stays untransformed.
     val timelineProgress by transition.animateFloat(
       transitionSpec = {
-        tween(if (gestureProgress != null || predictiveExit) PredictiveMotionDuration else 0,
-          easing = LinearEasing)
+        tween(PredictiveMotionDuration, easing = LinearEasing)
       },
-      label = "predictive scene lifetime",
+      label = "page scale progress",
     ) { if (it == EnterExitState.Visible) 0f else 1f }
     SideEffect {
       if (gestureProgress != null && transition.currentState == EnterExitState.Visible &&
@@ -136,12 +135,18 @@ private data class DeviceCornerScene<T : Any>(
     // first progress event would expose an empty frame before the scene seek effect has run.
     val outgoing = predictiveExit || (gestureProgress != null &&
       transition.currentState == EnterExitState.Visible && transition.targetState == EnterExitState.PostExit)
-    fun motionProgress(): Float = if (outgoing) {
+    val ordinaryMotion = delegate.previousEntries.isNotEmpty() &&
+      (transition.currentState != EnterExitState.Visible || transition.targetState != EnterExitState.Visible)
+    val transforming = outgoing || ordinaryMotion
+    LaunchedEffect(ordinaryMotion, predictiveExit) {
+      if (ordinaryMotion && !predictiveExit) cornerVisibility.snapTo(1f)
+    }
+    fun motionProgress(): Float = if (transforming) {
       SheetBackEasing.transform((readGestureProgress() ?: timelineProgress).coerceIn(0f, 1f))
     } else 0f
     val backdropVisibility = remember { Animatable(1f) }
     LaunchedEffect(outgoing, gestureProgress != null) {
-      if (outgoing && gestureProgress != null) {
+      if (!predictiveExit || (outgoing && gestureProgress != null)) {
         backdropVisibility.snapTo(1f)
       } else if (outgoing) {
         backdropVisibility.animateTo(0f, tween(PredictiveMotionDuration))
@@ -149,7 +154,7 @@ private data class DeviceCornerScene<T : Any>(
     }
     // Untransformed backdrop draws over the previous page and below the scaled current page.
     Box(Modifier.fillMaxSize().drawBehind {
-      if (outgoing) {
+      if (transforming) {
         drawRect(Color.Gray.copy(alpha = 0.24f * motionProgress() * backdropVisibility.value))
       }
     }) {
@@ -169,11 +174,11 @@ private data class DeviceCornerScene<T : Any>(
           scaleY = if (pose.scaleY > 0f) pose.scaleX / pose.scaleY else 1f
           transformOrigin = TransformOrigin(0.5f, 0.5f)
           // This layer is the visible page. Its total X/Y scale is pose.scaleX on both axes.
-          clip = outgoing
+          clip = transforming
           if (corners != null) {
             shape = DeviceCornerShape(corners, pose.scaleX, pose.scaleX, cornerVisibility.value)
           }
-        }.background(if (outgoing) MaterialTheme.colorScheme.background else Color.Transparent)) {
+        }.background(if (transforming) MaterialTheme.colorScheme.background else Color.Transparent)) {
           delegate.content()
         }
       }
