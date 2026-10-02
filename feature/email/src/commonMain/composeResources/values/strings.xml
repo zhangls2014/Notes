@@ -2,6 +2,9 @@
 <resources>
     <string name="email_label_favorites">Favorites</string>
     <string name="email_action_new_email">New email</string>
+    <string name="email_action_open_email">Open email</string>
+    <string name="email_action_select_email">Select email</string>
+    <string name="email_action_deselect_email">Deselect email</string>
     <string name="email_action_email_reply">Reply</string>
     <string name="email_action_email_reply_all">Reply all</string>
     <string name="email_hint_search">Search</string>

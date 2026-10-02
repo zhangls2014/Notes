@@ -20,6 +20,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.EmailModel
+import notes.feature.email.generated.resources.Res
+import notes.feature.email.generated.resources.email_action_open_email
+import notes.feature.email.generated.resources.email_action_select_email
+import notes.feature.email.generated.resources.email_action_deselect_email
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -37,18 +42,25 @@ fun EmailListItem(
   isOpened: Boolean = false,
   isSelected: Boolean = false,
   navigateToDetail: (Long) -> Unit,
-  toggleSelection: (Long) -> Unit,
+  // null 表示此列表不支持选择，也不暴露长按动作。
+  toggleSelection: ((Long) -> Unit)?,
   onFavoriteClick: (Long) -> Unit = {},
 ) {
+  val selectionLabel = stringResource(
+    if (isSelected) Res.string.email_action_deselect_email else Res.string.email_action_select_email,
+  )
+  val openLabel = stringResource(Res.string.email_action_open_email)
   Card(
     modifier = modifier
       .semantics { selected = isSelected }
       .clip(MaterialTheme.shapes.large)
       .combinedClickable(
+        onClickLabel = if (isMultiSelect && toggleSelection != null) selectionLabel else openLabel,
         onClick = {
-          if (isMultiSelect) toggleSelection(model.id) else navigateToDetail(model.id)
+          if (isMultiSelect && toggleSelection != null) toggleSelection(model.id) else navigateToDetail(model.id)
         },
-        onLongClick = { toggleSelection(model.id) },
+        onLongClickLabel = if (toggleSelection != null) selectionLabel else null,
+        onLongClick = toggleSelection?.let { toggle -> { toggle(model.id) } },
       ),
     shape = MaterialTheme.shapes.large,
     colors = CardDefaults.cardColors(
