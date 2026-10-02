@@ -791,7 +791,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   }
 
   @Test fun detailPredictiveBackIncludesStatusBarSafeArea() {
-    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x500", "400x1000"))
     users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")

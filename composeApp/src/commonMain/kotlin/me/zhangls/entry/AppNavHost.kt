@@ -2,7 +2,6 @@ package me.zhangls.entry
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
-import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
@@ -16,7 +15,6 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.savedstate.serialization.SavedStateConfiguration
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.emailNavEntry
@@ -29,7 +27,6 @@ import me.zhangls.login.loginNavEntry
 import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.mainNavEntries
-import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.ProvideModalViewport
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 
@@ -97,28 +94,8 @@ fun AppNavHost(
     onDeepLinkConsumed()
   }
 
-  // 列表-详情由**场景策略**装配：哪个目的地进列表栏、哪个进详情栏写在各自的条目元数据里
-  // （见 `mainNavEntries`），窗格的数量与宽度由 directive 按窗口形态决定。
-  //
-  // directive 来自 `LocalPaneScaffoldDirective`（组合根算的那一份），既不自己算、
-  // 也不吃库的默认参数 —— 默认参数会自己再调一次 `currentWindowAdaptiveInfoV2()`，
-  // 于是同一帧里出现第二个窗口读取点，分屏拖拽 / 折叠时可能与外壳读到的不一致。
-  //
-  // 真正只有一个分区时让 Nav3 的页面场景接管返回手势：adaptive-navigation3 的
-  // 单栏预测返回只把窗格推进约 10%，无法完整预览上一页。有多个分区时即使当前
-  // 只有列表条目，也保留场景与详情空态，避免打开第一封邮件时列表突然缩窄。
-  val paneDirective = LocalPaneScaffoldDirective.current
+  val sceneStrategies = rememberAppSceneStrategies<NavKey>()
   val hasHinge = LocalWindowAdaptiveInfo.current.windowPosture.hingeList.isNotEmpty()
-  val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>(
-    shouldHandleSinglePaneLayout =
-      paneDirective.maxHorizontalPartitions > 1 || paneDirective.maxVerticalPartitions > 1,
-    directive = paneDirective,
-  )
-  val paneSceneStrategy = remember(listDetailSceneStrategy, hasHinge) {
-    // 无铰链：先预留整个场景的系统安全区，再按默认首选宽度分配列表与详情。
-    // 有铰链：保留物理分区的坐标，仅在各窗格内消费其实际遇到的系统安全区。
-    if (hasHinge) listDetailSceneStrategy else SafeAreaSceneStrategy(listDetailSceneStrategy)
-  }
 
   // 所有栈的装饰器持续留在组合中，非活动 Entry 的保存状态及 ViewModel 因而不被清除。
   // 只把活动栈交给 NavDisplay；非活动页面不会绘制，也不会处理返回事件。
@@ -184,7 +161,7 @@ fun AppNavHost(
         DeviceCornerNavDisplay(
           entries = entriesByRoot.getValue(navigationState.selectedRoot),
           onBack = { navHandler(NavEffect.Popup) },
-          sceneStrategies = listOf(paneSceneStrategy, SinglePaneSceneStrategy()),
+          sceneStrategies = sceneStrategies,
         )
       }
     }
