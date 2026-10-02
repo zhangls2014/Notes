@@ -1,5 +1,18 @@
 # 自适应 UI 回归
 
+## 首页新建邮件按钮状态恢复（2026-10-02）
+
+`tabSwitchPreservesNewEmailFabSize` 开启动画后检查切回首页的连续 12 帧，覆盖收起状态、列表未到顶部时的展开状态，以及页面重建后展开状态恢复和继续滚动。修复前收起按钮在恢复帧从 56dp 变为 141dp，修复后保持原宽度。按钮单独使用 `rememberSaveable` 保存展开状态，只在实际滚动时更新，避免使用列表恢复期间未初始化的滚动方向和可滚动状态。
+
+该回归与现有 `tabStateRestores*` 测试、iOS 模拟器 Kotlin 编译均通过。定向命令：
+
+```bash
+./gradlew :composeApp:testAndroidHostTest \
+  --tests '*AdaptiveUiTest.tabSwitchPreservesNewEmailFabSize*' \
+  --tests '*AdaptiveUiTest.tabStateRestores*' \
+  :composeApp:compileKotlinIosSimulatorArm64
+```
+
 ## Material 3 Expressive 迁移（2026-10-01）
 
 共享主题已迁移为 MaterialExpressiveTheme，字体、容器和按钮形变也已统一。新增 `ExpressiveThemeTest` 验证普通组合子树的动态色、深浅色和字号切换，以及强调字重与正文尺寸；迁移前强调字重断言失败，迁移后两项通过。`Typography(fontFamily = FontFamily.Default)` 避免兼容无参构造器将强调样式映射回普通样式。

@@ -19,6 +19,8 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
@@ -994,6 +996,61 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onNodeWithText("Window layout 5").assertIsNotSelected()
     org.junit.Assert.assertEquals(favoriteBounds, compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot)
+  }
+
+  @Test fun tabSwitchPreservesNewEmailFabSize() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x1000")
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
+    users.userFlow.value = UserModel("test", "Reviewer")
+    val restoration = StateRestorationTester(compose)
+    launch(restoration)
+    waitFor("Adaptive review")
+    val fab = compose.onNodeWithContentDescription("New email")
+    val expandedWidth = fab.fetchSemanticsNode().boundsInRoot.width
+    compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput { swipeUp() }
+    settle()
+    val collapsedWidth = fab.fetchSemanticsNode().boundsInRoot.width
+    org.junit.Assert.assertTrue("Scrolling down collapses the FAB", collapsedWidth < expandedWidth)
+
+    fun switchAwayAndBack(expectedWidth: Float) {
+      compose.onNode(hasText("Settings") and hasClickAction()).performClick()
+      waitFor("Font size")
+      compose.mainClock.autoAdvance = false
+      try {
+        compose.onNode(hasText("Home") and hasClickAction()).performClick()
+        // Inspect the restoration frames as well as the settled result.
+        repeat(12) {
+          compose.mainClock.advanceTimeByFrame()
+          org.junit.Assert.assertEquals("Tab restoration must preserve FAB width", expectedWidth,
+            fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+        }
+      } finally {
+        compose.mainClock.autoAdvance = true
+      }
+      settle()
+      org.junit.Assert.assertEquals(expectedWidth, fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+    }
+
+    switchAwayAndBack(collapsedWidth)
+    compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput {
+      swipeDown(startY = centerY, endY = centerY + 120f)
+    }
+    settle()
+    org.junit.Assert.assertEquals("Scrolling toward the top expands the FAB", expandedWidth,
+      fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+    switchAwayAndBack(expandedWidth)
+    restoration.emulateSavedInstanceStateRestore()
+    settle()
+    org.junit.Assert.assertEquals("Recreation preserves the expanded FAB away from the top", expandedWidth,
+      fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+    compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput { swipeUp() }
+    settle()
+    org.junit.Assert.assertEquals("Restored FAB still responds to scrolling", collapsedWidth,
+      fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
   }
 
   @Test fun tabStateRestoresEachOpenedDetail() {
