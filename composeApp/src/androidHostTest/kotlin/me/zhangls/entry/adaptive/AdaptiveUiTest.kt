@@ -129,6 +129,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   ).around(compose)
   private val users = AdaptiveUsers()
   private var width by mutableStateOf(scenario.width)
+  private var height by mutableStateOf(scenario.height)
   private var flat by mutableStateOf(scenario.fold?.endsWith("flat") == true)
   private var verticalHingeCenter: Float? = null
   private lateinit var focusManager: androidx.compose.ui.focus.FocusManager
@@ -154,9 +155,9 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       inputModeManager = androidx.compose.ui.platform.LocalInputModeManager.current
       focusManager = androidx.compose.ui.platform.LocalFocusManager.current
       Box(Modifier.fillMaxSize()) {
-        Box(Modifier.requiredSize(width.dp, scenario.height.dp).testTag("screen")) {
+        Box(Modifier.requiredSize(width.dp, height.dp).testTag("screen")) {
           ProvideWindowAdaptiveInfo(
-            WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, scenario.height),
+            WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, height),
             posture(),
           ) {
             ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
@@ -598,6 +599,49 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
     compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
+    compose.onAllNodes(hasSetTextAction()).onLast().assertIsFocused()
+  }
+
+  @Test fun searchResultNavigationKeepsSearchClosedAfterReturnAndRotation() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "610x400"))
+    users.userFlow.value = UserModel("test", "Reviewer")
+    val restoration = StateRestorationTester(compose)
+    launch(restoration)
+    waitFor("Adaptive review")
+    settle()
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    compose.onAllNodes(hasSetTextAction()).onLast().performTextInput("Adaptive")
+    compose.waitUntil(10_000) { compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().size == 2 }
+    // The last matching row belongs to the search window, the first to the list behind it.
+    compose.onAllNodesWithText("Adaptive review").onLast().performTouchInput { click() }
+    waitFor("Reply all")
+    settle()
+    compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    compose.onNode(androidx.compose.ui.test.isPopup()).assertDoesNotExist()
+    compose.runOnIdle {
+      checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
+    }
+    settle()
+    compose.onNodeWithText("Reply all").assertDoesNotExist()
+    compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    // Rotate the content window and recreate its saved composition, as Android does on rotation.
+    compose.runOnIdle {
+      width = scenario.height
+      height = scenario.width
+    }
+    restoration.emulateSavedInstanceStateRestore()
+    settle()
+    compose.onNodeWithContentDescription("Close search").assertDoesNotExist()
+    compose.onNode(androidx.compose.ui.test.isPopup()).assertDoesNotExist()
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
     compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
     compose.onAllNodes(hasSetTextAction()).onLast().assertIsFocused()
   }

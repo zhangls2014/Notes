@@ -92,9 +92,12 @@ internal fun EmailSearchBar(
   val scope = rememberCoroutineScope()
   val inputModeManager = LocalInputModeManager.current
 
-  val closeSearchBar: () -> Unit = {
+  val clearSearchQuery: () -> Unit = {
     textFieldState.clearText()
     viewModel.sendIntent(SearchIntent.UpdateSearchText(""))
+  }
+  val closeSearchBar: () -> Unit = {
+    clearSearchQuery()
     scope.launch { searchBarState.animateToCollapsed() }
   }
 
@@ -158,8 +161,14 @@ internal fun EmailSearchBar(
         val searchText = textFieldState.text.toString()
         viewModel.sendIntent(SearchIntent.UpdateSearchText(searchText))
         viewModel.sendIntent(SearchIntent.SaveSearchHistory(searchText))
-        closeSearchBar()
-        onResultClick(it)
+        scope.launch {
+          // 单窗格导航会移除列表组合并取消此作用域。先收起弹层，避免 Entry
+          // 保存未完成的动画进度，返回或旋转后恢复成悬浮的搜索窗口。
+          searchBarState.animateToCollapsed()
+          clearSearchQuery()
+          viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(SearchBarValue.Collapsed))
+          onResultClick(it)
+        }
       }
     }
   }
@@ -170,7 +179,8 @@ internal fun EmailSearchBar(
   LaunchedEffect(searchBarState.currentValue) {
     viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
-      closeSearchBar()
+      // 只清理查询，不再次启动动画；重复收起会取消结果点击正在等待的动画。
+      clearSearchQuery()
     }
   }
 

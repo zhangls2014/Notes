@@ -1,5 +1,21 @@
 # 自适应 UI 回归
 
+## 搜索结果导航后返回与旋转恢复（2026-10-02）
+
+搜索结果点击原先并行启动收起动画与详情导航。单窗格导航移除列表组合时，会取消仍在进行的动画；Navigation Entry 保存的 `SearchBarState` 因而包含未完成的展开进度。返回后搜索弹层再次出现，旋转重建还会继续恢复这个进度。
+
+现在等待搜索收起完成后再进入详情，并清空查询、回写收起状态。展开状态监听只清理查询，不再重复启动收起动画，避免取消结果点击正在等待的动画。
+
+`searchResultNavigationKeepsSearchClosedAfterReturnAndRotation` 开启动画，覆盖 400×1000dp 竖屏与 610×400dp 单窗格横屏：搜索结果进入详情、返回列表、宽高交换及保存状态恢复后，搜索弹层均须消失，重新展开仍可输入。修复前两组均在返回后的收起断言失败，修复后通过。相关搜索测试共 15 项实际执行、138 项按场景跳过，0 失败；Android DevFull Debug 构建和 iOS 模拟器 Kotlin 编译通过。
+
+已在连接的 Android 真机上观察到旧版本返回时的残留弹层，并覆盖安装修复版；用户随后在真机验证，确认问题已修复。
+
+```bash
+./gradlew :composeApp:testAndroidHostTest \
+  --tests '*AdaptiveUiTest.*Search*' --tests '*AdaptiveUiTest.search*' \
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+```
+
 ## 首页新建邮件按钮状态恢复（2026-10-02）
 
 `tabSwitchPreservesNewEmailFabSize` 开启动画后检查切回首页的连续 12 帧，覆盖收起状态、列表未到顶部时的展开状态，以及页面重建后展开状态恢复和继续滚动。修复前收起按钮在恢复帧从 56dp 变为 141dp，修复后保持原宽度。按钮单独使用 `rememberSaveable` 保存展开状态，只在实际滚动时更新，避免使用列表恢复期间未初始化的滚动方向和可滚动状态。
