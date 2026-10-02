@@ -6,6 +6,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.zhangls.data.DataModule
+import me.zhangls.about.AboutModule
 import me.zhangls.entry.data.InitData
 import me.zhangls.email.EmailModule
 import me.zhangls.framework.FrameworkModule
@@ -31,7 +32,8 @@ import org.koin.plugin.module.dsl.startKoin
     LoginModule::class,
     MainModule::class,
     SettingsModule::class,
-    ProfileModule::class
+    ProfileModule::class,
+    AboutModule::class
   ]
 )
 @ComponentScan("me.zhangls.entry")

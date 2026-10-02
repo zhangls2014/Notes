@@ -20,6 +20,11 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.savedstate.serialization.SavedStateConfiguration
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.about.aboutNavEntry
+import me.zhangls.about.api.AboutDestination
+import me.zhangls.entry.util.AppInfo
+import me.zhangls.entry.util.toAboutAppInfo
+import org.koin.compose.koinInject
 import me.zhangls.email.emailNavEntry
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
@@ -58,6 +63,8 @@ fun AppNavHost(
   // 各 feature 对导航的贡献（key 的序列化登记 + DeepLink 匹配）由它们自己的 Koin 模块以
   // 多绑定登记，组合根只收集，不持有任何 feature 的路由知识：新增 feature 时这里零改动。
   val navigationRegistry = rememberNavigationRegistry()
+  val platformAppInfo = koinInject<AppInfo>()
+  val aboutAppInfo = remember(platformAppInfo) { platformAppInfo.toAboutAppInfo() }
 
   // 返回栈的序列化配置。remember 住：每次重组新建一个 SerializersModule 毫无意义，
   // 还会让 rememberNavBackStack 依赖的配置对象持续变化。
@@ -132,11 +139,13 @@ fun AppNavHost(
             navHandler(NavEffect.Navigate(EmailDetailDestination(emailId, scene)))
           },
           navigateToProfile = { origin -> navHandler(NavEffect.Navigate(ProfileDestination(origin))) },
+          navigateToAbout = { navHandler(NavEffect.Navigate(AboutDestination)) },
           onLogout = { navHandler(Restart(LoginDestination())) },
         )
 
         emailNavEntry { effect -> navHandler(effect) }
         profileNavEntry { effect -> navHandler(effect) }
+        aboutNavEntry(aboutAppInfo) { effect -> navHandler(effect) }
 
         loginNavEntry { result, destination ->
           if (result == LoginResult.Success) {
@@ -167,7 +176,7 @@ fun AppNavHost(
       AppShell(
         selected = selectedTab,
         onSelectTab = selectTab,
-        showNavigation = backStack.lastOrNull() !is ProfileDestination,
+        showNavigation = backStack.lastOrNull() !is ProfileDestination && backStack.lastOrNull() !is AboutDestination,
       ) {
         Box(Modifier.graphicsLayer { alpha = readAlpha() }) {
           // The old display is removed at the invisible midpoint; only the selected stack

@@ -3,6 +3,7 @@ package me.zhangls.entry
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.about.api.AboutDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.login.api.LoginDestination
@@ -15,6 +16,16 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class TabNavigationTest {
+  @Test
+  fun aboutBelongsToSettingsAndIsNotInterceptedByLogin() {
+    val state = navigationState(NavBackStack<NavKey>(SettingsDestination))
+    val handler = NavHandler(state) { false }
+    handler(NavEffect.Navigate(AboutDestination))
+    assertEquals(listOf<NavKey>(SettingsDestination, AboutDestination), state.backStack.toList())
+    handler(NavEffect.Popup)
+    assertEquals(listOf<NavKey>(SettingsDestination), state.backStack.toList())
+  }
+
   private fun navigationState(initial: NavBackStack<NavKey>): AppNavigationState {
     val root = initial.first().stackRoot()
     return AppNavigationState(

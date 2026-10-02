@@ -827,7 +827,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assert.assertTrue(tabs.all { it.center.x < 150f })
     capture("navigation-rail")
     compose.onNodeWithText("Settings").performClick()
-    waitFor("Font size")
+    waitFor("Personal information")
     compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     compose.onNodeWithText("Home").performClick()
@@ -1089,6 +1089,38 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assert.assertEquals(favoriteBounds, compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot)
   }
 
+  @Test fun aboutPageOpensFromSettingsAndReturnsToItsTab() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000", "large-font", "dark"))
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNode(hasText("Settings") and hasClickAction()).performClick()
+    waitFor("Font size")
+    compose.onNode(hasScrollAction()).performScrollToNode(hasText("About app"))
+    compose.onNodeWithText("About app").performScrollTo().performClick()
+    waitFor("Version information")
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    settle()
+    compose.onNodeWithText("Build number").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Check for updates").performScrollTo().assertIsDisplayed()
+    org.junit.Assert.assertFalse(
+      "Update checking is not available yet",
+      compose.onAllNodes(hasText("Check for updates") and hasClickAction()).fetchSemanticsNodes().isNotEmpty(),
+    )
+    compose.onNodeWithContentDescription("Back").performClick()
+    waitFor("About app")
+    compose.onNodeWithText("About app").assertIsDisplayed()
+    compose.onNode(hasText("Settings") and hasClickAction()).assertIsSelected()
+    compose.onNodeWithText("About app").performClick()
+    waitFor("Version information")
+    compose.onNodeWithText("Build number").assertDoesNotExist()
+    compose.runOnIdle {
+      checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
+    }
+    waitFor("About app")
+    compose.onNode(hasText("Settings") and hasClickAction()).assertIsSelected()
+  }
+
   @Test fun tabSwitchPreservesNewEmailFabSize() {
     org.junit.Assume.assumeTrue(scenario.name == "400x1000")
     android.provider.Settings.Global.putFloat(
@@ -1321,7 +1353,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
     capture("favorites")
     compose.onAllNodesWithText("Settings").onFirst().performClick()
-    waitFor("Font size")
+    waitFor("Personal information")
     capture("settings")
     compose.onNodeWithText("Home").performClick()
     // 首页恢复刚才的详情；先在单栏返回列表，再继续验证列表浮层。

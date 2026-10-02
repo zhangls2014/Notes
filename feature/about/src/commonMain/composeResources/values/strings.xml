@@ -1,0 +1,13 @@
+<resources>
+  <string name="about_title">About app</string>
+  <string name="about_brand_description">App information and updates</string>
+  <string name="about_version_information">Version information</string>
+  <string name="about_version">Version</string>
+  <string name="about_build_number">Build number</string>
+  <string name="about_check_updates">Check for updates</string>
+  <string name="about_coming_soon">Coming soon</string>
+  <string name="about_update_description">New versions and release notes</string>
+  <string name="about_unknown">Unknown</string>
+  <string name="about_expanded">Build information expanded</string>
+  <string name="about_collapsed">Build information collapsed</string>
+</resources>

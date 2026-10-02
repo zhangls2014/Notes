@@ -8,6 +8,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.about.api.AboutDestination
+import me.zhangls.about.api.AboutNavigation
 import me.zhangls.email.api.EmailNavigation
 import me.zhangls.framework.nav.NavigationContribution
 import me.zhangls.login.api.LoginDestination
@@ -44,7 +46,7 @@ import kotlin.test.assertEquals
 class NavBackStackSerializationTest {
 
   private val contributions: List<NavigationContribution> =
-    listOf(MainNavigation, LoginNavigation, EmailNavigation, ProfileNavigation)
+    listOf(MainNavigation, LoginNavigation, EmailNavigation, ProfileNavigation, AboutNavigation)
 
   private val json = Json {
     serializersModule = contributions.fold(SerializersModule { }) { acc, contribution ->
@@ -53,6 +55,13 @@ class NavBackStackSerializationTest {
   }
 
   private val serializer = NavBackStackSerializer(PolymorphicSerializer(NavKey::class))
+
+  @Test
+  fun aboutRestoresAboveSettingsWithoutRequiringLogin() {
+    val stack = NavBackStack<NavKey>(SettingsDestination, AboutDestination)
+    assertEquals(stack.toList(), roundTrip(stack).toList())
+    kotlin.test.assertFalse((AboutDestination as Any) is me.zhangls.framework.nav.RequireLogin)
+  }
 
   @Test
   fun `每个 Tab 目的地连同栈上压着的页面一起往返`() {

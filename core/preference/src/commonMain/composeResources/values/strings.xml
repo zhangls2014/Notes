@@ -22,4 +22,5 @@
   <!-- 退出登录 -->
   <string name="settings_label_logout">Log out</string>
   <string name="settings_label_profile">Personal information</string>
+  <string name="settings_label_about">About app</string>
 </resources>

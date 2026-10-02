@@ -4,4 +4,6 @@ package me.zhangls.entry.util
 interface AppInfo {
   fun getVersionCode(): Long
   fun getVersionName(): String
+  /** Raw platform build identifier; iOS can use a dotted string. */
+  fun getBuildNumber(): String?
 }

@@ -5,6 +5,7 @@ import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
 import me.zhangls.model.FontSizeConfig
 import me.zhangls.preference.DarkThemePreference
+import me.zhangls.preference.AboutPreference
 import me.zhangls.preference.DynamicColorPreference
 import me.zhangls.preference.FontSizePreference
 import me.zhangls.preference.LanguagePreference
@@ -48,6 +49,10 @@ internal fun SettingsModel.toPreferenceUiModels(
   add(darkThemePreference(darkTheme, sendIntent))
   add(fontSizePreference(fontSize, sendIntent))
   add(languagePreference(appLanguage, sendIntent))
+  add(PreferenceUiModel.Action(
+    spec = AboutPreference.spec,
+    onClick = { sendIntent(SettingsIntent.OpenAbout) },
+  ))
   // 退出登录
   add(logoutPreference(sendIntent))
 }
