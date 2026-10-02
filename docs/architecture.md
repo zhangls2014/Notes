@@ -43,7 +43,7 @@ Gradle 中启用的模块：
 :android:output:login
 ```
 
-`iosApp` 是 Xcode 工程，不是 `settings.gradle.kts` 中的 Gradle 模块。
+`settings.gradle.kts` 当前包含 23 个模块；`build-logic` 通过 `includeBuild` 提供约定插件，不计入这 23 个模块。`iosApp` 是 Xcode 工程，不是 Gradle 模块。
 
 ## 2. 模块职责
 
@@ -88,6 +88,20 @@ Gradle 中启用的模块：
 
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
+### 源码定位
+
+| 内容 | 当前路径 |
+|---|---|
+| 共享入口与装配 | `composeApp/src/commonMain/kotlin/me/zhangls/entry/`：`App.kt`、`AppNavHost.kt`、`NotesModule.kt`、`NavigationRegistry.kt` |
+| 返回栈与导航策略 | 同一包下的 `AppNavigationState.kt`、`NavHandler.kt`、`AppSceneStrategies.kt` |
+| Feature 稳定契约 | `feature/<name>-api/src/commonMain/kotlin/me/zhangls/<name>/api/` |
+| Feature 页面与实现 | `feature/<name>/src/commonMain/kotlin/me/zhangls/<name>/`，业务状态放在 `mvi/`，页面放在 `ui/` 或业务子包 |
+| 数据公开面与内部实现 | `core/data/src/commonMain/kotlin/me/zhangls/data/` |
+| 共享品牌与头像 | `core/theme/src/commonMain/kotlin/me/zhangls/theme/component/`：`AppBrand.kt`、`UserAvatar.kt` |
+| 构建约定 | `build-logic/src/main/kotlin/`；路径派生工具位于 `me/zhangls/convention/KmpConventions.kt` |
+
+共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`。关于应用页的安装包信息由组合根传入 `AboutViewModel`，构建号展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
+
 ## 3. 依赖规则
 
 ### Feature 边界
@@ -98,7 +112,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 - 只有 `composeApp` 依赖全部实现模块，并将实现绑定到 API 契约。
 - Core 不依赖 Feature。
 
-当前先例是 `feature:main` 依赖 `feature:email-api` 和 `feature:settings-api`，通过 `EmailEntry`、`SettingsEntry` 渲染内容，而不引用对方实现类型。
+当前 `feature:main` 依赖 `feature:email-api`、`feature:settings-api` 和 `feature:profile-api`：通过 `EmailEntry`、`SettingsEntry` 渲染 Tab 内容，通过 `ProfileOrigin` 标识个人信息入口。设置页仅发送 `SettingsResult.OpenProfile` / `OpenAbout`；main 将结果交给宿主回调，`composeApp` 注册 profile/about 的 Nav Entry，不在 Feature 之间装配实现。
 
 ### `api` 与 `implementation`
 
@@ -116,22 +130,29 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 `core:data` 分成两层：
 
 - 公开面：`model/`、`repository/`、`util/` 和 `DataModule.kt`；
-- 内部面：`impl/datastore/`、`impl/mapper/`、`impl/repository/`，实现类与 provider 为 `internal`。
+- 内部面：`impl/datastore/`、`impl/mapper/`、`impl/repository/`、`impl/security/`，实现类与 provider 为 `internal`。
 
 Repository 接口和对外模型不得出现 Room 类型。数据库模型与公开模型的转换集中在 mapper 中。
 
 ## 4. 构建约定
 
-`build-logic` 提供四个预编译约定插件：
+`build-logic` 提供五个预编译约定插件：
 
 | 插件 | 用途 |
 |---|---|
-| `me.zhangls.kmp-library` | KMP、Android/iOS target、namespace 和 framework 基础配置 |
+| `me.zhangls.kmp-library` | KMP、JDK toolchain、Android/iOS target、Android 宿主测试、namespace、framework 和 detekt 配置 |
 | `me.zhangls.kmp-compose` | Compose runtime、foundation、UI、resources 和 Material 3 |
 | `me.zhangls.kmp-compose-api` | 仅为 Feature API 注入 Compose runtime 与编译器 |
-| `me.zhangls.kmp-koin` | Koin 注解、BOM 和 KSP 编译器 |
+| `me.zhangls.kmp-koin` | Koin 注解、BOM、Koin 编译器插件，并应用 KSP 插件供 Room 使用 |
+| `me.zhangls.detekt` | 根配置、各模块 baseline、手写 KMP 源集扫描和报告 |
 
 新增 Feature API 使用 `me.zhangls.kmp-compose-api`，不要自行重复配置 Compose 插件。依赖版本统一来自 `gradle/kmp.versions.toml`。
+
+Koin 由 `io.insert-koin.compiler.plugin` 处理注解，通过 `org.koin.plugin.module.dsl` 装配，不使用 Koin KSP 生成模块。Room 的 KSP compiler 依赖由 `core:database` 显式配置到 Android、iOS 设备和模拟器 target，schema 由 `room3` 插件导出。
+
+共享模块统一启用 Android `withHostTest {}`；包含 Compose UI 的宿主测试目前位于 `composeApp`、`feature:email` 和 `feature:profile`，由各模块启用 Android 资源并声明 Robolectric/Compose 测试依赖。iOS target 为 `iosArm64` 与 `iosSimulatorArm64`，均输出静态 framework。测试选择与命令见 [测试指南](testing/README.md)。
+
+`me.zhangls.detekt` 扫描各模块实际存在的 Kotlin 源集，排除构建生成目录，使用模块自己的 `config/detekt/baseline.xml`。根 `detekt` 无源集，不能代表项目检查通过。
 
 ## 5. 运行时架构
 

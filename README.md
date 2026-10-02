@@ -8,6 +8,8 @@ Notes 是一个使用 Kotlin Multiplatform 与 Compose Multiplatform 构建的�
 - 首页、收藏、邮件详情和搜索
 - 邮件分页、批量操作与写邮件
 - 语言、主题、动态取色、字号和退出登录设置
+- 个人信息展示与头像修改
+- 关于应用、版本信息与构建号展示
 - Deep Link 打开邮件详情
 - 手机、平板、桌面窗口与折叠设备自适应布局
 - Android 与 iOS 共享 Compose UI
@@ -31,11 +33,13 @@ Notes/
 │   ├── main / main-api         # 应用外壳和顶层 Tab
 │   ├── login / login-api       # 登录
 │   ├── email / email-api       # 邮件列表、收藏、详情、搜索和写信
-│   └── settings / settings-api # 设置
+│   ├── settings / settings-api # 设置清单、行为与入口结果
+│   ├── profile / profile-api   # 个人信息与头像修改
+│   └── about / about-api       # 关于应用与版本信息
 ├── android/
 │   ├── baselineprofile         # Android 基线配置文件
 │   └── output/login            # 实验性 Fused Library
-├── build-logic                 # KMP、Compose、Koin 约定插件
+├── build-logic                 # KMP、Compose、Koin、detekt 约定插件
 └── docs                        # 架构、操作指南和历史审计
 ```
 
@@ -45,7 +49,7 @@ Notes/
 
 ## 技术栈
 
-版本以 `gradle/kmp.versions.toml` 为唯一来源。当前主要版本：
+版本以 `gradle/kmp.versions.toml` 为唯一来源。以下版本对应当前版本目录，升级依赖时同步此表：
 
 | 类别 | 技术或版本 |
 |---|---|
@@ -53,11 +57,12 @@ Notes/
 | JVM target | 21 |
 | Android Gradle Plugin | 9.3.2 |
 | Android SDK | compile/target 37，min 28 |
-| Compose Multiplatform | 1.12.0 |
+| Compose Multiplatform | 1.12.1 |
+| Material 3 | 1.12.0-alpha03，Expressive 主题 |
 | Material 3 Adaptive | 1.3.0-rc01 |
-| Navigation 3 | 1.1.1 |
-| Koin | 4.2.2，注解与 KSP |
-| Room | 3.0.2 |
+| Navigation 3 | 1.1.2 |
+| Koin | 4.2.2，注解与编译器插件 1.2.1 |
+| Room | 3.0.3，KSP 生成 |
 | Paging | 3.5.1 |
 | Ktor | 3.6.0 |
 
@@ -67,7 +72,7 @@ Notes/
 
 依赖从 `composeApp` 流向 Feature 实现、Feature API 和 Core。`core:data` 以 `implementation` 依赖 `core:database`，因此 Room 类型不会传递到 Feature；Repository 接口只暴露 `core:data` 的公开模型。
 
-`core:preference` 以同样方式隐藏底层设置控件库。设置元数据和通用渲染位于 Core，当前值来自数据层，行为和清单由 `feature:settings` 拥有。
+`core:preference` 以同样方式隐藏底层设置控件库。设置元数据和通用渲染位于 Core，当前值来自数据层，行为和清单由 `feature:settings` 拥有。个人信息和关于应用分别由独立 Feature 实现；设置页通过 `SettingsResult` 通知宿主打开页面，由 `composeApp` 装配导航。
 
 ### MVI
 
@@ -157,12 +162,18 @@ Debug 和 Release 始终使用正式签名配置，构建前必须补全上述�
 ### 测试与静态检查
 
 ```bash
-./gradlew :composeApp:iosSimulatorArm64Test
-./gradlew :core:data:iosSimulatorArm64Test
+# 共享逻辑与 Android UI 宿主测试
+./gradlew :composeApp:testAndroidHostTest :core:data:testAndroidHostTest \
+  :feature:profile:testAndroidHostTest :feature:email:testAndroidHostTest
+
+# iOS 平台及共享测试
+./gradlew :composeApp:iosSimulatorArm64Test :core:data:iosSimulatorArm64Test
+
+# Android 静态检查
 ./gradlew :androidApp:lintDevFullDebug
 ```
 
-Android 宿主没有统一的根 `test` task；共享测试通过 iOS 模拟器 target 执行。更多命令和 OOM 参数见 [AGENTS.md](AGENTS.md)。
+KMP 约定插件通过 `withHostTest {}` 为共享模块启用 `testAndroidHostTest`，可在宿主 JVM 运行 `commonTest` 与 `androidHostTest`；`iosTest` 仍通过 iOS target 执行。按修改范围选择模块，不依赖统一的根 `test` task。源码分布、导航定向回归与检查命令见 [测试指南](docs/testing/README.md)，更多硬约束和 OOM 参数见 [AGENTS.md](AGENTS.md)。
 
 ## Deep Link 调试
 

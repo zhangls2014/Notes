@@ -18,15 +18,20 @@ Notes 是 Kotlin Multiplatform 应用，使用 Compose Multiplatform、Navigatio
 # iOS 编译验证
 ./gradlew :composeApp:compileKotlinIosSimulatorArm64
 
-# commonTest 通过 iOS 模拟器执行
+# 共享逻辑与 Android 宿主回归（按改动选择模块）
+./gradlew :composeApp:testAndroidHostTest :core:data:testAndroidHostTest
+./gradlew :feature:profile:testAndroidHostTest :feature:email:testAndroidHostTest
+
+# iOS 平台与 commonTest 通过模拟器执行
 ./gradlew :composeApp:iosSimulatorArm64Test
 ./gradlew :core:data:iosSimulatorArm64Test
 
 # 自适应 UI 宿主测试；截图候选与基线命令见 docs/testing/adaptive-ui.md
 ./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*'
 
-# Android lint；根 detekt 无源集，不作为有效检查
+# Android lint；根 detekt 无源集，不作为有效检查；按模块运行 detekt
 ./gradlew :androidApp:lintDevFullDebug
+./gradlew :feature:profile:detekt
 
 # 实验性 Fused Library
 ./gradlew :android:output:login:assemble
@@ -39,6 +44,8 @@ Notes 是 Kotlin Multiplatform 应用，使用 Compose Multiplatform、Navigatio
   -Dkotlin.daemon.jvmargs=-Xmx8g \
   -Dorg.gradle.jvmargs="-Xmx8g -Dfile.encoding=UTF-8 -XX:+UseParallelGC"
 ```
+
+按改动范围选择测试与平台检查，源集及专项回归见 [测试指南](docs/testing/README.md)。
 
 iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint 报告位于 `androidApp/build/reports/lint-results-*.html` / `.sarif`。
 
