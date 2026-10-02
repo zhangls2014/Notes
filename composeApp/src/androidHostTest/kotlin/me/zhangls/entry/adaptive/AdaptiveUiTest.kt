@@ -1113,12 +1113,17 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.mainClock.autoAdvance = false
       try {
         compose.onNode(hasText("Home") and hasClickAction()).performClick()
-        // Inspect the restoration frames as well as the settled result.
-        repeat(12) {
+        // Inspect from the first restored frame, after the old Tab has faded out.
+        var restoredFrames = 0
+        repeat(24) {
           compose.mainClock.advanceTimeByFrame()
-          org.junit.Assert.assertEquals("Tab restoration must preserve FAB width", expectedWidth,
-            fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+          if (compose.onAllNodesWithContentDescription("New email").fetchSemanticsNodes().isNotEmpty()) {
+            restoredFrames++
+            org.junit.Assert.assertEquals("Tab restoration must preserve FAB width", expectedWidth,
+              fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+          }
         }
+        org.junit.Assert.assertTrue("Inspect at least 12 restored frames", restoredFrames >= 12)
       } finally {
         compose.mainClock.autoAdvance = true
       }
@@ -1198,6 +1203,47 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNode(hasText("Favorites") and hasClickAction()).assertIsSelected()
   }
 
+  @Test fun tabsFadeThroughAndRapidSelectionKeepsLastTarget() {
+    org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+    )
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onNodeWithText("Settings").performClick()
+      compose.mainClock.advanceTimeByFrame()
+      compose.onNode(hasText("Settings") and hasClickAction()).assertIsSelected()
+      compose.onNodeWithText("Adaptive review").assertExists()
+      compose.onNodeWithText("Font size").assertDoesNotExist()
+      compose.mainClock.advanceTimeBy(120)
+      compose.onNodeWithText("Adaptive review").assertDoesNotExist()
+      compose.onNodeWithText("Font size").assertExists()
+      val during = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
+      compose.mainClock.advanceTimeBy(1000)
+      val finished = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
+      var changed = 0
+      // Exclude rail/bar indicators and ripples; compare only the page content.
+      for (y in 0 until during.height - 100) for (x in during.width / 2 until during.width) {
+        if (during[x, y] != finished[x, y]) changed++
+      }
+      org.junit.Assert.assertTrue("The target content must visibly fade in", changed > 100)
+      compose.onNodeWithText("Home").performClick()
+      compose.mainClock.advanceTimeByFrame()
+      compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
+      compose.mainClock.advanceTimeBy(1000)
+      compose.onNode(hasText("Favorites") and hasClickAction()).assertIsSelected()
+      compose.onNodeWithText("Adaptive review").assertExists()
+      compose.onNodeWithText("Font size").assertDoesNotExist()
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
   @Test fun tabSwitchDisposesAnInFlightDetailTransition() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
     android.provider.Settings.Global.putFloat(
@@ -1214,7 +1260,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.onNodeWithText("Adaptive review").performClick()
       compose.mainClock.advanceTimeByFrame()
       compose.onNodeWithText("Settings").performClick()
-      compose.mainClock.advanceTimeByFrame()
+      compose.mainClock.advanceTimeBy(120)
       compose.waitForIdle()
       compose.onNodeWithText("Font size").assertExists()
       compose.onNodeWithText("Reply all").assertDoesNotExist()
