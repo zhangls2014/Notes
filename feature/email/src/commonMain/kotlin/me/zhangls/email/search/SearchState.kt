@@ -7,7 +7,7 @@ import me.zhangls.data.model.UserModel
 import me.zhangls.framework.mvi.MviState
 
 /**
- * 含 [UserModel]（accessToken / refreshToken）—— 属敏感数据，依赖 MviViewModel 的默认
+ * 含 [UserModel]（用户资料）—— 属用户数据，依赖 MviViewModel 的默认
  * 非持久化行为，不要为它指定 savedKey。
  *
  * @author zhangls

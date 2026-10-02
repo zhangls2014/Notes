@@ -30,6 +30,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(kmp.kotlin.test)
+        implementation(kmp.jetbrains.kotlinx.coroutines.test)
       }
     }
   }

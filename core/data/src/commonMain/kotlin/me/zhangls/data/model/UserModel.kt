@@ -9,8 +9,6 @@ import kotlinx.serialization.Serializable
 data class UserModel(
   val id: String,
   val nickname: String,
-  val accessToken: String,
-  val refreshToken: String = "",
   val avatar: String? = null,
   val emailSearchHistory: List<String> = emptyList(),
 )

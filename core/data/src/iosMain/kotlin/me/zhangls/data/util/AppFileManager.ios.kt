@@ -6,6 +6,7 @@ import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
+import platform.Foundation.NSURLIsExcludedFromBackupKey
 import platform.Foundation.NSUserDomainMask
 
 
@@ -33,6 +34,9 @@ actual class AppFileManager {
   private fun getDataStoreDirectory(): String {
     val datastoreDir = supportDir() + "/datastore"
     createDir(datastoreDir)
+    check(NSURL.fileURLWithPath(datastoreDir).setResourceValue(true, forKey = NSURLIsExcludedFromBackupKey, error = null)) {
+      "Unable to exclude preferences from backup"
+    }
     return datastoreDir
   }
 

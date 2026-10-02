@@ -403,7 +403,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun draftActionsRemainReachableAboveIme() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("New email").performClick()
@@ -427,7 +427,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun draftKeyboardHandoffKeepsViewportWithoutDelayingDismissal() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("New email").performClick()
@@ -478,7 +478,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun noHingeKeepsThePreferredListWidthWithTheDetailPlaceholder() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -491,7 +491,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun noHingeUsesPreferredWidthsInsideTheSafeAreaForEitherCutoutSide() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -521,7 +521,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun singlePaneStillAvoidsDisplayCutout() {
     org.junit.Assume.assumeTrue(scenario.name == "400x400")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -535,7 +535,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   @Test fun physicalHingeKeepsItsBoundaryWhenSystemInsetsChange() {
     org.junit.Assume.assumeTrue(scenario.name == "book-half")
     verticalHingeCenter = 320f
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -575,7 +575,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun returningFromDetailKeepsSearchCollapsed() {
     org.junit.Assume.assumeTrue(scenario.name == "400x1000")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -602,7 +602,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun landscapeSearchExpansionDoesNotJumpToFinalHeight() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -627,7 +627,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun longSearchQueryKeepsMeasuredWidth() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "610x1000", "900x1000", "desktop"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -658,7 +658,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun restoredSearchUsesEmptyQueryMeasuredWidth() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("610x1000", "desktop"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     val restoration = StateRestorationTester(compose)
     launch(restoration)
     waitFor("Adaptive review")
@@ -681,7 +681,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun measuredSearchWidthShrinksAndRecoversWithWindow() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -714,7 +714,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun expandedSearchKeepsQueryWhenWindowWidthChanges() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("Search").performTouchInput { click() }
@@ -734,7 +734,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun searchCanReopenAfterCancellation() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     repeat(3) {
@@ -750,7 +750,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun collapsedSearchRemainsKeyboardAccessible() {
     org.junit.Assume.assumeTrue(scenario.name == "900x1000")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.runOnIdle { inputModeManager.requestInputMode(InputMode.Keyboard) }
@@ -765,7 +765,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun compactHeightNavigationIsVerticalAndAllDestinationsRemainReachable() {
     org.junit.Assume.assumeTrue(scenario.width >= 600 && scenario.height < 480)
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -790,7 +790,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun detailPredictiveBackIncludesStatusBarSafeArea() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.runOnIdle {
@@ -854,7 +854,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNode(hasText(tab) and hasClickAction()).performClick()
@@ -899,7 +899,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -943,7 +943,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabStateRestoresInactiveStacksAndScrollAfterRecreation() {
     org.junit.Assume.assumeTrue(scenario.name == "400x1000")
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     val restoration = StateRestorationTester(compose)
     launch(restoration)
     waitFor("Adaptive review")
@@ -969,7 +969,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabStateRestoresScrollAndSelectionIndependently() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(5)
@@ -998,7 +998,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabStateRestoresEachOpenedDetail() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -1021,7 +1021,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabRootsReleaseBackAndDetailsReturnToFavorites() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     for (tab in listOf("Favorites", "Settings")) {
@@ -1057,7 +1057,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1086,7 +1086,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun settingsLogoutDialogKeepsCancelAndConfirmReachable() {
     org.junit.Assume.assumeTrue(scenario.name in setOf("400x500", "large-font", "dark"))
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only")
+    users.userFlow.value = UserModel("test", "Reviewer")
     launch()
     compose.onAllNodesWithText("Settings").onFirst().performClick()
     waitFor("Font size")
@@ -1106,7 +1106,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   }
 
   @Test fun mainDestinationsAndOverlays() {
-    users.userFlow.value = UserModel("test", "Reviewer", "test-only", emailSearchHistory = listOf("Adaptive", "Window"))
+    users.userFlow.value = UserModel("test", "Reviewer", emailSearchHistory = listOf("Adaptive", "Window"))
     launch()
     waitFor("Adaptive review")
     capture("home")
