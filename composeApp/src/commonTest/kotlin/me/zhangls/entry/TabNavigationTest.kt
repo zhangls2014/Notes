@@ -9,6 +9,8 @@ import me.zhangls.login.api.LoginDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
+import me.zhangls.profile.api.ProfileDestination
+import me.zhangls.profile.api.ProfileOrigin
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -19,6 +21,21 @@ class TabNavigationTest {
       NavBackStack(root),
       navigationRoots.associateWith { if (it == root) initial else NavBackStack<NavKey>() },
     )
+  }
+
+  @Test
+  fun profilePreservesOriginThroughLoginGuardAndReturn() {
+    for ((origin, root) in listOf(ProfileOrigin.Home to HomeDestination, ProfileOrigin.Settings to SettingsDestination)) {
+      val profile = ProfileDestination(origin)
+      val state = navigationState(NavBackStack<NavKey>(root))
+      val handler = NavHandler(state) { false }
+      handler(NavEffect.Navigate(profile))
+      assertEquals(listOf<NavKey>(LoginDestination(redirectTo = profile)), state.backStack.toList())
+      handler(NavEffect.Replace(profile), isLogin = true)
+      assertEquals(listOf<NavKey>(root, profile), state.backStack.toList())
+      handler(NavEffect.Popup)
+      assertEquals(listOf<NavKey>(root), state.backStack.toList())
+    }
   }
 
   @Test

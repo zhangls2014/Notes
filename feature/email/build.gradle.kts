@@ -38,11 +38,6 @@ kotlin {
         // Paging3
         implementation(kmp.androidx.paging.compose)
 
-        // Coil
-        implementation(kmp.coil.compose)
-        implementation(kmp.coil.network.ktor)
-
-        implementation(kmp.calf.file.picker)
       }
     }
 

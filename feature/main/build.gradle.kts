@@ -20,6 +20,8 @@ kotlin {
         implementation(projects.feature.mainApi)
 
         implementation(projects.feature.settingsApi)
+        // ProfileOrigin is part of mainNavEntries' public callback contract.
+        api(projects.feature.profileApi)
 
         // 自适应布局：导航套件（Rail / 底部导航栏）与窗口尺寸类。
         // adaptive-layout 与 adaptive-navigation 由本模块的代码直接用不到，故不显式声明

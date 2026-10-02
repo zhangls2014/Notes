@@ -1,6 +1,6 @@
 plugins {
   id("me.zhangls.kmp-library")
-  // 契约里只有 @Composable 入口，故只注入 compose-runtime（见约定插件）
+  // 入口使用 Compose Runtime，结果契约由 framework 提供。
   id("me.zhangls.kmp-compose-api")
 }
 
@@ -8,8 +8,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        // 契约依赖 framework 中的 MviEffect
-        implementation(projects.core.framework)
+        // SettingsResult 的父类型 MviEffect 出现在公开 API。
+        api(projects.core.framework)
       }
     }
   }

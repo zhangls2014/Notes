@@ -15,14 +15,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.UserRepository
-import me.zhangls.email.profile.AvatarSaver
 import me.zhangls.framework.mvi.MviViewModel
-import me.zhangls.framework.toast.ToastGlobalNotifier
-import notes.feature.email.generated.resources.Res
-import notes.feature.email.generated.resources.email_msg_save_avatar_failed
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -35,8 +30,6 @@ internal class SearchViewModel(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
   private val userRepository: UserRepository,
-  private val toastGlobalNotifier: ToastGlobalNotifier,
-  private val avatarSaver: AvatarSaver,
 ) : MviViewModel<SearchState, SearchIntent>(
   initialState = SearchState(),
   stateSerializer = SearchState.serializer(),
@@ -70,34 +63,11 @@ internal class SearchViewModel(
 
   override fun handleIntent(intent: SearchIntent) {
     when (intent) {
-      is SearchIntent.UpdateSelectedAvatar -> updateAvatar(intent)
       is SearchIntent.UpdateSearchText -> updateSearchText(intent)
       is SearchIntent.UpdateSearchBarValue -> dispatch(SearchAction.UpdateSearchBarValue(intent.value))
       is SearchIntent.SelectSearchHistory -> selectSearchHistory(intent)
       is SearchIntent.SaveSearchHistory -> saveSearchHistory(intent)
       is SearchIntent.DeleteSearchHistory -> deleteSearchHistory(intent)
-    }
-  }
-
-  private fun updateAvatar(intent: SearchIntent.UpdateSelectedAvatar) {
-    viewModelScope.launch {
-      val avatar = intent.avatar ?: return@launch
-      val path = withContext(Dispatchers.IO) {
-        avatarSaver.save(avatar)
-      }
-      if (path == null) {
-        toastGlobalNotifier.showToast(Res.string.email_msg_save_avatar_failed)
-      } else {
-        withState {
-          user?.avatar?.let {
-            // 删除旧的头像
-            launch(Dispatchers.IO) {
-              avatarSaver.delete(it)
-            }
-          }
-        }
-        userRepository.updateAvatar(avatar = path)
-      }
     }
   }
 

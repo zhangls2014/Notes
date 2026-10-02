@@ -38,6 +38,8 @@ import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
@@ -48,7 +50,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.EmailModel
-import me.zhangls.email.component.AvatarPicker
+import me.zhangls.theme.component.UserAvatar
 import me.zhangls.email.component.ProfileImage
 import me.zhangls.email.search.SearchViewModel.Companion.DURATION_SEARCH_DEBOUNCE
 import me.zhangls.theme.component.TooltipIconButton
@@ -75,7 +77,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 internal fun EmailSearchBar(
   scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
-  onResultClick: (Long) -> Unit = {}
+  onResultClick: (Long) -> Unit = {},
+  onProfileClick: () -> Unit = {},
 ) {
   val viewModel: SearchViewModel = koinViewModel()
   val state by viewModel.state.collectAsStateWithLifecycle()
@@ -135,8 +138,24 @@ internal fun EmailSearchBar(
       },
       trailingIcon = {
         state.user?.also {
-          AvatarPicker(user = it) { kmpFile ->
-            if (!measuring) viewModel.sendIntent(SearchIntent.UpdateSelectedAvatar(kmpFile))
+          val profileLabel = stringResource(Res.string.email_action_owner_info)
+          IconButton(
+            modifier = Modifier.size(48.dp).semantics { contentDescription = profileLabel },
+            enabled = !measuring,
+            onClick = {
+              scope.launch {
+                searchBarState.animateToCollapsed()
+                clearSearchQuery()
+                viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(SearchBarValue.Collapsed))
+                onProfileClick()
+              }
+            },
+          ) {
+            UserAvatar(
+              path = it.avatar,
+              contentDescription = null,
+              modifier = Modifier.size(40.dp),
+            )
           }
         }
       },
@@ -249,7 +268,7 @@ private fun SearchResults(
         leadingContent = {
           ProfileImage(
             drawableKey = sender.avatar,
-            description = stringResource(Res.string.email_action_owner_info)
+            description = null
           )
         },
         modifier = Modifier.clickable { onResultClick(email.id) },

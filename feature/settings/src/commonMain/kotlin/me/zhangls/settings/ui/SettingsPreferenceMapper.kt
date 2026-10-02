@@ -9,6 +9,7 @@ import me.zhangls.preference.DynamicColorPreference
 import me.zhangls.preference.FontSizePreference
 import me.zhangls.preference.LanguagePreference
 import me.zhangls.preference.LogoutPreference
+import me.zhangls.preference.ProfilePreference
 import me.zhangls.preference.ui.PreferenceUiModel
 import me.zhangls.settings.mvi.SettingsIntent
 
@@ -37,6 +38,10 @@ internal expect val supportsDynamicColor: Boolean
 internal fun SettingsModel.toPreferenceUiModels(
   sendIntent: (SettingsIntent) -> Unit,
 ): List<PreferenceUiModel> = buildList {
+  add(PreferenceUiModel.Action(
+    spec = ProfilePreference.spec,
+    onClick = { sendIntent(SettingsIntent.OpenProfile) },
+  ))
   if (supportsDynamicColor) {
     add(dynamicColorPreference(dynamicColor, sendIntent))
   }

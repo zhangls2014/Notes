@@ -18,6 +18,8 @@ sealed interface SettingsIntent : MviIntent {
 
   data class UpdateAppLanguage(val value: AppLanguage) : SettingsIntent
 
+  data object OpenProfile : SettingsIntent
+
   data object ClickLogout : SettingsIntent
 
   data class DialogCallback(val result: DialogResult) : SettingsIntent

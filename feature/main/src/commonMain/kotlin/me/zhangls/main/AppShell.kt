@@ -70,12 +70,14 @@ private enum class MainTab(
  * @param selected 当前选中的 Tab，由返回栈决定；为 `null` 表示当前不在任何 Tab 内
  *   （如登录页），此时不显示导航套件
  * @param onSelectTab 点击某个 Tab
+ * @param showNavigation 是否展示导航套件；次级页面可隐藏导航，仍保留所属 Tab
  * @param content 外壳内容，即 `NavDisplay`
  */
 @Composable
 fun AppShell(
   selected: TabDestination?,
   onSelectTab: (TabDestination) -> Unit,
+  showNavigation: Boolean = true,
   content: @Composable () -> Unit,
 ) {
   if (selected == null) {
@@ -86,7 +88,9 @@ fun AppShell(
   // 窗口形态由组合根算一次后下发（`App` → `LocalWindowAdaptiveInfo`）。
   // 外壳不自己算：一个窗口只有一种形态，两处各算一次会在分屏拖拽 / 折叠时得到互相矛盾的答案。
   val adaptiveInfo = LocalWindowAdaptiveInfo.current
-  val layoutType = remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
+  val layoutType = remember(adaptiveInfo, showNavigation) {
+    if (showNavigation) adaptiveInfo.navigationSuiteType() else NavigationSuiteType.None
+  }
 
   NavigationSuiteScaffold(
     navigationSuiteItems = {

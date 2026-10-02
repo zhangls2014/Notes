@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profile_label_profile">个人信息</string>
+  <string name="profile_label_avatar">头像</string>
+  <string name="profile_label_username">用户名</string>
+  <string name="profile_action_change_avatar">更换头像</string>
+  <string name="profile_msg_saving_avatar">正在保存头像…</string>
+  <string name="profile_msg_avatar_saved">头像已更新</string>
+  <string name="profile_msg_save_avatar_failed">头像保存失败，请重试。</string>
+</resources>

@@ -69,7 +69,15 @@ internal class UserRepositoryImpl(
     prefsDataStore.edit { it[userKey] = json.encodeToString(user) }
   }
 
-  override suspend fun updateAvatar(avatar: String) = updateProfile { it.copy(avatar = avatar) }
+  override suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean = mutex.withLock {
+    migrate()
+    val current = readProfile() ?: return@withLock false
+    if (current.id != expectedUser.id || current.nickname != expectedUser.nickname ||
+      current.avatar != expectedUser.avatar || matchingCredentials(current) == null
+    ) return@withLock false
+    prefsDataStore.edit { it[userKey] = json.encodeToString(current.copy(avatar = avatar)) }
+    true
+  }
 
   override suspend fun updateEmailSearchHistory(keyword: String) {
     val normalized = keyword.trim()

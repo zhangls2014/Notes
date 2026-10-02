@@ -29,6 +29,7 @@ internal fun EmailList(
   isFavorite: Boolean,
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
+  onProfileClick: () -> Unit = {},
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val emailListState = rememberLazyListState()
@@ -49,7 +50,8 @@ internal fun EmailList(
           state = state,
           scrollBehavior = scrollBehavior,
           onIntent = { viewModel.sendIntent(it) },
-          onResultClick = navigateToDetail
+          onResultClick = navigateToDetail,
+          onProfileClick = onProfileClick,
         )
       }
     },
