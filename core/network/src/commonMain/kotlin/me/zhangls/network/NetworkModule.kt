@@ -61,9 +61,11 @@ fun provideKtorClient(
 
     install(Auth) {
       bearer {
+        // Repository owns current credentials; do not retain tokens after logout/account changes.
+        cacheTokens = false
         loadTokens {
-          val accessToken = tokenProvider.getAccessToken() ?: return@loadTokens null
-          BearerTokens(accessToken, tokenProvider.refreshToken() ?: accessToken)
+          val tokens = tokenProvider.getTokens() ?: return@loadTokens null
+          BearerTokens(tokens.accessToken, tokens.refreshToken)
         }
       }
     }

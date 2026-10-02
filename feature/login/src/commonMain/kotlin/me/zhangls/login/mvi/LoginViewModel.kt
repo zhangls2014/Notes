@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.UserModel
+import me.zhangls.data.model.AuthTokens
+import kotlinx.coroutines.CancellationException
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
@@ -13,6 +15,7 @@ import me.zhangls.login.api.LoginResult
 import me.zhangls.login.domain.LoginValidator
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_msg_login_success
+import notes.feature.login.generated.resources.login_msg_storage_failed
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -100,13 +103,19 @@ class LoginViewModel(
         UserModel(
           id = MOCK_USER_ID,
           nickname = account,
-          accessToken = MOCK_ACCESS_TOKEN,
           avatar = null,
         )
       }
-      userRepository.update(user)
-
-      dispatch(LoginAction.Loading(false))
+      try {
+        userRepository.login(user, AuthTokens(MOCK_ACCESS_TOKEN))
+      } catch (cancelled: CancellationException) {
+        throw cancelled
+      } catch (_: Exception) {
+        toastGlobalNotifier.showToast(Res.string.login_msg_storage_failed)
+        return@launch
+      } finally {
+        dispatch(LoginAction.Loading(false))
+      }
       toastGlobalNotifier.showToast(Res.string.login_msg_login_success)
       sendEffect(LoginResult.Success)
     }

@@ -13,4 +13,5 @@
   <string name="login_action_clear_account">Clear account</string>
   <string name="login_action_show_password">Show password</string>
   <string name="login_action_hide_password">Hide password</string>
+  <string name="login_msg_storage_failed">Unable to save login securely. Please try again.</string>
 </resources>

@@ -13,4 +13,5 @@
   <string name="login_action_clear_account">清空账户</string>
   <string name="login_action_show_password">显示密码</string>
   <string name="login_action_hide_password">隐藏密码</string>
+  <string name="login_msg_storage_failed">无法安全保存登录凭据，请重试。</string>
 </resources>

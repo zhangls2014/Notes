@@ -68,6 +68,7 @@ object AESUtils {
    */
   fun decrypt(alias: String, cipherText: String): String {
     val decoded = Base64.decode(cipherText, Base64.NO_WRAP)
+    require(decoded.size >= IV_LENGTH + TAG_LENGTH / 8) { "Invalid encrypted payload" }
     val iv = decoded.copyOfRange(0, IV_LENGTH)
     val encrypted = decoded.copyOfRange(IV_LENGTH, decoded.size)
 

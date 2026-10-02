@@ -10,6 +10,7 @@ import me.zhangls.data.model.EmailDraft
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.model.UserModel
+import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
@@ -20,7 +21,8 @@ import me.zhangls.model.FontSizeConfig
 internal class AdaptiveUsers : UserRepository {
   override val userFlow = MutableStateFlow<UserModel?>(null)
   override suspend fun getUser() = userFlow.value
-  override suspend fun update(user: UserModel) { userFlow.value = user }
+  override suspend fun login(user: UserModel, tokens: AuthTokens) { userFlow.value = user }
+  override suspend fun getTokens(): AuthTokens? = null
   override suspend fun updateAvatar(avatar: String) { userFlow.value = userFlow.value?.copy(avatar = avatar) }
   override suspend fun updateEmailSearchHistory(keyword: String) {
     userFlow.value = userFlow.value?.let { it.copy(emailSearchHistory = (listOf(keyword) + it.emailSearchHistory).distinct()) }
