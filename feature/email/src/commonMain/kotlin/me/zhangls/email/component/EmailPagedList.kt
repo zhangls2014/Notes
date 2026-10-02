@@ -63,9 +63,10 @@ internal fun EmailPagedList(
           isOpened = item.id == openedEmailId,
           isSelected = if (isFavorite) false else selectedItems.contains(item.id),
           navigateToDetail = navigateToDetail,
-          toggleSelection = {
-            if (isFavorite) return@EmailListItem
-            onIntent(EmailIntent.UpdateSelectedEmail(it))
+          toggleSelection = if (isFavorite) null else {
+            { id ->
+              onIntent(EmailIntent.UpdateSelectedEmail(id))
+            }
           },
           onFavoriteClick = {
             onIntent(EmailIntent.UpdateFavorite(it))
