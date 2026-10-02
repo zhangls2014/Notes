@@ -1,6 +1,3 @@
-import com.android.build.api.variant.impl.VariantOutputImpl
-import com.android.build.api.variant.impl.capitalizeFirstChar
-
 plugins {
   alias(kmp.plugins.android.application)
   alias(kmp.plugins.androidx.baselineprofile)
@@ -139,11 +136,13 @@ android {
 
 androidComponents {
   onVariants { variant ->
+    val flavorLabel = variant.flavorName?.replaceFirstChar { it.titlecase() }
     variant.outputs.forEach { output ->
-      if (output is VariantOutputImpl) {
-        output.outputFileName = "Notes_v${output.versionName.get()}(${output.versionCode.get()})" +
-            "_${variant.flavorName?.capitalizeFirstChar()}_${variant.buildType}.apk"
-      }
+      output.outputFileName.set(
+        output.versionName.zip(output.versionCode) { name, code ->
+          "Notes_v${name}(${code})_${flavorLabel}_${variant.buildType}.apk"
+        }
+      )
     }
   }
 }
