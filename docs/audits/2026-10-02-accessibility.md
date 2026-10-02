@@ -1,12 +1,12 @@
 # 无障碍适配审计
 
 - 日期：2026-10-02
-- 状态：审计前两项已实施修复；其余问题待处理。修复验证见文末记录。
+- 状态：审计前三项已实施修复；头像标签与邮件操作说明待处理。修复验证见文末记录。
 - 范围：共享 Compose UI、Android Manifest、iOS 宿主与提示消息、既有宿主测试、Android 当前界面的无障碍节点。
 
 ## 结论
 
-审计时应用具备基础无障碍支持，但不能认定已完整适配。标准 Material 控件、按钮标签、输入框标签和部分选择状态已经接入语义；系统字号被应用字号覆盖是明确缺陷。自定义加载层、iOS 短时提示消息和交互动作说明仍有缺口。以下发现保留审计时证据，前两项后续修复记录见文末。
+审计时应用具备基础无障碍支持，但不能认定已完整适配。标准 Material 控件、按钮标签、输入框标签和部分选择状态已经接入语义；系统字号被应用字号覆盖是明确缺陷。自定义加载层、iOS 短时提示消息和交互动作说明仍有缺口。以下发现保留审计时证据，前三项后续修复记录见文末。
 
 这是源码与有限运行验证的结论，不是 TalkBack / VoiceOver 完整验收。Android 当前安装包与工作树源码的版本一致性未验证，因此节点快照只作辅助证据。
 
@@ -98,6 +98,15 @@
 - 新增回归测试先在旧实现失败：系统 1.3 被覆盖为 1.0、三次排队提交产生三次调用、加载期间字段可修改、登录按钮仍启用。
 - 修复后的扩大宿主回归实际执行 48 项、跳过 60 项、0 失败，包括主题 3 项、登录业务 2 项、加载 UI 1 项、自适应 UI 42 项。随后新增系统 2×应用 2 的登录可达性测试；最终 7 项定向测试、iOS 模拟器 Kotlin 编译、Android 整包构建及 lint 均成功，lint 为 0 Error / 10 Warning（依赖版本、AGP 和既有 SDK 属性提示）。独立只读代码审查未发现阻塞问题。
 - Android 独立 Dialog / Sheet 的应用倍率继承仍是既有边界；未将其、iOS Toast 或完整读屏验收计入本次修复。
+
+## 第三项修复（2026-10-02）
+
+- iOS 标签改用 `UIFont.preferredFontForTextStyle(UIFontTextStyleSubheadline)` 并启用 `adjustsFontForContentSizeCategory`；字号变化通知在主队列请求窗口根视图重新布局，关闭时移除通知观察者。
+- 显示协程在淡入 250ms 后发送 `UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, text)`，保持原有 2／3.5 秒显示时长。发送前确认窗口可见且场景处于前台；提示替换或 presenter 关闭会取消等待中的播报。
+- 无障碍通知使用 announcement，不使用 screenChanged／layoutChanged 或主动请求焦点。系统对播报的声音和调度仍由 VoiceOver 决定。
+- 原生回归测试在旧实现上以“Toast must track Dynamic Type changes”失败。修复后 6 项 iOS 测试通过：既有布局 4 项、文本样式与自动缩放配置 1 项、真实 UILabel 从 Large 切换到 AccessibilityExtraExtraExtraLarge 后字体增大 1 项。`composeApp:compileKotlinIosSimulatorArm64` 成功。
+- 独立只读审查检查了替换、取消、场景断开、通知观察者清理和播报焦点行为，未发现阻塞问题。
+- 原生独立测试没有验证实际声音、读屏焦点或真实场景中的提示替换播报；这些验收步骤记录在 [iOS Toast 无障碍验证](../testing/ios-toast-accessibility.md)。本次未扩大到重要消息的持久化反馈设计。
 
 ## 参考
 
