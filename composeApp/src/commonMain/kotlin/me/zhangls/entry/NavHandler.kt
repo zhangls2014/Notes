@@ -4,6 +4,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.about.api.AboutDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.Destination
@@ -103,6 +104,7 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
     ProfileOrigin.Home -> HomeDestination
     ProfileOrigin.Settings -> SettingsDestination
   }
+  AboutDestination -> SettingsDestination
   else -> HomeDestination
 }
 

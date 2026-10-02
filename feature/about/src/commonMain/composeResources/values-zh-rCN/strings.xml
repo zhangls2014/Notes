@@ -1,0 +1,13 @@
+<resources>
+  <string name="about_title">关于应用</string>
+  <string name="about_brand_description">应用信息与版本更新</string>
+  <string name="about_version_information">版本信息</string>
+  <string name="about_version">版本号</string>
+  <string name="about_build_number">构建号</string>
+  <string name="about_check_updates">检查更新</string>
+  <string name="about_coming_soon">即将推出</string>
+  <string name="about_update_description">查看新版本与更新内容</string>
+  <string name="about_unknown">未知</string>
+  <string name="about_expanded">构建信息已展开</string>
+  <string name="about_collapsed">构建信息已收起</string>
+</resources>

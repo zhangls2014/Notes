@@ -22,4 +22,5 @@
   <!-- 退出登录 -->
   <string name="settings_label_logout">退出登录</string>
   <string name="settings_label_profile">个人信息</string>
+  <string name="settings_label_about">关于应用</string>
 </resources>

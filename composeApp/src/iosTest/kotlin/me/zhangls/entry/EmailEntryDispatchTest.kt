@@ -16,6 +16,9 @@ import me.zhangls.settings.SettingsEntryImpl
 import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.profile.ProfileEntryImpl
 import me.zhangls.profile.api.ProfileEntry
+import me.zhangls.about.AboutEntryImpl
+import me.zhangls.about.api.AboutAppInfo
+import me.zhangls.about.api.AboutEntry
 
 /** Exercise the Compose interface ABI across modules on Kotlin/Native, without UI or Koin. */
 class EmailEntryDispatchTest {
@@ -45,10 +48,11 @@ class EmailEntryDispatchTest {
   }
 
   @Test
-  fun loginSettingsAndProfileEntriesDispatchIntoFeatureImplementations() {
+  fun loginSettingsProfileAndAboutEntriesDispatchIntoFeatureImplementations() {
     val login: LoginEntry = LoginEntryImpl()
     val settings: SettingsEntry = SettingsEntryImpl()
     val profile: ProfileEntry = ProfileEntryImpl()
+    val about: AboutEntry = AboutEntryImpl()
     val recomposer = Recomposer(EmptyCoroutineContext)
     val composition = Composition(NoOpApplier(), recomposer)
     try {
@@ -56,6 +60,7 @@ class EmailEntryDispatchTest {
         { login.Screen(onLoginResult = {}) },
         { settings.Screen {} },
         { profile.Screen(onBackPressed = {}) },
+        { about.Screen(AboutAppInfo("2.3.1", "42.7.1"), onBackPressed = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

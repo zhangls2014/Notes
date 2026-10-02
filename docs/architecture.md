@@ -37,6 +37,7 @@ Gradle 中启用的模块：
 :feature:email      :feature:email-api
 :feature:settings   :feature:settings-api
 :feature:profile    :feature:profile-api
+:feature:about      :feature:about-api
 
 :android:baselineprofile
 :android:output:login
@@ -83,6 +84,7 @@ Gradle 中启用的模块：
 | `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
 | `feature:settings-api` / `feature:settings` | 设置入口/结果契约和设置行为/UI |
 | `feature:profile-api` / `feature:profile` | 个人信息入口/导航契约、用户资料展示和头像修改 UI |
+| `feature:about-api` / `feature:about` | 关于应用目的地/入口契约、品牌信息、安装包版本展示与构建号展开 |
 
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
@@ -138,6 +140,8 @@ Repository 接口和对外模型不得出现 Room 类型。数据库模型与公
 各模块声明自己的 Koin 注解和 provider，`composeApp` 的 `NotesModule` 是组合根。实现模块负责实现并提供自己的 Entry；调用方只依赖 API 接口。
 
 在 `androidApp/NotesApp.onCreate` 与 `iosApp/iOSApp.init` 中先初始化 Koin，再执行启动数据任务。启动任务 `InitData` 通过构造函数接收 Repository 和平台 `AppInfo`，由组合根解析并在应用级协程中执行；它本身不从全局容器查找依赖，也不持有协程作用域。Android `Context` 只在平台入口传给 Koin，`AndroidAppInfo` 和 `AndroidSystemToast` 仅保存 application context；ViewModel 不依赖平台 `Context`。
+
+关于应用页面同样复用组合根的 `AppInfo`。宿主将版本名称与原始字符串构建号映射为 `AboutAppInfo`，通过 `AboutEntry` 传入 Feature；缺失值显示本地化“未知”。iOS 构建号展示保留 `CFBundleVersion` 原值，启动初始化的数值版本语义不变。共享品牌图标与名称由 `core:theme` 的 `AppIcon` / `appName` 提供，不向 Feature 暴露内部生成资源。设置页只发送 `SettingsResult.OpenAbout`，经 main 的宿主回调交给根导航。About 不要求登录，不带窗格标注；外壳隐藏导航套件，返回后保留设置 Tab 和滚动位置。页面按 `ContentWidth.Form` 单栏居中，更新入口当前为“即将推出”的展示项，不注册点击或发起网络请求。
 
 应用组合根通过内部平台 `rememberSystemToast()` 装配 `SystemToast`。Android 使用 Koin 的 application-context 单例；iOS 每个 Compose 宿主创建并持有自己的 `IosSystemToast`，组合销毁时取消显示任务、关闭额外窗口。iOS Toast 从实际宿主视图的 `windowScene` 创建触摸穿透窗口，不枚举全局场景或读取主屏幕；根视图布局回调根据当前 bounds 与 safeAreaInsets 重新定位标签，支持窗口缩放与旋转。后台或未附着到场景的宿主不显示 Toast。全局 Toast 事件仍沿用应用的 SharedFlow 机制，多个活跃宿主可各自在自身窗口呈现；它不携带某个业务窗口的目标标识。
 

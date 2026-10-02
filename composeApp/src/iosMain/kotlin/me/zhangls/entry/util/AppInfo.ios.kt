@@ -10,7 +10,9 @@ class IosAppInfo : AppInfo {
   }
 
   override fun getVersionCode(): Long {
-    val version = NSBundle.mainBundle.infoDictionary?.get("CFBundleVersion") as? String ?: "0"
-    return version.toLongOrNull() ?: 0L
+    return getBuildNumber()?.toLongOrNull() ?: 0L
   }
+
+  override fun getBuildNumber(): String? =
+    NSBundle.mainBundle.infoDictionary?.get("CFBundleVersion") as? String
 }

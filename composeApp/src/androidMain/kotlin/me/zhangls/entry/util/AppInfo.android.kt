@@ -17,4 +17,6 @@ class AndroidAppInfo(context: Context) : AppInfo {
   override fun getVersionCode() = packageInfo().longVersionCode
 
   override fun getVersionName() = packageInfo().versionName ?: ""
+
+  override fun getBuildNumber() = packageInfo().longVersionCode.toString()
 }

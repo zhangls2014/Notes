@@ -60,6 +60,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   openedDetail: EmailDetailDestination?,
   navigateToEmailDetail: (EmailListScene, Long) -> Unit,
   navigateToProfile: (ProfileOrigin) -> Unit,
+  navigateToAbout: () -> Unit,
   onLogout: () -> Unit,
 ) {
   entry<HomeDestination>(
@@ -88,6 +89,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
       when (result) {
         SettingsResult.Logout -> onLogout()
         SettingsResult.OpenProfile -> navigateToProfile(ProfileOrigin.Settings)
+        SettingsResult.OpenAbout -> navigateToAbout()
       }
     }
   }

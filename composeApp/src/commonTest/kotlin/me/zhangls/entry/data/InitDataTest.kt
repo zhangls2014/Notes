@@ -44,6 +44,7 @@ class InitDataTest {
 private class FakeAppInfo(private val version: Long) : AppInfo {
   override fun getVersionCode(): Long = version
   override fun getVersionName(): String = "test"
+  override fun getBuildNumber(): String = version.toString()
 }
 
 private class FakeCommonRepository(initial: CommonModel) : CommonRepository {
