@@ -89,6 +89,7 @@ import notes.feature.login.generated.resources.login_brand_name
 import notes.feature.login.generated.resources.login_brand_tagline
 import notes.feature.login.generated.resources.login_label_account
 import notes.feature.login.generated.resources.login_label_password
+import notes.feature.login.generated.resources.login_state_loading
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -131,7 +132,14 @@ internal fun loginPanePlan(directive: PaneScaffoldDirective): LoginPanePlan {
 @Composable
 fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (LoginResult) -> Unit) {
   val keyboardController = LocalSoftwareKeyboardController.current
+  val focusManager = LocalFocusManager.current
   val state by viewModel.state.collectAsStateWithLifecycle()
+  LaunchedEffect(state.isLoading) {
+    if (state.isLoading) {
+      focusManager.clearFocus(force = true)
+      keyboardController?.hide()
+    }
+  }
   val loginClick = remember(keyboardController, viewModel) {
     {
       keyboardController?.hide()
@@ -171,7 +179,7 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
   }
 
   if (state.isLoading) {
-    ContainedLoadingIndicator()
+    ContainedLoadingIndicator(label = stringResource(Res.string.login_state_loading))
   }
 }
 
@@ -238,6 +246,7 @@ private fun FormPane(
               modifier = Modifier.padding(top = 40.dp)
                 .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
               account = state.account,
+              enabled = !state.isLoading,
               accountError = state.accountError,
               onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
               onClearAccount = { onIntent(LoginIntent.ClearAccount) }
@@ -247,6 +256,7 @@ private fun FormPane(
               modifier = Modifier.padding(top = 16.dp)
                 .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
               password = state.password,
+              enabled = !state.isLoading,
               passwordError = state.passwordError,
               passwordVisible = state.passwordVisible,
               onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
@@ -256,7 +266,7 @@ private fun FormPane(
 
             Button(
               onClick = onLoginClick,
-              enabled = state.isInputValid,
+              enabled = state.isInputValid && !state.isLoading,
               shapes = ButtonDefaults.shapes(),
               modifier = Modifier
                 .fillMaxWidth()
@@ -326,6 +336,7 @@ private fun BrandPane(modifier: Modifier = Modifier) {
 private fun AccountInput(
   modifier: Modifier = Modifier,
   account: String,
+  enabled: Boolean,
   accountError: AccountError?,
   onAccountChange: (String) -> Unit,
   onClearAccount: () -> Unit
@@ -334,6 +345,7 @@ private fun AccountInput(
   val inputError = accountError.text()
 
   OutlinedTextField(
+    enabled = enabled,
     value = account,
     onValueChange = { onAccountChange(it) },
     singleLine = true,
@@ -348,7 +360,7 @@ private fun AccountInput(
     leadingIcon = { Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null) },
     trailingIcon = {
       if (account.isNotEmpty()) {
-        IconButton(onClick = onClearAccount) {
+        IconButton(onClick = onClearAccount, enabled = enabled) {
           Icon(
             imageVector = Icons.Rounded.Clear,
             contentDescription = stringResource(Res.string.login_action_clear_account),
@@ -368,6 +380,7 @@ private fun AccountInput(
 private fun PasswordInput(
   modifier: Modifier = Modifier,
   password: String,
+  enabled: Boolean,
   passwordError: PasswordError?,
   passwordVisible: Boolean,
   onPasswordChange: (String) -> Unit,
@@ -377,6 +390,7 @@ private fun PasswordInput(
   val inputError = passwordError.text()
 
   OutlinedTextField(
+    enabled = enabled,
     value = password,
     onValueChange = { onPasswordChange(it) },
     singleLine = true,
@@ -390,7 +404,7 @@ private fun PasswordInput(
       .fillMaxWidth(),
     leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
     trailingIcon = {
-      IconButton(onClick = { onPasswordVisibleChange(!passwordVisible) }) {
+      IconButton(onClick = { onPasswordVisibleChange(!passwordVisible) }, enabled = enabled) {
         Icon(
           imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
           contentDescription = stringResource(

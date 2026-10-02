@@ -30,6 +30,7 @@
 - [2026-10-01 Material 3 Expressive 迁移可行性](audits/2026-10-01-material3-expressive-feasibility.md)
 - [2026-10-02 iOS 启动耗时调查](audits/2026-10-02-ios-startup.md)
 - [2026-10-02 全项目过时 API 审计与更新方案](audits/2026-10-02-outdated-api.md)
+- [2026-10-02 无障碍适配审计](audits/2026-10-02-accessibility.md)
 
 ## 设计与实施记录
 

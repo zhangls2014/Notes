@@ -6,11 +6,13 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.junit4.createComposeRule
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.Assert.assertEquals
@@ -27,6 +29,38 @@ import org.robolectric.annotation.Config
 @Config(sdk = [37])
 class ExpressiveThemeTest {
   @get:Rule val compose = createComposeRule()
+
+  @Test fun systemFontScaleIsPreservedAndAppSizeIsRelative() {
+    var systemScale by mutableStateOf(1.3f)
+    var appScale by mutableStateOf(1f)
+    var observedScale = 0f
+    var observedDensity = 0f
+    compose.setContent {
+      CompositionLocalProvider(LocalDensity provides Density(2f, systemScale)) {
+        ComposeAppTheme(fontScale = appScale) {
+          val density = LocalDensity.current
+          SideEffect {
+            observedScale = density.fontScale
+            observedDensity = density.density
+          }
+        }
+      }
+    }
+    compose.runOnIdle {
+      assertEquals(1.3f, observedScale, 0.001f)
+      assertEquals(2f, observedDensity, 0.001f)
+      appScale = 1.5f
+    }
+    compose.runOnIdle {
+      assertEquals(1.95f, observedScale, 0.001f)
+      systemScale = 2f
+    }
+    compose.runOnIdle {
+      assertEquals(3f, observedScale, 0.001f)
+      appScale = 1f
+    }
+    compose.runOnIdle { assertEquals(2f, observedScale, 0.001f) }
+  }
 
   @Test fun themeSwitchesPreserveDynamicColorsAndUserFontScale() {
     var dark by mutableStateOf(false)
