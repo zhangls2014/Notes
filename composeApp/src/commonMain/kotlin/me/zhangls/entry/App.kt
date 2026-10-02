@@ -17,7 +17,9 @@ import me.zhangls.theme.layout.rememberPaneScaffoldDirective
 import me.zhangls.theme.layout.rememberWindowAdaptiveInfo
 import org.jetbrains.compose.resources.getString
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.compose.koinInject
+
+@Composable
+internal expect fun rememberSystemToast(): SystemToast
 
 @Composable
 fun App(
@@ -28,7 +30,7 @@ fun App(
   onDeepLinkConsumed: () -> Unit = {},
 ) {
   val viewModel: AppViewModel = koinViewModel()
-  val systemToast: SystemToast = koinInject()
+  val systemToast = rememberSystemToast()
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 各 feature 对导航的贡献由它们自己的 Koin 模块以多绑定登记，这里一处收集
   val navigationRegistry = rememberNavigationRegistry()
@@ -75,7 +77,7 @@ fun App(
         onDeepLinkConsumed = onDeepLinkConsumed
       )
 
-      LaunchedEffect(Unit) {
+      LaunchedEffect(viewModel, systemToast) {
         viewModel.toast.collect { effect ->
           val message = getString(effect.resId)
           systemToast.show(message, longDuration = message.length > 20)

@@ -2,7 +2,7 @@
 .gradle
 /local.properties
 # .idea 的忽略规则统一由 .idea/.gitignore 管理（含 Gradle 同步推导的本机文件）
-/.kotlin
+**/.kotlin/
 .DS_Store
 /build
 # 各模块构建产物

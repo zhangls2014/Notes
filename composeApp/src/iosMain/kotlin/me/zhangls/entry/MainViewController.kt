@@ -9,6 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.compose.ui.uikit.LocalUIViewController
+import me.zhangls.framework.toast.IosSystemToast
+import me.zhangls.framework.toast.SystemToast
 import platform.Foundation.NSNotificationCenter
 
 
@@ -20,6 +23,16 @@ fun MainViewController() = ComposeUIViewController {
 
 fun MainViewController(deepLinkUrl: String?) = ComposeUIViewController {
   AppEntry(deepLinkUrl = deepLinkUrl)
+}
+
+@Composable
+internal actual fun rememberSystemToast(): SystemToast {
+  val host = LocalUIViewController.current
+  val systemToast = remember(host) { IosSystemToast(host) }
+  DisposableEffect(systemToast) {
+    onDispose { systemToast.close() }
+  }
+  return systemToast
 }
 
 @Composable

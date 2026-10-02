@@ -6,6 +6,9 @@ plugins {
 
 kotlin {
   sourceSets {
+    commonTest.dependencies {
+      implementation(kmp.kotlin.test)
+    }
     commonMain {
       dependencies {
         api(kmp.androidx.lifecycle.viewmodel.compose)
