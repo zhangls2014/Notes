@@ -1,5 +1,8 @@
 package me.zhangls.entry
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
@@ -152,17 +155,22 @@ fun AppNavHost(
   // 它读返回栈的**根**决定选中哪个 Tab，因此推入详情页时导航套件依然可见、可达，
   // 宽屏上不会从"列表 + 详情"突然变成全屏页。根是登录页时不显示外壳。
   ProvideModalViewport {
-    AppShell(
+    TabFadeThrough(
       selected = backStack.tabSelection(),
       onSelectTab = navHandler::selectTab,
-    ) {
-      // Tab 切换结束旧内容区的组合；同一栈保留 Entry 作用域与预测返回。
-      key(navigationState.selectedRoot) {
-        DeviceCornerNavDisplay(
-          entries = entriesByRoot.getValue(navigationState.selectedRoot),
-          onBack = { navHandler(NavEffect.Popup) },
-          sceneStrategies = sceneStrategies,
-        )
+    ) { readAlpha, selectedTab, selectTab ->
+      AppShell(selected = selectedTab, onSelectTab = selectTab) {
+        Box(Modifier.graphicsLayer { alpha = readAlpha() }) {
+          // The old display is removed at the invisible midpoint; only the selected stack
+          // owns input/back events, while outer decorators retain every Tab's Entry state.
+          key(navigationState.selectedRoot) {
+            DeviceCornerNavDisplay(
+              entries = entriesByRoot.getValue(navigationState.selectedRoot),
+              onBack = { navHandler(NavEffect.Popup) },
+              sceneStrategies = sceneStrategies,
+            )
+          }
+        }
       }
     }
   }

@@ -153,7 +153,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 `AppNavigationState` 使用 `rememberNavBackStack` 分别保存各 Tab 栈和当前根选择。各栈的 `rememberDecoratedNavEntries`、SaveableStateHolder 和 ViewModelStore 装饰器在内容切换区域外持续存在；非活动 Tab 不绘制，但保留 Entry 的可保存状态及 ViewModel。邮件首次加载指示在列表外绘制，避免单个占位条目把待恢复滚动索引重置为 0。滚动位置可随保存状态恢复；邮件多选等 ViewModel 状态仅在当前进程保留，不启用敏感/大型 MVI 状态的跨进程保存。退出登录清空全部栈并释放对应 Entry；登录成功释放登录 Entry。
 
-`AppShell` 始终包裹内容区，不裁剪内部 UI；页面自身负责预测返回时的轮廓裁剪。侧栏和底部导航保持固定；`NavDisplay` 仅接收当前 Tab 的装饰后 Entry，并以当前栈根作为组合 key。切换 Tab 释放旧显示及其在途转场，不播放跨 Tab 动画，也不清除外层保存的 Entry 状态。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
+`AppShell` 始终包裹内容区，不裁剪内部 UI；页面自身负责预测返回时的轮廓裁剪。侧栏和底部导航保持固定；`NavDisplay` 仅接收当前 Tab 的装饰后 Entry，并以当前栈根作为组合 key。切换 Tab 使用 300ms 的 Fade through：选中指示立即更新，旧内容先淡出 90ms，在不可见的中点切换活动返回栈、释放旧显示及其在途转场，再将新内容淡入 210ms。内容区仅调整透明度，侧栏和底部导航保持固定；同一时刻只有一个 NavDisplay 处理输入与返回，外层保存的 Entry 状态继续保留。连续选择取消前一次动画，以最后目标为准；重选当前 Tab 不播放动画，登录页不参与 Tab 过渡。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
 
 `core:framework` 定义：
 
