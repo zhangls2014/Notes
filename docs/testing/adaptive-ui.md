@@ -67,6 +67,23 @@
 
 既有字号边界：Android 的独立 Dialog / Sheet window 重新提供窗口 density，因此父主题的应用内 `fontScale` 不一定进入弹窗。旧 SimpleDialog 与新 AlertDialog 最终使用同一 Dialog 机制，本迁移未新增该现象。主题测试只证明普通组合子树字号正确；弹窗截图和按钮可达性测试不证明弹窗字号已随应用设置缩放。
 
+### 系统字号与登录加载回归（2026-10-02）
+
+应用字号现作为系统字号的相对倍率。`ExpressiveThemeTest.systemFontScaleIsPreservedAndAppSizeIsRelative` 注入系统 Density，验证标准字号跟随系统、应用倍率叠加和系统运行期更新，density 不变。`LoginLoadingAccessibilityTest` 在系统 2 × 应用 2 的字号下确认登录入口可滚动到达，并在延迟登录期间检查输入／附属按钮／提交禁用、输入焦点释放、本地化 polite live region 及失败后恢复。禁用输入框可能不再提供 Focused 属性，不应把缺省值误当作仍持有焦点；全局主题／语言入口可以取得键盘焦点。
+
+`LoginSubmissionTest` 使用可延迟 Repository 与 StandardTestDispatcher，验证排队的三次提交只启动一次、加载中表单 Intent 被忽略、失败后重试和取消后加载恢复。旧实现上的新增测试因字号被覆盖、重复调用、表单仍可编辑及按钮未禁用而失败，修复后通过。
+
+扩大回归实际执行 48 项（自适应 42、主题 3、登录业务 2、加载 UI 1），另 60 项按场景跳过，0 失败。追加极端组合字号用例后的最终定向测试共 7 项通过，Android 整包构建、iOS 模拟器 Kotlin 编译及 Android lint 同一 Gradle 进程顺序执行成功；lint 为 0 Error / 10 Warning（依赖版本、AGP 和既有 SDK 属性提示）。宿主语义测试不代替 TalkBack / VoiceOver 端到端播报及导航焦点顺序验收；前述 Dialog / Sheet 应用倍率继承边界仍保留。
+
+```bash
+./gradlew :composeApp:testAndroidHostTest \
+  --tests '*ExpressiveThemeTest*' \
+  --tests '*LoginSubmissionTest*' \
+  --tests '*LoginLoadingAccessibilityTest*' \
+  :composeApp:compileKotlinIosSimulatorArm64 \
+  :androidApp:assembleDebug :androidApp:lintDevFullDebug
+```
+
 最终命令（一个 Gradle 进程顺序装配检查，不并发启动构建）：
 
 ```bash

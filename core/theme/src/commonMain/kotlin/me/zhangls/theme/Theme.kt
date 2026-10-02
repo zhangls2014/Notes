@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Density
 fun ComposeAppTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicScheme: ColorScheme? = null,
+  // 应用字号是相对系统设置的倍率，标准字号始终跟随系统。
   fontScale: Float = 1F,
   content: @Composable () -> Unit
 ) {
@@ -26,7 +27,10 @@ fun ComposeAppTheme(
   val density = LocalDensity.current
 
   CompositionLocalProvider(
-    LocalDensity provides Density(density = density.density, fontScale = fontScale),
+    LocalDensity provides if (fontScale == 1F) density else Density(
+      density = density.density,
+      fontScale = density.fontScale * fontScale,
+    ),
   ) {
     MaterialExpressiveTheme(
       colorScheme = colorScheme,

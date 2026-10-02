@@ -42,13 +42,18 @@ class LoginViewModel(
   }
 
   override fun handleIntent(intent: LoginIntent) {
+    // UI 的 disabled 不能替代业务守卫；加载期间也拒绝已排队的表单 Intent。
+    if (state.value.isLoading && intent !is LoginIntent.UpdateLanguage && intent !is LoginIntent.UpdateDarkTheme) {
+      return
+    }
     when (intent) {
       LoginIntent.Login -> {
         if (LoginValidator.validateAll(state.value.account, state.value.password).not()) {
           dispatch(LoginAction.ValidationResult)
           return
         }
-
+        // 必须在启动协程之前更新，后续排队的登录 Intent 才能看到加载状态。
+        dispatch(LoginAction.Loading(true))
         login()
       }
 
@@ -97,8 +102,6 @@ class LoginViewModel(
    */
   private fun login() {
     viewModelScope.launch {
-      dispatch(LoginAction.Loading(true))
-
       val user = withState {
         UserModel(
           id = MOCK_USER_ID,

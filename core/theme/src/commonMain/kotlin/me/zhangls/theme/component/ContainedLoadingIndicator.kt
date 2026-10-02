@@ -10,7 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -20,6 +23,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ContainedLoadingIndicator(
+  label: String,
   modifier: Modifier = Modifier,
   backgroundColor: Color = Color.Black.copy(alpha = 0.15F),
   loadingSize: Dp = 64.dp,
@@ -27,16 +31,14 @@ fun ContainedLoadingIndicator(
   Box(
     modifier = modifier
       .fillMaxSize()
-      .background(backgroundColor)
-      .pointerInput(Unit) {
-        awaitPointerEventScope {
-          while (true) {
-            awaitPointerEvent()
-          }
-        }
-      },
+      .background(backgroundColor),
     contentAlignment = Alignment.Center
   ) {
-    ContainedLoadingIndicator(modifier = Modifier.size(loadingSize))
+    ContainedLoadingIndicator(
+      modifier = Modifier.size(loadingSize).semantics {
+        contentDescription = label
+        liveRegion = LiveRegionMode.Polite
+      },
+    )
   }
 }
