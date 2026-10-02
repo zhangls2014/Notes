@@ -182,10 +182,14 @@ adb shell am start \
 ## 数据与安全
 
 - Room 保存账户和邮件数据，并导出 schema 以支持 AutoMigration。
-- DataStore 保存设置和当前用户，多平台序列化使用 Kotlinx Serialization。
-- DataStore 当前只做 JSON 序列化，用户 token 会以明文写入本地偏好文件；Android 的 `AESUtils` 尚未接入该读写链路。
+- DataStore 使用 Kotlinx Serialization 保存普通设置和用户资料；`UserModel` 不含 token，登录凭据由数据层内部的 `SecureTokenStore` 单独保存。
+- Android 使用 Keystore 管理的 AES/GCM 密钥和随机 IV 加密凭据，通过 `AtomicFile` 写入 `noBackupFilesDir`；iOS 使用不启用同步的 Keychain，访问策略为 `WhenUnlockedThisDeviceOnly`。这些保护针对登录凭据，不代表 Room 邮件数据或整个 DataStore 已加密。
+- 旧用户 JSON 在首次访问时迁移：安全写入并读回确认后，才移除明文 token。退出登录清除凭据和用户资料；资料与凭据的账号不匹配时，不公开登录态。
+- Android 排除旧偏好文件的云备份和设备迁移，iOS 排除 DataStore 目录备份。普通设置也不会随该文件备份迁移，已存在的旧系统备份无法由此次升级追溯删除。
 - Ktor 的网络调用统一映射为 `NetworkResult`。
 - `MviViewModel` 默认不持久化 State，敏感信息不会因为开发者忘记关闭恢复而落入 instance state。
+
+测试覆盖范围和平台人工验收步骤见 [登录凭据存储验证](docs/testing/secure-token-storage.md)。真实 iOS Keychain 集成测试因当前独立测试环境不可用而标记 `@Ignore`，需要在应用宿主中验证，不能以编译通过替代。
 
 ## Fused Library
 
@@ -197,5 +201,6 @@ adb shell am start \
 
 ## 当前实现边界
 
-- DataStore 静态加密仍待实现；在此之前不要把当前本地存储描述为已由 Keystore 保护。
+- 登录仍是本地模拟，尚未接入真实认证和 token 刷新端点。安全凭据存储不等同于完整的服务端会话管理。
+- 网络客户端当前固定输出请求头日志，并隐藏 Authorization；尚未按 Debug/Release 区分日志策略。
 - Android 17 与多形态适配的历史验证范围和限制记录在 [审计目录](docs/audits/)。
