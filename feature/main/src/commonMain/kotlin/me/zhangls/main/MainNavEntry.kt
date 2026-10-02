@@ -17,6 +17,7 @@ import me.zhangls.email.api.EmailListScene
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
+import me.zhangls.profile.api.ProfileOrigin
 import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.settings.api.SettingsResult
 import notes.feature.main.generated.resources.Res
@@ -52,11 +53,13 @@ private val favoritesPaneMetadata = ListDetailSceneStrategy.listPane(
  * @param openedDetail 返回栈顶的邮件详情（若有），由宿主从返回栈派生传入。
  *   列表据此渲染"已打开"态；每个 Tab 只在自己那个场景里采用它
  * @param navigateToEmailDetail 打开一封邮件：入参是"从哪个列表打开"与邮件 id
+ * @param navigateToProfile 打开个人信息，携带发起入口以便返回所属 Tab
  * @param onLogout 设置页登出
  */
 fun EntryProviderScope<NavKey>.mainNavEntries(
   openedDetail: EmailDetailDestination?,
   navigateToEmailDetail: (EmailListScene, Long) -> Unit,
+  navigateToProfile: (ProfileOrigin) -> Unit,
   onLogout: () -> Unit,
 ) {
   entry<HomeDestination>(
@@ -65,6 +68,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
     koinInject<EmailEntry>().HomeScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Home),
       navigateToDetail = { navigateToEmailDetail(EmailListScene.Home, it) },
+      onProfileClick = { navigateToProfile(ProfileOrigin.Home) },
     )
   }
 
@@ -81,7 +85,10 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   // 设置页不带窗格标注：场景策略遇到它会返回 null，由单栏策略接管
   entry<SettingsDestination> {
     koinInject<SettingsEntry>().Screen { result ->
-      if (result == SettingsResult.Logout) onLogout()
+      when (result) {
+        SettingsResult.Logout -> onLogout()
+        SettingsResult.OpenProfile -> navigateToProfile(ProfileOrigin.Settings)
+      }
     }
   }
 }

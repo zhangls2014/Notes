@@ -13,6 +13,9 @@ import me.zhangls.login.api.LoginDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.TabDestination
+import me.zhangls.main.api.SettingsDestination
+import me.zhangls.profile.api.ProfileDestination
+import me.zhangls.profile.api.ProfileOrigin
 
 /** 首屏与登录恢复都按目标所属的 Tab 建栈，不记录 Tab 访问历史。 */
 internal fun initialBackStack(deepLink: DeepLinkDestination?, isLogin: Boolean): List<NavKey> =
@@ -95,6 +98,10 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
   is EmailDetailDestination -> when (destination.scene) {
     EmailListScene.Home -> HomeDestination
     EmailListScene.Favorites -> FavoritesDestination
+  }
+  is ProfileDestination -> when (destination.origin) {
+    ProfileOrigin.Home -> HomeDestination
+    ProfileOrigin.Settings -> SettingsDestination
   }
   else -> HomeDestination
 }

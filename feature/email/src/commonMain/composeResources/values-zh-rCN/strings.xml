@@ -23,7 +23,6 @@
     <string name="email_label_recipients">收件人</string>
     <string name="email_label_subject">主题</string>
     <string name="email_label_body">正文</string>
-    <string name="email_msg_save_avatar_failed">头像保存失败</string>
     <string name="email_msg_recipient_required">请至少选择一位收件人</string>
     <string name="email_msg_body_required">请输入正文内容</string>
     <string name="email_msg_email_save_failed">邮件保存失败</string>

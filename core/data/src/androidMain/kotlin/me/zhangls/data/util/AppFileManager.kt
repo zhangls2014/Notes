@@ -121,8 +121,9 @@ actual class AppFileManager(private val context: Context) {
    */
   fun copyUriToFile(srcUri: Uri, destPath: String): Boolean {
     return try {
-      context.contentResolver.openInputStream(srcUri)?.use { input ->
-        input.copyTo(File(destPath).outputStream())
+      val input = context.contentResolver.openInputStream(srcUri) ?: return false
+      input.use { source ->
+        File(destPath).outputStream().use { target -> source.copyTo(target) }
       }
       true
     } catch (_: Exception) {

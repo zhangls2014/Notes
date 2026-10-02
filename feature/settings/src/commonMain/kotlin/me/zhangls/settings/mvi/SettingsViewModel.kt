@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.framework.mvi.MviViewModel
+import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.domain.SettingsHandler
 import org.koin.core.annotation.KoinViewModel
 
@@ -37,6 +38,7 @@ class SettingsViewModel(
 
   override fun handleIntent(intent: SettingsIntent) {
     when (intent) {
+      SettingsIntent.OpenProfile -> sendEffect(SettingsResult.OpenProfile)
       is SettingsIntent.UpdateDynamicColor -> {
         viewModelScope.launch { settingsRepository.updateDynamicColor(intent.value) }
       }

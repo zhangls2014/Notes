@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.painterResource
 
 
 @Composable
-fun ProfileImage(drawableKey: String, description: String) {
+fun ProfileImage(drawableKey: String, description: String?) {
   val drawableResource = Res.allDrawableResources.getValue(drawableKey)
 
   Image(

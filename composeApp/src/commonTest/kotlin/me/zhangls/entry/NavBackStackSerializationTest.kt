@@ -16,6 +16,9 @@ import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.MainNavigation
 import me.zhangls.main.api.SettingsDestination
+import me.zhangls.profile.api.ProfileDestination
+import me.zhangls.profile.api.ProfileOrigin
+import me.zhangls.profile.api.ProfileNavigation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -41,7 +44,7 @@ import kotlin.test.assertEquals
 class NavBackStackSerializationTest {
 
   private val contributions: List<NavigationContribution> =
-    listOf(MainNavigation, LoginNavigation, EmailNavigation)
+    listOf(MainNavigation, LoginNavigation, EmailNavigation, ProfileNavigation)
 
   private val json = Json {
     serializersModule = contributions.fold(SerializersModule { }) { acc, contribution ->
@@ -77,6 +80,26 @@ class NavBackStackSerializationTest {
     val stack = NavBackStack<NavKey>(LoginDestination())
 
     assertEquals(stack.toList(), roundTrip(stack).toList())
+  }
+
+  @Test
+  fun `个人信息在两个入口的栈与登录重定向中均可恢复`() {
+    for (tab in listOf(HomeDestination, SettingsDestination)) {
+      val origin = if (tab == HomeDestination) ProfileOrigin.Home else ProfileOrigin.Settings
+      val stack = NavBackStack<NavKey>(tab, ProfileDestination(origin))
+      assertEquals(stack.toList(), roundTrip(stack).toList())
+    }
+    val stack = NavBackStack<NavKey>(LoginDestination(redirectTo = ProfileDestination()))
+    assertEquals(stack.toList(), roundTrip(stack).toList())
+  }
+
+  @Test
+  fun `旧版本个人信息目的地的序列化名称保持可恢复`() {
+    val keySerializer = PolymorphicSerializer(NavKey::class)
+    val legacy = """{"type":"me.zhangls.settings.api.ProfileDestination","origin":"Home"}"""
+    val key = json.decodeFromString(keySerializer, legacy)
+    assertEquals(ProfileDestination(ProfileOrigin.Home), key)
+    assertEquals(legacy, json.encodeToString(keySerializer, key))
   }
 
   private fun roundTrip(stack: NavBackStack<NavKey>): NavBackStack<NavKey> {

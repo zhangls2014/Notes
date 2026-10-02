@@ -26,6 +26,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun HomeScreen(
   openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit = {},
+  onProfileClick: () -> Unit = {},
 ) {
   // key 与收藏页区分。两个 Tab 现在各自是独立目的地、各有 ViewModelStore，所以
   // "一屏一实例"本就成立；显式 key 让它不依赖装饰器的实现细节。
@@ -36,5 +37,6 @@ fun HomeScreen(
     isFavorite = false,
     openedEmailId = openedEmailId,
     navigateToDetail = navigateToDetail,
+    onProfileClick = onProfileClick,
   )
 }

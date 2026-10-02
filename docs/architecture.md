@@ -36,6 +36,7 @@ Gradle 中启用的模块：
 :feature:login      :feature:login-api
 :feature:email      :feature:email-api
 :feature:settings   :feature:settings-api
+:feature:profile    :feature:profile-api
 
 :android:baselineprofile
 :android:output:login
@@ -80,7 +81,8 @@ Gradle 中启用的模块：
 | `feature:main-api` / `feature:main` | 顶层 Tab 目的地和应用外壳 |
 | `feature:login-api` / `feature:login` | 登录目的地、入口契约和登录 UI |
 | `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
-| `feature:settings-api` / `feature:settings` | 设置入口契约和设置行为/UI |
+| `feature:settings-api` / `feature:settings` | 设置入口/结果契约和设置行为/UI |
+| `feature:profile-api` / `feature:profile` | 个人信息入口/导航契约、用户资料展示和头像修改 UI |
 
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
@@ -164,6 +166,8 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 - `RequireLogin`：受登录状态保护的目的地；
 - Deep Link 与导航贡献注册机制。
 
+个人信息为 `feature:profile-api` 的 `ProfileDestination`，由 `ProfileNavigation` 登记序列化。`ProfileOrigin` 随 key 保存首页或设置入口，组合根据此选择对应 Tab 栈；两个入口共用 profile 的独立页面，返回与登录重定向均恢复发起入口。页面受 `RequireLogin` 保护，不带窗格标注。`ProfileDestination` 通过显式 `@SerialName` 保留拆分前的 wire identity（`me.zhangls.settings.api.ProfileDestination`），兼容已保存的 NavKey 和登录 redirectTo；代码和导航贡献均属于 profile-api，不依赖旧 settings 类型。个人信息显示期间，组合根向 `AppShell` 传入 `showNavigation = false`，使用 `NavigationSuiteType.None` 隐藏底部导航和大屏侧栏并释放占位；仍保留当前 Tab、外壳内容组合位置及 Entry 装饰器。返回后恢复对应 Tab 导航，页面恢复后也保持导航隐藏。
+
 Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
 
 首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。根导航通过 `rememberAppSceneStrategies` 为所有目的地装配统一场景策略：宽屏存在多个水平分区或平台报告横向铰链时，允许保留自适应单窗格场景及详情空态；仅由窄窗口高度达到 Expanded 而产生的多个纵向分区，不作为保留自适应单窗格场景的依据。实际多窗格仍由 Adaptive 接管，普通单页统一交给 Navigation 3 的页面场景。登录页内部的 `SupportingPaneScaffold` 独立消费原有 directive，继续保持左右分栏、纵向分区数限制为 1 和既有铰链处理，不受根场景选择影响。单窗格进入详情与按钮返回复用预测返回的中心缩放：进入时由缩小状态放大到完整页面，返回时由完整页面缩小退出；普通转场持续 220ms，列表保持原位，不使用横向滑动或页面透明度转场。根导航通过 `DeviceCornerNavDisplay` 装配库的 SceneState 与返回事件；单页预测返回采用与新建邮件 Material 3 BottomSheet 相同的 CubicBezier(0.1, 0.1, 0, 1) 曲线、48dp 横向/24dp 纵向缩减和页面中央缩放原点，内容反向补偿以保持文字与图片比例。单页使用自身内容区尺寸计算缩放与页面中央原点，不测量或补偿页面相对窗口的偏移。背景和圆角裁剪放在内容比例修正后的可见页面层内，以该层的实际尺寸为裁剪边界，避免底部圆角落在页面之外或残留背景遮挡上一页。只有页面参与变换，外壳不缩放。缩放时在上一页与当前页面之间绘制灰色遮罩（最大 24%），遮罩不参与缩放或覆盖导航套件；取消或完成时于 220ms 内淡出。单页邮件详情的 Scaffold 全尺寸绘制，包括状态栏下方的安全区域背景；安全区仅用于页面内部内容避让，不在缩放层之外预留顶部 padding。系统状态栏图标不属于应用页面。绘制层直接读取当前手势状态，拖动不经过弹簧动画的时间采样；场景就绪前保留完整页面，释放后的取消/提交尾段由线性 Scene transition 管理。Android 12+ 在系统提供圆角数据时，对参与缩放的单页 Scene 添加以页面实际边界为轮廓的物理圆角裁剪，半径按页面最终缩放比例补偿，拖动期间显示半径不随手势进度变化；取消返回时以 220ms 动画恢复原有未裁剪轮廓，动画完成后解除页面裁剪，避免非窗口角处突然变为直角。分栏 Scene、应用外壳与浮层不增加该变换或裁剪；旧 Android、未提供圆角的设备和 iOS 不做设备圆角匹配。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
@@ -217,7 +221,11 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 3. 行为由 `feature:settings` 的 Intent/ViewModel 拥有；
 4. `SettingsPreferenceMapper` 将 spec、值和回调装配为 `PreferenceUiModel`。
 
-`PreferenceSpec` 不持有状态或 Feature Intent。设置清单和顺序属于 `feature:settings`，平台差异通过能力位过滤。
+`PreferenceSpec` 不持有状态或 Feature Intent。设置清单和顺序属于 `feature:settings`，平台差异通过能力位过滤。个人信息入口的静态元数据位于 `core:preference/ProfilePreference`，点击由 SettingsIntent 与 SettingsResult 通知宿主导航。
+
+`ProfileEntry` 的实现与 `ProfileModule` 仅由 composeApp 装配；main 依赖 profile-api 传递 `ProfileOrigin`，settings 保留入口点击结果，不依赖 profile 实现。个人信息页面从 `UserRepository.userFlow` 展示只读用户名与头像，更换图片的选择、保存状态和平台存储属于 `feature:profile`，不再放在邮件搜索 ViewModel 中。共享用户头像和默认图片由 `core:theme/UserAvatar` 提供，搜索头像按钮只调用宿主导航；搜索结果的发件人头像不再重复宣告「个人信息」。
+
+头像使用唯一文件名复制到应用私有图片目录。`UserRepository.updateAvatar(avatar, expectedUser)` 在同一 mutex 中核对登录用户、用户名和原头像，原子提交新路径并保留当前搜索历史，拒绝失效快照。保存流程在复制后检查调用方取消状态，提交成功后才回收旧文件，失败/取消清理新副本；回收仅限本功能创建的私有文件。保存期间拒绝重复操作，页面以 polite live region 展示保存/成功/失败信息，失败保留旧头像并允许重试。Profile MVI 状态保持纯内存，不跨进程保存个人信息。
 
 ## 6. 数据与资源规则
 

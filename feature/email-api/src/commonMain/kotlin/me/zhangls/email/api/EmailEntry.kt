@@ -27,11 +27,13 @@ interface EmailEntry {
    * @param openedEmailId 当前正在详情栏展示的邮件 id，用于列表项的"已打开"态；
    *   由宿主从返回栈派生并传入（返回栈在宿主手里）
    * @param navigateToDetail 点击邮件后的回调，携带邮件 id
+   * @param onProfileClick 点击搜索栏用户头像，交由宿主打开个人信息页
    */
   @Composable
   fun HomeScreen(
     openedEmailId: Long?,
     navigateToDetail: (Long) -> Unit,
+    onProfileClick: () -> Unit,
   )
 
   /**
@@ -39,6 +41,7 @@ interface EmailEntry {
    *
    * @param openedEmailId 当前正在详情栏展示的邮件 id，语义同 [HomeScreen]
    * @param navigateToDetail 点击邮件后的回调，携带邮件 id
+   * @param onProfileClick 点击搜索栏用户头像，交由宿主打开个人信息页
    */
   @Composable
   fun FavoritesScreen(

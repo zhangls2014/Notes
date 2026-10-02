@@ -52,6 +52,7 @@ internal fun EmailTopBar(
   scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
   onIntent: (EmailIntent) -> Unit,
   onResultClick: (Long) -> Unit,
+  onProfileClick: () -> Unit,
 ) {
   var showDeleteConfirmation by remember { mutableStateOf(false) }
   LaunchedEffect(state.selectedItems.isEmpty()) {
@@ -62,7 +63,8 @@ internal fun EmailTopBar(
     if (state.selectedItems.isEmpty()) {
       EmailSearchBar(
         scrollBehavior = scrollBehavior,
-        onResultClick = onResultClick
+        onResultClick = onResultClick,
+        onProfileClick = onProfileClick,
       )
     } else {
       // 动作在构造时即绑定到具体 Intent，不依赖字符串资源身份分发

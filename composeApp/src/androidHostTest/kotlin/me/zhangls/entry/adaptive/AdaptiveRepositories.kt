@@ -23,7 +23,12 @@ internal class AdaptiveUsers : UserRepository {
   override suspend fun getUser() = userFlow.value
   override suspend fun login(user: UserModel, tokens: AuthTokens) { userFlow.value = user }
   override suspend fun getTokens(): AuthTokens? = null
-  override suspend fun updateAvatar(avatar: String) { userFlow.value = userFlow.value?.copy(avatar = avatar) }
+  override suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean {
+    val current = userFlow.value ?: return false
+    if (current.id != expectedUser.id || current.nickname != expectedUser.nickname || current.avatar != expectedUser.avatar) return false
+    userFlow.value = current.copy(avatar = avatar)
+    return true
+  }
   override suspend fun updateEmailSearchHistory(keyword: String) {
     userFlow.value = userFlow.value?.let { it.copy(emailSearchHistory = (listOf(keyword) + it.emailSearchHistory).distinct()) }
   }

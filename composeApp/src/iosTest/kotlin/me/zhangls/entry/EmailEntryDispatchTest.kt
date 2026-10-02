@@ -14,6 +14,8 @@ import me.zhangls.login.LoginEntryImpl
 import me.zhangls.login.api.LoginEntry
 import me.zhangls.settings.SettingsEntryImpl
 import me.zhangls.settings.api.SettingsEntry
+import me.zhangls.profile.ProfileEntryImpl
+import me.zhangls.profile.api.ProfileEntry
 
 /** Exercise the Compose interface ABI across modules on Kotlin/Native, without UI or Koin. */
 class EmailEntryDispatchTest {
@@ -26,7 +28,7 @@ class EmailEntryDispatchTest {
       // A headless composition has no platform host. Reaching that boundary proves that
       // Native dispatched into the real feature instead of an IrLinkageError stub.
       val screens: List<@Composable () -> Unit> = listOf(
-        { entry.HomeScreen(openedEmailId = null, navigateToDetail = {}) },
+        { entry.HomeScreen(openedEmailId = null, navigateToDetail = {}, onProfileClick = {}) },
         { entry.FavoritesScreen(openedEmailId = 42L, navigateToDetail = {}) },
         { entry.DetailScreen(emailId = 42L, onBackPressed = {}) },
       )
@@ -43,15 +45,17 @@ class EmailEntryDispatchTest {
   }
 
   @Test
-  fun loginAndSettingsEntriesDispatchIntoFeatureImplementations() {
+  fun loginSettingsAndProfileEntriesDispatchIntoFeatureImplementations() {
     val login: LoginEntry = LoginEntryImpl()
     val settings: SettingsEntry = SettingsEntryImpl()
+    val profile: ProfileEntry = ProfileEntryImpl()
     val recomposer = Recomposer(EmptyCoroutineContext)
     val composition = Composition(NoOpApplier(), recomposer)
     try {
       val screens: List<@Composable () -> Unit> = listOf(
         { login.Screen(onLoginResult = {}) },
         { settings.Screen {} },
+        { profile.Screen(onBackPressed = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

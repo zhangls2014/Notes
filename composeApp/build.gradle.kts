@@ -44,6 +44,8 @@ kotlin {
         implementation(projects.feature.loginApi)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)
+        implementation(projects.feature.profileApi)
+        implementation(projects.feature.profile)
 
         implementation(kmp.androidx.lifecycle.viewmodel.navigation3)
         implementation(kmp.jetbrains.navigation3.ui)

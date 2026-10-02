@@ -12,6 +12,7 @@ import me.zhangls.framework.FrameworkModule
 import me.zhangls.login.LoginModule
 import me.zhangls.main.MainModule
 import me.zhangls.settings.SettingsModule
+import me.zhangls.profile.ProfileModule
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
@@ -29,7 +30,8 @@ import org.koin.plugin.module.dsl.startKoin
     EmailModule::class,
     LoginModule::class,
     MainModule::class,
-    SettingsModule::class
+    SettingsModule::class,
+    ProfileModule::class
   ]
 )
 @ComponentScan("me.zhangls.entry")

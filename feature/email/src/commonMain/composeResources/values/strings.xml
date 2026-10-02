@@ -23,7 +23,6 @@
     <string name="email_label_recipients">Recipients</string>
     <string name="email_label_subject">Subject</string>
     <string name="email_label_body">Body</string>
-    <string name="email_msg_save_avatar_failed">Save avatar failed</string>
     <string name="email_msg_recipient_required">Please select at least one recipient</string>
     <string name="email_msg_body_required">Please enter the main content.</string>
     <string name="email_msg_email_save_failed">Failed to save email</string>

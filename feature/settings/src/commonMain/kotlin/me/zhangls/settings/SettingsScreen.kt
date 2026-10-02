@@ -83,7 +83,11 @@ internal fun SettingsScreen(
               modifier = Modifier.padding(
                 start = 16.dp,
                 end = 16.dp,
-                top = if (index == 0 || standalone) 16.dp else 0.dp,
+                top = if (index == 0 || standalone || preferences[index - 1] is PreferenceUiModel.Action) {
+                  16.dp
+                } else {
+                  0.dp
+                },
                 bottom = if (index == preferences.lastIndex) 16.dp else 0.dp,
               ),
             )

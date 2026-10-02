@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profile_label_profile">Personal information</string>
+  <string name="profile_label_avatar">Avatar</string>
+  <string name="profile_label_username">Username</string>
+  <string name="profile_action_change_avatar">Change avatar</string>
+  <string name="profile_msg_saving_avatar">Saving avatar…</string>
+  <string name="profile_msg_avatar_saved">Avatar updated</string>
+  <string name="profile_msg_save_avatar_failed">Unable to save avatar. Please try again.</string>
+</resources>

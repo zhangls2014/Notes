@@ -21,10 +21,12 @@ class EmailEntryImpl : EmailEntry {
   override fun HomeScreen(
     openedEmailId: Long?,
     navigateToDetail: (Long) -> Unit,
+    onProfileClick: () -> Unit,
   ) {
     HomeScreenImpl(
       openedEmailId = openedEmailId,
       navigateToDetail = navigateToDetail,
+      onProfileClick = onProfileClick,
     )
   }
 

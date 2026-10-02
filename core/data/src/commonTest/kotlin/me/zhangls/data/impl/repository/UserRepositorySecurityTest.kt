@@ -29,11 +29,33 @@ class UserRepositorySecurityTest {
       assertFalse(raw.contains("Token"))
       assertFalse(raw.contains("secret"))
       assertEquals("old-secret", UserRepositoryImpl(prefs, store).getTokens()?.accessToken)
-      repository.updateAvatar("avatar")
+      assertTrue(repository.updateAvatar("avatar", repository.getUser()!!))
       assertEquals("old-secret", repository.getTokens()?.accessToken)
       repository.clear()
       assertNull(store.value)
       assertNull(repository.userFlow.first())
+    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+  }
+
+  @Test
+  fun avatarUpdateRejectsChangedUserOrAvatarButKeepsSearchHistory() = runTest {
+    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-avatar-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
+    val repository = UserRepositoryImpl(prefs, FakeStore())
+    try {
+      val user = UserModel("local", "First user", "old")
+      repository.login(user, AuthTokens("secret"))
+      repository.updateEmailSearchHistory("query")
+      assertTrue(repository.updateAvatar("new", user))
+      assertEquals(listOf("query"), repository.getUser()?.emailSearchHistory)
+      assertFalse(repository.updateAvatar("stale", user))
+      assertEquals("new", repository.getUser()?.avatar)
+      repository.login(user.copy(nickname = "Another user"), AuthTokens("other"))
+      assertFalse(repository.updateAvatar("wrong-user", user))
+      assertEquals("old", repository.getUser()?.avatar)
+      repository.clear()
+      assertFalse(repository.updateAvatar("signed-out", user))
+      assertNull(repository.getUser())
     } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
   }
 
