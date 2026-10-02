@@ -15,6 +15,7 @@
 - [自适应 UI 回归](testing/adaptive-ui.md)：宿主行为测试、候选截图与人工批准视觉基线流程。
 - [登录凭据存储验证](testing/secure-token-storage.md)：迁移回归、平台安全存储验收和 Keychain 测试环境限制。
 - [iOS Launch Screen](testing/ios-launch-screen.md)：Android 图标资源映射、系统启动页配置与验证。
+- [iOS Toast 无障碍验证](testing/ios-toast-accessibility.md)：原生字体回归、播报与 Dynamic Type 设备验收。
 
 ## 历史审计
 

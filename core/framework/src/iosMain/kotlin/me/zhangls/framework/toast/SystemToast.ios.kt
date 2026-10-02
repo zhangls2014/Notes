@@ -16,10 +16,15 @@ import platform.CoreGraphics.CGPoint
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
 import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
 import platform.UIKit.NSTextAlignmentCenter
+import platform.UIKit.UIAccessibilityAnnouncementNotification
+import platform.UIKit.UIAccessibilityPostNotification
+import platform.UIKit.UIContentSizeCategoryDidChangeNotification
 import platform.UIKit.UIColor
 import platform.UIKit.UIEvent
 import platform.UIKit.UIFont
+import platform.UIKit.UIFontTextStyleSubheadline
 import platform.UIKit.UILabel
 import platform.UIKit.UISceneActivationStateForegroundActive
 import platform.UIKit.UISceneDidDisconnectNotification
@@ -46,7 +51,10 @@ class IosSystemToast(private val host: UIViewController) : SystemToast {
       current = toast
       try {
         toast.show()
-        delay(if (longDuration) 3500L else 2000L)
+        // 等淡入完成后播报；替换或关闭会取消此协程，不让旧提示延迟播报。
+        delay(TOAST_ANIMATION_MILLIS)
+        toast.announce()
+        delay((if (longDuration) 3500L else 2000L) - TOAST_ANIMATION_MILLIS)
         toast.fadeOut()
         delay(TOAST_ANIMATION_MILLIS)
       } finally {
@@ -78,6 +86,11 @@ private class ToastWindow(scene: UIWindowScene, message: String) {
     `object` = scene,
     queue = null,
   ) { dismiss() }
+  private val contentSizeObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+    name = UIContentSizeCategoryDidChangeNotification,
+    `object` = null,
+    queue = NSOperationQueue.mainQueue,
+  ) { window.rootViewController?.view?.setNeedsLayout() }
 
   fun show() {
     window.hidden = false
@@ -89,19 +102,28 @@ private class ToastWindow(scene: UIWindowScene, message: String) {
     UIView.animateWithDuration(TOAST_ANIMATION_SECONDS) { content.label.alpha = 0.0 }
   }
 
+  fun announce() {
+    if (!window.hidden && window.windowScene?.activationState == UISceneActivationStateForegroundActive) {
+      // announcement 传文本给 VoiceOver，不请求屏幕切换或改变当前读屏焦点。
+      UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, content.label.text)
+    }
+  }
+
   fun dismiss() {
     NSNotificationCenter.defaultCenter.removeObserver(disconnectObserver)
+    NSNotificationCenter.defaultCenter.removeObserver(contentSizeObserver)
     window.hidden = true
     window.rootViewController = null
     window.windowScene = null
   }
 }
 
-private class ToastViewController(message: String) : UIViewController(nibName = null, bundle = null) {
+internal class ToastViewController(message: String) : UIViewController(nibName = null, bundle = null) {
   val label = UILabel(frame = CGRectMake(0.0, 0.0, 0.0, 0.0)).apply {
     text = message
     numberOfLines = 0
-    font = UIFont.systemFontOfSize(14.0)
+    font = UIFont.preferredFontForTextStyle(UIFontTextStyleSubheadline)
+    adjustsFontForContentSizeCategory = true
     textAlignment = NSTextAlignmentCenter
     textColor = UIColor.whiteColor
     backgroundColor = UIColor(white = 0.0, alpha = 0.78)
