@@ -16,8 +16,8 @@ fun deriveNamespace(projectPath: String): String {
 
 /**
  * 从模块路径推导 iOS framework baseName：
- * - :core:data -> dataKit
- * - :feature:login-api -> loginApiKit
+ * - :core:data -> DataKit
+ * - :feature:login-api -> LoginApiKit
  * - :composeApp -> ComposeApp
  */
 fun deriveFrameworkName(projectPath: String): String {

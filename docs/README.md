@@ -46,6 +46,7 @@ docs/
 - [2026-10-02 iOS 启动耗时调查](audits/2026-10-02-ios-startup.md)
 - [2026-10-02 全项目过时 API 审计与更新方案](audits/2026-10-02-outdated-api.md)
 - [2026-10-02 无障碍适配审计](audits/2026-10-02-accessibility.md)
+- [2026-10-03 注释与实现一致性审计](audits/2026-10-03-comment-consistency.md)：8 项明确偏差与 2 项表述精度建议已全部修订，含静态验证记录。
 
 ## 设计与实施记录
 

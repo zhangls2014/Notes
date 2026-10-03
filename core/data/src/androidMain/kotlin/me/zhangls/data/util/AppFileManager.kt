@@ -97,7 +97,7 @@ actual class AppFileManager(private val context: Context) {
   fun getFileNameNoExtension(uri: Uri): String {
     val name = getFileName(uri)
 
-    // 2. 如果没有扩展名，用 MIME 补
+    // 名称为空或不含扩展名时，用 MIME 主类型（如 image）作为文件名回退；不可用时返回空字符串。
     return if (name.isNullOrBlank() || name.contains(".").not()) {
       context.contentResolver.getType(uri)?.substringBeforeLast("/") ?: ""
     } else {
@@ -108,7 +108,7 @@ actual class AppFileManager(private val context: Context) {
   fun getFileExtension(uri: Uri): String {
     val name = getFileName(uri)
 
-    // 2. 如果没有扩展名，用 MIME 补
+    // 名称为空或不含扩展名时，用 MIME 子类型（如 jpeg）作为扩展名回退；不可用时返回空字符串。
     return if (name.isNullOrBlank() || name.contains(".").not()) {
       context.contentResolver.getType(uri)?.substringAfterLast("/") ?: ""
     } else {

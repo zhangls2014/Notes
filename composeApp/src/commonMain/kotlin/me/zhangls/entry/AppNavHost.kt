@@ -60,8 +60,8 @@ fun AppNavHost(
     return
   }
 
-  // 各 feature 对导航的贡献（key 的序列化登记 + DeepLink 匹配）由它们自己的 Koin 模块以
-  // 多绑定登记，组合根只收集，不持有任何 feature 的路由知识：新增 feature 时这里零改动。
+  // 各 feature 以唯一 qualifier 登记 key 的序列化注册表与 DeepLink 匹配器，Registry 统一收集。
+  // 具体 Nav Entry、宿主回调与根导航策略仍由 composeApp 显式装配。
   val navigationRegistry = rememberNavigationRegistry()
   val platformAppInfo = koinInject<AppInfo>()
   val aboutAppInfo = remember(platformAppInfo) { platformAppInfo.toAboutAppInfo() }

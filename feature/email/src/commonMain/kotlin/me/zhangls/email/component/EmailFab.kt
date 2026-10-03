@@ -24,7 +24,7 @@ import notes.feature.email.generated.resources.email_action_sending
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * 写邮件悬浮按钮：发送中展示进度并禁用点击。
+ * 写邮件悬浮按钮：发送中展示进度并忽略打开草稿操作，按钮仍保留可点击语义。
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

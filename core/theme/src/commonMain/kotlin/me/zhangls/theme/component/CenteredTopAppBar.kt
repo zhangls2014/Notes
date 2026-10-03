@@ -19,11 +19,12 @@ import notes.core.theme.generated.resources.theme_action_navigate_before
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * 标题居中的 [CenterAlignedTopAppBar]，通过在右侧添加一个空白不可用的 [IconButton] 来实现标题居中
+ * 标题对齐由 [CenterAlignedTopAppBar] 处理；本组件提供本地化返回按钮与操作插槽。
  *
  * @param title 标题
  * @param modifier 修饰符
  * @param navigate 返回按钮点击事件，如果为 null，则不显示返回按钮
+ * @param actions 标题栏右侧的操作内容
  *
  * @author zhangls
  */
