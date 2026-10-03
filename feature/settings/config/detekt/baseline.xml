@@ -8,19 +8,11 @@
     <ID>FunctionExpressionBody:SettingsDialogMapper.kt:{ return when (this) { SettingsDialog.Logout -&gt; DialogUiModel( dialogId = dialogId, title = Res.string.settings_dialog_label_logout, message = Res.string.settings_dialog_content_logout, // 确认按钮文案直接复用设置项的标题（同为"退出登录"）：两者语义同源， // 各写一份的结果是改标题时按钮不会跟着变。跨模块取 core:preference 的 // 公开 API 是可行的，取它的字符串资源则不行（生成器产出的是 internal）。 confirm = LogoutPreference.spec.title, dismiss = Res.string.settings_dialog_action_cancel, ) } }</ID>
     <ID>FunctionExpressionBody:SettingsHandler.kt:SettingsHandler${ return SettingsDialog.Logout }</ID>
     <ID>FunctionExpressionBody:SettingsHandler.kt:SettingsHandler${ return when (result) { is DialogResult.Confirm -&gt; { if (result.dialogId == SettingsDialog.Logout.dialogId) { userRepository.clear() SettingsResult.Logout } else { null } } is DialogResult.Dismiss -&gt; null } }</ID>
-    <ID>FunctionExpressionBody:SettingsPreferenceMapper.kt:{ return PreferenceUiModel.Action( spec = LogoutPreference.spec, onClick = { sendIntent(SettingsIntent.ClickLogout) }, ) }</ID>
-    <ID>FunctionExpressionBody:SettingsPreferenceMapper.kt:{ return PreferenceUiModel.Select( spec = DarkThemePreference.spec, value = value, onValueChange = { sendIntent(SettingsIntent.UpdateDarkTheme(it)) }, ) }</ID>
-    <ID>FunctionExpressionBody:SettingsPreferenceMapper.kt:{ return PreferenceUiModel.Select( spec = FontSizePreference.spec, value = value, onValueChange = { sendIntent(SettingsIntent.UpdateFontSize(it)) }, ) }</ID>
-    <ID>FunctionExpressionBody:SettingsPreferenceMapper.kt:{ return PreferenceUiModel.Select( spec = LanguagePreference.spec, value = value, onValueChange = { sendIntent(SettingsIntent.UpdateAppLanguage(it)) }, ) }</ID>
-    <ID>FunctionExpressionBody:SettingsPreferenceMapper.kt:{ return PreferenceUiModel.Toggle( spec = DynamicColorPreference.spec, value = value, onValueChange = { sendIntent(SettingsIntent.UpdateDynamicColor(it)) }, ) }</ID>
     <ID>FunctionExpressionBody:SettingsReducer.kt:SettingsReducer${ return with(oldState) { when (action) { is SettingsAction.UpdateSettings -&gt; copy(settings = action.settings) is SettingsAction.ShowDialog -&gt; copy(dialog = action.dialog) SettingsAction.DismissDialog -&gt; copy(dialog = null) } } }</ID>
     <ID>FunctionSignature:SettingsEntryImpl.kt:SettingsEntryImpl$@Composable override fun Screen</ID>
     <ID>FunctionSignature:SettingsPreferenceMapper.kt:internal fun SettingsModel.toPreferenceUiModels: List&lt;PreferenceUiModel&gt;</ID>
-    <ID>FunctionSignature:SettingsPreferenceMapper.kt:internal fun darkThemePreference: PreferenceUiModel.Select&lt;DarkThemeConfig&gt;</ID>
-    <ID>FunctionSignature:SettingsPreferenceMapper.kt:internal fun dynamicColorPreference: PreferenceUiModel.Toggle</ID>
-    <ID>FunctionSignature:SettingsPreferenceMapper.kt:internal fun fontSizePreference: PreferenceUiModel.Select&lt;FontSizeConfig&gt;</ID>
-    <ID>FunctionSignature:SettingsPreferenceMapper.kt:internal fun languagePreference: PreferenceUiModel.Select&lt;AppLanguage&gt;</ID>
-    <ID>FunctionSignature:SettingsPreferenceMapper.kt:internal fun logoutPreference: PreferenceUiModel.Action</ID>
+    <ID>FunctionSignature:SettingsPreferenceMapper.kt:private fun &lt;T&gt; selectPreference: PreferenceUiModel.Select&lt;T&gt;</ID>
+    <ID>FunctionSignature:SettingsPreferenceMapper.kt:private fun actionPreference: PreferenceUiModel.Action</ID>
     <ID>FunctionSignature:SettingsScreen.kt:@Composable internal fun SettingsScreen</ID>
     <ID>ImportOrdering:SettingsIntent.kt:import me.zhangls.model.FontSizeConfig import me.zhangls.model.AppLanguage import me.zhangls.model.DarkThemeConfig import me.zhangls.framework.mvi.DialogResult import me.zhangls.framework.mvi.MviIntent</ID>
     <ID>NewLineAtEndOfFile:SettingsModule.kt:me.zhangls.settings.SettingsModule.kt</ID>

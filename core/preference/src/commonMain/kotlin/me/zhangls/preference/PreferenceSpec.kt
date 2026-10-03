@@ -27,7 +27,7 @@ data class PreferenceOption<T>(
  *    （[PreferenceRow] 行形态 / [SelectIconButton] 图标形态），同一份 spec 可以有多种形态，
  *    每种形态在本模块实现一次；
  * ③ **不含清单与顺序** —— 哪些设置项存在、以什么顺序展示是**平台相关**的
- *    （动态取色仅 Android 有），因此那份清单必须留在 feature 的 expect/actual 里。
+ *    （动态取色仅 Android 有），因此清单在 feature 的 common 中统一定义，expect/actual 只提供平台能力位。
  *
  * 元数据对象在各自的 `object`（如 [LanguagePreference]）中声明为单例，故 lambda 属性按引用参与相等性
  * 不产生实际影响。

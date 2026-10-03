@@ -248,6 +248,8 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 `PreferenceSpec` 不持有状态或 Feature Intent。设置清单和顺序属于 `feature:settings`，平台差异通过能力位过滤。个人信息入口的静态元数据位于 `core:preference/ProfilePreference`，点击由 SettingsIntent 与 SettingsResult 通知宿主导航。
 
+设置清单统一定义在 common；expect/actual 只提供平台能力位。`SettingsModel.toPreferenceUiModels` 的 `dynamicColorSupported` 参数默认取平台值，允许测试覆盖支持与不支持的清单。Action 与 Select 通过 settings 内的私有、类型安全辅助函数绑定 Intent，UI 仍以当前 SettingsModel 和 ViewModel 为 key 缓存映射结果。
+
 `ProfileEntry` 的实现与 `ProfileModule` 仅由 composeApp 装配；main 依赖 profile-api 传递 `ProfileOrigin`，settings 保留入口点击结果，不依赖 profile 实现。个人信息页面从 `UserRepository.userFlow` 展示只读用户名与头像，更换图片的选择、保存状态和平台存储属于 `feature:profile`，不再放在邮件搜索 ViewModel 中。共享用户头像和默认图片由 `core:theme/UserAvatar` 提供，搜索头像按钮只调用宿主导航；搜索结果的发件人头像不再重复宣告「个人信息」。
 
 头像使用唯一文件名复制到应用私有图片目录。`UserRepository.updateAvatar(avatar, expectedUser)` 在同一 mutex 中核对登录用户、用户名和原头像，原子提交新路径并保留当前搜索历史，拒绝失效快照。保存流程在复制后检查调用方取消状态，提交成功后才回收旧文件，失败/取消清理新副本；回收仅限本功能创建的私有文件。保存期间拒绝重复操作，页面以 polite live region 展示保存/成功/失败信息，失败保留旧头像并允许重试。Profile MVI 状态保持纯内存，不跨进程保存个人信息。

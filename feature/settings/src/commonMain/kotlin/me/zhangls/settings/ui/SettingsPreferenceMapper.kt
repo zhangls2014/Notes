@@ -1,15 +1,13 @@
 package me.zhangls.settings.ui
 
 import me.zhangls.data.model.SettingsModel
-import me.zhangls.model.AppLanguage
-import me.zhangls.model.DarkThemeConfig
-import me.zhangls.model.FontSizeConfig
-import me.zhangls.preference.DarkThemePreference
 import me.zhangls.preference.AboutPreference
+import me.zhangls.preference.DarkThemePreference
 import me.zhangls.preference.DynamicColorPreference
 import me.zhangls.preference.FontSizePreference
 import me.zhangls.preference.LanguagePreference
 import me.zhangls.preference.LogoutPreference
+import me.zhangls.preference.PreferenceSpec
 import me.zhangls.preference.ProfilePreference
 import me.zhangls.preference.ui.PreferenceUiModel
 import me.zhangls.settings.mvi.SettingsIntent
@@ -31,81 +29,48 @@ import me.zhangls.settings.mvi.SettingsIntent
 internal expect val supportsDynamicColor: Boolean
 
 /**
- * 全部设置项的表现层模型，顺序即展示顺序。[supportsDynamicColor] 为 false 的平台会跳过动态取色项。
+ * 全部设置项的表现层模型，顺序即展示顺序。
  *
- * @param sendIntent Intent 入口；在此处就把回调绑好，模型因此只携带 `(T) -> Unit`，
- *   消费方的 `SettingsIntent` 类型不会进入 `core:preference`
+ * @param sendIntent Intent 入口；消费方的 SettingsIntent 类型不会进入 core:preference。
+ * @param dynamicColorSupported 是否展示动态取色项，默认使用平台能力位；测试可覆盖两种清单。
  */
 internal fun SettingsModel.toPreferenceUiModels(
   sendIntent: (SettingsIntent) -> Unit,
+  dynamicColorSupported: Boolean = supportsDynamicColor,
 ): List<PreferenceUiModel> = buildList {
-  add(PreferenceUiModel.Action(
-    spec = ProfilePreference.spec,
-    onClick = { sendIntent(SettingsIntent.OpenProfile) },
-  ))
-  if (supportsDynamicColor) {
-    add(dynamicColorPreference(dynamicColor, sendIntent))
+  add(actionPreference(ProfilePreference.spec, SettingsIntent.OpenProfile, sendIntent))
+  if (dynamicColorSupported) {
+    add(
+      PreferenceUiModel.Toggle(
+        spec = DynamicColorPreference.spec,
+        value = dynamicColor,
+        onValueChange = { sendIntent(SettingsIntent.UpdateDynamicColor(it)) },
+      ),
+    )
   }
-  add(darkThemePreference(darkTheme, sendIntent))
-  add(fontSizePreference(fontSize, sendIntent))
-  add(languagePreference(appLanguage, sendIntent))
-  add(PreferenceUiModel.Action(
-    spec = AboutPreference.spec,
-    onClick = { sendIntent(SettingsIntent.OpenAbout) },
-  ))
-  // 退出登录
-  add(logoutPreference(sendIntent))
+  add(selectPreference(DarkThemePreference.spec, darkTheme, SettingsIntent::UpdateDarkTheme, sendIntent))
+  add(selectPreference(FontSizePreference.spec, fontSize, SettingsIntent::UpdateFontSize, sendIntent))
+  add(selectPreference(LanguagePreference.spec, appLanguage, SettingsIntent::UpdateAppLanguage, sendIntent))
+  add(actionPreference(AboutPreference.spec, SettingsIntent.OpenAbout, sendIntent))
+  add(actionPreference(LogoutPreference.spec, SettingsIntent.ClickLogout, sendIntent))
 }
 
-internal fun dynamicColorPreference(
-  value: Boolean,
+private fun actionPreference(
+  spec: PreferenceSpec.Action,
+  intent: SettingsIntent,
   sendIntent: (SettingsIntent) -> Unit,
-): PreferenceUiModel.Toggle {
-  return PreferenceUiModel.Toggle(
-    spec = DynamicColorPreference.spec,
-    value = value,
-    onValueChange = { sendIntent(SettingsIntent.UpdateDynamicColor(it)) },
-  )
-}
+): PreferenceUiModel.Action = PreferenceUiModel.Action(
+  spec = spec,
+  onClick = { sendIntent(intent) },
+)
 
-internal fun darkThemePreference(
-  value: DarkThemeConfig,
+private fun <T> selectPreference(
+  spec: PreferenceSpec.Select<T>,
+  value: T,
+  intent: (T) -> SettingsIntent,
   sendIntent: (SettingsIntent) -> Unit,
-): PreferenceUiModel.Select<DarkThemeConfig> {
-  return PreferenceUiModel.Select(
-    spec = DarkThemePreference.spec,
-    value = value,
-    onValueChange = { sendIntent(SettingsIntent.UpdateDarkTheme(it)) },
-  )
-}
-
-internal fun fontSizePreference(
-  value: FontSizeConfig,
-  sendIntent: (SettingsIntent) -> Unit,
-): PreferenceUiModel.Select<FontSizeConfig> {
-  return PreferenceUiModel.Select(
-    spec = FontSizePreference.spec,
-    value = value,
-    onValueChange = { sendIntent(SettingsIntent.UpdateFontSize(it)) },
-  )
-}
-
-internal fun languagePreference(
-  value: AppLanguage,
-  sendIntent: (SettingsIntent) -> Unit,
-): PreferenceUiModel.Select<AppLanguage> {
-  return PreferenceUiModel.Select(
-    spec = LanguagePreference.spec,
-    value = value,
-    onValueChange = { sendIntent(SettingsIntent.UpdateAppLanguage(it)) },
-  )
-}
-
-internal fun logoutPreference(
-  sendIntent: (SettingsIntent) -> Unit,
-): PreferenceUiModel.Action {
-  return PreferenceUiModel.Action(
-    spec = LogoutPreference.spec,
-    onClick = { sendIntent(SettingsIntent.ClickLogout) },
-  )
-}
+): PreferenceUiModel.Select<T> = PreferenceUiModel.Select(
+  spec = spec,
+  value = value,
+  onValueChange = { sendIntent(intent(it)) },
+)
