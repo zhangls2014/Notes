@@ -11,8 +11,9 @@ import org.koin.compose.currentKoinScope
 /**
  * 本应用收集到的全部导航贡献。
  *
- * 各 feature 在自己的 Koin 模块里以契约接口类型登记（`@Single fun …(): NavigationContribution`），
- * 这里一处收集。组合根因此不持有任何 feature 的路由知识 —— 新增 feature 时它零改动。
+ * 各 feature 在自己的 Koin 模块里以契约接口类型和唯一 qualifier 登记，
+ * 这里聚合序列化注册表与 DeepLink 匹配器，新增贡献无需修改本收集逻辑。
+ * Feature 的 Koin 模块、Nav Entry 与必要的根导航策略仍由 composeApp 显式装配。
  *
  * 早先这两样东西由组合根手工拼接：`mainNavModule + loginNavModule + emailNavModule`，以及文件内
  * 私有的 `when (request.path)` 路径表。漏掉任何一项都只在运行期暴露（重建时

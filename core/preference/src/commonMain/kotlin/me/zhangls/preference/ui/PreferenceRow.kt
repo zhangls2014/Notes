@@ -49,7 +49,8 @@ fun ProvidePreferenceLocals(content: @Composable () -> Unit) {
  * 新增设置项不需要任何 feature 写渲染代码，新增**形态**也只需在这里加一个控件。
  *
  * 消费方只需保证自己在 [ProvidePreferenceLocals] 的子树内。
- * [isGroupStart] / [isGroupEnd] 仅控制外角；分组清单和顺序由消费方拥有。
+ * [isGroupStart] / [isGroupEnd] 按分组首尾选择上下边的外角或内角；
+ * 分组清单和顺序由消费方拥有。
  */
 @Composable
 fun PreferenceRow(
