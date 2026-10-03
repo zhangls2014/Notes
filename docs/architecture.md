@@ -229,6 +229,10 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 ### Material 3 Expressive 主题
 
+应用内功能图标统一来自 [Google Fonts Material Symbols](https://fonts.google.com/icons)，采用 Rounded，默认未填充（`FILL=0`），由 `core:theme` 提供共享矢量。明确的填充变体允许保留，`StarFill` 使用官方 `FILL=1` 版本表达收藏状态。这里的未填充指 Material Symbols 的 FILL 轴，并非要求矢量路径不使用填充绘制。登录页、关于应用页与桌面启动图标属于品牌图标，保留现有设计；品牌图标的深浅色适配独立于功能图标风格约束。
+
+功能图标由 `tools/material-symbols/generate.py` 从固定版本的 Google 官方 Rounded SVG 生成，默认参数为 `FILL=0 / wght=400 / GRAD=0 / opsz=24`，填充例外在 manifest 中显式记录；原始 SVG、名称映射、版本与 SHA-256 一并保存。`--check` 校验来源文件、生成输出和目录清单。生成 Kotlin 去掉原始注释，import 与正文之间保留两行空行，沿用缓存属性与 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。邮件收藏保留 Star/StarFill 切换，同时使用主题按钮颜色及无障碍文案表达状态。
+
 共享 UI 的主题入口是 `core:theme/ComposeAppTheme`，使用 `MaterialExpressiveTheme` 和 `MotionScheme.expressive()`。字体与形状分别由同模块的 `AppTypography`、`AppShapes` 提供；标题与操作标签使用强调字重，正文保留 Material 原有尺寸。Typography 显式使用带 fontFamily 的构造器，避免兼容无参构造器把强调样式映射回普通样式。
 
 主题保留内置品牌配色、动态色、深浅色和用户字号设置。应用字号是相对系统字号的倍率：标准字号复用系统 Density，中／大字号将系统 fontScale 与应用倍率相乘，保留 density；窗口事实仍在主题之外读取。Feature 从 `MaterialTheme` 读取颜色、字体与形状；关键按钮和共享图标按钮显式采用形变重载，自定义头像空间动画使用主题 MotionScheme。邮件列表与详情卡片使用主题 large 圆角和容器色，打开、多选、收藏状态各有语义颜色。确认对话框使用标准 AlertDialog，保留字符串与 AnnotatedString 重载，以及显式按钮回调关闭语义。

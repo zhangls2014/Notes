@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.DarkMode: ImageVector
   get() {
@@ -17,7 +24,7 @@ val Icons.Rounded.DarkMode: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
       path(fill = SolidColor(Color.Black)) {
         moveTo(480f, 840f)
@@ -42,7 +49,7 @@ val Icons.Rounded.DarkMode: ImageVector
         quadToRelative(-14f, 138f, -117.5f, 229f)
         reflectiveQuadTo(480f, 840f)
         close()
-        moveTo(480f, 760f)
+        moveToRelative(0f, -80f)
         quadToRelative(88f, 0f, 158f, -48.5f)
         reflectiveQuadTo(740f, 585f)
         quadToRelative(-20f, 5f, -40f, 8f)
@@ -56,7 +63,7 @@ val Icons.Rounded.DarkMode: ImageVector
         quadToRelative(0f, 116f, 82f, 198f)
         reflectiveQuadToRelative(198f, 82f)
         close()
-        moveTo(470f, 490f)
+        moveToRelative(-10f, -270f)
         close()
       }
     }.build()
@@ -66,3 +73,11 @@ val Icons.Rounded.DarkMode: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _DarkMode: ImageVector? = null
+
+@Preview(name = "DarkMode", showBackground = true)
+@Composable
+private fun DarkModePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.DarkMode, contentDescription = null)
+  }
+}

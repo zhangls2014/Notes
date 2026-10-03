@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Visibility: ImageVector
   get() {
@@ -17,31 +24,32 @@ val Icons.Rounded.Visibility: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
       path(fill = SolidColor(Color.Black)) {
-        moveTo(607.5f, 587.5f)
-        quadTo(660f, 535f, 660f, 460f)
-        reflectiveQuadToRelative(-52.5f, -127.5f)
-        quadTo(555f, 280f, 480f, 280f)
-        reflectiveQuadToRelative(-127.5f, 52.5f)
-        quadTo(300f, 385f, 300f, 460f)
-        reflectiveQuadToRelative(52.5f, 127.5f)
-        quadTo(405f, 640f, 480f, 640f)
-        reflectiveQuadToRelative(127.5f, -52.5f)
+        moveTo(480f, 640f)
+        quadToRelative(75f, 0f, 127.5f, -52.5f)
+        reflectiveQuadTo(660f, 460f)
+        quadToRelative(0f, -75f, -52.5f, -127.5f)
+        reflectiveQuadTo(480f, 280f)
+        quadToRelative(-75f, 0f, -127.5f, 52.5f)
+        reflectiveQuadTo(300f, 460f)
+        quadToRelative(0f, 75f, 52.5f, 127.5f)
+        reflectiveQuadTo(480f, 640f)
         close()
-        moveTo(403.5f, 536.5f)
-        quadTo(372f, 505f, 372f, 460f)
-        reflectiveQuadToRelative(31.5f, -76.5f)
-        quadTo(435f, 352f, 480f, 352f)
-        reflectiveQuadToRelative(76.5f, 31.5f)
-        quadTo(588f, 415f, 588f, 460f)
-        reflectiveQuadToRelative(-31.5f, 76.5f)
-        quadTo(525f, 568f, 480f, 568f)
-        reflectiveQuadToRelative(-76.5f, -31.5f)
+        moveToRelative(0f, -72f)
+        quadToRelative(-45f, 0f, -76.5f, -31.5f)
+        reflectiveQuadTo(372f, 460f)
+        quadToRelative(0f, -45f, 31.5f, -76.5f)
+        reflectiveQuadTo(480f, 352f)
+        quadToRelative(45f, 0f, 76.5f, 31.5f)
+        reflectiveQuadTo(588f, 460f)
+        quadToRelative(0f, 45f, -31.5f, 76.5f)
+        reflectiveQuadTo(480f, 568f)
         close()
-        moveTo(235.5f, 688f)
-        quadTo(125f, 616f, 61f, 498f)
+        moveToRelative(0f, 192f)
+        quadToRelative(-134f, 0f, -244.5f, -72f)
+        reflectiveQuadTo(61f, 498f)
         quadToRelative(-5f, -9f, -7.5f, -18.5f)
         reflectiveQuadTo(51f, 460f)
         quadToRelative(0f, -10f, 2.5f, -19.5f)
@@ -56,19 +64,18 @@ val Icons.Rounded.Visibility: ImageVector
         reflectiveQuadTo(899f, 498f)
         quadToRelative(-64f, 118f, -174.5f, 190f)
         reflectiveQuadTo(480f, 760f)
-        quadToRelative(-134f, 0f, -244.5f, -72f)
         close()
-        moveTo(480f, 460f)
+        moveToRelative(0f, -300f)
         close()
-        moveTo(687.5f, 620.5f)
-        quadTo(782f, 561f, 832f, 460f)
+        moveToRelative(0f, 220f)
+        quadToRelative(113f, 0f, 207.5f, -59.5f)
+        reflectiveQuadTo(832f, 460f)
         quadToRelative(-50f, -101f, -144.5f, -160.5f)
         reflectiveQuadTo(480f, 240f)
         quadToRelative(-113f, 0f, -207.5f, 59.5f)
         reflectiveQuadTo(128f, 460f)
         quadToRelative(50f, 101f, 144.5f, 160.5f)
         reflectiveQuadTo(480f, 680f)
-        quadToRelative(113f, 0f, 207.5f, -59.5f)
         close()
       }
     }.build()
@@ -78,3 +85,11 @@ val Icons.Rounded.Visibility: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Visibility: ImageVector? = null
+
+@Preview(name = "Visibility", showBackground = true)
+@Composable
+private fun VisibilityPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Visibility, contentDescription = null)
+  }
+}

@@ -4,7 +4,7 @@
   <CurrentIssues>
     <ID>ArgumentListWrapping:SimpleDialog.kt:( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {})</ID>
     <ID>BackingPropertyNaming:AccountCircle.kt:@Suppress("ObjectPropertyName") private var _AccountCircle: ImageVector? = null</ID>
-    <ID>BackingPropertyNaming:ArrowBackIosNew.kt:@Suppress("ObjectPropertyName") private var _ArrowBack: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:ArrowBackIosNew.kt:@Suppress("ObjectPropertyName") private var _ArrowBackIosNew: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Cancel.kt:@Suppress("ObjectPropertyName") private var _Cancel: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Check.kt:@Suppress("ObjectPropertyName") private var _Check: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Clear.kt:@Suppress("ObjectPropertyName") private var _Clear: ImageVector? = null</ID>
@@ -15,13 +15,15 @@
     <ID>BackingPropertyNaming:Favorite.kt:@Suppress("ObjectPropertyName") private var _Favorite: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:FormatSize.kt:@Suppress("ObjectPropertyName") private var _FormatSize: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Home.kt:@Suppress("ObjectPropertyName") private var _Home: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Info.kt:@Suppress("ObjectPropertyName") private var _Info: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Language.kt:@Suppress("ObjectPropertyName") private var _Language: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Lock.kt:@Suppress("ObjectPropertyName") private var _Lock: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Palette.kt:@Suppress("ObjectPropertyName") private var _Palette: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Refresh.kt:@Suppress("ObjectPropertyName") private var _Refresh: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Search.kt:@Suppress("ObjectPropertyName") private var _Search: ImageVector? = null</ID>
-    <ID>BackingPropertyNaming:Settings.kt:@Suppress("ObjectPropertyName") private var _Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:Settings.kt:@Suppress("ObjectPropertyName") private var _Settings: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Star.kt:@Suppress("ObjectPropertyName") private var _Star: ImageVector? = null</ID>
-    <ID>BackingPropertyNaming:StarFill.kt:@Suppress("ObjectPropertyName") private var _Star: ImageVector? = null</ID>
+    <ID>BackingPropertyNaming:StarFill.kt:@Suppress("ObjectPropertyName") private var _StarFill: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:Visibility.kt:@Suppress("ObjectPropertyName") private var _Visibility: ImageVector? = null</ID>
     <ID>BackingPropertyNaming:VisibilityOff.kt:@Suppress("ObjectPropertyName") private var _VisibilityOff: ImageVector? = null</ID>
     <ID>FinalNewline:CenteredTopAppBar.kt:me.zhangls.theme.component.CenteredTopAppBar.kt</ID>
@@ -41,30 +43,35 @@
     <ID>NewLineAtEndOfFile:Color.kt:me.zhangls.theme.Color.kt</ID>
     <ID>NewLineAtEndOfFile:ColorScheme.kt:me.zhangls.theme.ColorScheme.kt</ID>
     <ID>NewLineAtEndOfFile:ContainedLoadingIndicator.kt:me.zhangls.theme.component.ContainedLoadingIndicator.kt</ID>
+    <ID>NoConsecutiveBlankLines:AccountCircle.kt: </ID>
+    <ID>NoConsecutiveBlankLines:ArrowBackIosNew.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Cancel.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Check.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Clear.kt: </ID>
     <ID>NoConsecutiveBlankLines:ColorScheme.kt: </ID>
+    <ID>NoConsecutiveBlankLines:DarkMode.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Delete.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Edit.kt: </ID>
+    <ID>NoConsecutiveBlankLines:ExitToApp.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Favorite.kt: </ID>
+    <ID>NoConsecutiveBlankLines:FormatSize.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Home.kt: </ID>
     <ID>NoConsecutiveBlankLines:Icons.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Info.kt: </ID>
     <ID>NoConsecutiveBlankLines:Language.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Lock.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Palette.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Refresh.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Search.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Settings.kt: </ID>
+    <ID>NoConsecutiveBlankLines:Star.kt: </ID>
+    <ID>NoConsecutiveBlankLines:StarFill.kt: </ID>
     <ID>NoConsecutiveBlankLines:Theme.kt: </ID>
-    <ID>TrailingCommaOnCallSite:AccountCircle.kt:( name = "Rounded.AccountCircle", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:ArrowBackIosNew.kt:( name = "Rounded.ArrowBack", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Cancel.kt:( name = "Rounded.Cancel", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
+    <ID>NoConsecutiveBlankLines:Visibility.kt: </ID>
+    <ID>NoConsecutiveBlankLines:VisibilityOff.kt: </ID>
     <ID>TrailingCommaOnCallSite:CenteredTopAppBar.kt:( imageVector = Icons.Rounded.ArrowBackIosNew, contentDescription = stringResource(Res.string.theme_action_navigate_before) )</ID>
     <ID>TrailingCommaOnCallSite:CenteredTopAppBar.kt:( title = { Text(text = title) }, modifier = modifier, colors = TopAppBarDefaults.topAppBarColors(), navigationIcon = { if (navigate != null) { IconButton(onClick = navigate) { Icon( imageVector = Icons.Rounded.ArrowBackIosNew, contentDescription = stringResource(Res.string.theme_action_navigate_before) ) } } }, actions = actions )</ID>
-    <ID>TrailingCommaOnCallSite:Check.kt:( name = "Rounded.Check", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Clear.kt:( name = "Rounded.Clear", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
     <ID>TrailingCommaOnCallSite:ContainedLoadingIndicator.kt:( modifier = modifier .fillMaxSize() .background(backgroundColor) .pointerInput(Unit) { awaitPointerEventScope { while (true) { awaitPointerEvent() } } }, contentAlignment = Alignment.Center )</ID>
-    <ID>TrailingCommaOnCallSite:DarkMode.kt:( name = "Rounded.DarkMode", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Delete.kt:( name = "Rounded.Delete", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Edit.kt:( name = "Rounded.Edit", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:ExitToApp.kt:( name = "Rounded.ExitToApp", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Favorite.kt:( name = "Rounded.Favorite", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:FormatSize.kt:( name = "Rounded.FormatSize", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Home.kt:( name = "Rounded.Home", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Language.kt:( name = "Rounded.Language", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Lock.kt:( name = "Rounded.Lock", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Palette.kt:( name = "Rounded.Palette", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Search.kt:( name = "Rounded.Search", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Settings.kt:( name = "Rounded.Settings", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
     <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( LinkAnnotation.Clickable( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {}) )</ID>
     <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.extraLarge )</ID>
     <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( modifier = Modifier .background( color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.extraLarge ) )</ID>
@@ -75,10 +82,6 @@
     <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( text = title, modifier = Modifier .fillMaxWidth() .padding(horizontal = 24.dp), maxLines = 1, style = MaterialTheme.typography.titleLarge, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold )</ID>
     <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( title = "提示", content = "您确定要删除该文件吗？", confirmText = "确定", dismissText = "取消", confirm = {}, dismiss = {} )</ID>
     <ID>TrailingCommaOnCallSite:SimpleDialog.kt:( title = "提示", content = buildAnnotatedString { append("您确定要删除") withLink( LinkAnnotation.Clickable( tag = "privacy_link", styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)), linkInteractionListener = {}) ) { append("用户协议") } append("文件吗") }, confirmText = "确定", dismissText = "取消", confirm = {}, dismiss = {} )</ID>
-    <ID>TrailingCommaOnCallSite:Star.kt:( name = "Rounded.Star", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:StarFill.kt:( name = "Rounded.StarFill", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:Visibility.kt:( name = "Rounded.Visibility", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
-    <ID>TrailingCommaOnCallSite:VisibilityOff.kt:( name = "Rounded.VisibilityOff", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 960f, viewportHeight = 960f )</ID>
     <ID>TrailingCommaOnCallSite:WindowAdaptiveInfo.kt:( "LocalPaneScaffoldDirective 未被提供：" + "必须由组合根用 rememberPaneScaffoldDirective(rememberWindowAdaptiveInfo()) 提供" )</ID>
     <ID>TrailingCommaOnCallSite:WindowAdaptiveInfo.kt:( WindowSizeClass.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND )</ID>
     <ID>TrailingCommaOnDeclarationSite:CenteredTopAppBar.kt:( title: String, modifier: Modifier = Modifier, navigate: (() -&gt; Unit)? = null, actions: (@Composable RowScope.() -&gt; Unit) = {} )</ID>

@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Cancel: ImageVector
   get() {
@@ -17,10 +24,10 @@ val Icons.Rounded.Cancel: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
-        moveToRelative(480f, 536f)
+      path(fill = SolidColor(Color.Black)) {
+        moveTo(480f, 536f)
         lineToRelative(116f, 116f)
         quadToRelative(11f, 11f, 28f, 11f)
         reflectiveQuadToRelative(28f, -11f)
@@ -46,7 +53,7 @@ val Icons.Rounded.Cancel: ImageVector
         reflectiveQuadToRelative(28f, -11f)
         lineToRelative(116f, -116f)
         close()
-        moveTo(480f, 880f)
+        moveToRelative(0f, 344f)
         quadToRelative(-83f, 0f, -156f, -31.5f)
         reflectiveQuadTo(197f, 763f)
         quadToRelative(-54f, -54f, -85.5f, -127f)
@@ -64,7 +71,7 @@ val Icons.Rounded.Cancel: ImageVector
         quadToRelative(-54f, 54f, -127f, 85.5f)
         reflectiveQuadTo(480f, 880f)
         close()
-        moveTo(480f, 800f)
+        moveToRelative(0f, -80f)
         quadToRelative(134f, 0f, 227f, -93f)
         reflectiveQuadToRelative(93f, -227f)
         quadToRelative(0f, -134f, -93f, -227f)
@@ -74,7 +81,7 @@ val Icons.Rounded.Cancel: ImageVector
         quadToRelative(0f, 134f, 93f, 227f)
         reflectiveQuadToRelative(227f, 93f)
         close()
-        moveTo(480f, 480f)
+        moveToRelative(0f, -320f)
         close()
       }
     }.build()
@@ -84,3 +91,11 @@ val Icons.Rounded.Cancel: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Cancel: ImageVector? = null
+
+@Preview(name = "Cancel", showBackground = true)
+@Composable
+private fun CancelPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Cancel, contentDescription = null)
+  }
+}

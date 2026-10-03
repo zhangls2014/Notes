@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Search: ImageVector
   get() {
@@ -17,9 +24,9 @@ val Icons.Rounded.Search: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(380f, 640f)
         quadToRelative(-109f, 0f, -184.5f, -75.5f)
         reflectiveQuadTo(120f, 380f)
@@ -38,7 +45,7 @@ val Icons.Rounded.Search: ImageVector
         quadToRelative(-30f, 24f, -69f, 38f)
         reflectiveQuadToRelative(-83f, 14f)
         close()
-        moveTo(380f, 560f)
+        moveToRelative(0f, -80f)
         quadToRelative(75f, 0f, 127.5f, -52.5f)
         reflectiveQuadTo(560f, 380f)
         quadToRelative(0f, -75f, -52.5f, -127.5f)
@@ -56,3 +63,11 @@ val Icons.Rounded.Search: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Search: ImageVector? = null
+
+@Preview(name = "Search", showBackground = true)
+@Composable
+private fun SearchPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+  }
+}

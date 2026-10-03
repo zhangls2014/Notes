@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.FormatSize: ImageVector
   get() {
@@ -17,11 +24,11 @@ val Icons.Rounded.FormatSize: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
       path(fill = SolidColor(Color.Black)) {
         moveTo(560f, 280f)
-        lineTo(420f, 280f)
+        horizontalLineTo(420f)
         quadToRelative(-25f, 0f, -42.5f, -17.5f)
         reflectiveQuadTo(360f, 220f)
         quadToRelative(0f, -25f, 17.5f, -42.5f)
@@ -31,7 +38,7 @@ val Icons.Rounded.FormatSize: ImageVector
         reflectiveQuadTo(880f, 220f)
         quadToRelative(0f, 25f, -17.5f, 42.5f)
         reflectiveQuadTo(820f, 280f)
-        lineTo(680f, 280f)
+        horizontalLineTo(680f)
         verticalLineToRelative(460f)
         quadToRelative(0f, 25f, -17.5f, 42.5f)
         reflectiveQuadTo(620f, 800f)
@@ -66,3 +73,11 @@ val Icons.Rounded.FormatSize: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _FormatSize: ImageVector? = null
+
+@Preview(name = "FormatSize", showBackground = true)
+@Composable
+private fun FormatSizePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.FormatSize, contentDescription = null)
+  }
+}

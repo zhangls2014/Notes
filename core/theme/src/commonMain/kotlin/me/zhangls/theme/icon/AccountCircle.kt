@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.AccountCircle: ImageVector
   get() {
@@ -17,9 +24,9 @@ val Icons.Rounded.AccountCircle: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(234f, 684f)
         quadToRelative(51f, -39f, 114f, -61.5f)
         reflectiveQuadTo(480f, 600f)
@@ -34,17 +41,17 @@ val Icons.Rounded.AccountCircle: ImageVector
         quadToRelative(0f, 59f, 19.5f, 111f)
         reflectiveQuadToRelative(54.5f, 93f)
         close()
-        moveTo(380.5f, 479.5f)
-        quadTo(340f, 439f, 340f, 380f)
-        reflectiveQuadToRelative(40.5f, -99.5f)
-        quadTo(421f, 240f, 480f, 240f)
-        reflectiveQuadToRelative(99.5f, 40.5f)
-        quadTo(620f, 321f, 620f, 380f)
-        reflectiveQuadToRelative(-40.5f, 99.5f)
-        quadTo(539f, 520f, 480f, 520f)
-        reflectiveQuadToRelative(-99.5f, -40.5f)
+        moveToRelative(246f, -164f)
+        quadToRelative(-59f, 0f, -99.5f, -40.5f)
+        reflectiveQuadTo(340f, 380f)
+        quadToRelative(0f, -59f, 40.5f, -99.5f)
+        reflectiveQuadTo(480f, 240f)
+        quadToRelative(59f, 0f, 99.5f, 40.5f)
+        reflectiveQuadTo(620f, 380f)
+        quadToRelative(0f, 59f, -40.5f, 99.5f)
+        reflectiveQuadTo(480f, 520f)
         close()
-        moveTo(480f, 880f)
+        moveToRelative(0f, 360f)
         quadToRelative(-83f, 0f, -156f, -31.5f)
         reflectiveQuadTo(197f, 763f)
         quadToRelative(-54f, -54f, -85.5f, -127f)
@@ -62,29 +69,29 @@ val Icons.Rounded.AccountCircle: ImageVector
         quadToRelative(-54f, 54f, -127f, 85.5f)
         reflectiveQuadTo(480f, 880f)
         close()
-        moveTo(580f, 784.5f)
-        quadToRelative(47f, -15.5f, 86f, -44.5f)
+        moveToRelative(0f, -80f)
+        quadToRelative(53f, 0f, 100f, -15.5f)
+        reflectiveQuadToRelative(86f, -44.5f)
         quadToRelative(-39f, -29f, -86f, -44.5f)
         reflectiveQuadTo(480f, 680f)
         quadToRelative(-53f, 0f, -100f, 15.5f)
         reflectiveQuadTo(294f, 740f)
         quadToRelative(39f, 29f, 86f, 44.5f)
         reflectiveQuadTo(480f, 800f)
-        quadToRelative(53f, 0f, 100f, -15.5f)
         close()
-        moveTo(523f, 423f)
-        quadToRelative(17f, -17f, 17f, -43f)
-        reflectiveQuadToRelative(-17f, -43f)
-        quadToRelative(-17f, -17f, -43f, -17f)
-        reflectiveQuadToRelative(-43f, 17f)
-        quadToRelative(-17f, 17f, -17f, 43f)
-        reflectiveQuadToRelative(17f, 43f)
-        quadToRelative(17f, 17f, 43f, 17f)
-        reflectiveQuadToRelative(43f, -17f)
+        moveToRelative(0f, -360f)
+        quadToRelative(26f, 0f, 43f, -17f)
+        reflectiveQuadToRelative(17f, -43f)
+        quadToRelative(0f, -26f, -17f, -43f)
+        reflectiveQuadToRelative(-43f, -17f)
+        quadToRelative(-26f, 0f, -43f, 17f)
+        reflectiveQuadToRelative(-17f, 43f)
+        quadToRelative(0f, 26f, 17f, 43f)
+        reflectiveQuadToRelative(43f, 17f)
         close()
-        moveTo(480f, 380f)
+        moveToRelative(0f, -60f)
         close()
-        moveTo(480f, 740f)
+        moveToRelative(0f, 360f)
         close()
       }
     }.build()
@@ -94,3 +101,11 @@ val Icons.Rounded.AccountCircle: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _AccountCircle: ImageVector? = null
+
+@Preview(name = "AccountCircle", showBackground = true)
+@Composable
+private fun AccountCirclePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null)
+  }
+}

@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Home: ImageVector
   get() {
@@ -17,9 +24,9 @@ val Icons.Rounded.Home: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(240f, 760f)
         horizontalLineToRelative(120f)
         verticalLineToRelative(-200f)
@@ -35,7 +42,7 @@ val Icons.Rounded.Home: ImageVector
         lineTo(240f, 400f)
         verticalLineToRelative(360f)
         close()
-        moveTo(160f, 760f)
+        moveToRelative(-80f, 0f)
         verticalLineToRelative(-360f)
         quadToRelative(0f, -19f, 8.5f, -36f)
         reflectiveQuadToRelative(23.5f, -28f)
@@ -48,7 +55,7 @@ val Icons.Rounded.Home: ImageVector
         verticalLineToRelative(360f)
         quadToRelative(0f, 33f, -23.5f, 56.5f)
         reflectiveQuadTo(720f, 840f)
-        lineTo(560f, 840f)
+        horizontalLineTo(560f)
         quadToRelative(-17f, 0f, -28.5f, -11.5f)
         reflectiveQuadTo(520f, 800f)
         verticalLineToRelative(-200f)
@@ -56,11 +63,11 @@ val Icons.Rounded.Home: ImageVector
         verticalLineToRelative(200f)
         quadToRelative(0f, 17f, -11.5f, 28.5f)
         reflectiveQuadTo(400f, 840f)
-        lineTo(240f, 840f)
+        horizontalLineTo(240f)
         quadToRelative(-33f, 0f, -56.5f, -23.5f)
         reflectiveQuadTo(160f, 760f)
         close()
-        moveTo(480f, 490f)
+        moveToRelative(320f, -270f)
         close()
       }
     }.build()
@@ -70,3 +77,11 @@ val Icons.Rounded.Home: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Home: ImageVector? = null
+
+@Preview(name = "Home", showBackground = true)
+@Composable
+private fun HomePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Home, contentDescription = null)
+  }
+}

@@ -1,25 +1,32 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Settings: ImageVector
   get() {
-    if (_Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24 != null) {
-      return _Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24!!
+    if (_Settings != null) {
+      return _Settings!!
     }
-    _Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24 = ImageVector.Builder(
+    _Settings = ImageVector.Builder(
       name = "Rounded.Settings",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(433f, 880f)
         quadToRelative(-27f, 0f, -46.5f, -18f)
         reflectiveQuadTo(363f, 818f)
@@ -78,7 +85,7 @@ val Icons.Rounded.Settings: ImageVector
         reflectiveQuadTo(527f, 880f)
         horizontalLineToRelative(-94f)
         close()
-        moveTo(440f, 800f)
+        moveToRelative(7f, -80f)
         horizontalLineToRelative(79f)
         lineToRelative(14f, -106f)
         quadToRelative(31f, -8f, 57.5f, -23.5f)
@@ -114,7 +121,7 @@ val Icons.Rounded.Settings: ImageVector
         reflectiveQuadTo(427f, 694f)
         lineToRelative(13f, 106f)
         close()
-        moveTo(482f, 620f)
+        moveToRelative(42f, -180f)
         quadToRelative(58f, 0f, 99f, -41f)
         reflectiveQuadToRelative(41f, -99f)
         quadToRelative(0f, -58f, -41f, -99f)
@@ -124,13 +131,21 @@ val Icons.Rounded.Settings: ImageVector
         quadToRelative(0f, 58f, 40.5f, 99f)
         reflectiveQuadToRelative(99.5f, 41f)
         close()
-        moveTo(480f, 480f)
+        moveToRelative(-2f, -140f)
         close()
       }
     }.build()
 
-    return _Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24!!
+    return _Settings!!
   }
 
 @Suppress("ObjectPropertyName")
-private var _Settings24Dp1F1F1FFILL0Wght400GRAD0Opsz24: ImageVector? = null
+private var _Settings: ImageVector? = null
+
+@Preview(name = "Settings", showBackground = true)
+@Composable
+private fun SettingsPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Settings, contentDescription = null)
+  }
+}

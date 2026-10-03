@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.VisibilityOff: ImageVector
   get() {
@@ -17,7 +24,7 @@ val Icons.Rounded.VisibilityOff: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
       path(fill = SolidColor(Color.Black)) {
         moveTo(607f, 333f)
@@ -38,7 +45,7 @@ val Icons.Rounded.VisibilityOff: ImageVector
         quadToRelative(38f, -4f, 75f, 9.5f)
         reflectiveQuadToRelative(66f, 42.5f)
         close()
-        moveTo(480f, 240f)
+        moveToRelative(-127f, -93f)
         quadToRelative(-19f, 0f, -37f, 1.5f)
         reflectiveQuadToRelative(-36f, 5.5f)
         quadToRelative(-17f, 3f, -30.5f, -5f)
@@ -64,7 +71,7 @@ val Icons.Rounded.VisibilityOff: ImageVector
         quadToRelative(-50f, -101f, -144.5f, -160.5f)
         reflectiveQuadTo(480f, 240f)
         close()
-        moveTo(480f, 760f)
+        moveToRelative(0f, 520f)
         quadToRelative(-134f, 0f, -245f, -72.5f)
         reflectiveQuadTo(60f, 497f)
         quadToRelative(-5f, -8f, -7.5f, -17.5f)
@@ -103,9 +110,9 @@ val Icons.Rounded.VisibilityOff: ImageVector
         reflectiveQuadToRelative(4.5f, -21f)
         lineToRelative(-84f, -82f)
         close()
-        moveTo(541f, 429f)
+        moveToRelative(319f, 93f)
         close()
-        moveTo(390f, 504f)
+        moveToRelative(-151f, 75f)
         close()
       }
     }.build()
@@ -115,3 +122,11 @@ val Icons.Rounded.VisibilityOff: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _VisibilityOff: ImageVector? = null
+
+@Preview(name = "VisibilityOff", showBackground = true)
+@Composable
+private fun VisibilityOffPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.VisibilityOff, contentDescription = null)
+  }
+}

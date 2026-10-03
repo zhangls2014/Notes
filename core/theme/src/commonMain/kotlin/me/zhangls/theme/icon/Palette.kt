@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Palette: ImageVector
   get() {
@@ -17,7 +24,7 @@ val Icons.Rounded.Palette: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
       path(fill = SolidColor(Color.Black)) {
         moveTo(480f, 880f)
@@ -43,47 +50,47 @@ val Icons.Rounded.Palette: ImageVector
         quadToRelative(0f, 50f, -27.5f, 74f)
         reflectiveQuadTo(480f, 880f)
         close()
-        moveTo(480f, 480f)
+        moveToRelative(0f, -400f)
         close()
-        moveTo(303f, 503f)
-        quadToRelative(17f, -17f, 17f, -43f)
-        reflectiveQuadToRelative(-17f, -43f)
-        quadToRelative(-17f, -17f, -43f, -17f)
-        reflectiveQuadToRelative(-43f, 17f)
-        quadToRelative(-17f, 17f, -17f, 43f)
-        reflectiveQuadToRelative(17f, 43f)
-        quadToRelative(17f, 17f, 43f, 17f)
-        reflectiveQuadToRelative(43f, -17f)
+        moveToRelative(-220f, 40f)
+        quadToRelative(26f, 0f, 43f, -17f)
+        reflectiveQuadToRelative(17f, -43f)
+        quadToRelative(0f, -26f, -17f, -43f)
+        reflectiveQuadToRelative(-43f, -17f)
+        quadToRelative(-26f, 0f, -43f, 17f)
+        reflectiveQuadToRelative(-17f, 43f)
+        quadToRelative(0f, 26f, 17f, 43f)
+        reflectiveQuadToRelative(43f, 17f)
         close()
-        moveTo(423f, 343f)
-        quadToRelative(17f, -17f, 17f, -43f)
-        reflectiveQuadToRelative(-17f, -43f)
-        quadToRelative(-17f, -17f, -43f, -17f)
-        reflectiveQuadToRelative(-43f, 17f)
-        quadToRelative(-17f, 17f, -17f, 43f)
-        reflectiveQuadToRelative(17f, 43f)
-        quadToRelative(17f, 17f, 43f, 17f)
-        reflectiveQuadToRelative(43f, -17f)
+        moveToRelative(120f, -160f)
+        quadToRelative(26f, 0f, 43f, -17f)
+        reflectiveQuadToRelative(17f, -43f)
+        quadToRelative(0f, -26f, -17f, -43f)
+        reflectiveQuadToRelative(-43f, -17f)
+        quadToRelative(-26f, 0f, -43f, 17f)
+        reflectiveQuadToRelative(-17f, 43f)
+        quadToRelative(0f, 26f, 17f, 43f)
+        reflectiveQuadToRelative(43f, 17f)
         close()
-        moveTo(623f, 343f)
-        quadToRelative(17f, -17f, 17f, -43f)
-        reflectiveQuadToRelative(-17f, -43f)
-        quadToRelative(-17f, -17f, -43f, -17f)
-        reflectiveQuadToRelative(-43f, 17f)
-        quadToRelative(-17f, 17f, -17f, 43f)
-        reflectiveQuadToRelative(17f, 43f)
-        quadToRelative(17f, 17f, 43f, 17f)
-        reflectiveQuadToRelative(43f, -17f)
+        moveToRelative(200f, 0f)
+        quadToRelative(26f, 0f, 43f, -17f)
+        reflectiveQuadToRelative(17f, -43f)
+        quadToRelative(0f, -26f, -17f, -43f)
+        reflectiveQuadToRelative(-43f, -17f)
+        quadToRelative(-26f, 0f, -43f, 17f)
+        reflectiveQuadToRelative(-17f, 43f)
+        quadToRelative(0f, 26f, 17f, 43f)
+        reflectiveQuadToRelative(43f, 17f)
         close()
-        moveTo(743f, 503f)
-        quadToRelative(17f, -17f, 17f, -43f)
-        reflectiveQuadToRelative(-17f, -43f)
-        quadToRelative(-17f, -17f, -43f, -17f)
-        reflectiveQuadToRelative(-43f, 17f)
-        quadToRelative(-17f, 17f, -17f, 43f)
-        reflectiveQuadToRelative(17f, 43f)
-        quadToRelative(17f, 17f, 43f, 17f)
-        reflectiveQuadToRelative(43f, -17f)
+        moveToRelative(120f, 160f)
+        quadToRelative(26f, 0f, 43f, -17f)
+        reflectiveQuadToRelative(17f, -43f)
+        quadToRelative(0f, -26f, -17f, -43f)
+        reflectiveQuadToRelative(-43f, -17f)
+        quadToRelative(-26f, 0f, -43f, 17f)
+        reflectiveQuadToRelative(-17f, 43f)
+        quadToRelative(0f, 26f, 17f, 43f)
+        reflectiveQuadToRelative(43f, 17f)
         close()
         moveTo(480f, 800f)
         quadToRelative(9f, 0f, 14.5f, -5f)
@@ -110,3 +117,11 @@ val Icons.Rounded.Palette: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Palette: ImageVector? = null
+
+@Preview(name = "Palette", showBackground = true)
+@Composable
+private fun PalettePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Palette, contentDescription = null)
+  }
+}

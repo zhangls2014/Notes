@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Edit: ImageVector
   get() {
@@ -17,9 +24,9 @@ val Icons.Rounded.Edit: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(200f, 760f)
         horizontalLineToRelative(57f)
         lineToRelative(391f, -391f)
@@ -27,7 +34,7 @@ val Icons.Rounded.Edit: ImageVector
         lineToRelative(-391f, 391f)
         verticalLineToRelative(57f)
         close()
-        moveTo(160f, 840f)
+        moveToRelative(-40f, 80f)
         quadToRelative(-17f, 0f, -28.5f, -11.5f)
         reflectiveQuadTo(120f, 800f)
         verticalLineToRelative(-97f)
@@ -48,14 +55,14 @@ val Icons.Rounded.Edit: ImageVector
         reflectiveQuadToRelative(-30.5f, 6f)
         horizontalLineToRelative(-97f)
         close()
-        moveTo(760f, 256f)
-        lineTo(704f, 200f)
-        lineTo(760f, 256f)
+        moveToRelative(600f, -584f)
+        lineToRelative(-56f, -56f)
+        lineToRelative(56f, 56f)
         close()
-        moveTo(619f, 341f)
-        lineTo(591f, 312f)
-        lineTo(648f, 369f)
-        lineTo(619f, 341f)
+        moveToRelative(-141f, 85f)
+        lineToRelative(-28f, -29f)
+        lineToRelative(57f, 57f)
+        lineToRelative(-29f, -28f)
         close()
       }
     }.build()
@@ -65,3 +72,11 @@ val Icons.Rounded.Edit: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Edit: ImageVector? = null
+
+@Preview(name = "Edit", showBackground = true)
+@Composable
+private fun EditPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Edit, contentDescription = null)
+  }
+}
