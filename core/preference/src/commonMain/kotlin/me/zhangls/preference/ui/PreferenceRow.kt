@@ -1,6 +1,7 @@
 package me.zhangls.preference.ui
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -9,13 +10,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import kotlinx.coroutines.flow.MutableStateFlow
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.MapPreferences
-import me.zhanghai.compose.preference.Preferences
 import me.zhanghai.compose.preference.Preference
+import me.zhanghai.compose.preference.Preferences
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhangls.theme.toColor
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.compose.resources.stringResource
 import me.zhanghai.compose.preference.ProvidePreferenceLocals as ProvideLocals
 
@@ -141,11 +142,13 @@ private fun ActionRow(
     },
     modifier = modifier,
     onClick = model.onClick,
-    summary = spec.summary?.let {
-      { Text(text = stringResource(it)) }
-    },
+    summary = spec.summary?.let { { Text(text = stringResource(it)) } },
     icon = {
-      Icon(imageVector = spec.icon, contentDescription = null, tint = tint)
+      Icon(
+        imageVector = spec.icon,
+        contentDescription = null,
+        tint = spec.tint?.toColor() ?: LocalContentColor.current,
+      )
     }
   )
 }

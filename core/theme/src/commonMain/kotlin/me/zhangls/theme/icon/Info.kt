@@ -1,24 +1,97 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-/** Material information symbol. */
-val Icons.Rounded.Info: ImageVector get() = infoIcon
 
-private val infoIcon: ImageVector by lazy {
-  ImageVector.Builder("Rounded.Info", 24.dp, 24.dp, 24f, 24f).apply {
-    path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-      moveTo(12f, 2f)
-      arcToRelative(10f, 10f, 0f, true, false, 0f, 20f)
-      arcToRelative(10f, 10f, 0f, true, false, 0f, -20f)
-      close()
-      moveTo(11f, 7f); lineTo(13f, 7f); lineTo(13f, 9f); lineTo(11f, 9f); close()
-      moveTo(11f, 11f); lineTo(13f, 11f); lineTo(13f, 17f); lineTo(11f, 17f); close()
+val Icons.Rounded.Info: ImageVector
+  get() {
+    if (_Info != null) {
+      return _Info!!
     }
-  }.build()
+    _Info = ImageVector.Builder(
+      name = "Rounded.Info",
+      defaultWidth = 24.dp,
+      defaultHeight = 24.dp,
+      viewportWidth = 960f,
+      viewportHeight = 960f,
+    ).apply {
+      path(fill = SolidColor(Color.Black)) {
+        moveTo(480f, 680f)
+        quadToRelative(17f, 0f, 28.5f, -11.5f)
+        reflectiveQuadTo(520f, 640f)
+        verticalLineToRelative(-160f)
+        quadToRelative(0f, -17f, -11.5f, -28.5f)
+        reflectiveQuadTo(480f, 440f)
+        quadToRelative(-17f, 0f, -28.5f, 11.5f)
+        reflectiveQuadTo(440f, 480f)
+        verticalLineToRelative(160f)
+        quadToRelative(0f, 17f, 11.5f, 28.5f)
+        reflectiveQuadTo(480f, 680f)
+        close()
+        moveToRelative(0f, -320f)
+        quadToRelative(17f, 0f, 28.5f, -11.5f)
+        reflectiveQuadTo(520f, 320f)
+        quadToRelative(0f, -17f, -11.5f, -28.5f)
+        reflectiveQuadTo(480f, 280f)
+        quadToRelative(-17f, 0f, -28.5f, 11.5f)
+        reflectiveQuadTo(440f, 320f)
+        quadToRelative(0f, 17f, 11.5f, 28.5f)
+        reflectiveQuadTo(480f, 360f)
+        close()
+        moveToRelative(0f, 520f)
+        quadToRelative(-83f, 0f, -156f, -31.5f)
+        reflectiveQuadTo(197f, 763f)
+        quadToRelative(-54f, -54f, -85.5f, -127f)
+        reflectiveQuadTo(80f, 480f)
+        quadToRelative(0f, -83f, 31.5f, -156f)
+        reflectiveQuadTo(197f, 197f)
+        quadToRelative(54f, -54f, 127f, -85.5f)
+        reflectiveQuadTo(480f, 80f)
+        quadToRelative(83f, 0f, 156f, 31.5f)
+        reflectiveQuadTo(763f, 197f)
+        quadToRelative(54f, 54f, 85.5f, 127f)
+        reflectiveQuadTo(880f, 480f)
+        quadToRelative(0f, 83f, -31.5f, 156f)
+        reflectiveQuadTo(763f, 763f)
+        quadToRelative(-54f, 54f, -127f, 85.5f)
+        reflectiveQuadTo(480f, 880f)
+        close()
+        moveToRelative(0f, -80f)
+        quadToRelative(134f, 0f, 227f, -93f)
+        reflectiveQuadToRelative(93f, -227f)
+        quadToRelative(0f, -134f, -93f, -227f)
+        reflectiveQuadToRelative(-227f, -93f)
+        quadToRelative(-134f, 0f, -227f, 93f)
+        reflectiveQuadToRelative(-93f, 227f)
+        quadToRelative(0f, 134f, 93f, 227f)
+        reflectiveQuadToRelative(227f, 93f)
+        close()
+        moveToRelative(0f, -320f)
+        close()
+      }
+    }.build()
+
+    return _Info!!
+  }
+
+@Suppress("ObjectPropertyName")
+private var _Info: ImageVector? = null
+
+@Preview(name = "Info", showBackground = true)
+@Composable
+private fun InfoPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Info, contentDescription = null)
+  }
 }

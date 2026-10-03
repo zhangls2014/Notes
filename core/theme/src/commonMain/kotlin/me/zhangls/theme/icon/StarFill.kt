@@ -1,25 +1,32 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.StarFill: ImageVector
   get() {
-    if (_Star != null) {
-      return _Star!!
+    if (_StarFill != null) {
+      return _StarFill!!
     }
-    _Star = ImageVector.Builder(
+    _StarFill = ImageVector.Builder(
       name = "Rounded.StarFill",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(480f, 691f)
         lineTo(314f, 791f)
         quadToRelative(-11f, 7f, -23f, 6f)
@@ -55,8 +62,16 @@ val Icons.Rounded.StarFill: ImageVector
       }
     }.build()
 
-    return _Star!!
+    return _StarFill!!
   }
 
 @Suppress("ObjectPropertyName")
-private var _Star: ImageVector? = null
+private var _StarFill: ImageVector? = null
+
+@Preview(name = "StarFill", showBackground = true)
+@Composable
+private fun StarFillPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.StarFill, contentDescription = null)
+  }
+}

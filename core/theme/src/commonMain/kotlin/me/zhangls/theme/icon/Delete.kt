@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Delete: ImageVector
   get() {
@@ -17,9 +24,9 @@ val Icons.Rounded.Delete: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(280f, 840f)
         quadToRelative(-33f, 0f, -56.5f, -23.5f)
         reflectiveQuadTo(200f, 760f)
@@ -42,16 +49,17 @@ val Icons.Rounded.Delete: ImageVector
         verticalLineToRelative(520f)
         quadToRelative(0f, 33f, -23.5f, 56.5f)
         reflectiveQuadTo(680f, 840f)
-        lineTo(280f, 840f)
+        horizontalLineTo(280f)
         close()
-        moveTo(680f, 240f)
-        lineTo(280f, 240f)
+        moveToRelative(400f, -600f)
+        horizontalLineTo(280f)
         verticalLineToRelative(520f)
         horizontalLineToRelative(400f)
         verticalLineToRelative(-520f)
         close()
-        moveTo(428.5f, 668.5f)
-        quadTo(440f, 657f, 440f, 640f)
+        moveTo(400f, 680f)
+        quadToRelative(17f, 0f, 28.5f, -11.5f)
+        reflectiveQuadTo(440f, 640f)
         verticalLineToRelative(-280f)
         quadToRelative(0f, -17f, -11.5f, -28.5f)
         reflectiveQuadTo(400f, 320f)
@@ -60,10 +68,10 @@ val Icons.Rounded.Delete: ImageVector
         verticalLineToRelative(280f)
         quadToRelative(0f, 17f, 11.5f, 28.5f)
         reflectiveQuadTo(400f, 680f)
-        quadToRelative(17f, 0f, 28.5f, -11.5f)
         close()
-        moveTo(588.5f, 668.5f)
-        quadTo(600f, 657f, 600f, 640f)
+        moveToRelative(160f, 0f)
+        quadToRelative(17f, 0f, 28.5f, -11.5f)
+        reflectiveQuadTo(600f, 640f)
         verticalLineToRelative(-280f)
         quadToRelative(0f, -17f, -11.5f, -28.5f)
         reflectiveQuadTo(560f, 320f)
@@ -72,7 +80,6 @@ val Icons.Rounded.Delete: ImageVector
         verticalLineToRelative(280f)
         quadToRelative(0f, 17f, 11.5f, 28.5f)
         reflectiveQuadTo(560f, 680f)
-        quadToRelative(17f, 0f, 28.5f, -11.5f)
         close()
         moveTo(280f, 240f)
         verticalLineToRelative(520f)
@@ -86,3 +93,11 @@ val Icons.Rounded.Delete: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Delete: ImageVector? = null
+
+@Preview(name = "Delete", showBackground = true)
+@Composable
+private fun DeletePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Delete, contentDescription = null)
+  }
+}

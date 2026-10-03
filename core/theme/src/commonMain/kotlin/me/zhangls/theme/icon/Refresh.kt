@@ -1,23 +1,81 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-val Icons.Rounded.Refresh: ImageVector get() = refreshIcon
 
-private val refreshIcon: ImageVector by lazy {
-  ImageVector.Builder("Rounded.Refresh", 24.dp, 24.dp, 24f, 24f).apply {
-    path(fill = SolidColor(Color.Black)) {
-      moveTo(17.65f, 6.35f)
-      arcTo(8f, 8f, 0f, false, false, 4f, 12f)
-      arcTo(8f, 8f, 0f, false, false, 19.75f, 14f)
-      lineTo(17.68f, 14f)
-      arcTo(6f, 6f, 0f, false, true, 6f, 12f)
-      arcTo(6f, 6f, 0f, false, true, 16.24f, 7.76f)
-      lineTo(13f, 11f); lineTo(20f, 11f); lineTo(20f, 4f); close()
+val Icons.Rounded.Refresh: ImageVector
+  get() {
+    if (_Refresh != null) {
+      return _Refresh!!
     }
-  }.build()
+    _Refresh = ImageVector.Builder(
+      name = "Rounded.Refresh",
+      defaultWidth = 24.dp,
+      defaultHeight = 24.dp,
+      viewportWidth = 960f,
+      viewportHeight = 960f,
+    ).apply {
+      path(fill = SolidColor(Color.Black)) {
+        moveTo(480f, 800f)
+        quadToRelative(-134f, 0f, -227f, -93f)
+        reflectiveQuadToRelative(-93f, -227f)
+        quadToRelative(0f, -134f, 93f, -227f)
+        reflectiveQuadToRelative(227f, -93f)
+        quadToRelative(69f, 0f, 132f, 28.5f)
+        reflectiveQuadTo(720f, 270f)
+        verticalLineToRelative(-70f)
+        quadToRelative(0f, -17f, 11.5f, -28.5f)
+        reflectiveQuadTo(760f, 160f)
+        quadToRelative(17f, 0f, 28.5f, 11.5f)
+        reflectiveQuadTo(800f, 200f)
+        verticalLineToRelative(200f)
+        quadToRelative(0f, 17f, -11.5f, 28.5f)
+        reflectiveQuadTo(760f, 440f)
+        horizontalLineTo(560f)
+        quadToRelative(-17f, 0f, -28.5f, -11.5f)
+        reflectiveQuadTo(520f, 400f)
+        quadToRelative(0f, -17f, 11.5f, -28.5f)
+        reflectiveQuadTo(560f, 360f)
+        horizontalLineToRelative(128f)
+        quadToRelative(-32f, -56f, -87.5f, -88f)
+        reflectiveQuadTo(480f, 240f)
+        quadToRelative(-100f, 0f, -170f, 70f)
+        reflectiveQuadToRelative(-70f, 170f)
+        quadToRelative(0f, 100f, 70f, 170f)
+        reflectiveQuadToRelative(170f, 70f)
+        quadToRelative(68f, 0f, 124.5f, -34.5f)
+        reflectiveQuadTo(692f, 593f)
+        quadToRelative(8f, -14f, 22.5f, -19.5f)
+        reflectiveQuadToRelative(29.5f, -0.5f)
+        quadToRelative(16f, 5f, 23f, 21f)
+        reflectiveQuadToRelative(-1f, 30f)
+        quadToRelative(-41f, 80f, -117f, 128f)
+        reflectiveQuadToRelative(-169f, 48f)
+        close()
+      }
+    }.build()
+
+    return _Refresh!!
+  }
+
+@Suppress("ObjectPropertyName")
+private var _Refresh: ImageVector? = null
+
+@Preview(name = "Refresh", showBackground = true)
+@Composable
+private fun RefreshPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Refresh, contentDescription = null)
+  }
 }

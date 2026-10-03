@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Lock: ImageVector
   get() {
@@ -17,9 +24,9 @@ val Icons.Rounded.Lock: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
+      path(fill = SolidColor(Color.Black)) {
         moveTo(240f, 880f)
         quadToRelative(-33f, 0f, -56.5f, -23.5f)
         reflectiveQuadTo(160f, 800f)
@@ -39,23 +46,23 @@ val Icons.Rounded.Lock: ImageVector
         verticalLineToRelative(400f)
         quadToRelative(0f, 33f, -23.5f, 56.5f)
         reflectiveQuadTo(720f, 880f)
-        lineTo(240f, 880f)
+        horizontalLineTo(240f)
         close()
-        moveTo(240f, 800f)
+        moveToRelative(0f, -80f)
         horizontalLineToRelative(480f)
         verticalLineToRelative(-400f)
-        lineTo(240f, 400f)
+        horizontalLineTo(240f)
         verticalLineToRelative(400f)
         close()
-        moveTo(536.5f, 656.5f)
-        quadTo(560f, 633f, 560f, 600f)
-        reflectiveQuadToRelative(-23.5f, -56.5f)
-        quadTo(513f, 520f, 480f, 520f)
-        reflectiveQuadToRelative(-56.5f, 23.5f)
-        quadTo(400f, 567f, 400f, 600f)
-        reflectiveQuadToRelative(23.5f, 56.5f)
-        quadTo(447f, 680f, 480f, 680f)
-        reflectiveQuadToRelative(56.5f, -23.5f)
+        moveToRelative(240f, -120f)
+        quadToRelative(33f, 0f, 56.5f, -23.5f)
+        reflectiveQuadTo(560f, 600f)
+        quadToRelative(0f, -33f, -23.5f, -56.5f)
+        reflectiveQuadTo(480f, 520f)
+        quadToRelative(-33f, 0f, -56.5f, 23.5f)
+        reflectiveQuadTo(400f, 600f)
+        quadToRelative(0f, 33f, 23.5f, 56.5f)
+        reflectiveQuadTo(480f, 680f)
         close()
         moveTo(360f, 320f)
         horizontalLineToRelative(240f)
@@ -78,3 +85,11 @@ val Icons.Rounded.Lock: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Lock: ImageVector? = null
+
+@Preview(name = "Lock", showBackground = true)
+@Composable
+private fun LockPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Lock, contentDescription = null)
+  }
+}

@@ -1,9 +1,16 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
@@ -17,45 +24,45 @@ val Icons.Rounded.Language: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
       path(fill = SolidColor(Color.Black)) {
-        moveTo(325f, 848.5f)
-        quadToRelative(-73f, -31.5f, -127.5f, -86f)
-        reflectiveQuadToRelative(-86f, -127.5f)
-        quadTo(80f, 562f, 80f, 479.5f)
-        reflectiveQuadToRelative(31.5f, -155f)
-        quadToRelative(31.5f, -72.5f, 86f, -127f)
-        reflectiveQuadToRelative(127.5f, -86f)
-        quadTo(398f, 80f, 480.5f, 80f)
-        reflectiveQuadToRelative(155f, 31.5f)
-        quadToRelative(72.5f, 31.5f, 127f, 86f)
-        reflectiveQuadToRelative(86f, 127f)
-        quadTo(880f, 397f, 880f, 479.5f)
-        reflectiveQuadTo(848.5f, 635f)
-        quadToRelative(-31.5f, 73f, -86f, 127.5f)
-        reflectiveQuadToRelative(-127f, 86f)
-        quadTo(563f, 880f, 480.5f, 880f)
-        reflectiveQuadTo(325f, 848.5f)
+        moveTo(480f, 880f)
+        quadToRelative(-82f, 0f, -155f, -31.5f)
+        reflectiveQuadToRelative(-127.5f, -86f)
+        quadTo(143f, 708f, 111.5f, 635f)
+        reflectiveQuadTo(80f, 480f)
+        quadToRelative(0f, -83f, 31.5f, -155.5f)
+        reflectiveQuadToRelative(86f, -127f)
+        quadTo(252f, 143f, 325f, 111.5f)
+        reflectiveQuadTo(480f, 80f)
+        quadToRelative(83f, 0f, 155.5f, 31.5f)
+        reflectiveQuadToRelative(127f, 86f)
+        quadToRelative(54.5f, 54.5f, 86f, 127f)
+        reflectiveQuadTo(880f, 480f)
+        quadToRelative(0f, 82f, -31.5f, 155f)
+        reflectiveQuadToRelative(-86f, 127.5f)
+        quadToRelative(-54.5f, 54.5f, -127f, 86f)
+        reflectiveQuadTo(480f, 880f)
         close()
-        moveTo(480f, 798f)
+        moveToRelative(0f, -82f)
         quadToRelative(26f, -36f, 45f, -75f)
         reflectiveQuadToRelative(31f, -83f)
-        lineTo(404f, 640f)
+        horizontalLineTo(404f)
         quadToRelative(12f, 44f, 31f, 83f)
         reflectiveQuadToRelative(45f, 75f)
         close()
-        moveTo(376f, 782f)
+        moveToRelative(-104f, -16f)
         quadToRelative(-18f, -33f, -31.5f, -68.5f)
         reflectiveQuadTo(322f, 640f)
-        lineTo(204f, 640f)
+        horizontalLineTo(204f)
         quadToRelative(29f, 50f, 72.5f, 87f)
         reflectiveQuadToRelative(99.5f, 55f)
         close()
-        moveTo(584f, 782f)
+        moveToRelative(208f, 0f)
         quadToRelative(56f, -18f, 99.5f, -55f)
         reflectiveQuadToRelative(72.5f, -87f)
-        lineTo(638f, 640f)
+        horizontalLineTo(638f)
         quadToRelative(-9f, 38f, -22.5f, 73.5f)
         reflectiveQuadTo(584f, 782f)
         close()
@@ -65,51 +72,51 @@ val Icons.Rounded.Language: ImageVector
         reflectiveQuadTo(300f, 480f)
         quadToRelative(0f, -21f, 1.5f, -40.5f)
         reflectiveQuadTo(306f, 400f)
-        lineTo(170f, 400f)
+        horizontalLineTo(170f)
         quadToRelative(-5f, 20f, -7.5f, 39.5f)
         reflectiveQuadTo(160f, 480f)
         quadToRelative(0f, 21f, 2.5f, 40.5f)
         reflectiveQuadTo(170f, 560f)
         close()
-        moveTo(386f, 560f)
+        moveToRelative(216f, 0f)
         horizontalLineToRelative(188f)
         quadToRelative(3f, -20f, 4.5f, -39.5f)
         reflectiveQuadTo(580f, 480f)
         quadToRelative(0f, -21f, -1.5f, -40.5f)
         reflectiveQuadTo(574f, 400f)
-        lineTo(386f, 400f)
+        horizontalLineTo(386f)
         quadToRelative(-3f, 20f, -4.5f, 39.5f)
         reflectiveQuadTo(380f, 480f)
         quadToRelative(0f, 21f, 1.5f, 40.5f)
         reflectiveQuadTo(386f, 560f)
         close()
-        moveTo(654f, 560f)
+        moveToRelative(268f, 0f)
         horizontalLineToRelative(136f)
         quadToRelative(5f, -20f, 7.5f, -39.5f)
         reflectiveQuadTo(800f, 480f)
         quadToRelative(0f, -21f, -2.5f, -40.5f)
         reflectiveQuadTo(790f, 400f)
-        lineTo(654f, 400f)
+        horizontalLineTo(654f)
         quadToRelative(3f, 20f, 4.5f, 39.5f)
         reflectiveQuadTo(660f, 480f)
         quadToRelative(0f, 21f, -1.5f, 40.5f)
         reflectiveQuadTo(654f, 560f)
         close()
-        moveTo(638f, 320f)
+        moveToRelative(-16f, -240f)
         horizontalLineToRelative(118f)
         quadToRelative(-29f, -50f, -72.5f, -87f)
         reflectiveQuadTo(584f, 178f)
         quadToRelative(18f, 33f, 31.5f, 68.5f)
         reflectiveQuadTo(638f, 320f)
         close()
-        moveTo(404f, 320f)
+        moveToRelative(-234f, 0f)
         horizontalLineToRelative(152f)
         quadToRelative(-12f, -44f, -31f, -83f)
         reflectiveQuadToRelative(-45f, -75f)
         quadToRelative(-26f, 36f, -45f, 75f)
         reflectiveQuadToRelative(-31f, 83f)
         close()
-        moveTo(204f, 320f)
+        moveToRelative(-200f, 0f)
         horizontalLineToRelative(118f)
         quadToRelative(9f, -38f, 22.5f, -73.5f)
         reflectiveQuadTo(376f, 178f)
@@ -124,3 +131,11 @@ val Icons.Rounded.Language: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Language: ImageVector? = null
+
+@Preview(name = "Language", showBackground = true)
+@Composable
+private fun LanguagePreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Language, contentDescription = null)
+  }
+}

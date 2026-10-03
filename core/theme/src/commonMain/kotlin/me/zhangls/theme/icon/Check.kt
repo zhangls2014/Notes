@@ -1,11 +1,18 @@
 package me.zhangls.theme.icon
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.zhangls.theme.icon.Icons
+
 
 val Icons.Rounded.Check: ImageVector
   get() {
@@ -17,10 +24,10 @@ val Icons.Rounded.Check: ImageVector
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 960f,
-      viewportHeight = 960f
+      viewportHeight = 960f,
     ).apply {
-      path(fill = SolidColor(Color(0xFF1F1F1F))) {
-        moveToRelative(382f, 606f)
+      path(fill = SolidColor(Color.Black)) {
+        moveTo(382f, 606f)
         lineToRelative(339f, -339f)
         quadToRelative(12f, -12f, 28f, -12f)
         reflectiveQuadToRelative(28f, 12f)
@@ -44,3 +51,11 @@ val Icons.Rounded.Check: ImageVector
 
 @Suppress("ObjectPropertyName")
 private var _Check: ImageVector? = null
+
+@Preview(name = "Check", showBackground = true)
+@Composable
+private fun CheckPreview() {
+  Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+    Icon(imageVector = Icons.Rounded.Check, contentDescription = null)
+  }
+}

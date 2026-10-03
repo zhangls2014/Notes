@@ -44,15 +44,14 @@ internal enum class EmailHeaderVariant {
 /**
  * 邮件卡片头部：头像 + 发件人 / 时间 + 收藏按钮。
  *
- * 列表项（[EmailListItem]）与详情项（[EmailDetailItem]）原先各自实现了这段头部 —— 约 36 行逐行同构，
- * 其中收藏按钮的 `imageVector` 与无障碍文案是同一个三元表达式，两处逐字相同。同一份映射写两遍，
- * 改图标或改文案时漏改一处不会有任何编译期提示，只会让两种卡片的收藏按钮悄悄分叉。
+ * 列表项（[EmailListItem]）与详情项（[EmailDetailItem]）复用头部，统一头像、时间、收藏按钮颜色与无障碍文案。
+ * 星形图标在收藏状态使用 Rounded StarFill，未收藏状态使用 Rounded Star。
  *
  * [variant] 决定头像是否带选中翻转，时间与收藏按钮样式统一使用主题。
  *
  * @param account 发件人（头像与姓名来源）
  * @param createdAt 展示用的时间文本
- * @param isImportant 是否已收藏，决定星星图标与无障碍文案
+ * @param isImportant 是否已收藏，决定星形填充状态、按钮主题颜色与无障碍文案
  * @param variant 列表项 or 详情项，见 [EmailHeaderVariant]
  * @param isSelected 仅列表项使用：多选态下驱动头像翻转
  * @param onFavoriteClick 收藏按钮回调
