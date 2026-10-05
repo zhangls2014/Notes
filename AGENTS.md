@@ -57,6 +57,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 跨 Feature 共享的静态 UI 数据放到合适的 Core 模块，不挂在某个 Feature API 下。
 - Gradle 默认使用 `implementation`；只有依赖类型出现在当前模块公开 API 时才使用 `api`。
 - 新增 `-api` 模块使用 `me.zhangls.kmp-compose-api`，不要手工重复配置 Compose 插件。
+- 当前 Native 编译链下，跨模块 `@Composable` 抽象 Entry 方法不得声明默认参数，调用方显式传参；新增或修改 Entry 必须运行 iOS 真实实现调用回归，不能只验证编译。升级编译链后须经回归验证再决定是否解除限制。
 
 ### 数据边界
 
@@ -76,6 +77,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 内容宽度统一使用 `core:theme` 的 `ContentWidth` 和 `Modifier.contentWidth()`，不要在 Feature 中复制裸 `widthIn` 常量。
 - 列表—详情由 Navigation 3 `SceneStrategy` 在根导航装配；邮件 Feature 不自建 pane scaffold。
 - `core:preference` 只拥有设置元数据、渲染契约和通用控件，不持有当前值、Feature Intent、清单或顺序；底层 Compose Preference 依赖保持 `implementation`。
+- `ProvidePreferenceLocals` 必须显式提供空的内存数据源，设置值与更新由 Repository 和 Feature 行为提供；不得使用控件库默认的平台偏好存储。修改包装器或升级控件库时运行 iOS 初始化回归。
 
 ## Navigation 3 与 MVI
 
@@ -91,6 +93,8 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 依赖版本只在 `gradle/kmp.versions.toml` 维护。
 - 同一仓库目录下不要并发执行两个 Gradle 构建，避免守护进程地址注册表锁冲突。
 - 修改架构时同步更新 [docs/architecture.md](docs/architecture.md)；一次性调查报告放入 `docs/audits/` 并注明日期和状态。
+- 修复 UI 布局前明确需要保持的组件、尺寸、留白与交互；超出修复范围的视觉变化及正式截图基线更新须单独说明并取得用户确认。验收清单见 [自适应 UI 回归](docs/testing/adaptive-ui.md)。
+- 交付时区分实际执行、通过、跳过、失败和未验收项；编译、行为测试、候选截图与设备验收分别报告，不互相替代。性能结论须注明测量条件与精度，详见 [验证证据与交付记录](docs/testing/README.md#验证证据与交付记录)。
 
 ### Android 模拟器显示设置
 
