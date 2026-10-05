@@ -54,6 +54,21 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 `core:data` 的真实 Keychain 集成用例当前标记 `@Ignore`，需要可访问 Keychain 的应用宿主验证；宿主仓库测试或 iOS 编译成功不能替代该验收。步骤见 [登录凭据存储验证](secure-token-storage.md)。
 
+### Entry 与设置初始化回归
+
+新增或修改跨模块 `@Composable` Entry 时，更新 `composeApp/src/iosTest/kotlin/me/zhangls/entry/EmailEntryDispatchTest.kt`，通过 API 接口调用真实 Feature 实现，显式提供参数，验证 Native 分派。这个测试负责入口链接，不替代页面交互与设备验收。
+
+修改 `core:preference/ProvidePreferenceLocals` 或升级底层控件库时，运行同目录的 `PreferenceLocalsTest.kt`，验证没有应用偏好域时仍能提供 locals；同时检查包装器继续显式传入空的内存数据源。相关回归通过现有 `./gradlew :composeApp:iosSimulatorArm64Test` 执行，不能用 Android 宿主测试或 iOS 编译代替。
+
+## 验证证据与交付记录
+
+- 记录本次实际执行的命令与结果，分别列出实际执行、通过、跳过、失败／错误数量和未完成的设备验收。参数化配置总数包含跳过项时，不把总数当作通过数；任务为 `UP-TO-DATE` 或使用缓存时注明，没有重新执行测试用例。
+- 编译成功只证明编译阶段；行为测试只证明其断言范围；候选录制只证明生成了图像。截图 verify、人工视觉审阅、真实 IME、动效与平台存储验收分别报告，历史验证结果不得写成本次已验证。
+- 截图 verify 失败或采集出现空白时，记录受影响场景和限制，不宣称全量视觉验证通过。基线更新需先审阅并取得用户确认，流程与既有采集限制见 [自适应 UI 回归](adaptive-ui.md)。
+- 性能对照记录构建版本与类型、设备和系统、登录状态、冷／热启动、采集工具、计时起止点、轮次及测量精度。对照保持条件一致，不把采集工具附加开销或不同阶段的指标混作同一结论。差异低于测量分辨率时，不宣称优化有效。
+
+[iOS 启动调查](../audits/2026-10-02-ios-startup.md) 记录了照片选择依赖改变启动阶段分布但未观察到明显首页加速的对照；其中的 Debug 模拟器与 warm launch 结果不能外推为真机 Release 或 cold launch 结论。
+
 ## 构建与静态检查
 
 ```bash

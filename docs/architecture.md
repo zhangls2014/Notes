@@ -88,6 +88,8 @@ Gradle 中启用的模块：
 
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
+当前 Native 编译链下，跨模块 `@Composable` 抽象 Entry 方法不声明默认参数，调用方显式传参；默认值可以留在模块内部的顶层页面函数。邮件、设置入口曾因此触发 `IrLinkageError`，同类检查还发现登录入口风险（修复提交 `7f203ca8`、`1d3dfb34`）。新增或修改契约时，在 `composeApp` 的 iOS 测试中通过接口调用真实实现；编译成功不能证明运行时分派正确。编译链升级后，只有对应回归证明问题消失，才可重新评估该限制。
+
 ### 源码定位
 
 | 内容 | 当前路径 |
@@ -252,6 +254,8 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 `PreferenceSpec` 不持有状态或 Feature Intent。设置清单和顺序属于 `feature:settings`，平台差异通过能力位过滤。个人信息入口的静态元数据位于 `core:preference/ProfilePreference`，点击由 SettingsIntent 与 SettingsResult 通知宿主导航。
 
+`core:preference/ProvidePreferenceLocals` 显式向底层控件库传入 `MutableStateFlow<Preferences>(MapPreferences())` 作为空的内存数据源。实际值和回调由消费方提供，渲染不使用控件库默认的平台偏好存储。默认初始化曾读取整个 iOS `NSUserDefaults` 域，因 UIKit 写入的嵌套字典不受库支持而导致进入设置页闪退（修复提交 `a3655b11`）。修改包装器或升级依赖时，运行 `PreferenceLocalsTest` 验证没有应用偏好域时仍能初始化，并检查显式数据源未被移除。
+
 设置清单统一定义在 common；expect/actual 只提供平台能力位。`SettingsModel.toPreferenceUiModels` 的 `dynamicColorSupported` 参数默认取平台值，允许测试覆盖支持与不支持的清单。Action 与 Select 通过 settings 内的私有、类型安全辅助函数绑定 Intent，UI 仍以当前 SettingsModel 和 ViewModel 为 key 缓存映射结果。
 
 `ProfileEntry` 的实现与 `ProfileModule` 仅由 composeApp 装配；main 依赖 profile-api 传递 `ProfileOrigin`，settings 保留入口点击结果，不依赖 profile 实现。个人信息页面从 `UserRepository.userFlow` 展示只读用户名与头像，更换图片的选择、保存状态和平台存储属于 `feature:profile`，不再放在邮件搜索 ViewModel 中。共享用户头像和默认图片由 `core:theme/UserAvatar` 提供，搜索头像按钮只调用宿主导航；搜索结果的发件人头像不再重复宣告「个人信息」。
@@ -278,6 +282,7 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 - API 只放目的地、Entry 和必要参数；实现依赖自身 API。
 - 需要其他 Feature 时只依赖其 API。
 - 在 `composeApp` 加入实现模块并完成 Koin/导航装配。
+- 跨模块 `@Composable` 抽象 Entry 方法不提供默认参数，在 iOS 上通过接口调用真实实现验证分派。
 - 使用现有约定插件，并运行相关平台编译和测试。
 
 ### 移动共享类型
@@ -294,7 +299,16 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 ### 修改自适应布局
 
+- 修改前列明需要保持的组件、尺寸、留白与交互；改变既有视觉设计时单独说明并取得确认。
 - 使用 `LocalWindowAdaptiveInfo` 或 `LocalPaneScaffoldDirective`，不新增窗口读取点。
 - 优先表达实际事实或库计算出的能力，不用其他 UI 形态作代理。
 - 覆盖紧凑、横屏、宽屏和折叠姿态；模拟器步骤见 [Android 模拟器测试](testing/android-emulator.md)。
 - 结束测试前恢复模拟器分辨率、密度和旋转设置。
+
+### 修改导航、输入或浮层
+
+- 导航、搜索与状态恢复覆盖动画中间帧、提交与取消、快速连续操作、返回、尺寸变化和保存状态恢复，按 [UI 变更验收清单](testing/adaptive-ui.md#ui-变更验收清单) 选择场景。
+- 依赖前置动画完成的导航明确执行顺序，避免离开组合后保存半完成状态；依赖 Scene 身份的静态窗格元数据保持实例稳定。
+- 输入容器覆盖键盘增高、切换空档、变矮、正常关闭及失焦，检查系统栏与 IME inset 没有重复消费。
+- iOS 弹层的容器、滚动内容和拖动锚点使用有限的完整视口约束，并在设备上验证关闭后旋转、再次打开和按钮可达性。
+- 设置控件初始化显式提供内存数据源，修改包装器或升级依赖时验证不使用默认平台存储。
