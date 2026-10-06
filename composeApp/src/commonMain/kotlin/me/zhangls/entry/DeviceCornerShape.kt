@@ -9,8 +9,9 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 
-/** Physical corner radii in pixels, independent of layout direction. */
+/** Window corner radii in pixels, independent of layout direction. */
 internal data class DeviceCorners(
   val topLeft: Float,
   val topRight: Float,
@@ -20,6 +21,13 @@ internal data class DeviceCorners(
 
 @Composable
 internal expect fun rememberDeviceCorners(): DeviceCorners?
+
+/** Shared design fallback: 48pt on iOS, represented as 48dp in Compose. */
+internal fun DeviceCorners?.orDefault(density: Density): DeviceCorners {
+  if (this != null) return this
+  val radius = with(density) { 48.dp.toPx() }
+  return DeviceCorners(radius, radius, radius, radius)
+}
 
 /** Fixed device radii while dragging; visibility only changes during cancellation restoration. */
 internal class DeviceCornerShape(

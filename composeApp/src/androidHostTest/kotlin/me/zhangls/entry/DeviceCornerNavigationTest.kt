@@ -38,8 +38,12 @@ class DeviceCornerNavigationTest {
     assertPredictiveExit(DeviceCorners(60f, 60f, 60f, 60f), true)
   }
 
-  @Test fun absentDeviceCornersKeepMaterialMotionWithoutClipping() {
-    assertPredictiveExit(null, false)
+  @Test fun absentDeviceCornersUseDefaultClippingAndCancellationRestoresPage() {
+    assertPredictiveExit(null, true)
+  }
+
+  @Test fun reportedSquareCornersKeepSquareMotion() {
+    assertPredictiveExit(DeviceCorners(0f, 0f, 0f, 0f), false)
   }
 
   private fun assertPredictiveExit(corners: DeviceCorners?, rounded: Boolean) {

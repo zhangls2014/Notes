@@ -10,6 +10,21 @@ import org.junit.Test
 @org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
 @org.robolectric.annotation.Config(sdk = [37])
 class DeviceCornerShapeTest {
+  @Test fun defaultRadiusUsesLogicalDensityWithoutFontScaling() {
+    for (density in listOf(1f, 2f, 3f)) {
+      val corners = (null as DeviceCorners?).orDefault(Density(density, fontScale = 2f))
+      val expected = 48f * density
+      assertEquals(DeviceCorners(expected, expected, expected, expected), corners)
+    }
+  }
+
+  @Test fun reportedCornersIncludingZeroOverrideDefault() {
+    val corners = DeviceCorners(0f, 20f, 30f, 0f)
+    assertEquals(corners, corners.orDefault(Density(3f)))
+    val square = DeviceCorners(0f, 0f, 0f, 0f)
+    assertEquals(square, square.orDefault(Density(3f)))
+  }
+
   @Test fun physicalCornersRemainDistinctInRtlAndCompensateEachAxis() {
     val shape = DeviceCornerShape(DeviceCorners(10f, 20f, 30f, 40f), 0.88f, 0.97f)
     val outline = shape.createOutline(Size(400f, 800f), LayoutDirection.Rtl, Density(1f)) as Outline.Rounded

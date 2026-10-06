@@ -2,6 +2,6 @@ package me.zhangls.entry
 
 import androidx.compose.runtime.Composable
 
-// UIKit does not expose public physical display corner radii; keep the platform default animation.
+// Native window corner reading is not implemented; navigation applies the shared default radius.
 @Composable
 internal actual fun rememberDeviceCorners(): DeviceCorners? = null
