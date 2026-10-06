@@ -82,10 +82,12 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 ## 平台与专项验收
 
+集中状态见 [待验收与已知限制](pending-acceptance.md)，专项指南负责操作步骤；完成验收时同步更新两处记录。
+
 - [Android 模拟器测试](android-emulator.md)：尺寸、密度、旋转与强制还原。
 - [自适应 UI 回归](adaptive-ui.md)：导航、输入、分栏、截图候选与基线。
 - [登录凭据存储验证](secure-token-storage.md)：迁移、Keystore、Keychain 与备份边界。
 - [iOS Launch Screen](ios-launch-screen.md)：系统启动页资源和 Xcode 验证。
 - [iOS Toast 无障碍验证](ios-toast-accessibility.md)：Dynamic Type、VoiceOver 与多窗口场景。
 
-个人信息还需设备上的系统图片选择器、保存失败/取消与读屏验收；关于页面需检查实际安装包的版本名称、原始构建号、返回归属与导航套件恢复。相关设计及历史验收记录从 [文档索引](../README.md) 进入。
+个人信息还需设备上的系统图片选择器、保存失败/取消与读屏验收；关于页面需检查实际安装包的版本名称、原始构建号、返回归属与导航套件恢复。选择理由见 [决策记录](../decisions.md)，未完成事项见 [待验收与已知限制](pending-acceptance.md)。

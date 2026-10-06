@@ -24,4 +24,4 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 
 2026-10-02：Debug 构建及 iPhone 18 Pro / iOS 27.0 模拟器浅色、深色启动截图验证通过。未验证真机或 iPad。此功能改善启动展示，不代表系统加载性能优化。
 
-Apple 官方配置说明：[Specifying your app’s launch screen](https://developer.apple.com/documentation/xcode/specifying-your-apps-launch-screen)。设计与执行记录见 [设计](../superpowers/specs/2026-10-02-ios-launch-screen-design.md)、[计划与验证结果](../superpowers/plans/2026-10-02-ios-launch-screen.md)。
+Apple 官方配置说明：[Specifying your app’s launch screen](https://developer.apple.com/documentation/xcode/specifying-your-apps-launch-screen)。实现理由见 [平台服务与启动展示决策](../decisions.md#平台服务由入口与宿主拥有)，未覆盖设备见 [待验收清单](pending-acceptance.md#凭据个人信息与关于页面)。

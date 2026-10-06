@@ -11,7 +11,7 @@
 - [ ] **弹层窗口**：在 Android 与 iOS 分别检查首次打开、关闭后旋转、再次打开、滚动和操作按钮可达性。iOS 不只检查表单高度，还检查完整弹层容器及拖动锚点采用有限的完整视口约束。
 - [ ] **验证证据**：分别记录行为断言、截图 verify、候选图审阅和设备验收。空白候选图不能作为视觉证据；不以失败截图覆盖批准基线，不通过放宽阈值掩盖问题。实际执行、跳过和未验收项按 [交付记录规则](README.md#验证证据与交付记录) 报告。
 
-历史依据见 [铰链重新实现设计](../superpowers/specs/2026-09-23-hinge-isolated-reimplementation-design.md)、[搜索宽度计划](../superpowers/plans/2026-09-28-measured-search-width.md)、[登录键盘切换计划](../superpowers/plans/2026-09-29-login-ime-switch.md)，以及本页的搜索导航、预测返回和 FAB 恢复记录。当前布局与输入策略以 [架构文档](../architecture.md) 为准。
+选择理由见 [重要决策记录](../decisions.md)，相关回归保留在本页；未解决问题与设备验收集中见 [待验收清单](pending-acceptance.md)。当前布局与输入策略以 [架构文档](../architecture.md) 为准。
 
 ## Tab Fade through 过渡（2026-10-02）
 
