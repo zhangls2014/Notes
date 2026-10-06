@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   alias(kmp.plugins.android.application)
   alias(kmp.plugins.androidx.baselineprofile)
@@ -10,7 +12,10 @@ plugins {
 kotlin {
   // 显式声明编译用 JDK：否则回退到运行 Gradle 的 JDK，
   // 而 IDE（Android Studio 自带 JBR）与命令行的默认 JDK 可能不同
-  jvmToolchain(kmp.versions.jvm.target.get().toInt())
+  jvmToolchain(kmp.versions.jdk.get().toInt())
+  compilerOptions {
+    jvmTarget = JvmTarget.fromTarget(kmp.versions.jvm.target.get())
+  }
 
   dependencies {
     testImplementation(kmp.junit)
@@ -66,7 +71,9 @@ android {
   buildToolsVersion = kmp.versions.android.buildTools.get()
 
   compileSdk {
-    version = release(kmp.versions.android.compileSdk.get().toInt())
+    version = release(kmp.versions.android.compileSdk.get().toInt()) {
+      minorApiLevel = kmp.versions.android.compileSdkMinor.get().toInt()
+    }
   }
 
   defaultConfig {

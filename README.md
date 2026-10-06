@@ -54,17 +54,20 @@ Notes/
 | 类别 | 技术或版本 |
 |---|---|
 | Kotlin | 2.4.20 |
-| JVM target | 21 |
-| Android Gradle Plugin | 9.3.2 |
-| Android SDK | compile/target 37，min 28 |
+| Gradle | 9.7.0 |
+| JDK toolchain / JVM target | 25 / 25（分别维护） |
+| Android Gradle Plugin | 9.3.1 |
+| Android SDK | compile 37.0，target 37，min 28 |
 | Compose Multiplatform | 1.12.1 |
 | Material 3 | 1.12.0-alpha03，Expressive 主题 |
-| Material 3 Adaptive | 1.3.0-rc01 |
+| Material 3 Adaptive | 1.3.0 |
 | Navigation 3 | 1.1.2 |
 | Koin | 4.2.2，注解与编译器插件 1.2.1 |
 | Room | 3.0.3，KSP 生成 |
 | Paging | 3.5.1 |
 | Ktor | 3.6.0 |
+
+后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3（现用菜单 API）与 detekt 当前保留必要预览版；当次版本决策、官方兼容范围和验证状态见 [2026-10-07 升级记录](docs/audits/2026-10-07-dependency-upgrade.md)。
 
 ## 架构概览
 
@@ -99,12 +102,21 @@ Feature API 定义实现 `Destination` 的类型安全目的地和导航贡献�
 ### 环境要求
 
 - 支持当前 KMP/Compose 版本的 Android Studio
-- JDK 21
-- Android SDK 37 与 Build Tools 37.0.0
-- Xcode（构建 iOS 时）
+- JDK 25（编译 toolchain；建议运行 Gradle 的 JDK 与其一致）
+- Android SDK Platform 37.0 与 Build Tools 37.0.0
+- Xcode 26.4（当前 Kotlin 官方兼容表所列版本；本机 Xcode 27 不作为该范围的验收环境）
 - Android 9（API 28）或更高版本的设备/模拟器
 
 ### 本地配置
+
+先设置当前进程的 `JAVA_HOME` 指向已有 JDK 25，再执行 Gradle。本机 Android Studio 内置 JBR 25.0.3，本次使用：
+
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+"$JAVA_HOME/bin/java" -version
+```
+
+这只是当前终端的环境设置，其他机器按实际 JDK 25 路径调整。IDE 的 Gradle JDK 也选择 JDK 25；编译 toolchain 与字节码目标分别维护。版本上限按官方兼容表确定，不以项目实测通过为由越界。
 
 Android SDK 路径使用机器级环境变量，所有 Git worktree 共用。例如 macOS 默认安装位置：
 
