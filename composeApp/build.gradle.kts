@@ -71,6 +71,7 @@ kotlin {
 
     androidMain.dependencies {
       // Core
+      implementation(kmp.androidx.core)
       implementation(kmp.androidx.activity.compose)
       implementation(kmp.androidx.lifecycle.compose)
       implementation(kmp.androidx.viewmodel.compose)

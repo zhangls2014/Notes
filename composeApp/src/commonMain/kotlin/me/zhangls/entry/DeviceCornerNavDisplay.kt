@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.scene.Scene
@@ -53,9 +54,10 @@ internal fun <T : Any> DeviceCornerNavDisplay(
   onBack: () -> Unit,
   corners: DeviceCorners? = rememberDeviceCorners(),
 ) {
-  val strategies = remember(sceneStrategies, corners) {
+  val resolvedCorners = corners.orDefault(LocalDensity.current)
+  val strategies = remember(sceneStrategies, resolvedCorners) {
     sceneStrategies.map { strategy ->
-      if (strategy is SinglePaneSceneStrategy<T>) DeviceCornerSceneStrategy(strategy, corners)
+      if (strategy is SinglePaneSceneStrategy<T>) DeviceCornerSceneStrategy(strategy, resolvedCorners)
       else strategy
     }
   }
