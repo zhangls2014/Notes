@@ -170,7 +170,7 @@ Koin 由 `io.insert-koin.compiler.plugin` 处理注解，通过 `org.koin.plugin
 
 iOS Toast 标签使用 UIKit subheadline 文本样式并启用 Dynamic Type，系统字号变化通知触发宿主根视图重新布局。每个窗口的通知观察者随关闭移除。显示协程在 250ms 淡入后通过 UIAccessibilityAnnouncementNotification 发送文本，仅播报仍可见且位于前台场景的提示；替换、销毁会取消尚未发送的播报。announcement 不使用屏幕切换通知或请求读屏焦点，原有短／长显示时长保持不变。
 
-Repository、数据库、DataStore、网络客户端和需要共享的服务按其生命周期注册；屏幕 ViewModel 使用 `@KoinViewModel` 并由目的地获取。纯函数、Reducer、mapper、短暂 UI 状态、窗口事实和每次导航才确定的参数不注册为应用级依赖。导航静态贡献是例外：Feature 以唯一 qualifier 注册 `NavigationContribution`，组合根通过 `getAll()` 收集。`composeApp` 与 `core:network` 启用 Koin `compileSafety`；新增绑定需通过 Android 与 iOS 编译验证。审查背景与逐项判断见 [Koin 依赖边界审查](audits/2026-09-25-koin-dependency-injection.md)。
+Repository、数据库、DataStore、网络客户端和需要共享的服务按其生命周期注册；屏幕 ViewModel 使用 `@KoinViewModel` 并由目的地获取。纯函数、Reducer、mapper、短暂 UI 状态、窗口事实和每次导航才确定的参数不注册为应用级依赖。导航静态贡献是例外：Feature 以唯一 qualifier 注册 `NavigationContribution`，组合根通过 `getAll()` 收集。`composeApp` 与 `core:network` 启用 Koin `compileSafety`；新增绑定需通过 Android 与 iOS 编译验证。选择理由见 [平台服务决策](decisions.md#平台服务由入口与宿主拥有)。
 
 ### MVI
 

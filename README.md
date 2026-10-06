@@ -226,4 +226,4 @@ adb shell am start \
 
 - 登录仍是本地模拟，尚未接入真实认证和 token 刷新端点。安全凭据存储不等同于完整的服务端会话管理。
 - 网络客户端当前固定输出请求头日志，并隐藏 Authorization；尚未按 Debug/Release 区分日志策略。
-- Android 17 与多形态适配的历史验证范围和限制记录在 [审计目录](docs/audits/)。
+- Android 17 与多形态适配尚未覆盖的验证范围见 [待验收清单](docs/testing/pending-acceptance.md)，原始记录按 [文档历史追溯](docs/README.md#历史追溯) 查询。
