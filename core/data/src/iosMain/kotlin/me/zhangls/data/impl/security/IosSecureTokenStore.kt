@@ -13,17 +13,10 @@ internal class IosSecureTokenStore : SecureTokenStore by KeychainCredentialsStor
 
 @OptIn(ExperimentalForeignApi::class)
 internal class KeychainCredentialsStore(private val service: String) : SecureTokenStore {
-  private fun query(): Map<Any?, Any?> = mapOf(
-    CFBridgingRelease(kSecClass) to CFBridgingRelease(kSecClassGenericPassword),
-    CFBridgingRelease(kSecAttrService) to service,
-    CFBridgingRelease(kSecAttrAccount) to "current-session",
-    CFBridgingRelease(kSecAttrSynchronizable) to CFBridgingRelease(kCFBooleanFalse),
-  )
-
   override suspend fun read(): StoredCredentials? = memScoped {
     val result = alloc<CFTypeRefVar>()
     result.value = null
-    val dictionary = CFBridgingRetain(query() + mapOf(CFBridgingRelease(kSecReturnData) to CFBridgingRelease(kCFBooleanTrue), CFBridgingRelease(kSecMatchLimit) to CFBridgingRelease(kSecMatchLimitOne)))
+    val dictionary = keychainQuery(service, returnData = true)
     try {
       val status = SecItemCopyMatching(dictionary as CFDictionaryRef?, result.ptr)
       if (status == errSecItemNotFound) return@memScoped null
@@ -38,7 +31,7 @@ internal class KeychainCredentialsStore(private val service: String) : SecureTok
   override suspend fun write(credentials: StoredCredentials) {
     val bytes = Json.encodeToString(credentials).encodeToByteArray()
     val data = bytes.usePinned { NSData.create(bytes = it.addressOf(0), length = bytes.size.toULong()) }
-    val dictionary = CFBridgingRetain(query())
+    val dictionary = keychainQuery(service)
     val attributes = CFBridgingRetain(mapOf(
       CFBridgingRelease(kSecValueData) to data,
       CFBridgingRelease(kSecAttrAccessible) to CFBridgingRelease(kSecAttrAccessibleWhenUnlockedThisDeviceOnly),
@@ -46,7 +39,7 @@ internal class KeychainCredentialsStore(private val service: String) : SecureTok
     try {
       val status = SecItemUpdate(dictionary as CFDictionaryRef?, attributes as CFDictionaryRef?)
       if (status == errSecItemNotFound) {
-        val addition = CFBridgingRetain(query() + mapOf(
+        val addition = keychainQuery(service, attributes = mapOf(
           CFBridgingRelease(kSecValueData) to data,
           CFBridgingRelease(kSecAttrAccessible) to CFBridgingRelease(kSecAttrAccessibleWhenUnlockedThisDeviceOnly),
         ))
@@ -57,10 +50,33 @@ internal class KeychainCredentialsStore(private val service: String) : SecureTok
   }
 
   override suspend fun clear() {
-    val dictionary = CFBridgingRetain(query())
+    val dictionary = keychainQuery(service)
     try {
       val status = SecItemDelete(dictionary as CFDictionaryRef?)
       check(status == errSecSuccess || status == errSecItemNotFound) { "Keychain delete failed ($status)" }
     } finally { CFRelease(dictionary) }
   }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal fun keychainQuery(
+  service: String,
+  returnData: Boolean = false,
+  attributes: Map<Any?, Any?> = emptyMap(),
+): CFDictionaryRef {
+  val bridged = CFBridgingRetain(mapOf(
+    CFBridgingRelease(kSecClass) to CFBridgingRelease(kSecClassGenericPassword),
+    CFBridgingRelease(kSecAttrService) to service,
+    CFBridgingRelease(kSecAttrAccount) to "current-session",
+  ) + attributes)
+  try {
+    val dictionary = requireNotNull(CFDictionaryCreateMutableCopy(null, 0, bridged?.reinterpret()))
+    // Kotlin Boolean round-trips as NSNumber, but Security requires native CFBoolean values.
+    CFDictionarySetValue(dictionary, kSecAttrSynchronizable, kCFBooleanFalse)
+    if (returnData) {
+      CFDictionarySetValue(dictionary, kSecReturnData, kCFBooleanTrue)
+      CFDictionarySetValue(dictionary, kSecMatchLimit, kSecMatchLimitOne)
+    }
+    return dictionary
+  } finally { CFRelease(bridged) }
 }
