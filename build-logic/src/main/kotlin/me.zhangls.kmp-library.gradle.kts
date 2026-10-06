@@ -17,13 +17,17 @@ val jvmTargetVersion = kmp.findVersion("jvm-target").get().requiredVersion
 kotlin {
   // 显式声明编译用 JDK：否则回退到运行 Gradle 的 JDK，
   // 而 IDE（Android Studio 自带 JBR）与命令行的默认 JDK 可能不同
-  jvmToolchain(jvmTargetVersion.toInt())
+  jvmToolchain(kmp.findVersion("jdk").get().requiredVersion.toInt())
 
   android {
     namespace = me.zhangls.convention.deriveNamespace(project.path)
     buildToolsVersion = kmp.findVersion("android-buildTools").get().requiredVersion
 
-    compileSdk = kmp.findVersion("android-compileSdk").get().requiredVersion.toInt()
+    compileSdk {
+      version = release(kmp.findVersion("android-compileSdk").get().requiredVersion.toInt()) {
+        minorApiLevel = kmp.findVersion("android-compileSdkMinor").get().requiredVersion.toInt()
+      }
+    }
     minSdk = kmp.findVersion("android-minSdk").get().requiredVersion.toInt()
 
     compilerOptions {

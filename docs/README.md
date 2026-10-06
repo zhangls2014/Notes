@@ -7,12 +7,14 @@
 - [项目架构](architecture.md)：模块职责、依赖边界、导航、MVI、自适应布局和变更检查清单。它是架构信息的唯一当前来源。
 - [根 AGENTS.md](../AGENTS.md)：供 AI 使用的构建命令、全局硬约束和验证要求。
 - [根 README.md](../README.md)：面向开发者的项目概览、环境要求和快速开始。
+- [依赖与工具链升级规范](dependency-upgrades.md)：官方范围上限、正式版优先、版本兼容选择、验证和授权边界。
 
 ## 文档目录
 
 ```text
 docs/
 ├── architecture.md       # 当前模块职责、依赖边界与运行时架构
+├── dependency-upgrades.md # 长期依赖与工具链升级规范
 ├── testing/              # 测试入口与平台/专项操作指南
 │   └── README.md         # 源集、模块与回归命令索引
 ├── audits/               # 带日期和后续状态的一次性审计
@@ -35,6 +37,8 @@ docs/
 ## 历史审计
 
 以下文档记录特定日期的代码状态，正文中的“现状”和“待调整”可能已经过期。每份报告顶部列出了后续状态。
+
+- [2026-10-07 依赖与工具链升级](audits/2026-10-07-dependency-upgrade.md)：全量版本决策、预览版例外与本次验证状态。
 
 - [2026-09-21 多形态屏幕适配审计](audits/2026-09-21-adaptive-layout.md)
 - [2026-09-22 Android 17 多形态适配审计](audits/2026-09-22-android-17-multiform-factor.md)
