@@ -1,6 +1,6 @@
 # 登录凭据存储验证
 
-更新：2026-10-02。
+更新：2026-10-07。
 
 共享仓库测试：
 
@@ -11,6 +11,10 @@
 覆盖旧明文迁移与清除、迁移写入失败后重试、重启读取、更新头像保留凭据、退出清除、账号不匹配隔离、凭据丢失清除资料，中断迁移不覆盖较新的安全凭据、退出删除失败后不恢复旧明文会话，以及暂时无法读取安全存储时登录态订阅能够重试恢复。
 
 `iosTest/KeychainCredentialsStoreTest` 使用随机独立 service，检查真实 Keychain 写入、重启读取、账号/凭据更新与幂等删除。当前 Gradle Kotlin/Native 独立可执行测试环境返回 `errSecNotAvailable (-25291)`，因此该集成测试明确标记 `@Ignore`，不计入通过的测试。需要在可访问 Keychain 的 iOS 应用宿主测试中启用。iOS 编译通过不能视为该集成测试通过。
+
+`iosTest/KeychainQueryTest` 不访问 Keychain，直接检查查询字典中布尔值的 CF 类型、取值与匹配数量。Security 要求的 `CFBoolean` 必须在原生字典中设置；经过 Kotlin Map 桥接的 Boolean 会成为 NSNumber，导致读取参数错误。该测试通过普通 `:core:data:iosSimulatorArm64Test` 执行。
+
+验收 Keychain 的 Notes 模拟器包必须使用正常 Xcode 签名流程，不加 `CODE_SIGNING_ALLOWED=NO`：缺少模拟器应用身份会返回 `errSecMissingEntitlement (-34018)`，不能据此判断参数修复无效。2026-10-07 已在独立模拟器应用身份下完成既有 Keychain CRUD 测试，并确认正常签名的 Notes Debug 包保留现有登录数据进入首页；条件和限制见 [白屏调查与修复](../audits/2026-10-07-ios-white-screen.md)。真机、锁屏及旧明文迁移的完整验收继续独立记录。
 
 平台人工验收：
 
