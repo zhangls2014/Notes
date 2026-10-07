@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.constrainWidth
 @Composable
 internal fun MeasuredSearchInput(
   measurementKey: Any,
+  modifier: Modifier = Modifier,
   inputField: @Composable (measuring: Boolean) -> Unit,
 ) {
   val density = LocalDensity.current
@@ -25,7 +26,7 @@ internal fun MeasuredSearchInput(
   val measurement = remember(density.density, density.fontScale, layoutDirection, measurementKey) {
     SearchInputMeasurement()
   }
-  SubcomposeLayout { constraints ->
+  SubcomposeLayout(modifier = modifier) { constraints ->
     val naturalWidth = measurement.width ?: subcompose(SearchInputSlot.Measurement) {
       Box(Modifier.clearAndSetSemantics {}, propagateMinConstraints = true) {
         inputField(true)

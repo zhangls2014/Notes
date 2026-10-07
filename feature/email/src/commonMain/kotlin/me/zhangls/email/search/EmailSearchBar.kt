@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
@@ -28,13 +29,17 @@ import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -88,6 +93,8 @@ internal fun EmailSearchBar(
   // 那是宿主布局的**推导结果**，只是碰巧与宽度相关；导航套件的形态策略一变，
   // 搜索栏的形态就会跟着莫名改变。契约里缺的是"窗口多大"这个事实，不是"导航在哪一侧"。
   val useFullScreenSearchBar = LocalWindowAdaptiveInfo.current.isCompactWidth
+  val density = LocalDensity.current
+  var collapsedInputWidth by remember { mutableIntStateOf(0) }
 
   val textFieldState = rememberTextFieldState(initialText = state.searchText)
   val initialSearchBarValue = remember { state.searchBarValue }
@@ -216,7 +223,10 @@ internal fun EmailSearchBar(
     scrollBehavior = scrollBehavior,
     state = searchBarState,
     inputField = {
-      MeasuredSearchInput(measurementKey = searchPlaceholder) { measuring ->
+      MeasuredSearchInput(
+        measurementKey = searchPlaceholder,
+        modifier = Modifier.onSizeChanged { if (it.width > 0) collapsedInputWidth = it.width },
+      ) { measuring ->
         inputField(Modifier, measuring)
       }
     },
@@ -237,6 +247,11 @@ internal fun EmailSearchBar(
   } else {
     ExpandedDockedSearchBar(
       state = searchBarState,
+      // LayoutCoordinates changes do not independently invalidate the popup's measurement.
+      // Observe the placed anchor width so the final resize frame also remeasures the popup.
+      modifier = if (collapsedInputWidth > 0) {
+        Modifier.width(with(density) { collapsedInputWidth.toDp() })
+      } else Modifier,
       properties = dockedSearchPopupProperties(),
       // 只填满 Material 从收起态锚点读取的宽度。
       inputField = { inputField(Modifier.fillMaxWidth(), false) },
