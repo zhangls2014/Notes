@@ -6,12 +6,16 @@ import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.core.Transition
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.rememberSceneState
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -36,6 +40,44 @@ class AppSceneStrategiesTest {
   @Test fun wideDetailUsesAdaptiveScene() = assertScene(900, 1000, "pair")
   @Test fun horizontalHingeRetainsAdaptiveScene() = assertScene(400, 1000, "pair", horizontalHinge = true)
   @Test fun ordinaryPageUsesWholePageSceneInWideWindow() = assertScene(900, 1000, "detail", paneMetadata = false)
+
+  @Test fun resizingRootListDoesNotKeepPageExitAnimationRunning() {
+    android.provider.Settings.Global.putFloat(
+      org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+    )
+    val width = mutableStateOf(400)
+    lateinit var rootTransition: Transition<EnterExitState>
+    compose.setContent {
+      ProvideWindowAdaptiveInfo(
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width.value, 800), Posture(),
+      ) {
+        DeviceCornerNavDisplay(
+          entries = listOf(NavEntry("list", metadata = ListDetailSceneStrategy.listPane(
+            sceneKey = "pair", detailPlaceholder = {},
+          )) {
+            if (width.value == 400) rootTransition = LocalNavAnimatedContentScope.current.transition
+            Box(Modifier.fillMaxSize())
+          }),
+          sceneStrategies = rememberAppSceneStrategies(),
+          onBack = {},
+          corners = null,
+        )
+      }
+    }
+    compose.waitForIdle()
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.runOnIdle { width.value = 900 }
+      repeat(8) { compose.mainClock.advanceTimeByFrame() }
+      compose.runOnIdle {
+        assertEquals("Window layout changes must not animate the root page out", 0L,
+          rootTransition.totalDurationNanos)
+      }
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
 
   private fun assertScene(
     width: Int,

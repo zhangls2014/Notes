@@ -7,6 +7,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -111,7 +112,10 @@ private data class DeviceCornerScene<T : Any>(
     // Keep both pages mounted during entry/return; the list underneath stays untransformed.
     val timelineProgress by transition.animateFloat(
       transitionSpec = {
-        tween(PredictiveMotionDuration, easing = LinearEasing)
+        // Root lists move between single-pane and list-detail scenes on resize. They never
+        // scale out; retaining their scene for an invisible animation overlaps iOS overlays.
+        if (delegate.previousEntries.isEmpty()) snap()
+        else tween(PredictiveMotionDuration, easing = LinearEasing)
       },
       label = "page scale progress",
     ) { if (it == EnterExitState.Visible) 0f else 1f }
