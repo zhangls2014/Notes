@@ -69,34 +69,6 @@ Notes/
 
 后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3（现用菜单 API）与 detekt 当前保留必要预览版；当次版本决策、官方兼容范围和验证状态见 [2026-10-07 升级记录](docs/audits/2026-10-07-dependency-upgrade.md)。
 
-## 架构概览
-
-### 依赖与数据边界
-
-依赖从 `composeApp` 流向 Feature 实现、Feature API 和 Core。`core:data` 以 `implementation` 依赖 `core:database`，因此 Room 类型不会传递到 Feature；Repository 接口只暴露 `core:data` 的公开模型。
-
-`core:preference` 以同样方式隐藏底层设置控件库。设置元数据和通用渲染位于 Core，当前值来自数据层，行为和清单由 `feature:settings` 拥有。个人信息和关于应用分别由独立 Feature 实现；设置页通过 `SettingsResult` 通知宿主打开页面，由 `composeApp` 装配导航。
-
-### MVI
-
-`core:framework` 的 `MviViewModel` 提供 Intent → State (+ Effect) 单向数据流。Feature 将 `Intent`、`Action`、`State`、`Reducer` 和 `ViewModel` 放在各自实现模块。
-
-状态跨进程持久化是 opt-in。`savedKey` 默认 `null`，避免密码、token 或大对象意外写入 instance state；只有经过确认的小型非敏感状态才显式启用恢复。
-
-### Navigation 3
-
-Feature API 定义实现 `Destination` 的类型安全目的地和导航贡献，`composeApp/AppNavHost.kt` 聚合 Nav Entry、维护返回栈并处理 Deep Link。
-
-实现 `RequireLogin` 的目的地会经过登录拦截。未登录时导航到 `LoginDestination`，原目标保存在可序列化的 `redirectTo` 中，登录成功后恢复。
-
-首页与收藏分别是列表场景，邮件详情是独立目的地。根导航通过 Navigation 3 `SceneStrategy` 在合适的窗口中组合列表与详情。
-
-### 自适应布局
-
-应用在组合根读取一次 `WindowAdaptiveInfo`，再通过 CompositionLocal 下发窗口事实和 `PaneScaffoldDirective`。各 Feature 使用这些事实决定局部形态，不维护自己的窗口断点。
-
-`ContentWidth` 统一限制表单、正文和设置列表的可读宽度。登录页使用 `SupportingPaneScaffold` 适配普通手机、宽屏和铰链排除区。
-
 ## 快速开始
 
 ### 环境要求

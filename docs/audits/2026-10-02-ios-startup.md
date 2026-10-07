@@ -136,15 +136,6 @@ Debug dylib 对照仅使用命令行构建参数，未修改 pbxproj。为了复
 
 后续优先在真机脱离调试器验证 Release。若真机也慢，再沿对应轨迹排查；当前应将 iOS 27 模拟器的启动测量与生产性能分开。登录状态加载反馈属于体验改进，不能处理 `main()` 前的系统加载等待。
 
-## 初次调查提出的验证顺序（执行状态见上文）
-
-1. 用同一设备、同一数据比较 Debug 与 Release，并在真机脱离调试器测量；这是区分模拟器/Debug 加载成本与生产性能的首要实验。
-2. 使用 Instruments App Launch 与分阶段 signpost 标记，分别记录入口、Koin 完成、初始化任务解析完成、用户数据首发、Compose 首次内容绘制；避免只统计 UIViewController 创建或 simctl 返回。
-3. 若 Debug 明显更慢，对 Xcode `ENABLE_DEBUG_DYLIB` 做单变量对照，不在缺少证据时永久关闭。若 Release 同样慢，继续检查加载的 framework、全局初始化与二进制体积。
-4. 单独验证将 `InitData` 解析放入 IO 的收益；再考虑登录状态加载反馈。分别验证已登录、未登录和首装三种场景。
-
-Apple 官方说明动态库依赖加载及 `main()` 前的初始化属于启动耗时的一部分：[Reducing your app's launch time](https://developer.apple.com/documentation/xcode/reducing-your-app-s-launch-time)、[About the app launch sequence](https://developer.apple.com/documentation/uikit/about-the-app-launch-sequence)。
-
 ## 按 Apple 官方文档继续定位：PhotosUI 链接实验
 
 ### 方法依据
@@ -192,7 +183,7 @@ Apple 对 cold/warm launch 的分类依据是设备、依赖和缓存状态，�
 
 新增范围涉及 PhotosUI、PhotosUICore 和大量图像、媒体与系统私有框架。这是依赖图增大的证据，不能把新增范围中的某一个私有框架直接认定为独立根因。
 
-项目内的来源链已核对：
+调查当日的来源链已核对；以下路径属于 2026-10-02 的历史源码，头像选择器现位于 `feature:profile`，不作为当前文件定位入口：
 
 1. `feature/email/build.gradle.kts:45` 依赖 `calf-file-picker`。
 2. `AvatarPicker.kt:34` 用 `FilePickerFileType.Image` 创建选择器。
@@ -200,14 +191,6 @@ Apple 对 cold/warm launch 的分类依据是设备、依赖和缓存状态，�
 4. `dyld_info -linked_dylibs` 确认 Notes Release 包中强链接 `/System/Library/Frameworks/PhotosUI.framework/PhotosUI`。
 
 PhotosUI 是头像选择功能的实际依赖，并非可以直接删除的无用库。仅将 `rememberFilePickerLauncher` 或 PHPicker 对象创建延后到用户点击，不会移除二进制的 PhotosUI load command，也无法处理本实验复现的 main 前加载。
-
-### 当时提出的后续实验（已由下文实际应用对照补充）
-
-当时提出用 UIKit 文件选择路径替代 iOS PhotosUI 路径，再对 Notes 做同设备、同数据的启动 A/B。下文先以临时停用功能、移除依赖进行更小范围的验证，结果未观察到首屏改善，因此目前没有依据为了启动速度推进选择器替换。仍应在真机 Release 验证；Apple 明确建议通过真机获得更高保真的性能数据：[Improving your app's performance](https://developer.apple.com/documentation/xcode/improving-your-app-s-performance)。
-
-没有采用手工 dlopen PhotosUI 作为方案；Apple 的 WWDC19 建议避免动态加载，因为可能失去启动闭包缓存的收益。不能把“延迟加载”作为未经验证的通用优化。
-
-本轮未修改应用源码或依赖。临时探针应用在测试后删除，Notes 恢复为原有 Debug 包。可复查的临时文件为 `/private/tmp/notes-launch-probes/`（源代码、日志、结果 JSON）、`/private/tmp/notes-probe-photos-valid.trace` 和 `/private/tmp/notes-probe-photos-dyld.xml`。
 
 ## 实际 Notes：头像选择功能的启动影响验证
 

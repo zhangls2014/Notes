@@ -52,7 +52,7 @@ iOS 选择 `WhenUnlockedThisDeviceOnly` 并关闭同步；将来需要锁屏后�
 
 ## 本地构建与升级以明确边界为依据
 
-2026-09-23 的 worktree 验证表明：缺 `local.properties` 本身不会阻止 Debug 构建，实际失败来自没有可用 SDK 路径。SDK 发现交给 AGP；签名配置通过 Gradle 属性、环境变量和旧本地文件依次读取，缺少完整签名配置不影响 Debug。当前配置说明见 [本地配置](../README.md#本地配置)。
+2026-09-23 的 worktree 验证表明：缺 `local.properties` 本身不会阻止 Debug 构建，实际失败来自没有可用 SDK 路径。SDK 发现交给 AGP。当时允许缺少正式签名配置的 Debug 构建；这一历史行为已被取代。当前 Debug/Release 共用正式签名，只从 Gradle 属性或环境变量读取，缺失或无效时构建失败，不再读取旧本地文件。当前配置说明见 [本地配置](../README.md#本地配置)。
 
 2026-10-07 升级最终以官方支持范围和最高测试版本的交集为上限；项目实测成功不能扩大上限。长期选择流程见 [升级规范](dependency-upgrades.md)，当次版本、失败与环境缺口保留在 [升级记录](audits/2026-10-07-dependency-upgrade.md)。
 
