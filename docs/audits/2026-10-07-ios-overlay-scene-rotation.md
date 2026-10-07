@@ -1,6 +1,6 @@
 # iOS 弹层与 Scene 旋转共性审计
 
-日期：2026-10-07。状态：首页根 Scene 的无效退场动画已修复；当前源码 Debug 包的 iPhone 模拟器旋转回归通过。其他设备、软键盘与独立 Constraints 异常的完整验收仍待完成。
+日期：2026-10-07。状态：首页根 Scene 的无效退场动画与停靠搜索最终宽度同步已修复；当前源码 Debug 包的 iPhone 模拟器旋转回归通过。其他设备、软键盘与独立 Constraints 异常的完整验收仍待完成。
 
 ## 结论与证据边界
 
@@ -52,6 +52,37 @@ Android 宿主实际执行以下筛选：`AppSceneStrategiesTest`、`DeviceCorne
 Android `:androidApp:assembleDebug` 整包构建通过。随后启动已有 Pixel 10 Pro Fold AVD，安装 DevFull Debug 包并执行启动检查：安装成功、Activity 冷启动 `Status: ok`，应用进程仍在。当前界面控制工具不能连接该模拟器窗口，搜索展开旋转与 Activity/真实键盘设备行为没有完成验收；启动成功不替代旋转回归。没有修改分辨率、密度或旋转设置，结束时查询无 Override，并关闭本次启动的 AVD。
 
 独立 Constraints 异常在本次连续旋转和重开搜索中未再出现；没有单独确认其根因，继续保留跟踪。未更新正式截图基线。
+
+## 后续：展开输入框宽度不同步
+
+Xander 在提交 `8fe827c5` 后指出，iOS 旋转回归又出现展开输入框与原框不一致、两份头像露出的画面。该画面在上面的崩溃回归中已经出现，但当时未继续核对视觉对齐，属于漏检。
+
+本次仍使用 iPhone 18 Pro / iOS 27.0，当前源码增加临时 `onGloballyPositioned` 坐标日志后重新构建安装，未改变布局行为。对照结果：
+
+| 操作 | 锚点 / 浮层输入宽度 | 左上角与画面 |
+|---|---|---|
+| 横屏直接展开 | 933px / 933px | 都是 (498px, 66px)，对齐 |
+| 展开状态横屏→正常竖屏→横屏 | 最终 933px / 830px | 最终都在 (498px, 66px)，浮层宽度停在过渡值；原框右侧与头像露出 |
+| 在错位状态输入 `x` | 933px / 933px | 内容变化触发重测后对齐 |
+| 在错位状态关闭再展开 | 对齐 | 前序未加日志的正常包也已做设备对照 |
+
+日志明确记录锚点过渡宽度 411→443→471→571→635→782→830→933px；浮层跟到 830px 后，位置继续更新到最终值，但宽度仍为 830px。数据来自实际布局回调，不是按 Device Hub 缩放截图估算。日志 `notes-search-coordinates.stdout.log` 保存在本模拟器 data/tmp 下，临时诊断代码已恢复为已提交版本。
+
+上次的 `usePlatformInsets = false` 仍然存在，本次不是重复叠加安全区：最终位置一致，差异在宽度。当前 Material `DockedSearchBarLayoutImpl` 测量时直接读取 `state.collapsedCoords?.size?.width`；`collapsedCoords` 保存的是可变 `LayoutCoordinates` 引用。锚点同一坐标对象的尺寸变化不是独立的可观察尺寸值，iOS Popup 的独立布局没有在最后一次锚点变化后及时重测。输入变化或重开浮层会重新读取最终宽度，与本次对照一致。
+
+因此，已确认的失效边界是旋转/窗格过渡后锚点最终宽度与浮层测量不同步。没有证据证明 `snap()` 直接改坏了宽度计算；此前该展开旋转路径会崩溃，不能把当时无法完成的流程当作视觉对齐已通过的依据。正确修复方向是让锚点最终几何变化明确驱动浮层重测，同时保留自然宽度、原有留白和安全区坐标约定；不能以隐藏原框或硬编码浮层宽度作为修复。宽度同步修复及验证见下文。
+
+### 宽度同步修复与回归
+
+`MeasuredSearchInput` 接收 Modifier，使用 `onSizeChanged` 将实际锚点宽度保存为可观察的像素值；停靠浮层按当前密度换算为 dp 并应用该宽度。首次尚未获得有效尺寸时继续使用 Material 默认测量。空查询自然宽度、长查询测量策略、留白、全屏分支与 iOS 安全区配置保持原约定；根 Scene 的 `snap()` 修复保留。
+
+新增 `dockedSearchTracksAnchorAcrossSuccessiveWindowWidths`：900×500dp 展开搜索后依次调整至 610、650、720、900dp，不输入文字或重新打开，比较锚点与浮层输入宽度。修复前实际失败（360px / 344px），修复后通过，表明宽度失效也能在 Android 宿主复现；不能据此声称 Android 设备旋转已验收。
+
+Android 宿主筛选上述新增方法，以及 `longSearchQueryKeepsMeasuredWidth`、`restoredSearchUsesEmptyQueryMeasuredWidth`、`measuredSearchWidthShrinksAndRecoversWithWindow`、`expandedSearchKeepsQueryWhenWindowWidthChanges`、`landscapeSearchExpansionDoesNotJumpToFinalHeight`、`searchResultNavigationKeepsSearchClosedAfterReturnAndRotation`，同时执行 `AppSceneStrategiesTest`、`DeviceCornerNavigationTest`、`PageMotionNavigationTest`。JUnit XML 共 131 项：24 通过、107 条件跳过、0 失败、0 错误。iOS 自动测试 29 项全部通过，Android 整包构建与最终无诊断日志的 Xcode Debug 整包构建通过。
+
+同一 iPhone 18 Pro / iOS 27.0 模拟器的修复版布局日志确认：旋转时锚点最终为 933px，浮层自动从过渡尺寸更新到 933px，两者最终左上角均为 (498px, 66px)，无需输入或重开。日志 `notes-search-width-fixed.stdout.log` 在该模拟器 data/tmp 下；`onSizeChanged` 在布局后通知，不宣称所有过渡帧都同步。
+
+设备流程通过两种横屏方向、连续旋转、长查询保留、关闭重开与清空后的对齐检查；空草稿弹层旋转未闪退，随后取消。移除全部诊断代码后重新构建安装，最终包再次通过竖屏展开→两个横屏方向→正常竖屏和关闭重开检查。没有修改正式截图基线。真机、iPad、其他 iOS 版本、软键盘完整流程及 Android 设备旋转仍待验收。
 
 ## 初始调查实际执行
 

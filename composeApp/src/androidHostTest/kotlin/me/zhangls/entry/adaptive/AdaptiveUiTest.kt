@@ -758,6 +758,26 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
   }
 
+  @Test fun dockedSearchTracksAnchorAcrossSuccessiveWindowWidths() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x500")
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    settle()
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    for (newWidth in listOf(610, 650, 720, 900)) {
+      compose.runOnIdle { width = newWidth }
+      settle()
+      // No typing or reopening: the final anchor geometry alone must update the popup.
+      val inputs = compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes()
+      org.junit.Assert.assertEquals(2, inputs.size)
+      val anchor = inputs.first().boundsInWindow
+      val expanded = inputs.last().boundsInWindow
+      org.junit.Assert.assertEquals(anchor.width, expanded.width, 1f)
+    }
+  }
+
   @Test fun expandedSearchKeepsQueryWhenWindowWidthChanges() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
     users.userFlow.value = UserModel("test", "Reviewer")
