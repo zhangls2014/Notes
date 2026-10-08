@@ -13,6 +13,29 @@
 
 选择理由见 [重要决策记录](../decisions.md)，相关回归保留在本页；未解决问题与设备验收集中见 [待验收清单](pending-acceptance.md)。当前布局与输入策略以 [架构文档](../architecture.md) 为准。
 
+## Android IME 窗口策略（2026-10-09）
+
+minSdk 保持 28，MainActivity 保留 `android:windowSoftInputMode="adjustResize"`，配合 `enableEdgeToEdge()` 和现有页面/弹层 Insets 消费。登录、搜索结果和写邮件的滚动容器通过 `core:theme/layout/ImeGestureControl` 的 expect/actual 包装接入 Android 官方 `imeNestedScroll()`；API 28/29 与 iOS 无操作。包装不增加 padding，保留现有焦点交接保护、组件尺寸和留白；空搜索历史与无结果提示不新增手势区域。最终规则见 [自适应布局](../architecture.md#自适应布局)。
+
+新增 `loginImeAnimationTracksEachFrameWithoutDoubleCountingSystemBars` 和 `fullScreenSearchResultsTrackImeFramesAndKeepLastResultReachable`，在 Robolectric API 30/37 验证逐帧弹出、收起、系统栏仅消费一次、搜索输入位置稳定和最后一项可滚动显示。既有登录/写邮件保护、正常关闭与按钮可达性回归一并执行，结果为 11 通过、176 场景条件跳过、0 失败、0 错误。宿主注入测试验证布局对 Insets 的响应，不模拟真实系统动画、Activity 窗口分发或键盘控制器拖动。
+
+```bash
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+  ./gradlew :composeApp:testAndroidHostTest \
+  --tests '*AdaptiveUiTest.*Ime*' --tests '*AdaptiveUiTest.*Keyboard*' \
+  :androidApp:assembleDevFullDebug :androidApp:lintDevFullDebug \
+  :composeApp:compileKotlinIosSimulatorArm64
+```
+
+上述 JBR 路径为本机已有 JDK 25，其他环境替换为实际路径。恢复 `adjustResize` 后再次执行上述命令，整体成功：Android 构建与 lint 执行通过，宿主测试和 iOS 编译为 `UP-TO-DATE`，复用本次已通过的结果；lint 为 0 错误、10 警告（6 条工具链更新提示、3 条依赖更新提示与 1 条 API 33 属性提示）。模块 detekt 未通过：login 16、email 75、theme 28 项，涉及函数签名、import 顺序、逗号和复杂度，报告包含未改动文件；三个新增平台包装文件没有报告问题。未更新 baseline 或修改无关代码来绕过检查。iOS 本次仅编译验证，未执行运行时测试。
+
+设备观察与窗口配置区分记录：
+
+- 移除 `adjustResize` 时，在 Pixel 10 Pro Fold / API 37、Gboard 模拟器的现有横屏 2364×1080px / 390dpi 下，停靠搜索输入可见，写邮件取消/保存按钮可滚动到达。现有竖屏 1080×2364px 下，登录保持输入焦点，向下拖动释放后键盘收起，向上滚动至边界后重新展开。仅覆盖终态，未测量中间帧或性能；没有修改显示尺寸、密度或旋转设置，没有更新正式截图基线。
+- 连接的 Xiaomi 真机 / API 36、系统安全键盘下，移除属性后系统窗口为 `adjustPan`。登录按钮可见区域为 `[104,1378][1116,1447]`，下边界与滚动视口相同；滚动后按钮完整显示，确认是视口裁切。Xander 手动恢复 `adjustResize` 后确认遮挡消失，此结论来自用户设备验收。
+
+未验收：API 28/29/30 的真实窗口 Insets 分发、紧凑竖屏全屏搜索、搜索结果真实键盘手势、写邮件滚动/键盘/弹层拖动协调、快速反向与取消、焦点交接保护窗口内手势，以及其他厂商键盘和动画中间帧。上述移除属性时的模拟器结果不替代最终窗口配置下的完整设备回归。集中状态见 [待验收清单](pending-acceptance.md)。
+
 ## Tab Fade through 过渡（2026-10-02）
 
 首页、收藏和设置之间切换使用同级页面常用的分段淡入淡出：导航选中指示立即更新，旧内容淡出 90ms，透明度为零时切换活动返回栈、释放旧 NavDisplay，再将目标内容淡入 210ms。动画只更新内容绘制层透明度，不逐帧重组导航，也不移动导航侧栏或底部栏。同一时刻只有一个 Tab 内容参与组合和返回处理；外层 Entry 装饰器继续保留所有 Tab 的保存状态与 ViewModel。快速选择取消旧动画并以最后目标为准，重选当前 Tab 不启动动画；离开 Tab 外壳时，组合协程取消未完成的切换。

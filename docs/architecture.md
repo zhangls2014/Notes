@@ -211,7 +211,11 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 登录页设置入口位于表单区域右上角。Logo、输入框与按钮组成的表单主体在高度足够时居中；高度不足时保持原有尺寸和间距，由纵向滚动与 IME 留白处理。
 
+Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:windowSoftInputMode="adjustResize"`；minSdk 保持 28。移除该属性后，连接的 API 36 真机采用 `adjustPan`，登录按钮被滚动视口裁切；恢复后由 Xander 确认问题消失。键盘避让由实际页面或弹层消费 Compose IME Insets：登录表单消费受保护的 inset，写邮件使用弹层内容 inset；全屏搜索沿用 Material 的 `fullScreenWindowInsets`（`safeDrawing`），停靠搜索沿用组件内置 IME padding，不重复添加占位。API 28/29 的真实窗口分发仍需设备验证，API 30+ 宿主注入回归不能证明旧系统兼容性，范围见 [Android IME 回归](testing/adaptive-ui.md#android-ime-窗口策略2026-10-09)。
+
 登录与新建邮件页的 IME 切换保护由 `core:theme/layout` 的 `ImeHandoffFocusState` 和 `rememberImeHandoffInsets` 共享。Android 在焦点回调中记录同一表单内的输入框切换，仅在切换后的 400 ms 窗口内保留下降中的键盘占位，待高度连续稳定 200 ms 后释放，以吸收普通键盘与系统安全键盘切换时的短暂空档。高度增加立即避让，失焦立即取消保护；保护窗口外的正常收起逐帧跟随真实 IME，不额外等待。登录表单通过 `windowInsetsPadding` 消费受保护的 inset；新建邮件页把它与 `ModalBottomSheet` 默认内容 inset 合并，让弹层继续在自己的窗口中避让键盘。iOS 使用原生 IME inset，不应用 Android 保护策略。
+
+登录表单、搜索结果列表和写邮件表单通过 `core:theme/layout` 的 `Modifier.imeGestureControl()` 联动滚动与软键盘。Android 包装官方 `imeNestedScroll()`，API 30+ 在嵌套滚动中控制键盘并在释放后完成展开或收起；API 28/29 沿用官方无操作行为。iOS 原样返回 Modifier。手势包装不添加 Insets 占位，不改变表单的焦点交接保护；写邮件需要同时验证表单滚动、键盘控制与弹层拖动。
 
 单栏 UI 不参与铰链适配。应用导航、设置、搜索、普通页面、`ModalBottomSheet`、Preference 弹窗、tooltip 和 `Dialog` 始终使用标准组件，不读取铰链，也不因铰链存在而切换组件树、尺寸、滚动或弹出位置。是否避让铰链由实际窗格布局决定，而不是由整个应用统一套一层安全区域决定。
 

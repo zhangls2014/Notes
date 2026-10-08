@@ -79,6 +79,7 @@ import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.layout.ImeHandoffFocusState
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.contentWidth
+import me.zhangls.theme.layout.imeGestureControl
 import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_clear_account
@@ -211,6 +212,7 @@ private fun FormPane(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier
         .fillMaxSize()
+        .imeGestureControl()
         .verticalScroll(state = rememberScrollState()),
     ) {
       Layout(

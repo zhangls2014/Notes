@@ -362,6 +362,28 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
   }
 
+  @Test
+  @Config(sdk = [30, 37])
+  fun loginImeAnimationTracksEachFrameWithoutDoubleCountingSystemBars() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    launch()
+    compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
+    dispatchLoginIme(0, navigationBarHeight = 24)
+    val scroll = compose.onNode(hasScrollAction())
+    val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
+    compose.onAllNodes(hasSetTextAction())[0].performSemanticsAction(SemanticsActions.RequestFocus)
+    compose.mainClock.autoAdvance = false
+    try {
+      for (height in listOf(0, 80, 160, 220, 160, 80, 0)) {
+        dispatchLoginIme(height, navigationBarHeight = 24)
+        org.junit.Assert.assertEquals("Each IME frame must reserve only the space beyond the system bar, height=$height",
+          withoutIme - maxOf(0, height - 24), scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      }
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
   @Test fun loginImeDismissalTracksInsetsWithoutDelay() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
     launch()
@@ -644,6 +666,54 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onAllNodesWithContentDescription("Close search").onLast().assertIsDisplayed()
     compose.onAllNodes(hasSetTextAction()).onLast().assertIsFocused()
+  }
+
+  @Test
+  @Config(sdk = [30, 37])
+  fun fullScreenSearchResultsTrackImeFramesAndKeepLastResultReachable() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithContentDescription("Search").performTouchInput { click() }
+    settle()
+    val input = compose.onAllNodes(hasSetTextAction()).onLast()
+    input.performTextReplacement("Window")
+    settle()
+    val dialog = checkNotNull(org.robolectric.shadows.ShadowDialog.getLatestDialog())
+    val results = compose.onAllNodes(hasScrollAction()).onLast()
+    fun ime(height: Int) {
+      compose.runOnIdle {
+        val insets = androidx.core.view.WindowInsetsCompat.Builder()
+          .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, height))
+          .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), height > 0)
+          .setInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), androidx.core.graphics.Insets.of(0, 0, 0, 24))
+          .setVisible(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), true)
+          .build()
+        androidx.core.view.ViewCompat.dispatchApplyWindowInsets(dialog.window!!.decorView, insets)
+      }
+      compose.mainClock.advanceTimeByFrame()
+      compose.waitForIdle()
+    }
+    ime(0)
+    val withoutIme = results.fetchSemanticsNode().boundsInWindow
+    val inputBounds = input.fetchSemanticsNode().boundsInWindow
+    compose.mainClock.autoAdvance = false
+    try {
+      for (height in listOf(80, 160, 220, 160, 80, 0)) {
+        ime(height)
+        org.junit.Assert.assertEquals("Search results must track the current IME frame, height=$height",
+          withoutIme.height - maxOf(0, height - 24), results.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+        org.junit.Assert.assertEquals("Keyboard animation must not move the search input", inputBounds,
+          input.fetchSemanticsNode().boundsInWindow)
+      }
+      ime(220)
+      results.performScrollToIndex(10)
+      compose.mainClock.advanceTimeByFrame()
+      compose.onAllNodesWithText("Window layout 12").onLast().assertIsDisplayed()
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
   }
 
   @Test fun landscapeSearchExpansionDoesNotJumpToFinalHeight() {
