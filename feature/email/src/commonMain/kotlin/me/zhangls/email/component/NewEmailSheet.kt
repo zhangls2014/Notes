@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.AccountModel
 import me.zhangls.theme.layout.LocalModalViewport
 import me.zhangls.theme.layout.ImeHandoffFocusState
+import me.zhangls.theme.layout.imeGestureControl
 import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.allDrawableResources
@@ -129,6 +130,7 @@ internal fun NewEmailSheetContent(
       .fillMaxWidth()
       .heightIn(max = maxHeight)
       .padding(horizontal = 16.dp, vertical = 8.dp)
+      .imeGestureControl()
       .verticalScroll(state = rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {

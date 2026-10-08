@@ -64,6 +64,7 @@ import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Search
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.imeGestureControl
 import me.zhangls.theme.layout.isCompactWidth
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_delete
@@ -273,7 +274,7 @@ private fun SearchResults(
     return
   }
 
-  LazyColumn(modifier = Modifier.fillMaxWidth()) {
+  LazyColumn(modifier = Modifier.fillMaxWidth().imeGestureControl()) {
     items(count = searchResults.itemCount, key = searchResults.itemKey { it.id }) {
       val email = searchResults[it] ?: return@items
       val sender = email.sender
