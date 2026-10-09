@@ -80,6 +80,19 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 根 `detekt` 没有源集，不作为有效检查。共享模块的 detekt 使用根配置与各模块 baseline，扫描手写 Kotlin 源集，排除生成目录。所有命令按需串行执行；同一仓库目录不得同时启动两个 Gradle 构建。整包构建出现 Java heap space 时使用 [AGENTS.md](../../AGENTS.md) 中的 8GB 堆参数。
 
+## Android Studio Inspect Code
+
+项目共享的检查 Scope 放在 `.idea/scopes/`，检查 profile 放在 `.idea/inspectionProfiles/`，文件使用英文名称。这里只保存可复用的源码范围和规则；扫描结果导出到系统临时目录，必要结论按文档保留规则写入 `docs/audits/`，不提交生成报告。
+
+框架入口规则的共享样本放在 `config/inspections/entry-points.xml`；当前 IDE 将 `EntryPointsManager` 存在本机 `.idea/misc.xml`，不将整个本机文件纳入 Git。应用样本时只合并该组件的注解和精确入口，保留已有组件、注解和模式。入口清单随真实调用契约维护，不预留整包通配豁免。
+
+手写源码检查使用 `Notes Handwritten` Scope 和 `Notes` profile，勾选 Include test sources。Scope 包含根文件及多层目录，排除构建、缓存与工作树。当前 IDE 对部分 Gradle/KSP/Compose 生成目录创建独立内容根，路径会相对于该根匹配；因此另外排除已确认的生成目录、Gradle DSL、Compose `.cvr` 产物和 Room/BuildKonfig/约定插件生成文件。增加生成器或修改源码命名时复核这些精确生成模式，不能仅凭目录排除表达式宣称没有生成告警。生成文件仍参与编译和引用解析，不手改产物。
+
+Android Studio 没有自动识别新 profile 时，在 Inspections 的齿轮菜单选择 Import Profile，导入 `.idea/inspectionProfiles/Notes.xml`；新增入口组件后重新打开项目，使本机配置生效。随后运行 Inspect Code，选择上述 Scope/profile 并导出 XML，核对真实业务与测试文件覆盖、`/build/` 路径和已知入口。扫描结果数量下降不能替代范围验收。
+
+入口注解覆盖 Koin、JUnit、Compose Preview；Manifest 和 Swift 入口按具体类/方法登记。仅针对已验证入口配置规则，不全局关闭 unused 或 correctness。IDE 的源集模块依赖提示须与 Gradle 和公开 API 核对，不直接作为删除依赖的依据。
+新增规则先通过 XML 和当前 IDE 验证，再记录重新扫描的范围、profile、错误及警告数。编译和静态 XML 校验不能替代 IDE 规则生效验证。
+
 ## 平台与专项验收
 
 集中状态见 [待验收与已知限制](pending-acceptance.md)，专项指南负责操作步骤；完成验收时同步更新两处记录。

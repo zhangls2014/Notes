@@ -99,7 +99,7 @@ class LoginPanePlanTest {
     // `maxVerticalPartitions == 2` —— 但它不是折叠设备，没有铰链要避。
     // 早先按"容量"选叠放时这里会被摊成上下半屏：品牌占掉上半屏、两个字段落到下半屏，
     // 中间空出一大段。这是实机（竖屏手机窗口）扫描时发现的回归。
-    val (adaptiveInfo, directive) = windowAndDirective(widthDp = 411, heightDp = 914)
+    val (_, directive) = windowAndDirective(widthDp = 411, heightDp = 914)
     assertEquals(1, directive.maxHorizontalPartitions)
     assertTrue(directive.maxVerticalPartitions >= 2, "本条的前提：竖向容量确实够两栏")
     val plan = loginPanePlan(directive)
@@ -216,7 +216,7 @@ private fun plan(
   heightDp: Int,
   posture: Posture = Posture(),
 ): LoginPanePlan {
-  val (adaptiveInfo, directive) = windowAndDirective(widthDp, heightDp, posture)
+  val (_, directive) = windowAndDirective(widthDp, heightDp, posture)
   return loginPanePlan(directive)
 }
 

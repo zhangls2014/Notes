@@ -62,12 +62,13 @@ Notes/
 | Material 3 | 1.12.0-alpha03，Expressive 主题 |
 | Material 3 Adaptive | 1.3.0 |
 | Navigation 3 | 1.1.2 |
+| NavigationEvent | 1.2.0 |
 | Koin | 4.2.2，注解与编译器插件 1.2.1 |
 | Room | 3.0.3，KSP 生成 |
-| Paging | 3.5.1 |
+| Paging | 3.5.2 |
 | Ktor | 3.6.0 |
 
-后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3（现用菜单 API）与 detekt 当前保留必要预览版；当次版本决策、官方兼容范围和验证状态见 [2026-10-07 升级记录](docs/audits/2026-10-07-dependency-upgrade.md)。
+后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3（现用菜单 API）与 detekt 当前保留必要预览版；当次版本决策、官方兼容范围和验证状态见 [2026-10-09 升级记录](docs/audits/2026-10-09-dependency-upgrade.md)。
 
 ## 快速开始
 

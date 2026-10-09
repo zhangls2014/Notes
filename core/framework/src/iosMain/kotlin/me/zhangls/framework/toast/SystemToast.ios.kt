@@ -33,6 +33,7 @@ import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowLevelAlert
 import platform.UIKit.UIWindowScene
+import kotlin.time.Duration.Companion.milliseconds
 
 /** One presenter per Compose host; the composition root owns and closes it. */
 class IosSystemToast(private val host: UIViewController) : SystemToast {
@@ -52,11 +53,11 @@ class IosSystemToast(private val host: UIViewController) : SystemToast {
       try {
         toast.show()
         // 等淡入完成后播报；替换或关闭会取消此协程，不让旧提示延迟播报。
-        delay(TOAST_ANIMATION_MILLIS)
+        delay(TOAST_ANIMATION_MILLIS.milliseconds)
         toast.announce()
-        delay((if (longDuration) 3500L else 2000L) - TOAST_ANIMATION_MILLIS)
+        delay(((if (longDuration) 3500L else 2000L) - TOAST_ANIMATION_MILLIS).milliseconds)
         toast.fadeOut()
-        delay(TOAST_ANIMATION_MILLIS)
+        delay(TOAST_ANIMATION_MILLIS.milliseconds)
       } finally {
         toast.dismiss()
         if (current === toast) current = null

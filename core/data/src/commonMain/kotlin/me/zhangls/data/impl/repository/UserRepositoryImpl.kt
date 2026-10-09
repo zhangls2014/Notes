@@ -24,6 +24,7 @@ import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
 import org.koin.core.annotation.Singleton
+import kotlin.time.Duration.Companion.seconds
 
 @Singleton(binds = [UserRepository::class])
 internal class UserRepositoryImpl(
@@ -47,7 +48,7 @@ internal class UserRepositoryImpl(
       // Locked Keychain / transient I/O must not kill root UI observation or erase a session.
       // Request-level getTokens still propagates errors so no request uses stale credentials.
       if (cause is CancellationException || cause !is Exception) return@retryWhen false
-      delay(minOf(attempt + 1, 30) * 1_000)
+      delay(minOf(attempt + 1, 30).seconds)
       true
     }
     .distinctUntilChanged()

@@ -28,7 +28,7 @@ object LanguageManager {
       AppLanguage.CHINESE -> "zh-Hans-CN"
     }
 
-    val currentTags = userDefaults.stringArrayForKey(APPLE_LANGUAGES_KEY)?.mapNotNull { it as? String }.orEmpty()
+    val currentTags = userDefaults.stringArrayForKey(APPLE_LANGUAGES_KEY)?.filterIsInstance<String>().orEmpty()
 
     return if (targetLanguageTag == null) {
       if (currentTags.isEmpty()) {
