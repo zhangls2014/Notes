@@ -74,6 +74,8 @@ docs/
 以下调查记录特定日期的代码、环境与测量结果，不能直接外推为当前状态。
 
 - [重要决策记录](decisions.md)：铰链范围、Tab 状态、IME、主题、凭据与 Feature 边界的决策理由。
+- [2026-10-09 全项目依赖升级检查](audits/2026-10-09-dependency-upgrade.md)：71 个显式版本坐标及 BOM、平台工件和工具链上限；Paging/NavigationEvent 已升级，Kotlin 受 Koin 验证上限限制保留，含回归结果。
+- [2026-10-09 Inspect Code 分析与优化清单](audits/2026-10-09-inspect-code.md)：检查配置与 Room 定点处理、小范围清理、闲置能力保留决定及一次升级评估；含静态检查和宿主测试失败证据。
 - [2026-10-07 依赖与工具链升级](audits/2026-10-07-dependency-upgrade.md)：最终工具链选择、发生变化的依赖、预览版例外与当次验证状态。
 - [2026-10-07 iOS 持续白屏调查与修复](audits/2026-10-07-ios-white-screen.md)：Keychain 布尔参数桥接错误的单字段对照、Native 回归及模拟器首屏验收。
 - [2026-10-07 iOS 弹层与 Scene 旋转共性审计](audits/2026-10-07-ios-overlay-scene-rotation.md)：搜索与写邮件触发同一保存状态异常、设置弹窗对照及 Android 宿主回归边界。

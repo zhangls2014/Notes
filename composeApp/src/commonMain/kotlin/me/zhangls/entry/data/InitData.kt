@@ -21,9 +21,7 @@ class InitData(
       emailsRepository.insertEmails(LocalEmailsDataProvider.allEmails)
     }
     val versionCode = appInfo.getVersionCode()
-    if (common.lastVersionCode != versionCode) {
-      // TODO 版本更新后的第一次启动
-    }
+    // TODO 版本更新后的第一次启动
     commonRepository.increaseLaunchCount()
     commonRepository.updateVersionCode(versionCode)
   }

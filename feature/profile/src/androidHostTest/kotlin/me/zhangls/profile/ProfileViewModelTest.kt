@@ -26,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -58,11 +59,11 @@ class ProfileViewModelTest {
     val finish = CompletableDeferred<Unit>()
     storage.beforeReturn = { started.complete(Unit); finish.await() }
     viewModel.sendIntent(ProfileIntent.ChangeAvatar(file))
-    withTimeout(5_000) { started.await() }
+    withTimeout(5.seconds) { started.await() }
     assertEquals(AvatarSaveStatus.Saving, viewModel.state.value.saveStatus)
     viewModel.sendIntent(ProfileIntent.ChangeAvatar(file))
     finish.complete(Unit)
-    withTimeout(5_000) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Saved } }
+    withTimeout(5.seconds) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Saved } }
     assertEquals(1, storage.saves)
     assertEquals("new", users.userFlow.value?.avatar)
     assertEquals("new", viewModel.state.value.user?.avatar)
@@ -71,11 +72,11 @@ class ProfileViewModelTest {
   @Test fun failedSaveKeepsOriginalAvatarAndAllowsRetry() = runBlocking {
     storage.path = null
     viewModel.sendIntent(ProfileIntent.ChangeAvatar(file))
-    withTimeout(5_000) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Failed } }
+    withTimeout(5.seconds) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Failed } }
     assertEquals("old", viewModel.state.value.user?.avatar)
     storage.path = "new"
     viewModel.sendIntent(ProfileIntent.ChangeAvatar(file))
-    withTimeout(5_000) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Saved } }
+    withTimeout(5.seconds) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Saved } }
     assertEquals("new", viewModel.state.value.user?.avatar)
     assertEquals(2, storage.saves)
   }

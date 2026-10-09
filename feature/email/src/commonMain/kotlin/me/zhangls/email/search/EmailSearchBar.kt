@@ -35,7 +35,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.layout.onSizeChanged
@@ -75,6 +74,7 @@ import notes.feature.email.generated.resources.email_msg_no_item_found
 import notes.feature.email.generated.resources.email_msg_no_search_history
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author zhangls
@@ -169,7 +169,7 @@ internal fun EmailSearchBar(
       },
     )
   }
-  val outputField = @Composable { columnScope: ColumnScope ->
+  val outputField = @Composable { _: ColumnScope ->
     val searchText = textFieldState.text
 
     if (searchText.isEmpty()) {
@@ -213,7 +213,7 @@ internal fun EmailSearchBar(
 
   LaunchedEffect(viewModel) {
     snapshotFlow { textFieldState.text.toString() }
-      .debounce(DURATION_SEARCH_DEBOUNCE)
+      .debounce(DURATION_SEARCH_DEBOUNCE.milliseconds)
       .distinctUntilChanged()
       .collect {
         viewModel.sendIntent(SearchIntent.UpdateSearchText(it))

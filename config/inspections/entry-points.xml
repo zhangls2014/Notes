@@ -1,0 +1,22 @@
+<component name="EntryPointsManager">
+  <entry_points version="2.0" />
+  <list size="13">
+    <item index="0" class="java.lang.String" itemvalue="org.koin.core.annotation.Singleton" />
+    <item index="1" class="java.lang.String" itemvalue="org.koin.core.annotation.Single" />
+    <item index="2" class="java.lang.String" itemvalue="org.koin.core.annotation.Factory" />
+    <item index="3" class="java.lang.String" itemvalue="org.koin.core.annotation.Module" />
+    <item index="4" class="java.lang.String" itemvalue="org.koin.core.annotation.KoinApplication" />
+    <item index="5" class="java.lang.String" itemvalue="org.junit.Test" />
+    <item index="6" class="java.lang.String" itemvalue="org.junit.Before" />
+    <item index="7" class="java.lang.String" itemvalue="org.junit.After" />
+    <item index="8" class="java.lang.String" itemvalue="org.junit.BeforeClass" />
+    <item index="9" class="java.lang.String" itemvalue="org.junit.AfterClass" />
+    <item index="10" class="java.lang.String" itemvalue="org.junit.runners.Parameterized.Parameters" />
+    <item index="11" class="java.lang.String" itemvalue="kotlin.test.Test" />
+    <item index="12" class="java.lang.String" itemvalue="androidx.compose.ui.tooling.preview.Preview" />
+  </list>
+  <pattern value="me.zhangls.entry.MainViewControllerKt" method="MainViewController" />
+  <pattern value="me.zhangls.entry.NotesModuleKt" method="initData" />
+  <pattern value="me.zhangls.notes.MainActivity" />
+  <pattern value="me.zhangls.notes.NotesApp" />
+</component>

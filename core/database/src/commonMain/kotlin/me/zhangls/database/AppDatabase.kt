@@ -35,6 +35,8 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun emailDao(): EmailDao
 }
 
+// Room's KSP processor generates the actual constructor for each platform.
+@Suppress("KotlinNoActualForExpect")
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
   override fun initialize(): AppDatabase
 }
