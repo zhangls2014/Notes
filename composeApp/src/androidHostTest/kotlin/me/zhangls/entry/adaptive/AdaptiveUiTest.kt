@@ -65,6 +65,7 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
+import me.zhangls.entry.PredictiveMotionDuration
 import me.zhangls.entry.initKoin
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -198,6 +199,9 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
     return "$directory/${scenario.name}-$screen.png"
   }
+
+  private fun advancePageMotionBy(millis: Long) =
+    compose.mainClock.advanceTimeBy(millis * PredictiveMotionDuration / 220L)
 
   private fun settle() {
     // Flush composition and platform drawing between frames, including lazy-item placement.
@@ -952,11 +956,11 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.runOnIdle {
         dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
       }
-      compose.mainClock.advanceTimeBy(100)
+      advancePageMotionBy(100)
       compose.runOnIdle {
         dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 200f, 1f, BackEventCompat.EDGE_LEFT))
       }
-      repeat(3) { compose.mainClock.advanceTimeBy(300); compose.waitForIdle() }
+      repeat(3) { advancePageMotionBy(300); compose.waitForIdle() }
       val during = page.fetchSemanticsNode().boundsInRoot
       org.junit.Assert.assertEquals("Safe area moves with the centered page",
         (before.height - during.height) / 2f, during.top - before.top, 1f)
@@ -966,7 +970,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       org.junit.Assert.assertEquals("Scale includes safe-area height",
         before.height * (1f - 48f / before.width), during.height, 1f)
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
-      repeat(3) { compose.mainClock.advanceTimeBy(500); compose.waitForIdle() }
+      repeat(3) { advancePageMotionBy(500); compose.waitForIdle() }
       org.junit.Assert.assertEquals("Cancellation restores the complete page", before,
         page.fetchSemanticsNode().boundsInRoot)
     } finally {
@@ -989,17 +993,17 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.mainClock.autoAdvance = false
     try {
       compose.onNodeWithText("Adaptive review").performClick()
-      compose.mainClock.advanceTimeBy(80)
+      advancePageMotionBy(80)
       val page = compose.onNodeWithTag("email-detail-page")
       val entering = page.fetchSemanticsNode().boundsInRoot
-      compose.mainClock.advanceTimeBy(1000)
+      advancePageMotionBy(1000)
       val full = page.fetchSemanticsNode().boundsInRoot
       org.junit.Assert.assertTrue("Detail scales up on entry: $entering -> $full", entering.width < full.width - 1f)
       org.junit.Assert.assertEquals("Entry keeps center X", full.center.x, entering.center.x, 1f)
       org.junit.Assert.assertEquals("Entry keeps center Y", full.center.y, entering.center.y, 1f)
       org.junit.Assert.assertEquals("Entry preserves aspect ratio", full.height / full.width, entering.height / entering.width, 0.01f)
       compose.onNodeWithContentDescription("Back").performClick()
-      compose.mainClock.advanceTimeBy(80)
+      advancePageMotionBy(80)
       val exiting = page.fetchSemanticsNode().boundsInRoot
       org.junit.Assert.assertTrue("Detail scales down on toolbar back: $full -> $exiting", exiting.width < full.width - 1f)
       org.junit.Assert.assertEquals("Return keeps center X", full.center.x, exiting.center.x, 1f)
@@ -1007,7 +1011,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       org.junit.Assert.assertEquals("Return preserves aspect ratio", full.height / full.width, exiting.height / exiting.width, 0.01f)
       org.junit.Assert.assertTrue("The revealed list stays in place",
         compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().any { it.boundsInRoot == listBefore })
-      compose.mainClock.advanceTimeBy(1000)
+      advancePageMotionBy(1000)
       org.junit.Assert.assertEquals(listBefore,
         compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot)
       page.assertDoesNotExist()
@@ -1051,16 +1055,16 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.runOnIdle {
         dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
       }
-      compose.mainClock.advanceTimeBy(100)
+      advancePageMotionBy(100)
       compose.runOnIdle {
         dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 200f, 1f, BackEventCompat.EDGE_LEFT))
       }
-      compose.mainClock.advanceTimeBy(300)
+      advancePageMotionBy(300)
       assertListInPlace("before release")
       compose.runOnIdle { dispatcher.onBackPressed() }
       // 覆盖提交后的连续帧，确认上一页始终保持已完全显示的位置。
       repeat(30) { frame ->
-        compose.mainClock.advanceTimeByFrame()
+        advancePageMotionBy(16)
         assertListInPlace("after release, frame ${frame + 1}")
       }
     } finally {
@@ -1095,25 +1099,25 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.mainClock.autoAdvance = false
     try {
       compose.onNodeWithText("Adaptive review").performClick()
-      compose.mainClock.advanceTimeBy(80)
+      advancePageMotionBy(80)
       assertRailUnchanged("enter")
-      compose.mainClock.advanceTimeBy(1000)
+      advancePageMotionBy(1000)
       val detailFull = compose.onNodeWithTag("email-detail-page").fetchSemanticsNode().boundsInRoot
       compose.runOnIdle {
         val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
         dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, BackEventCompat.EDGE_LEFT))
         dispatcher.dispatchOnBackProgressed(BackEventCompat(180f, 200f, 0.5f, BackEventCompat.EDGE_LEFT))
       }
-      compose.mainClock.advanceTimeBy(80)
+      advancePageMotionBy(80)
       assertRailUnchanged("predictive back")
       compose.runOnIdle {
         checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.dispatchOnBackCancelled()
       }
-      compose.mainClock.advanceTimeBy(1000)
+      advancePageMotionBy(1000)
       compose.runOnIdle {
         checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
       }
-      compose.mainClock.advanceTimeBy(80)
+      advancePageMotionBy(80)
       assertRailUnchanged("pop")
       val afterCancellation = compose.onNodeWithTag("email-detail-page").fetchSemanticsNode().boundsInRoot
       org.junit.Assert.assertTrue("Return still scales after cancelling a gesture", afterCancellation.width < detailFull.width - 1f)
