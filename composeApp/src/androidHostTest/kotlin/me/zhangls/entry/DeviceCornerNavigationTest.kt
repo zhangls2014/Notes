@@ -51,6 +51,7 @@ class DeviceCornerNavigationTest {
       org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
     )
+    fun advanceMotionBy(millis: Long) = compose.mainClock.advanceTimeBy(millis * PredictiveMotionDuration / 220L)
     val stack = mutableStateListOf(0, 1)
     lateinit var view: View
     compose.setContent {
@@ -58,7 +59,7 @@ class DeviceCornerNavigationTest {
       Box(Modifier.requiredSize(400.dp, 800.dp).testTag("surface")) {
         DeviceCornerNavDisplay(
           entries = stack.map { key -> NavEntry(key) {
-            Box(Modifier.fillMaxSize().background(if (key == 1) Color.Red else Color.Blue))
+            Box(Modifier.fillMaxSize().testTag("page-$key").background(if (key == 1) Color.Red else Color.Blue))
           } },
           sceneStrategies = listOf(SinglePaneSceneStrategy()),
           onBack = { stack.removeLast() },
@@ -66,7 +67,7 @@ class DeviceCornerNavigationTest {
         )
       }
     }
-    repeat(3) { compose.mainClock.advanceTimeBy(1000); compose.waitForIdle() }
+    repeat(3) { advanceMotionBy(1000); compose.waitForIdle() }
     compose.onNodeWithTag("surface").captureToImage() // Flush the initial native draw before pausing the clock.
     val dispatcher = checkNotNull(view.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
     compose.mainClock.autoAdvance = false
@@ -82,15 +83,21 @@ class DeviceCornerNavigationTest {
       assertTrue("Initial gesture frame must not expose an empty or blended page",
         halfway[0, 400] == Color.Red || halfway[0, 400].blue > 0.85f)
       repeat(3) { compose.mainClock.advanceTimeByFrame(); compose.waitForIdle() }
+      compose.runOnIdle { view.invalidate() }
+      compose.waitForIdle()
       val ready = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
-      assertTrue("Previous page has a gray backdrop", ready[0, 400].blue in 0.85f..0.95f)
+      assertTrue("Previous page has a gray backdrop: ${ready[0, 400]}", ready[0, 400].blue in 0.85f..0.95f)
       // Reverse direction during the same gesture: geometry must reflect the new event next frame.
       compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(40f, 400f, 0.1f, BackEventCompat.EDGE_LEFT)) }
       compose.mainClock.advanceTimeByFrame()
+      compose.runOnIdle { view.invalidate() }
+      compose.waitForIdle()
       val reversed = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
-      assertTrue("Reversal follows the finger without a spring tail", reversed[16, 400].red > 0.99f)
+      assertTrue("Reversal follows the finger without a spring tail: " +
+        "bounds=${compose.onNodeWithTag("page-1").fetchSemanticsNode().boundsInRoot}, pixel=${reversed[16, 400]}",
+        reversed[16, 400].red > 0.99f)
       compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 400f, 1f, BackEventCompat.EDGE_LEFT)) }
-      compose.mainClock.advanceTimeBy(1000)
+      advanceMotionBy(1000)
       val preview = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
       // Material sheet scaling removes 48dp of width and 24dp of height, anchored at the page center.
       if (rounded) {
@@ -101,19 +108,19 @@ class DeviceCornerNavigationTest {
       assertTrue("Page center remains red", preview[200, 400].red > 0.9f)
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
       repeat(3) {
-        compose.mainClock.advanceTimeBy(1000)
+        advanceMotionBy(1000)
         compose.waitForIdle()
       }
       val restored = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
       assertTrue("Cancelled gesture restores square page: corner=${restored[2, 2]}, center=${restored[200, 400]}, edge=${restored[65, 125]}", restored[2, 2].red > 0.9f)
       assertEquals(listOf(0, 1), stack.toList())
       compose.runOnIdle { dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 400f, 0f, BackEventCompat.EDGE_RIGHT)) }
-      compose.mainClock.advanceTimeBy(100)
+      advanceMotionBy(100)
       compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 400f, 1f, BackEventCompat.EDGE_RIGHT)) }
-      compose.mainClock.advanceTimeBy(1000)
+      advanceMotionBy(1000)
       compose.runOnIdle { dispatcher.onBackPressed() }
       repeat(3) {
-        compose.mainClock.advanceTimeBy(1000)
+        advanceMotionBy(1000)
         compose.waitForIdle()
       }
       assertEquals(listOf(0), stack.toList())
