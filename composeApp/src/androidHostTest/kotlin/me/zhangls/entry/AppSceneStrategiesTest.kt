@@ -18,6 +18,7 @@ import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
+import me.zhangls.navigation.DeviceCornerNavDisplay
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -61,7 +62,6 @@ class AppSceneStrategiesTest {
           }),
           sceneStrategies = rememberAppSceneStrategies(),
           onBack = {},
-          corners = null,
         )
       }
     }

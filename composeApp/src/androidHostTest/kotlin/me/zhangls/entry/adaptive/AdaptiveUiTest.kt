@@ -65,8 +65,8 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
-import me.zhangls.entry.PredictiveMotionDuration
 import me.zhangls.entry.initKoin
+import me.zhangls.navigation.PredictiveMotionDuration
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After

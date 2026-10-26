@@ -1,4 +1,4 @@
-package me.zhangls.entry
+package me.zhangls.navigation
 
 import androidx.compose.runtime.Composable
 

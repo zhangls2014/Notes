@@ -82,6 +82,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 ## Navigation 3 与 MVI
 
 - `core:framework` 定义 `Destination`、`NavEffect`、`RequireLogin`、Deep Link 和导航贡献；具体目的地与 Entry 契约位于 Feature API。
+- `core:navigation` 只拥有导航显示、预测返回转场、设备圆角和窗格安全区；不得依赖 Feature、持有应用返回栈或决定登录与目的地策略。
 - 登录拦截、根返回栈、Deep Link 恢复和 SceneStrategy 装配属于 `composeApp/AppNavHost.kt`。
 - Feature 的 MVI 类型统一放在 `mvi/`：`Intent`、`Action`、`State`、`Reducer`、`ViewModel`。
 - `MviViewModel.savedKey` 默认 `null` 是安全约束。只有小型、可序列化且不含密码、token、大对象的状态才可显式启用跨进程恢复。

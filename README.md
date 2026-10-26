@@ -28,7 +28,8 @@ Notes/
 │   ├── theme                   # 主题、通用组件和自适应布局环境
 │   ├── preference              # 设置元数据和通用设置控件
 │   ├── network                 # Ktor 网络基础设施
-│   └── framework               # MVI、导航、Deep Link 和全局 Effect
+│   ├── framework               # MVI、导航契约、Deep Link 和全局 Effect
+│   └── navigation              # 导航显示、预测返回转场、圆角和窗格安全区
 ├── feature/
 │   ├── main / main-api         # 应用外壳和顶层 Tab
 │   ├── login / login-api       # 登录

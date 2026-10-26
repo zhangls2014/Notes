@@ -20,6 +20,8 @@ import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import me.zhangls.main.AppShell
 import me.zhangls.main.api.TabDestination
+import me.zhangls.navigation.DeviceCornerNavDisplay
+import me.zhangls.navigation.PageMotionState
 
 /** Full-screen pages retain their viewport while the shell underneath animates its navigation. */
 @Composable
