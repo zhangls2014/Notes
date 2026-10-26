@@ -1,14 +1,11 @@
 package me.zhangls.entry
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -19,26 +16,25 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.savedstate.serialization.SavedStateConfiguration
-import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.email.emailNavEntry
 import me.zhangls.entry.util.AppInfo
 import me.zhangls.entry.util.toAboutAppInfo
-import org.koin.compose.koinInject
-import me.zhangls.email.emailNavEntry
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
-import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
-import me.zhangls.profile.profileNavEntry
-import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.main.mainNavEntries
-import me.zhangls.theme.layout.ProvideModalViewport
+import me.zhangls.profile.api.ProfileDestination
+import me.zhangls.profile.profileNavEntry
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.ProvideModalViewport
+import org.koin.compose.koinInject
 
 /**
  * @author zhangls
@@ -164,32 +160,23 @@ fun AppNavHost(
     }
   }
 
-  // 外壳（Rail / 底部导航栏）是 NavDisplay 的容器，不是返回栈里的一个条目：
-  // 它读返回栈的**根**决定选中哪个 Tab，因此推入详情页时导航套件依然可见、可达，
-  // 宽屏上不会从"列表 + 详情"突然变成全屏页。个人信息页隐藏导航套件，但保留所属 Tab
-  // 和外壳内容的组合位置；根是登录页时不显示外壳。
+  // State ownership stays outside both display layers. Full-screen pages never inherit the
+  // shell's shrinking viewport or its consumed navigation insets.
   ProvideModalViewport {
     TabFadeThrough(
       selected = backStack.tabSelection(),
       onSelectTab = navHandler::selectTab,
     ) { readAlpha, selectedTab, selectTab ->
-      AppShell(
+      LayeredNavDisplay(
+        entries = entriesByRoot.getValue(navigationState.selectedRoot),
+        fullscreenEntryCount = backStack.takeLastWhile { it is ProfileDestination || it is AboutDestination }.size,
+        displayKey = navigationState.selectedRoot,
+        contentAlpha = readAlpha,
         selected = selectedTab,
         onSelectTab = selectTab,
-        showNavigation = backStack.lastOrNull() !is ProfileDestination && backStack.lastOrNull() !is AboutDestination,
-      ) {
-        Box(Modifier.graphicsLayer { alpha = readAlpha() }) {
-          // The old display is removed at the invisible midpoint; only the selected stack
-          // owns input/back events, while outer decorators retain every Tab's Entry state.
-          key(navigationState.selectedRoot) {
-            DeviceCornerNavDisplay(
-              entries = entriesByRoot.getValue(navigationState.selectedRoot),
-              onBack = { navHandler(NavEffect.Popup) },
-              sceneStrategies = sceneStrategies,
-            )
-          }
-        }
-      }
+        onBack = { navHandler(NavEffect.Popup) },
+        sceneStrategies = sceneStrategies,
+      )
     }
   }
 }

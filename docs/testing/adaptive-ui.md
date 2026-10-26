@@ -13,6 +13,41 @@
 
 选择理由见 [重要决策记录](../decisions.md)，相关回归保留在本页；未解决问题与设备验收集中见 [待验收清单](pending-acceptance.md)。当前布局与输入策略以 [架构文档](../architecture.md) 为准。
 
+## 全屏次级页面与导航显隐（2026-10-26）
+
+个人信息／关于应用在应用外壳上层执行全屏缩放与遮罩，底层 Entry 保持组合；侧栏／底栏直接读取页面进度，提交淡出期间保持显示。组件尺寸、图标颜色、留白、Tab 状态、邮件分栏与铰链规则保持现状。实现边界见 [架构文档](../architecture.md#navigation-3)。
+
+最终验证条件：Android API 37 / Robolectric Native Graphics，缩放终点 85%，手势锚点距对侧边缘为视口宽度的 25%，垂直居中；缩放 220ms、淡出 120ms。早期曾使用 2200ms 缩放验证慢速过程，最终测试按实际时长逐帧取样。正式截图基线未更新。
+
+- `LayeredNavDisplayTest` 覆盖个人信息／关于应用的全屏视口、遮罩覆盖侧栏、进入／普通返回的逐帧同步、左右手势锚点、暂停／反向／取消／提交、取消后的普通返回、暴露边缘输入屏蔽、重复返回和底层 Entry 不重建。
+- `ProfileNavigationTest` 覆盖横屏普通返回首段、侧栏／底栏及 RTL 右侧导航的逐点进度与占位、原有入口、搜索收起和保存状态恢复。
+- `AdaptiveUiTest` 覆盖普通双栏及书本／桌面铰链形态，全屏页返回后保留原邮件详情、窗格边界与 Tab 选择；半开／全开使用同一铰链几何。完整自适应组 102 项通过、629 项按场景跳过。
+- 几何回归覆盖不同尺寸的固定缩放比例与锚点；`BackdropMotionTest` 检查取消时遮罩随缩放恢复、提交时遮罩与页面共同淡出。此前独立导航动画会在页面停在约 68% 缩放进度时先完成显隐；进度同步断言在修复前失败，共用页面读取器后通过。遮罩关系的两项像素断言也在移除独立计时器前失败、修改后通过。
+- 最终配置下，完整应用回归 163 项执行通过、629 条件跳过、0 失败；导航策略模块 13 项复用本会话通过结果（UP-TO-DATE）。旧页面转场像素 1 项和圆角像素 3 项分别执行通过，分批应用回归共 167 项通过。Android `assembleDevFullDebug` 与 iOS `compileKotlinIosSimulatorArm64` 执行通过。
+
+宿主测试队列诊断：同组后续用例曾停在加载态，数据已发出但 `AndroidUiDispatcher.Main` 队列累积 3／5／7 个任务且调度标志未复位。`MainLooperDrain` 在 Compose 销毁后、Robolectric 重置前排空主队列，修复该加载问题；临时流计数及反射诊断已移除。暂停时钟下的 Native 失效重绘显式推进一帧后再取图；像素断言按实际页面外边界检查圆角，保留颜色阈值与动画阶段顺序。
+
+验证限制：旧 Native 像素用例联合运行曾有 2 项取帧断言失败，独立进程复跑通过；排空队列未完全消除取帧不稳定性，分批通过不代表联合稳定性验收完成。双端设备视觉、快速反向手势、全屏页显示期间旋转／分屏和正式截图仍待验收，iOS 编译不替代设备行为验收。
+
+模块 detekt 未通过：composeApp 113 项、feature:main 9 项，包含格式问题及签名／缩进规则冲突。分层首轮快照对比为 135／9 项，修改前为 126／9 项，新增 10 项为两空格函数签名触发的 `FunctionSignature` 提示，并清除 1 项 import 排序问题；临时副本验证四空格签名又触发两空格 `Indentation` 规则。保留项目风格，未修改规则、baseline 或添加绕过标记。
+
+可重复执行：
+
+```bash
+./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' \
+  --tests '*LayeredNavDisplayTest*' --tests '*ProfileNavigationTest*' --tests '*BackdropMotionTest*' \
+  --tests '*AboutUiTest*' --tests '*AboutAppInfoTest*' --tests '*TabNavigationTest*' \
+  --tests '*NavBackStackSerializationTest*' --tests '*AppSceneStrategiesTest*' \
+  --tests '*PageMotionGeometryTest*' --tests '*DeviceCornerShapeTest*' --tests '*DeviceCornerOpacityTest*' \
+  :feature:main:testAndroidHostTest :androidApp:assembleDevFullDebug :composeApp:compileKotlinIosSimulatorArm64
+
+# Native 像素用例分别执行，联合稳定性另行跟踪
+./gradlew :composeApp:testAndroidHostTest --tests '*PageMotionNavigationTest*'
+./gradlew :composeApp:testAndroidHostTest --tests '*DeviceCornerNavigationTest*'
+```
+
+未完成事项见 [集中清单](pending-acceptance.md)。
+
 ## Android IME 窗口策略（2026-10-09）
 
 minSdk 保持 28，MainActivity 保留 `android:windowSoftInputMode="adjustResize"`，配合 `enableEdgeToEdge()` 和现有页面/弹层 Insets 消费。登录、搜索结果和写邮件的滚动容器通过 `core:theme/layout/ImeGestureControl` 的 expect/actual 包装接入 Android 官方 `imeNestedScroll()`；API 28/29 与 iOS 无操作。包装不增加 padding，保留现有焦点交接保护、组件尺寸和留白；空搜索历史与无结果提示不新增手势区域。最终规则见 [自适应布局](../architecture.md#自适应布局)。

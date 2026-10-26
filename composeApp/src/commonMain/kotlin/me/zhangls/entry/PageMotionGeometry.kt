@@ -3,17 +3,18 @@ package me.zhangls.entry
 import androidx.compose.ui.geometry.Size
 
 internal object PageMotionGeometry {
-  fun transform(pageSize: Size, progress: Float, horizontalReduction: Float, verticalReduction: Float): PageMotionTransform {
+  private const val MIN_SCALE = 0.85f
+
+  fun transform(pageSize: Size, progress: Float, anchorX: Float = 0.5f): PageMotionTransform {
     val fraction = progress.coerceIn(0f, 1f)
-    val scaleX = if (pageSize.width > 0f) {
-      1f - minOf(horizontalReduction, pageSize.width) * fraction / pageSize.width
-    } else 1f
-    val scaleY = if (pageSize.height > 0f) {
-      1f - minOf(verticalReduction, pageSize.height) * fraction / pageSize.height
-    } else 1f
-    // Scale around the page center.
-    return PageMotionTransform(scaleX, scaleY,
-      pageSize.width / 2f * (1f - scaleX), pageSize.height / 2f * (1f - scaleY))
+    val scale = 1f - (1f - MIN_SCALE) * fraction
+    // Keep the selected horizontal anchor and vertical center fixed throughout the motion.
+    return PageMotionTransform(
+      scaleX = scale,
+      scaleY = scale,
+      translationX = pageSize.width * anchorX * (1f - scale),
+      translationY = pageSize.height / 2f * (1f - scale),
+    )
   }
 }
 

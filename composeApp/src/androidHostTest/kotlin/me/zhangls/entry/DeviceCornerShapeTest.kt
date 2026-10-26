@@ -39,7 +39,7 @@ class DeviceCornerShapeTest {
   @Test fun displayedRadiusStaysFixedThroughoutForwardAndReverseGesture() {
     val pageSize = Size(400f, 736f)
     for (progress in listOf(0f, 0.1f, 0.5f, 1f, 0.5f, 0.1f, 0f)) {
-      val pose = PageMotionGeometry.transform(pageSize, progress, 48f, 24f)
+      val pose = PageMotionGeometry.transform(pageSize, progress)
       val outline = DeviceCornerShape(DeviceCorners(10f, 20f, 30f, 40f), pose.scaleX, pose.scaleX)
         .createOutline(pageSize, LayoutDirection.Ltr, Density(1f)) as Outline.Rounded
       val radii = listOf(outline.roundRect.topLeftCornerRadius, outline.roundRect.topRightCornerRadius,

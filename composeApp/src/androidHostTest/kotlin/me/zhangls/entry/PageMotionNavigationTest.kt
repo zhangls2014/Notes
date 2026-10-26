@@ -48,7 +48,7 @@ class PageMotionNavigationTest {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
     )
     fun advanceMotionBy(millis: Long) = compose.mainClock.advanceTimeBy(millis * PredictiveMotionDuration / 220L)
-    fun advanceMotionFrame() = advanceMotionBy(16)
+    fun advanceMotionFrame() = compose.mainClock.advanceTimeByFrame()
     val stack = mutableStateListOf(0, 1)
     lateinit var view: View
     lateinit var pageTransition: Transition<EnterExitState>
@@ -83,7 +83,7 @@ class PageMotionNavigationTest {
       var previousRed = 1f
       var previousBackdrop = backdropTint
       var backdropFaded = false
-      val remainingFrames = kotlin.math.ceil((220f * (1f - releaseProgress) + 120f) / 16f).toInt() + 5
+      val remainingFrames = ceil((PredictiveMotionDuration * (1f - releaseProgress) + PageExitFadeDuration) / 16f).toInt() + 8
       repeat(remainingFrames) {
         advanceMotionFrame()
         compose.waitForIdle()
@@ -140,16 +140,16 @@ class PageMotionNavigationTest {
       assertTrue("Page offset is not compensated", image[100, 400].blue in 0.85f..0.95f)
       assertTrue("Backdrop has a gray tint", image[200, 710].red in 0.05f..0.2f &&
         image[200, 710].green in 0.05f..0.2f)
-      assertTrue("Page remains opaque", image[110, 400].red > 0.99f)
-      assertTrue("Scale uses page width rather than window width", image[380, 400].blue in 0.85f..0.95f)
-      assertTrue("Bottom corner reveals the previous page", image[107, 677].blue in 0.85f..0.95f)
+      assertTrue("Page remains opaque", image[140, 400].red > 0.99f)
+      assertTrue("The inset opposite anchor remains inside the page", image[320, 400].red > 0.99f)
+      assertTrue("Bottom corner reveals the previous page", image[118, 679].blue in 0.85f..0.95f)
       assertTrue("Below the scaled page no background covers the previous page", image[200, 710].blue in 0.85f..0.95f)
-      assertTrue("Page bottom center remains opaque", image[200, 670].red > 0.99f)
+      assertTrue("Page bottom center remains opaque", image[256, 674].red > 0.99f)
       assertTrue("Rail remains fixed", image[10, 400].green > 0.99f)
       assertTrue("Bottom navigation remains fixed", image[200, 780] == Color.Yellow)
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
       var sampledRestoringCorners = false
-      repeat(20) {
+      repeat((PredictiveMotionDuration + PageExitFadeDuration) / 16 + 8) {
         advanceMotionFrame()
         compose.waitForIdle()
         val restoring = compose.onNodeWithTag("window").captureToImage().toPixelMap()
@@ -165,8 +165,10 @@ class PageMotionNavigationTest {
             restoring[ceil(left + radius + 2f).toInt(), bottom].red > 0.99f)
           assertTrue("Bottom right radius shrinks with scale: fraction=$fraction",
             restoring[floor(right - radius - 2f).toInt(), bottom].red > 0.99f)
-          assertTrue("Restoration keeps a rounded contour before full scale",
-            restoring[left + 1, bottom].blue > 0.85f)
+          // Check the outer bounding corner, rather than the antialiased arc two pixels inward.
+          assertTrue("Restoration keeps a rounded contour before full scale: fraction=$fraction, " +
+            "radius=$radius, corner=${restoring[left, bottom + 1]}",
+            restoring[left, bottom + 1].blue > 0.85f)
           sampledRestoringCorners = true
         }
       }
