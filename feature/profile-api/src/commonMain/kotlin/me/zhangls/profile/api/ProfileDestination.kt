@@ -13,4 +13,6 @@ enum class ProfileOrigin { Home, Settings }
 // 移动模块时保留旧的 wire identity，兼容已保存的 NavKey / 登录 redirectTo。
 @Serializable
 @SerialName("me.zhangls.settings.api.ProfileDestination")
-data class ProfileDestination(val origin: ProfileOrigin = ProfileOrigin.Settings) : Destination, RequireLogin
+data class ProfileDestination(val origin: ProfileOrigin = ProfileOrigin.Settings) :
+  Destination,
+  RequireLogin

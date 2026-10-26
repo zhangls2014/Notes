@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Delete: ImageVector
   get() {
-    if (_Delete != null) {
-      return _Delete!!
-    }
-    _Delete = ImageVector.Builder(
+    cachedDelete?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Delete",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -88,11 +85,11 @@ val Icons.Rounded.Delete: ImageVector
       }
     }.build()
 
-    return _Delete!!
+    cachedDelete = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Delete: ImageVector? = null
+private var cachedDelete: ImageVector? = null
 
 @Preview(name = "Delete", showBackground = true)
 @Composable

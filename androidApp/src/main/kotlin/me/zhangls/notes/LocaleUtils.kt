@@ -3,10 +3,8 @@ package me.zhangls.notes
 import androidx.core.os.LocaleListCompat
 import me.zhangls.model.AppLanguage
 
-fun AppLanguage.toLocales(): LocaleListCompat {
-  return when (this) {
-    AppLanguage.FOLLOW_SYSTEM -> LocaleListCompat.getEmptyLocaleList()
-    AppLanguage.ENGLISH -> LocaleListCompat.forLanguageTags("en-CN")
-    AppLanguage.CHINESE -> LocaleListCompat.forLanguageTags("zh-Hans-CN")
-  }
+fun AppLanguage.toLocales(): LocaleListCompat = when (this) {
+  AppLanguage.FOLLOW_SYSTEM -> LocaleListCompat.getEmptyLocaleList()
+  AppLanguage.ENGLISH -> LocaleListCompat.forLanguageTags("en-CN")
+  AppLanguage.CHINESE -> LocaleListCompat.forLanguageTags("zh-Hans-CN")
 }

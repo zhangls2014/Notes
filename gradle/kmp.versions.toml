@@ -32,6 +32,7 @@ coil = "3.6.3"
 calf = "0.14.0"
 baselineprofile = "1.5.0"
 detekt = "2.0.0-alpha.6"
+compose-rules = "0.6.8"
 
 
 [plugins]
@@ -141,6 +142,7 @@ compose-preference = { group = "me.zhanghai.compose.preference", name = "prefere
 calf-file-picker = { group = "com.mohamedrejeb.calf", name = "calf-file-picker", version.ref = "calf" }
 
 detekt-formatting = { group = "dev.detekt", name = "detekt-rules-ktlint-wrapper", version.ref = "detekt" }
+detekt-compose = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "compose-rules" }
 
 ### Gradle 插件 marker（供 build-logic convention plugins 编译期引用）
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }

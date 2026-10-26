@@ -4,9 +4,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -52,7 +52,7 @@ private fun SimpleDialogPreview() {
     confirmText = "确定",
     dismissText = "取消",
     confirm = {},
-    dismiss = {}
+    dismiss = {},
   )
 }
 
@@ -96,7 +96,8 @@ private fun SimpleAnnotatedDialogPreview() {
         LinkAnnotation.Clickable(
           tag = "privacy_link",
           styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-          linkInteractionListener = {})
+          linkInteractionListener = {},
+        ),
       ) {
         append("用户协议")
       }
@@ -105,6 +106,6 @@ private fun SimpleAnnotatedDialogPreview() {
     confirmText = "确定",
     dismissText = "取消",
     confirm = {},
-    dismiss = {}
+    dismiss = {},
   )
 }

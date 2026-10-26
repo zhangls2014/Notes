@@ -30,11 +30,11 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-internal fun AboutScreen(appInfo: AboutAppInfo, onBackPressed: () -> Unit) {
+internal fun AboutScreen(appInfo: AboutAppInfo, onBack: () -> Unit) {
   val viewModel = koinViewModel<AboutViewModel> { parametersOf(appInfo) }
   val state by viewModel.state.collectAsStateWithLifecycle()
   Scaffold(topBar = {
-    CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBackPressed)
+    CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBack)
   }) { padding ->
     AdaptiveContent(maxWidth = ContentWidth.Form) {
       Column(

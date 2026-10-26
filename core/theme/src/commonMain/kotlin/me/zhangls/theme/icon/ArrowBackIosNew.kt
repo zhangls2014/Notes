@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.ArrowBackIosNew: ImageVector
   get() {
-    if (_ArrowBackIosNew != null) {
-      return _ArrowBackIosNew!!
-    }
-    _ArrowBackIosNew = ImageVector.Builder(
+    cachedArrowBackIosNew?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.ArrowBackIosNew",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -48,11 +45,11 @@ val Icons.Rounded.ArrowBackIosNew: ImageVector
       }
     }.build()
 
-    return _ArrowBackIosNew!!
+    cachedArrowBackIosNew = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _ArrowBackIosNew: ImageVector? = null
+private var cachedArrowBackIosNew: ImageVector? = null
 
 @Preview(name = "ArrowBackIosNew", showBackground = true)
 @Composable

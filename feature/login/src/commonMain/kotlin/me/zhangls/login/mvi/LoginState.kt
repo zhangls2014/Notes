@@ -1,11 +1,11 @@
 package me.zhangls.login.mvi
 
 import kotlinx.serialization.Serializable
-import me.zhangls.model.AppLanguage
-import me.zhangls.model.DarkThemeConfig
 import me.zhangls.framework.mvi.MviState
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
+import me.zhangls.model.AppLanguage
+import me.zhangls.model.DarkThemeConfig
 
 /**
  * 含明文密码 [password] —— 属敏感数据，依赖 MviViewModel 的默认非持久化行为，

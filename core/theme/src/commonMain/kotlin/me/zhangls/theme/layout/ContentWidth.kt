@@ -37,5 +37,4 @@ object ContentWidth {
  *
  * 收窄后多出来的空间由**父级的对齐方式**决定去哪（居中 / 靠一侧），本修饰符不预设。
  */
-fun Modifier.contentWidth(maxWidth: Dp = ContentWidth.Prose): Modifier =
-  widthIn(max = maxWidth).fillMaxWidth()
+fun Modifier.contentWidth(maxWidth: Dp = ContentWidth.Prose): Modifier = widthIn(max = maxWidth).fillMaxWidth()

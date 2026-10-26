@@ -23,7 +23,7 @@ object EmailNavigation : NavigationContribution {
 
   /** `https://<host>/email?id=<邮件 id>`；`id` 缺失或非法时视为不匹配。 */
   override val deepLinkMatchers: List<DeepLinkMatcher> = listOf(
-    DeepLinkMatcher { request -> request.toEmailDetail() }
+    DeepLinkMatcher { request -> request.toEmailDetail() },
   )
 
   private fun DeepLinkRequest.toEmailDetail(): DeepLinkDestination? {

@@ -3,10 +3,10 @@ package me.zhangls.theme.component
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,7 +34,7 @@ fun CenteredTopAppBar(
   title: String,
   modifier: Modifier = Modifier,
   navigate: (() -> Unit)? = null,
-  actions: (@Composable RowScope.() -> Unit) = {}
+  actions: (@Composable RowScope.() -> Unit) = {},
 ) {
   CenterAlignedTopAppBar(
     title = { Text(text = title) },
@@ -45,12 +45,12 @@ fun CenteredTopAppBar(
         IconButton(onClick = navigate, shapes = IconButtonDefaults.shapes()) {
           Icon(
             imageVector = Icons.Rounded.ArrowBackIosNew,
-            contentDescription = stringResource(Res.string.theme_action_navigate_before)
+            contentDescription = stringResource(Res.string.theme_action_navigate_before),
           )
         }
       }
     },
-    actions = actions
+    actions = actions,
   )
 }
 

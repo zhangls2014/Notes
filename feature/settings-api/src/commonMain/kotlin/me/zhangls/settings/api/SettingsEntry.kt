@@ -21,7 +21,5 @@ interface SettingsEntry {
    * @param onResult 设置页产生的对外结果回调，例如 [SettingsResult.Logout]
    */
   @Composable
-  fun Screen(
-    onResult: (SettingsResult) -> Unit,
-  )
+  fun Screen(onResult: (SettingsResult) -> Unit)
 }

@@ -22,7 +22,7 @@ class SettingsViewModel(
 ) : MviViewModel<SettingsState, SettingsIntent>(
   initialState = SettingsState(),
   stateSerializer = SettingsState.serializer(),
-  savedStateHandle = savedStateHandle
+  savedStateHandle = savedStateHandle,
 ) {
 
   init {
@@ -39,7 +39,9 @@ class SettingsViewModel(
   override fun handleIntent(intent: SettingsIntent) {
     when (intent) {
       SettingsIntent.OpenProfile -> sendEffect(SettingsResult.OpenProfile)
+
       SettingsIntent.OpenAbout -> sendEffect(SettingsResult.OpenAbout)
+
       is SettingsIntent.UpdateDynamicColor -> {
         viewModelScope.launch { settingsRepository.updateDynamicColor(intent.value) }
       }

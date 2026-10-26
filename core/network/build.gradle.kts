@@ -20,6 +20,9 @@ kotlin {
       implementation(kmp.jetbrains.kotlinx.serialization.core)
       implementation(kmp.jetbrains.kotlinx.serialization.json)
     }
+    commonTest.dependencies {
+      implementation(kmp.kotlin.test)
+    }
     androidMain.dependencies {
       implementation(kmp.ktor.client.okhttp)
       implementation(kmp.jetbrains.kotlinx.coroutines.android)

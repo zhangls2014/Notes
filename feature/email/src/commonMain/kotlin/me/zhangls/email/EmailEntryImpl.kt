@@ -3,9 +3,9 @@ package me.zhangls.email
 import androidx.compose.runtime.Composable
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.email.detail.EmailDetailScreen
+import org.koin.core.annotation.Singleton
 import me.zhangls.email.favorites.FavoritesScreen as FavoritesScreenImpl
 import me.zhangls.email.home.HomeScreen as HomeScreenImpl
-import org.koin.core.annotation.Singleton
 
 /**
  * [EmailEntry] 的实现：内联渲染首页邮件列表与收藏列表，并独立渲染邮件详情页。
@@ -18,11 +18,7 @@ import org.koin.core.annotation.Singleton
 @Singleton(binds = [EmailEntry::class])
 class EmailEntryImpl : EmailEntry {
   @Composable
-  override fun HomeScreen(
-    openedEmailId: Long?,
-    navigateToDetail: (Long) -> Unit,
-    onProfileClick: () -> Unit,
-  ) {
+  override fun HomeScreen(openedEmailId: Long?, navigateToDetail: (Long) -> Unit, onProfileClick: () -> Unit) {
     HomeScreenImpl(
       openedEmailId = openedEmailId,
       navigateToDetail = navigateToDetail,
@@ -31,10 +27,7 @@ class EmailEntryImpl : EmailEntry {
   }
 
   @Composable
-  override fun FavoritesScreen(
-    openedEmailId: Long?,
-    navigateToDetail: (Long) -> Unit,
-  ) {
+  override fun FavoritesScreen(openedEmailId: Long?, navigateToDetail: (Long) -> Unit) {
     FavoritesScreenImpl(
       openedEmailId = openedEmailId,
       navigateToDetail = navigateToDetail,
@@ -42,13 +35,10 @@ class EmailEntryImpl : EmailEntry {
   }
 
   @Composable
-  override fun DetailScreen(
-    emailId: Long,
-    onBackPressed: () -> Unit,
-  ) {
+  override fun DetailScreen(emailId: Long, onBack: () -> Unit) {
     EmailDetailScreen(
       emailId = emailId,
-      onBackPressed = onBackPressed,
+      onBack = onBack,
     )
   }
 }

@@ -33,6 +33,11 @@ Notes 是 Kotlin Multiplatform 应用，使用 Compose Multiplatform、Navigatio
 ./gradlew :androidApp:lintDevFullDebug
 ./gradlew :feature:profile:detekt
 
+# Kotlin 语义分析（需 JDK 25；KMP 的 Android compilation 使用编译 classpath）
+./gradlew detektMainAndroid detektHostTestAndroid
+./gradlew :androidApp:detektDevFullDebug :androidApp:detektDevFullDebugUnitTest
+./gradlew :androidApp:detektDevFullDebugAndroidTest
+
 # 实验性 Fused Library
 ./gradlew :android:output:login:assemble
 ```
@@ -68,7 +73,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 
 ### UI 与设置边界
 
-- 应用内功能图标必须来自 Google Fonts 的 Material Symbols，统一使用 Rounded，默认未填充（`FILL=0`）；明确的填充变体（如 `StarFill`，`FILL=1`）允许保留并用于状态表达。共享图标由 `core:theme` 提供。转换去掉原始注释，import 与正文之间保留两行空行，使用原有缓存属性和 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。品牌图标（登录页、关于应用页及桌面启动图标）保留现有设计，不受此功能图标约束限制。
+- 应用内功能图标必须来自 Google Fonts 的 Material Symbols，统一使用 Rounded，默认未填充（`FILL=0`）；明确的填充变体（如 `StarFill`，`FILL=1`）允许保留并用于状态表达。共享图标由 `core:theme` 提供。转换去掉原始注释，使用原有缓存属性和 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。品牌图标（登录页、关于应用页及桌面启动图标）保留现有设计，不受此功能图标约束限制。
 - 窗口事实只在 `composeApp` 调用 `rememberWindowAdaptiveInfo()` 读取，通过 `LocalWindowAdaptiveInfo` 下发。
 - `PaneScaffoldDirective` 只在组合根从同一窗口事实计算，通过 `LocalPaneScaffoldDirective` 下发，并统一使用 `HingePolicy.AlwaysAvoid`。Feature 不直接调用 `currentWindowAdaptiveInfo*()`，不维护第二套断点。
 - 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 消费 `LocalPaneScaffoldDirective`。单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。同一铰链几何在半开和全开之间必须保持窗格稳定。
@@ -89,6 +94,8 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 
 ## 工作约束
 
+- Kotlin 文件使用 PascalCase。以单一主要类型为核心的文件优先与该类型同名；多个紧密相关的声明可以同文件组织，并按共同职责命名。不得仅为文件名检查拆分声明或改动合理的职责命名。KMP 平台文件沿用 `.android.kt`、`.ios.kt` 后缀。文件名是否准确表达职责由代码审查判断，不将 `MatchingDeclarationName`、`Filename` 作为静态门禁。
+- KMP 的 detekt 普通任务覆盖各平台手写源码；类型解析任务保留插件提供的平台源集、编译 classpath 和 friend paths，不得用全平台 `setSource` 覆盖。Native 源码的语法扫描不计作类型解析通过。Compose Rules 当前版本全部启用；默认启用项不重复配置，只显式启用默认关闭项，接入和升级先核对与 detekt 的版本兼容，禁止自动修改 UI 或生成 baseline 隐藏新告警。
 - 每个独立需求合入 `master` 前，必须把设计、计划、实现、测试和文档等过程提交整理为一个最终提交。若 `master` 已前进，先将该最终提交 rebase 到最新 `master`，再仅以 fast-forward 方式合入；不得在 `master` 保留需求分支的多个过程提交或 merge commit，主线历史必须保持线性、干净。
 - Compose Resources 格式化占位符必须带位置，例如 `%1$s`；不要使用 `%s`。
 - 依赖版本只在 `gradle/kmp.versions.toml` 维护。

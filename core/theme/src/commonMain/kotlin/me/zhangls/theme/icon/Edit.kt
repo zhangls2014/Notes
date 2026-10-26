@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Edit: ImageVector
   get() {
-    if (_Edit != null) {
-      return _Edit!!
-    }
-    _Edit = ImageVector.Builder(
+    cachedEdit?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Edit",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -67,11 +64,11 @@ val Icons.Rounded.Edit: ImageVector
       }
     }.build()
 
-    return _Edit!!
+    cachedEdit = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Edit: ImageVector? = null
+private var cachedEdit: ImageVector? = null
 
 @Preview(name = "Edit", showBackground = true)
 @Composable

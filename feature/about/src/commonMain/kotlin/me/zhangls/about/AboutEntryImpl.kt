@@ -8,7 +8,7 @@ import org.koin.core.annotation.Singleton
 @Singleton(binds = [AboutEntry::class])
 class AboutEntryImpl : AboutEntry {
   @Composable
-  override fun Screen(appInfo: AboutAppInfo, onBackPressed: () -> Unit) {
-    AboutScreen(appInfo, onBackPressed)
+  override fun Screen(appInfo: AboutAppInfo, onBack: () -> Unit) {
+    AboutScreen(appInfo, onBack)
   }
 }

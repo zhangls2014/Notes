@@ -62,7 +62,7 @@ fun <T> SelectIconButton(
 
     DropdownMenuPopup(
       expanded = expanded,
-      onDismissRequest = { expanded = false }
+      onDismissRequest = { expanded = false },
     ) {
       DropdownMenuGroup(
         shapes = MenuDefaults.groupShapes(),

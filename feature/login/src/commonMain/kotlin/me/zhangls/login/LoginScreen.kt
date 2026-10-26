@@ -30,18 +30,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
-import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValue
 import androidx.compose.material3.adaptive.layout.calculateThreePaneScaffoldValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -94,18 +94,6 @@ import notes.feature.login.generated.resources.login_state_loading
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-internal class LoginPanePlan(val directive: PaneScaffoldDirective, val value: ThreePaneScaffoldValue) {
-  private val mainValue: PaneAdaptedValue
-    get() = value[SupportingPaneScaffoldRole.Main]
-  private val supportingValue: PaneAdaptedValue
-    get() = value[SupportingPaneScaffoldRole.Supporting]
-
-  val isBrandPaneShown: Boolean
-    get() = mainValue != PaneAdaptedValue.Hidden
-  val isFormPaneSideBySide: Boolean
-    get() = mainValue == PaneAdaptedValue.Expanded && supportingValue == PaneAdaptedValue.Expanded
-}
-
 internal fun loginPanePlan(directive: PaneScaffoldDirective): LoginPanePlan {
   val horizontalOnlyDirective = directive.copy(maxVerticalPartitions = 1)
   val adaptStrategies = SupportingPaneScaffoldDefaults.adaptStrategies(
@@ -131,11 +119,15 @@ internal fun loginPanePlan(directive: PaneScaffoldDirective): LoginPanePlan {
  * @author zhangls
  */
 @Composable
-fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (LoginResult) -> Unit) {
+fun LoginScreen(
+  onLoginResult: (LoginResult) -> Unit,
+  modifier: Modifier = Modifier,
+  viewModel: LoginViewModel = koinViewModel(),
+) {
   val keyboardController = LocalSoftwareKeyboardController.current
   val focusManager = LocalFocusManager.current
   val state by viewModel.state.collectAsStateWithLifecycle()
-  LaunchedEffect(state.isLoading) {
+  SideEffect(state.isLoading) {
     if (state.isLoading) {
       focusManager.clearFocus(force = true)
       keyboardController?.hide()
@@ -148,17 +140,18 @@ fun LoginScreen(viewModel: LoginViewModel = koinViewModel(), onLoginResult: (Log
     }
   }
 
-  LaunchedEffect(Unit) {
+  val currentOnLoginResult by rememberUpdatedState(onLoginResult)
+  LaunchedEffect(viewModel) {
     viewModel.effect.collect { effect ->
       when (effect) {
-        is LoginResult -> onLoginResult(effect)
+        is LoginResult -> currentOnLoginResult(effect)
       }
     }
   }
 
   val plan = rememberLoginPanePlan()
 
-  Scaffold { padding ->
+  Scaffold(modifier = modifier) { padding ->
     SupportingPaneScaffold(
       directive = plan.directive,
       value = plan.value,
@@ -197,12 +190,7 @@ private fun rememberLoginPanePlan(): LoginPanePlan {
  * @param showLogo 品牌窗格不显示时（窄窗口）logo 留在这里，否则由 [BrandPane] 承担，避免重复出现。
  */
 @Composable
-private fun FormPane(
-  showLogo: Boolean,
-  state: LoginState,
-  onIntent: (LoginIntent) -> Unit,
-  onLoginClick: () -> Unit,
-) {
+private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginIntent) -> Unit, onLoginClick: () -> Unit) {
   val inputFocus = remember { ImeHandoffFocusState() }
   BoxWithConstraints(
     modifier = Modifier.fillMaxSize().windowInsetsPadding(rememberImeHandoffInsets(inputFocus)),
@@ -252,7 +240,7 @@ private fun FormPane(
               enabled = !state.isLoading,
               accountError = state.accountError,
               onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
-              onClearAccount = { onIntent(LoginIntent.ClearAccount) }
+              onClearAccount = { onIntent(LoginIntent.ClearAccount) },
             )
 
             PasswordInput(
@@ -273,7 +261,7 @@ private fun FormPane(
               shapes = ButtonDefaults.shapes(),
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 32.dp, end = 32.dp, top = 32.dp)
+                .padding(start = 32.dp, end = 32.dp, top = 32.dp),
             ) {
               Text(text = stringResource(Res.string.login_action_login))
             }
@@ -337,12 +325,12 @@ private fun BrandPane(modifier: Modifier = Modifier) {
 
 @Composable
 private fun AccountInput(
-  modifier: Modifier = Modifier,
   account: String,
   enabled: Boolean,
   accountError: AccountError?,
   onAccountChange: (String) -> Unit,
-  onClearAccount: () -> Unit
+  onClearAccount: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   val focusManager = LocalFocusManager.current
   val inputError = accountError.text()
@@ -373,22 +361,24 @@ private fun AccountInput(
     },
     supportingText = if (inputError.isNotEmpty()) {
       { Text(text = inputError) }
-    } else null,
+    } else {
+      null
+    },
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
   )
 }
 
 @Composable
 private fun PasswordInput(
-  modifier: Modifier = Modifier,
   password: String,
   enabled: Boolean,
   passwordError: PasswordError?,
   passwordVisible: Boolean,
   onPasswordChange: (String) -> Unit,
   onPasswordVisibleChange: (Boolean) -> Unit,
-  onLogin: () -> Unit
+  onLogin: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   val inputError = passwordError.text()
 
@@ -419,8 +409,10 @@ private fun PasswordInput(
     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
     supportingText = if (inputError.isNotEmpty()) {
       { Text(text = inputError) }
-    } else null,
+    } else {
+      null
+    },
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go, keyboardType = KeyboardType.Password),
-    keyboardActions = KeyboardActions(onGo = { onLogin() })
+    keyboardActions = KeyboardActions(onGo = { onLogin() }),
   )
 }

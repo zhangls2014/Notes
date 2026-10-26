@@ -29,7 +29,7 @@ fun EntryProviderScope<NavKey>.emailNavEntry(effect: (NavEffect) -> Unit) {
   ) {
     koinInject<EmailEntry>().DetailScreen(
       emailId = it.emailId,
-      onBackPressed = { effect(NavEffect.Popup) },
+      onBack = { effect(NavEffect.Popup) },
     )
   }
 }

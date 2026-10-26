@@ -9,8 +9,8 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import kotlinx.coroutines.flow.Flow
-import me.zhangls.database.entity.EmailWithSender
 import me.zhangls.database.entity.EmailEntity
+import me.zhangls.database.entity.EmailWithSender
 
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)

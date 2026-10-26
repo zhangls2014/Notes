@@ -5,57 +5,57 @@ import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.material3.adaptive.HingeInfo
+import androidx.compose.material3.adaptive.Posture
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.click
-import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toPixelMap
-import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.longClick
-import androidx.compose.ui.test.swipeUp
-import androidx.compose.ui.test.swipeDown
-import androidx.compose.ui.test.performScrollToIndex
-import androidx.compose.ui.test.assertIsNotSelected
-import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.hasScrollAction
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.isDialog
-import androidx.compose.ui.test.isRoot
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onLast
-import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.junit4.StateRestorationTester
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.printToString
-import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.adaptive.Posture
-import androidx.compose.material3.adaptive.HingeInfo
-import androidx.compose.ui.geometry.Rect
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -66,7 +66,7 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
 import me.zhangls.entry.initKoin
-import me.zhangls.navigation.PredictiveMotionDuration
+import me.zhangls.navigation.PREDICTIVE_MOTION_DURATION
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
@@ -100,8 +100,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     @JvmStatic
     @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
     fun scenarios() = buildList {
-      for (width in listOf(400, 610, 900)) for (height in listOf(400, 500, 1000)) {
-        add(arrayOf(Scenario("${width}x$height", width, height)))
+      for (width in listOf(400, 610, 900)) {
+        for (height in listOf(400, 500, 1000)) {
+          add(arrayOf(Scenario("${width}x$height", width, height)))
+        }
       }
       add(arrayOf(Scenario("desktop", 1600, 1000)))
       add(arrayOf(Scenario("large-font", 400, 500, fontScale = 1.5f)))
@@ -115,18 +117,21 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   }
 
   private val compose = createComposeRule()
+
   @get:Rule val rules: org.junit.rules.TestRule = org.junit.rules.RuleChain.outerRule(
-    org.junit.rules.TestRule { base, _ -> object : org.junit.runners.model.Statement() {
-      override fun evaluate() {
-        org.robolectric.RuntimeEnvironment.setQualifiers("en-rUS-w${scenario.width}dp-h${scenario.height}dp-mdpi")
-        android.provider.Settings.Global.putFloat(
-          org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
-          android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
-          0f,
-        )
-        base.evaluate()
+    org.junit.rules.TestRule { base, _ ->
+      object : org.junit.runners.model.Statement() {
+        override fun evaluate() {
+          org.robolectric.RuntimeEnvironment.setQualifiers("en-rUS-w${scenario.width}dp-h${scenario.height}dp-mdpi")
+          android.provider.Settings.Global.putFloat(
+            org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            0f,
+          )
+          base.evaluate()
+        }
       }
-    } }
+    },
   ).around(compose)
   private val users = AdaptiveUsers()
   private var width by mutableStateOf(scenario.width)
@@ -139,16 +144,20 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Before fun start() {
     initKoin {
-      modules(module {
-        single<android.content.Context> { org.robolectric.RuntimeEnvironment.getApplication() }
-        single<UserRepository> { users }
-        single<SettingsRepository> { AdaptiveSettings() }
-        single<EmailsRepository> { AdaptiveEmails() }
-      })
+      modules(
+        module {
+          single<android.content.Context> { org.robolectric.RuntimeEnvironment.getApplication() }
+          single<UserRepository> { users }
+          single<SettingsRepository> { AdaptiveSettings() }
+          single<EmailsRepository> { AdaptiveEmails() }
+        },
+      )
     }
   }
 
-  @After fun stop() { stopKoin() }
+  @After fun stop() {
+    stopKoin()
+  }
 
   private fun launch(restoration: StateRestorationTester? = null) {
     val content: @androidx.compose.runtime.Composable () -> Unit = {
@@ -175,8 +184,11 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     val fold = scenario.fold ?: return Posture()
     val vertical = fold.startsWith("book")
     val center = verticalHingeCenter ?: (width / 2f)
-    val bounds = if (vertical) Rect(center - 5, 0f, center + 5, scenario.height.toFloat())
-      else Rect(0f, scenario.height / 2f - 5, width.toFloat(), scenario.height / 2f + 5)
+    val bounds = if (vertical) {
+      Rect(center - 5, 0f, center + 5, scenario.height.toFloat())
+    } else {
+      Rect(0f, scenario.height / 2f - 5, width.toFloat(), scenario.height / 2f + 5)
+    }
     return Posture(!vertical && !flat, listOf(HingeInfo(bounds, flat, vertical, !flat, false)))
   }
 
@@ -201,7 +213,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   }
 
   private fun advancePageMotionBy(millis: Long) =
-    compose.mainClock.advanceTimeBy(millis * PredictiveMotionDuration / 220L)
+    compose.mainClock.advanceTimeBy(millis * PREDICTIVE_MOTION_DURATION / 220L)
 
   private fun settle() {
     // Flush composition and platform drawing between frames, including lazy-item placement.
@@ -229,8 +241,11 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
     compose.onAllNodes(hasSetTextAction())[0].performTextInput("reviewer")
     compose.onNodeWithContentDescription("Clear account").assertHasClickAction().performClick()
-    org.junit.Assert.assertEquals("", compose.onAllNodes(hasSetTextAction())[0].fetchSemanticsNode()
-      .config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text)
+    org.junit.Assert.assertEquals(
+      "",
+      compose.onAllNodes(hasSetTextAction())[0].fetchSemanticsNode()
+        .config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+    )
     compose.onAllNodes(hasSetTextAction())[1].performTextInput("Test1234")
     compose.onNodeWithContentDescription("Show password").performClick()
     compose.onNodeWithContentDescription("Hide password").assertHasClickAction()
@@ -260,8 +275,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       val before = compose.onAllNodes(hasSetTextAction())[1].fetchSemanticsNode().boundsInWindow
       compose.runOnIdle { flat = !flat }
       settle()
-      org.junit.Assert.assertEquals(before,
-        compose.onAllNodes(hasSetTextAction())[1].fetchSemanticsNode().boundsInWindow)
+      org.junit.Assert.assertEquals(
+        before,
+        compose.onAllNodes(hasSetTextAction())[1].fetchSemanticsNode().boundsInWindow,
+      )
       compose.onNodeWithText("Log in").performScrollTo().assertIsDisplayed()
     }
     compose.runOnIdle { width = if (width < 840) 900 else 400 }
@@ -284,7 +301,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
     settle()
     val after = scroll.fetchSemanticsNode().boundsInWindow
-    org.junit.Assert.assertTrue("IME must reduce the form's scroll viewport: $before -> $after", after.height < before.height)
+    org.junit.Assert.assertTrue(
+      "IME must reduce the form's scroll viewport: $before -> $after",
+      after.height < before.height,
+    )
     compose.onAllNodes(hasSetTextAction())[1].performClick()
     compose.onAllNodes(hasSetTextAction())[1].performScrollTo()
     compose.onAllNodes(hasSetTextAction())[1].assertIsDisplayed()
@@ -308,16 +328,26 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       ime(0)
       repeat(6) { frame ->
         compose.mainClock.advanceTimeByFrame()
-        org.junit.Assert.assertEquals("Keyboard handoff must not expand the viewport at frame $frame", withIme,
-          scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+        org.junit.Assert.assertEquals(
+          "Keyboard handoff must not expand the viewport at frame $frame",
+          withIme,
+          scroll.fetchSemanticsNode().boundsInWindow.height,
+          0.5f,
+        )
       }
       ime(260)
-      org.junit.Assert.assertTrue("Taller replacement keyboard must be avoided immediately",
-        scroll.fetchSemanticsNode().boundsInWindow.height < withIme)
+      org.junit.Assert.assertTrue(
+        "Taller replacement keyboard must be avoided immediately",
+        scroll.fetchSemanticsNode().boundsInWindow.height < withIme,
+      )
       ime(0)
       compose.mainClock.advanceTimeBy(300)
-      org.junit.Assert.assertEquals("Real dismissal must release the inset even with input focus", withoutIme,
-        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      org.junit.Assert.assertEquals(
+        "Real dismissal must release the inset even with input focus",
+        withoutIme,
+        scroll.fetchSemanticsNode().boundsInWindow.height,
+        0.5f,
+      )
     } finally {
       compose.mainClock.autoAdvance = true
     }
@@ -335,8 +365,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     ime(260)
     settle()
     val withIme = scroll.fetchSemanticsNode().boundsInWindow.height
-    org.junit.Assert.assertEquals("System bar space must not be counted twice", 236f,
-      withoutIme - withIme, 0.5f)
+    org.junit.Assert.assertEquals(
+      "System bar space must not be counted twice",
+      236f,
+      withoutIme - withIme,
+      0.5f,
+    )
     compose.mainClock.autoAdvance = false
     try {
       compose.onAllNodes(hasSetTextAction())[0].performSemanticsAction(SemanticsActions.RequestFocus)
@@ -344,23 +378,39 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.mainClock.advanceTimeBy(100)
       ime(180)
       compose.mainClock.advanceTimeBy(120)
-      org.junit.Assert.assertEquals("New smaller keyboard cancels the earlier zero-height release", withIme,
-        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      org.junit.Assert.assertEquals(
+        "New smaller keyboard cancels the earlier zero-height release",
+        withIme,
+        scroll.fetchSemanticsNode().boundsInWindow.height,
+        0.5f,
+      )
       compose.mainClock.advanceTimeBy(150)
-      org.junit.Assert.assertEquals("Stable smaller keyboard releases excess space", withoutIme - 156f,
-        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      org.junit.Assert.assertEquals(
+        "Stable smaller keyboard releases excess space",
+        withoutIme - 156f,
+        scroll.fetchSemanticsNode().boundsInWindow.height,
+        0.5f,
+      )
       ime(0)
       compose.mainClock.advanceTimeBy(80)
       compose.onAllNodes(hasSetTextAction())[1].performSemanticsAction(SemanticsActions.RequestFocus)
       ime(280)
       compose.mainClock.advanceTimeBy(250)
-      org.junit.Assert.assertEquals("Old release must not overwrite a taller replacement", withoutIme - 256f,
-        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      org.junit.Assert.assertEquals(
+        "Old release must not overwrite a taller replacement",
+        withoutIme - 256f,
+        scroll.fetchSemanticsNode().boundsInWindow.height,
+        0.5f,
+      )
       ime(0)
       compose.runOnIdle { focusManager.clearFocus() }
       compose.mainClock.advanceTimeByFrame()
-      org.junit.Assert.assertEquals("Leaving the inputs releases protection immediately", withoutIme,
-        scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+      org.junit.Assert.assertEquals(
+        "Leaving the inputs releases protection immediately",
+        withoutIme,
+        scroll.fetchSemanticsNode().boundsInWindow.height,
+        0.5f,
+      )
     } finally {
       compose.mainClock.autoAdvance = true
     }
@@ -380,8 +430,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     try {
       for (height in listOf(0, 80, 160, 220, 160, 80, 0)) {
         dispatchLoginIme(height, navigationBarHeight = 24)
-        org.junit.Assert.assertEquals("Each IME frame must reserve only the space beyond the system bar, height=$height",
-          withoutIme - maxOf(0, height - 24), scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+        org.junit.Assert.assertEquals(
+          "Each IME frame must reserve only the space beyond the system bar, height=$height",
+          withoutIme - maxOf(0, height - 24),
+          scroll.fetchSemanticsNode().boundsInWindow.height,
+          0.5f,
+        )
       }
     } finally {
       compose.mainClock.autoAdvance = true
@@ -406,8 +460,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
         }
         for (height in listOf(160, 80, 0)) {
           dispatchLoginIme(height)
-          org.junit.Assert.assertEquals("Dismissal must follow each inset frame, round=$round height=$height",
-            withoutIme - height, scroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+          org.junit.Assert.assertEquals(
+            "Dismissal must follow each inset frame, round=$round height=$height",
+            withoutIme - height,
+            scroll.fetchSemanticsNode().boundsInWindow.height,
+            0.5f,
+          )
         }
       }
     } finally {
@@ -420,8 +478,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       val insets = androidx.core.view.WindowInsetsCompat.Builder()
         .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, height))
         .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), height > 0)
-        .setInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars(),
-          androidx.core.graphics.Insets.of(0, 0, 0, navigationBarHeight))
+        .setInsets(
+          androidx.core.view.WindowInsetsCompat.Type.navigationBars(),
+          androidx.core.graphics.Insets.of(0, 0, 0, navigationBarHeight),
+        )
         .setVisible(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), navigationBarHeight > 0)
         .build()
       androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
@@ -446,7 +506,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
         .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, 220))
         .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), true)
         .build()
-      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(dialog.window!!.decorView, insets)
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(checkNotNull(dialog.window).decorView, insets)
     }
     settle()
     val after = sheetScroll.fetchSemanticsNode().boundsInWindow
@@ -468,10 +528,13 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     fun ime(height: Int) {
       compose.runOnIdle {
         val insets = androidx.core.view.WindowInsetsCompat.Builder()
-          .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, height))
+          .setInsets(
+            androidx.core.view.WindowInsetsCompat.Type.ime(),
+            androidx.core.graphics.Insets.of(0, 0, 0, height),
+          )
           .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), height > 0)
           .build()
-        androidx.core.view.ViewCompat.dispatchApplyWindowInsets(dialog.window!!.decorView, insets)
+        androidx.core.view.ViewCompat.dispatchApplyWindowInsets(checkNotNull(dialog.window).decorView, insets)
       }
       compose.mainClock.advanceTimeByFrame()
       compose.waitForIdle()
@@ -488,18 +551,26 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       ime(0)
       repeat(6) { frame ->
         compose.mainClock.advanceTimeByFrame()
-        org.junit.Assert.assertEquals("Draft handoff frame $frame", withIme,
-          sheetScroll.fetchSemanticsNode().boundsInWindow.height, 0.5f)
+        org.junit.Assert.assertEquals(
+          "Draft handoff frame $frame",
+          withIme,
+          sheetScroll.fetchSemanticsNode().boundsInWindow.height,
+          0.5f,
+        )
       }
       ime(260)
-      org.junit.Assert.assertTrue("Taller replacement keyboard must remain visible",
-        sheetScroll.fetchSemanticsNode().boundsInWindow.height < withIme)
+      org.junit.Assert.assertTrue(
+        "Taller replacement keyboard must remain visible",
+        sheetScroll.fetchSemanticsNode().boundsInWindow.height < withIme,
+      )
       val tallerViewport = sheetScroll.fetchSemanticsNode().boundsInWindow.height
       compose.mainClock.advanceTimeBy(500)
       ime(160)
       val smallerViewport = sheetScroll.fetchSemanticsNode().boundsInWindow.height
-      org.junit.Assert.assertTrue("Normal dismissal grows the viewport on the first inset frame",
-        smallerViewport > tallerViewport && smallerViewport < withoutIme)
+      org.junit.Assert.assertTrue(
+        "Normal dismissal grows the viewport on the first inset frame",
+        smallerViewport > tallerViewport && smallerViewport < withoutIme,
+      )
     } finally {
       compose.mainClock.autoAdvance = true
     }
@@ -689,12 +760,18 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     fun ime(height: Int) {
       compose.runOnIdle {
         val insets = androidx.core.view.WindowInsetsCompat.Builder()
-          .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, height))
+          .setInsets(
+            androidx.core.view.WindowInsetsCompat.Type.ime(),
+            androidx.core.graphics.Insets.of(0, 0, 0, height),
+          )
           .setVisible(androidx.core.view.WindowInsetsCompat.Type.ime(), height > 0)
-          .setInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), androidx.core.graphics.Insets.of(0, 0, 0, 24))
+          .setInsets(
+            androidx.core.view.WindowInsetsCompat.Type.navigationBars(),
+            androidx.core.graphics.Insets.of(0, 0, 0, 24),
+          )
           .setVisible(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), true)
           .build()
-        androidx.core.view.ViewCompat.dispatchApplyWindowInsets(dialog.window!!.decorView, insets)
+        androidx.core.view.ViewCompat.dispatchApplyWindowInsets(checkNotNull(dialog.window).decorView, insets)
       }
       compose.mainClock.advanceTimeByFrame()
       compose.waitForIdle()
@@ -706,10 +783,17 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     try {
       for (height in listOf(80, 160, 220, 160, 80, 0)) {
         ime(height)
-        org.junit.Assert.assertEquals("Search results must track the current IME frame, height=$height",
-          withoutIme.height - maxOf(0, height - 24), results.fetchSemanticsNode().boundsInWindow.height, 0.5f)
-        org.junit.Assert.assertEquals("Keyboard animation must not move the search input", inputBounds,
-          input.fetchSemanticsNode().boundsInWindow)
+        org.junit.Assert.assertEquals(
+          "Search results must track the current IME frame, height=$height",
+          withoutIme.height - maxOf(0, height - 24),
+          results.fetchSemanticsNode().boundsInWindow.height,
+          0.5f,
+        )
+        org.junit.Assert.assertEquals(
+          "Keyboard animation must not move the search input",
+          inputBounds,
+          input.fetchSemanticsNode().boundsInWindow,
+        )
       }
       ime(220)
       results.performScrollToIndex(10)
@@ -766,7 +850,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       }
       input.assertIsFocused()
       org.junit.Assert.assertEquals(
-        query, input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+        query,
+        input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
       )
       if (scenario.width >= 600) {
         val anchor = compose.onAllNodes(hasSetTextAction()).onFirst().fetchSemanticsNode().boundsInWindow
@@ -794,7 +879,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     val input = compose.onAllNodes(hasSetTextAction()).onLast()
     org.junit.Assert.assertEquals(initialWidth, input.fetchSemanticsNode().boundsInWindow.width, 1f)
     org.junit.Assert.assertEquals(
-      query, input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+      query,
+      input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
     )
     input.assertIsFocused()
   }
@@ -815,7 +901,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       settle()
       val input = compose.onAllNodes(hasSetTextAction()).onLast()
       org.junit.Assert.assertEquals(
-        query, input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
+        query,
+        input.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.EditableText].text,
       )
       input.assertIsFocused()
       if (newWidth == 900) {
@@ -914,10 +1001,13 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
     org.junit.Assert.assertTrue(tabs.zipWithNext().all { (a, b) -> a.bottom <= b.top })
     val screen = compose.onNodeWithTag("screen").fetchSemanticsNode().boundsInRoot
-    org.junit.Assert.assertTrue("All labels fit fully inside the window", tabs.all {
-      it.left >= screen.left && it.right <= screen.right &&
-        it.top >= screen.top && it.bottom <= screen.bottom
-    })
+    org.junit.Assert.assertTrue(
+      "All labels fit fully inside the window",
+      tabs.all {
+        it.left >= screen.left && it.right <= screen.right &&
+          it.top >= screen.top && it.bottom <= screen.bottom
+      },
+    )
     org.junit.Assert.assertTrue(tabs.all { it.center.x < 150f })
     capture("navigation-rail")
     compose.onNodeWithText("Settings").performClick()
@@ -935,8 +1025,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     waitFor("Adaptive review")
     compose.runOnIdle {
       val insets = androidx.core.view.WindowInsetsCompat.Builder()
-        .setInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars(),
-          androidx.core.graphics.Insets.of(0, 64, 0, 0))
+        .setInsets(
+          androidx.core.view.WindowInsetsCompat.Type.statusBars(),
+          androidx.core.graphics.Insets.of(0, 64, 0, 0),
+        )
         .setVisible(androidx.core.view.WindowInsetsCompat.Type.statusBars(), true)
         .build()
       androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
@@ -948,8 +1040,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     val page = compose.onNodeWithTag("email-detail-page")
     val before = page.fetchSemanticsNode().boundsInRoot
     org.junit.Assert.assertEquals("Page background includes the status area", 0f, before.top, 0.5f)
-    org.junit.Assert.assertTrue("Content still avoids status icons",
-      compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().all { it.boundsInRoot.top >= 64f })
+    org.junit.Assert.assertTrue(
+      "Content still avoids status icons",
+      compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().all { it.boundsInRoot.top >= 64f },
+    )
     val dispatcher = checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
     compose.mainClock.autoAdvance = false
     try {
@@ -960,20 +1054,41 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.runOnIdle {
         dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 200f, 1f, BackEventCompat.EDGE_LEFT))
       }
-      repeat(3) { advancePageMotionBy(300); compose.waitForIdle() }
+      repeat(3) {
+        advancePageMotionBy(300)
+        compose.waitForIdle()
+      }
       val during = page.fetchSemanticsNode().boundsInRoot
-      org.junit.Assert.assertEquals("Safe area moves with the centered page",
-        (before.height - during.height) / 2f, during.top - before.top, 1f)
-      org.junit.Assert.assertEquals("Left-edge back preserves the inset opposite anchor",
-        before.left + before.width * 0.75f, during.left + during.width * 0.75f, 0.5f)
+      org.junit.Assert.assertEquals(
+        "Safe area moves with the centered page",
+        (before.height - during.height) / 2f,
+        during.top - before.top,
+        1f,
+      )
+      org.junit.Assert.assertEquals(
+        "Left-edge back preserves the inset opposite anchor",
+        before.left + before.width * 0.75f,
+        during.left + during.width * 0.75f,
+        0.5f,
+      )
       org.junit.Assert.assertEquals("Page center Y stays fixed", before.center.y, during.center.y, 0.5f)
       // Uniform scaling preserves the page content aspect ratio, including its safe area.
-      org.junit.Assert.assertEquals("Scale includes safe-area height",
-        before.height * 0.85f, during.height, 1f)
+      org.junit.Assert.assertEquals(
+        "Scale includes safe-area height",
+        before.height * 0.85f,
+        during.height,
+        1f,
+      )
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
-      repeat(3) { advancePageMotionBy(500); compose.waitForIdle() }
-      org.junit.Assert.assertEquals("Cancellation restores the complete page", before,
-        page.fetchSemanticsNode().boundsInRoot)
+      repeat(3) {
+        advancePageMotionBy(500)
+        compose.waitForIdle()
+      }
+      org.junit.Assert.assertEquals(
+        "Cancellation restores the complete page",
+        before,
+        page.fetchSemanticsNode().boundsInRoot,
+      )
     } finally {
       compose.mainClock.autoAdvance = true
     }
@@ -1002,19 +1117,36 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       org.junit.Assert.assertTrue("Detail scales up on entry: $entering -> $full", entering.width < full.width - 1f)
       org.junit.Assert.assertEquals("Entry keeps center X", full.center.x, entering.center.x, 1f)
       org.junit.Assert.assertEquals("Entry keeps center Y", full.center.y, entering.center.y, 1f)
-      org.junit.Assert.assertEquals("Entry preserves aspect ratio", full.height / full.width, entering.height / entering.width, 0.01f)
+      org.junit.Assert.assertEquals(
+        "Entry preserves aspect ratio",
+        full.height / full.width,
+        entering.height / entering.width,
+        0.01f,
+      )
       compose.onNodeWithContentDescription("Back").performClick()
       advancePageMotionBy(80)
       val exiting = page.fetchSemanticsNode().boundsInRoot
-      org.junit.Assert.assertTrue("Detail scales down on toolbar back: $full -> $exiting", exiting.width < full.width - 1f)
+      org.junit.Assert.assertTrue(
+        "Detail scales down on toolbar back: $full -> $exiting",
+        exiting.width < full.width - 1f,
+      )
       org.junit.Assert.assertEquals("Return keeps center X", full.center.x, exiting.center.x, 1f)
       org.junit.Assert.assertEquals("Return keeps center Y", full.center.y, exiting.center.y, 1f)
-      org.junit.Assert.assertEquals("Return preserves aspect ratio", full.height / full.width, exiting.height / exiting.width, 0.01f)
-      org.junit.Assert.assertTrue("The revealed list stays in place",
-        compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().any { it.boundsInRoot == listBefore })
+      org.junit.Assert.assertEquals(
+        "Return preserves aspect ratio",
+        full.height / full.width,
+        exiting.height / exiting.width,
+        0.01f,
+      )
+      org.junit.Assert.assertTrue(
+        "The revealed list stays in place",
+        compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().any { it.boundsInRoot == listBefore },
+      )
       advancePageMotionBy(1000)
-      org.junit.Assert.assertEquals(listBefore,
-        compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot)
+      org.junit.Assert.assertEquals(
+        listBefore,
+        compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot,
+      )
       page.assertDoesNotExist()
     } finally {
       compose.mainClock.autoAdvance = true
@@ -1088,12 +1220,16 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     val baseline = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
     // 取侧栏标签覆盖的横向范围，整段高度都不能被页面动画覆盖。
-    val railRight = compose.onNode(hasText("Favorites") and hasClickAction()).fetchSemanticsNode().boundsInRoot.right.toInt()
+    val railRight = compose.onNode(
+      hasText("Favorites") and hasClickAction(),
+    ).fetchSemanticsNode().boundsInRoot.right.toInt()
     fun assertRailUnchanged(phase: String) {
       val frame = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
       var changed = 0
-      for (y in 0 until baseline.height) for (x in 0 until railRight) {
-        if (baseline[x, y] != frame[x, y]) changed++
+      for (y in 0 until baseline.height) {
+        for (x in 0 until railRight) {
+          if (baseline[x, y] != frame[x, y]) changed++
+        }
       }
       org.junit.Assert.assertEquals("$phase must not paint over the rail", 0, changed)
     }
@@ -1112,7 +1248,9 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       advancePageMotionBy(80)
       assertRailUnchanged("predictive back")
       compose.runOnIdle {
-        checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.dispatchOnBackCancelled()
+        checkNotNull(
+          composeView.findViewTreeOnBackPressedDispatcherOwner(),
+        ).onBackPressedDispatcher.dispatchOnBackCancelled()
       }
       advancePageMotionBy(1000)
       compose.runOnIdle {
@@ -1121,7 +1259,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       advancePageMotionBy(80)
       assertRailUnchanged("pop")
       val afterCancellation = compose.onNodeWithTag("email-detail-page").fetchSemanticsNode().boundsInRoot
-      org.junit.Assert.assertTrue("Return still scales after cancelling a gesture", afterCancellation.width < detailFull.width - 1f)
+      org.junit.Assert.assertTrue(
+        "Return still scales after cancelling a gesture",
+        afterCancellation.width < detailFull.width - 1f,
+      )
       org.junit.Assert.assertEquals(detailFull.center.x, afterCancellation.center.x, 1f)
       org.junit.Assert.assertEquals(detailFull.center.y, afterCancellation.center.y, 1f)
     } finally {
@@ -1152,7 +1293,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Home").performClick()
     settle()
     waitFor("Window layout 6")
-    org.junit.Assert.assertEquals(homeBounds, compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot)
+    org.junit.Assert.assertEquals(
+      homeBounds,
+      compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot,
+    )
   }
 
   @Test fun tabStateRestoresScrollAndSelectionIndependently() {
@@ -1177,11 +1321,17 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Home").performClick()
     settle()
     compose.onNodeWithText("Window layout 6").assertIsSelected()
-    org.junit.Assert.assertEquals(homeBounds, compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot)
+    org.junit.Assert.assertEquals(
+      homeBounds,
+      compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot,
+    )
     compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     settle()
     compose.onNodeWithText("Window layout 5").assertIsNotSelected()
-    org.junit.Assert.assertEquals(favoriteBounds, compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot)
+    org.junit.Assert.assertEquals(
+      favoriteBounds,
+      compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot,
+    )
   }
 
   @Test fun aboutPageOpensFromSettingsAndReturnsToItsTab() {
@@ -1246,8 +1396,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
           compose.mainClock.advanceTimeByFrame()
           if (compose.onAllNodesWithContentDescription("New email").fetchSemanticsNodes().isNotEmpty()) {
             restoredFrames++
-            org.junit.Assert.assertEquals("Tab restoration must preserve FAB width", expectedWidth,
-              fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+            org.junit.Assert.assertEquals(
+              "Tab restoration must preserve FAB width",
+              expectedWidth,
+              fab.fetchSemanticsNode().boundsInRoot.width,
+              0.5f,
+            )
           }
         }
         org.junit.Assert.assertTrue("Inspect at least 12 restored frames", restoredFrames >= 12)
@@ -1263,17 +1417,29 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       swipeDown(startY = centerY, endY = centerY + 120f)
     }
     settle()
-    org.junit.Assert.assertEquals("Scrolling toward the top expands the FAB", expandedWidth,
-      fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+    org.junit.Assert.assertEquals(
+      "Scrolling toward the top expands the FAB",
+      expandedWidth,
+      fab.fetchSemanticsNode().boundsInRoot.width,
+      0.5f,
+    )
     switchAwayAndBack(expandedWidth)
     restoration.emulateSavedInstanceStateRestore()
     settle()
-    org.junit.Assert.assertEquals("Recreation preserves the expanded FAB away from the top", expandedWidth,
-      fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+    org.junit.Assert.assertEquals(
+      "Recreation preserves the expanded FAB away from the top",
+      expandedWidth,
+      fab.fetchSemanticsNode().boundsInRoot.width,
+      0.5f,
+    )
     compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput { swipeUp() }
     settle()
-    org.junit.Assert.assertEquals("Restored FAB still responds to scrolling", collapsedWidth,
-      fab.fetchSemanticsNode().boundsInRoot.width, 0.5f)
+    org.junit.Assert.assertEquals(
+      "Restored FAB still responds to scrolling",
+      collapsedWidth,
+      fab.fetchSemanticsNode().boundsInRoot.width,
+      0.5f,
+    )
   }
 
   @Test fun tabStateRestoresEachOpenedDetail() {
@@ -1360,7 +1526,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
     android.provider.Settings.Global.putFloat(
       org.robolectric.RuntimeEnvironment.getApplication().contentResolver,
-      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
     )
     users.userFlow.value = UserModel("test", "Reviewer")
     launch()
@@ -1381,8 +1548,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       val finished = compose.onNodeWithTag("screen").captureToImage().toPixelMap()
       var changed = 0
       // Exclude rail/bar indicators and ripples; compare only the page content.
-      for (y in 0 until during.height - 100) for (x in during.width / 2 until during.width) {
-        if (during[x, y] != finished[x, y]) changed++
+      for (y in 0 until during.height - 100) {
+        for (x in during.width / 2 until during.width) {
+          if (during[x, y] != finished[x, y]) changed++
+        }
       }
       org.junit.Assert.assertTrue("The target content must visibly fade in", changed > 100)
       compose.onNodeWithText("Home").performClick()

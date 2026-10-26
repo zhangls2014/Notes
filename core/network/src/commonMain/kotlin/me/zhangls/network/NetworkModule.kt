@@ -1,6 +1,5 @@
 package me.zhangls.network
 
-
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.Charsets
@@ -25,6 +24,8 @@ import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Singleton
 
+private const val HTTP_TIMEOUT_MILLIS = 10_000L
+
 /**
  * @author zhangls
  */
@@ -35,10 +36,7 @@ class NetworkModule
 expect fun httpClient(config: HttpClientConfig<*>.() -> Unit = {}): HttpClient
 
 @Singleton
-fun provideKtorClient(
-  networkConfig: NetworkConfig,
-  tokenProvider: TokenProvider,
-): HttpClient {
+fun provideKtorClient(networkConfig: NetworkConfig, tokenProvider: TokenProvider): HttpClient {
   // 通过 expect/actual 走平台引擎（Android: OkHttp / iOS: Darwin），
   // 平台特定的 engine 配置（如 retryOnConnectionFailure）才会生效
   return httpClient {
@@ -50,8 +48,8 @@ fun provideKtorClient(
     }
 
     install(HttpTimeout) {
-      requestTimeoutMillis = 10_000
-      connectTimeoutMillis = 10_000
+      requestTimeoutMillis = HTTP_TIMEOUT_MILLIS
+      connectTimeoutMillis = HTTP_TIMEOUT_MILLIS
     }
 
     install(DefaultRequest) {
@@ -84,7 +82,7 @@ fun provideKtorClient(
           encodeDefaults = true
           isLenient = true
           prettyPrint = true
-        }
+        },
       )
     }
   }

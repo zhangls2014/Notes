@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 enum class AppLanguage {
   FOLLOW_SYSTEM,
   ENGLISH,
-  CHINESE
+  CHINESE,
 }

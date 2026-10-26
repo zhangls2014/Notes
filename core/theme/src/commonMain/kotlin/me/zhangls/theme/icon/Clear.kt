@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Clear: ImageVector
   get() {
-    if (_Clear != null) {
-      return _Clear!!
-    }
-    _Clear = ImageVector.Builder(
+    cachedClear?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Clear",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -56,11 +53,11 @@ val Icons.Rounded.Clear: ImageVector
       }
     }.build()
 
-    return _Clear!!
+    cachedClear = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Clear: ImageVector? = null
+private var cachedClear: ImageVector? = null
 
 @Preview(name = "Clear", showBackground = true)
 @Composable

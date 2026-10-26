@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Palette: ImageVector
   get() {
-    if (_Palette != null) {
-      return _Palette!!
-    }
-    _Palette = ImageVector.Builder(
+    cachedPalette?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Palette",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -112,11 +109,11 @@ val Icons.Rounded.Palette: ImageVector
       }
     }.build()
 
-    return _Palette!!
+    cachedPalette = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Palette: ImageVector? = null
+private var cachedPalette: ImageVector? = null
 
 @Preview(name = "Palette", showBackground = true)
 @Composable

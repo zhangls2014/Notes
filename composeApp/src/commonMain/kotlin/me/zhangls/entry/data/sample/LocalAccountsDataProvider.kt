@@ -116,7 +116,5 @@ object LocalAccountsDataProvider {
 
   fun getDefaultUserAccount() = allUserAccounts.first()
 
-  fun getContactAccountByUid(accountId: Long): AccountModel {
-    return allUserContactAccounts.first { it.id == accountId }
-  }
+  fun getContactAccountByUid(accountId: Long): AccountModel = allUserContactAccounts.first { it.id == accountId }
 }

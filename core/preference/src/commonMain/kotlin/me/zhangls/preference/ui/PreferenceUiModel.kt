@@ -35,15 +35,9 @@ sealed interface PreferenceUiModel {
   ) : PreferenceUiModel
 
   /** 单值选择型设置项。 */
-  data class Select<T>(
-    override val spec: PreferenceSpec.Select<T>,
-    val value: T,
-    val onValueChange: (T) -> Unit,
-  ) : PreferenceUiModel
+  data class Select<T>(override val spec: PreferenceSpec.Select<T>, val value: T, val onValueChange: (T) -> Unit) :
+    PreferenceUiModel
 
   /** 点击型设置项（如"退出登录"）。 */
-  data class Action(
-    override val spec: PreferenceSpec.Action,
-    val onClick: () -> Unit,
-  ) : PreferenceUiModel
+  data class Action(override val spec: PreferenceSpec.Action, val onClick: () -> Unit) : PreferenceUiModel
 }

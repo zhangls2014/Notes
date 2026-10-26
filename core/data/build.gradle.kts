@@ -10,6 +10,8 @@ kotlin {
       dependencies {
         // 公共领域模型（AppLanguage / DarkThemeConfig / MailboxType 等）
         api(projects.core.model)
+        // DataModule 的构造参数允许宿主注入 CoroutineDispatcher。
+        api(kmp.jetbrains.kotlinx.coroutines.core)
 
         // 存储实现：Room 整体下沉到 core:database。
         // 用 implementation —— 不向下游传递，feature 层因此看不到任何 Room 类型

@@ -10,8 +10,8 @@ import me.zhangls.model.MailboxType
   tableName = "email",
   indices = [
     Index("senderId"),
-    Index("parentEmailId")
-  ]
+    Index("parentEmailId"),
+  ],
 )
 data class EmailEntity(
   @PrimaryKey(autoGenerate = true)
@@ -26,5 +26,5 @@ data class EmailEntity(
   val mailbox: MailboxType = MailboxType.INBOX,
   val createdAt: String,
   // 用于 threads（自关联）
-  val parentEmailId: Long? = null
+  val parentEmailId: Long? = null,
 )

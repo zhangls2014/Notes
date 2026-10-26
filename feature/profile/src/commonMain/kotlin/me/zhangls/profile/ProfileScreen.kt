@@ -2,8 +2,8 @@ package me.zhangls.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -44,27 +44,23 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun ProfileScreen(onBackPressed: () -> Unit, viewModel: ProfileViewModel = koinViewModel()) {
+internal fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = koinViewModel()) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   val picker = rememberFilePickerLauncher(
     type = FilePickerFileType.Image,
     selectionMode = FilePickerSelectionMode.Single,
     onResult = { viewModel.sendIntent(ProfileIntent.ChangeAvatar(it.firstOrNull())) },
   )
-  ProfileContent(state, onBackPressed, onChangeAvatar = { picker.launch() })
+  ProfileContent(state, onBack, onChangeAvatar = { picker.launch() })
 }
 
 @Composable
-internal fun ProfileContent(
-  state: ProfileState,
-  onBackPressed: () -> Unit,
-  onChangeAvatar: () -> Unit,
-) {
+internal fun ProfileContent(state: ProfileState, onBack: () -> Unit, onChangeAvatar: () -> Unit) {
   Scaffold(
     topBar = {
       CenteredTopAppBar(
         title = stringResource(Res.string.profile_label_profile),
-        navigate = onBackPressed,
+        navigate = onBack,
       )
     },
   ) { padding ->
@@ -103,8 +99,11 @@ internal fun ProfileContent(
         status?.let {
           Text(
             text = stringResource(it),
-            color = if (state.saveStatus == AvatarSaveStatus.Failed) MaterialTheme.colorScheme.error
-              else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (state.saveStatus == AvatarSaveStatus.Failed) {
+              MaterialTheme.colorScheme.error
+            } else {
+              MaterialTheme.colorScheme.onSurfaceVariant
+            },
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
           )
         }

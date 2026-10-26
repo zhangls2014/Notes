@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,6 +35,7 @@ internal class EmailViewModel(
   savedStateHandle: SavedStateHandle,
   private val emailsRepository: EmailsRepository,
   private val userRepository: UserRepository,
+  private val ioDispatcher: CoroutineDispatcher,
   private val toastGlobalNotifier: ToastGlobalNotifier,
 ) : MviViewModel<EmailState, EmailIntent>(
   initialState = EmailState(),
@@ -43,30 +44,26 @@ internal class EmailViewModel(
 ) {
   // 首页邮件列表，缓存分页数据
   val emailPaging = emailsRepository.getEmailPaging()
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
     .cachedIn(viewModelScope)
 
   val emailFavoritePaging = emailsRepository.getEmailFavoritePaging()
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
     .cachedIn(viewModelScope)
 
-  fun getThreadEmails(parentEmailId: Long): Flow<PagingData<EmailModel>> {
-    return emailsRepository.getThreadEmailsById(parentEmailId)
-      .flowOn(Dispatchers.IO)
+  fun getThreadEmails(parentEmailId: Long): Flow<PagingData<EmailModel>> =
+    emailsRepository.getThreadEmailsById(parentEmailId)
+      .flowOn(ioDispatcher)
       .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
       .cachedIn(viewModelScope)
-  }
 
-  fun getEmail(emailId: Long): Flow<EmailModel?> {
-    return emailsRepository.getEmail(emailId)
-      .flowOn(Dispatchers.IO)
-      .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
-  }
+  fun getEmail(emailId: Long): Flow<EmailModel?> = emailsRepository.getEmail(emailId)
+    .flowOn(ioDispatcher)
+    .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
 
   private var allAccountsJob: Job? = null
-
 
   companion object {
     private const val DURATION_STOP_SUBSCRIBED = 5000L
@@ -100,7 +97,9 @@ internal class EmailViewModel(
   override fun handleIntent(intent: EmailIntent) {
     when (intent) {
       is EmailIntent.ShowToast -> toastGlobalNotifier.showToast(intent.res)
+
       is EmailIntent.UpdateSelectedEmail -> dispatch(EmailAction.UpdateSelectedEmail(intent.emailId))
+
       EmailIntent.OpenDraft -> {
         startCollectAccounts()
         dispatch(EmailAction.SetDraftVisible(true))
@@ -110,25 +109,34 @@ internal class EmailViewModel(
         dispatch(EmailAction.SetDraftVisible(false))
         cancelCollectAccounts()
       }
+
       EmailIntent.ClearDraft -> {
         dispatch(EmailAction.ClearDraft)
         dispatch(EmailAction.SetDraftVisible(false))
         cancelCollectAccounts()
       }
+
       EmailIntent.SubmitDraft -> submitDraft()
+
       is EmailIntent.UpdateDraftRecipient -> dispatch(
         EmailAction.UpdateDraftRecipients(
           intent.recipientId,
-          intent.selected
-        )
+          intent.selected,
+        ),
       )
 
       is EmailIntent.UpdateDraftSubject -> dispatch(EmailAction.UpdateDraftSubject(intent.subject))
+
       is EmailIntent.UpdateDraftBody -> dispatch(EmailAction.UpdateDraftBody(intent.body))
+
       is EmailIntent.UpdateFavorite -> updateFavorite(intent)
+
       is EmailIntent.MultiFavorite -> updateMultiFavorite(true)
+
       is EmailIntent.MultiCancelFavorite -> updateMultiFavorite(false)
+
       is EmailIntent.MultiDelete -> deleteMulti()
+
       EmailIntent.ClearSelectedEmail -> dispatch(EmailAction.ClearSelectedEmail)
     }
   }
@@ -145,7 +153,6 @@ internal class EmailViewModel(
         return@withState
       }
 
-
       viewModelScope.launch {
         dispatch(EmailAction.SetDraftVisible(false))
         dispatch(EmailAction.SetSending(true))
@@ -157,9 +164,11 @@ internal class EmailViewModel(
               subject = draftSubject,
               body = draftBody,
               createdAt = getString(Res.string.email_time_just_now),
-            )
+            ),
           )
           dispatch(EmailAction.ClearDraft)
+        } catch (cancelled: CancellationException) {
+          throw cancelled
         } catch (_: Exception) {
           dispatch(EmailAction.SetDraftVisible(true))
           toastGlobalNotifier.showToast(Res.string.email_msg_email_save_failed)

@@ -1,12 +1,13 @@
 package me.zhangls.database
 
 import androidx.room3.AutoMigration
+import androidx.room3.ColumnTypeConverters
 import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
-import androidx.room3.ColumnTypeConverters
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import me.zhangls.database.dao.AccountDao
@@ -26,7 +27,7 @@ import me.zhangls.database.entity.EmailEntity
     AutoMigration(from = 1, to = 2),
     AutoMigration(from = 2, to = 3),
     AutoMigration(from = 3, to = 4),
-  ]
+  ],
 )
 @ColumnTypeConverters(Converters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
@@ -46,8 +47,7 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
  *
  * 供 `core:data` 装配数据库时调用；驱动选择属于本模块的存储细节。
  */
-fun RoomDatabase.Builder<AppDatabase>.create(): AppDatabase {
-  return this.setDriver(BundledSQLiteDriver())
-    .setQueryCoroutineContext(Dispatchers.IO)
+fun RoomDatabase.Builder<AppDatabase>.create(ioDispatcher: CoroutineDispatcher = Dispatchers.IO): AppDatabase =
+  this.setDriver(BundledSQLiteDriver())
+    .setQueryCoroutineContext(ioDispatcher)
     .build()
-}

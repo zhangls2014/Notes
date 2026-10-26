@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Refresh: ImageVector
   get() {
-    if (_Refresh != null) {
-      return _Refresh!!
-    }
-    _Refresh = ImageVector.Builder(
+    cachedRefresh?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Refresh",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -66,11 +63,11 @@ val Icons.Rounded.Refresh: ImageVector
       }
     }.build()
 
-    return _Refresh!!
+    cachedRefresh = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Refresh: ImageVector? = null
+private var cachedRefresh: ImageVector? = null
 
 @Preview(name = "Refresh", showBackground = true)
 @Composable

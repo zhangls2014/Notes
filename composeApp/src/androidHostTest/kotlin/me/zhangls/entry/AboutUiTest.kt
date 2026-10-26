@@ -51,14 +51,20 @@ class AboutUiTest(private val scenario: Scenario) {
   }
 
   @get:Rule val compose = createComposeRule()
-  @Before fun start() { initKoin(null) }
-  @After fun stop() { stopKoin() }
+
+  @Before fun start() {
+    initKoin(null)
+  }
+
+  @After fun stop() {
+    stopKoin()
+  }
 
   private fun launch(info: AboutAppInfo) {
     compose.setContent {
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
         ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-          koinInject<AboutEntry>().Screen(info, onBackPressed = {})
+          koinInject<AboutEntry>().Screen(info, onBack = {})
         }
       }
     }
@@ -82,14 +88,21 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Coming soon").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
     val versionRowRight = compose.onNodeWithText("Version").getUnclippedBoundsInRoot().right.value
     val badgeTextRight = compose.onNodeWithText("Coming soon").getUnclippedBoundsInRoot().right.value
-    org.junit.Assert.assertEquals("Update status aligns to the row's trailing inset",
-      versionRowRight - 16f, badgeTextRight, 1f)
+    org.junit.Assert.assertEquals(
+      "Update status aligns to the row's trailing inset",
+      versionRowRight - 16f,
+      badgeTextRight,
+      1f,
+    )
     val titleBounds = compose.onNodeWithText("Check for updates").getUnclippedBoundsInRoot()
     val detailBounds = compose.onNodeWithText("New versions and release notes").getUnclippedBoundsInRoot()
     val badgeBounds = compose.onNodeWithText("Coming soon").getUnclippedBoundsInRoot()
-    org.junit.Assert.assertEquals("Update status is centered beside the title and description",
+    org.junit.Assert.assertEquals(
+      "Update status is centered beside the title and description",
       (titleBounds.top.value + detailBounds.bottom.value) / 2f,
-      (badgeBounds.top.value + badgeBounds.bottom.value) / 2f, 1f)
+      (badgeBounds.top.value + badgeBounds.bottom.value) / 2f,
+      1f,
+    )
     repeat(3) {
       compose.mainClock.advanceTimeBy(1000)
       compose.waitForIdle()

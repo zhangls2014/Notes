@@ -15,7 +15,9 @@ import me.zhangls.framework.nav.RequireLogin
  * 枚举常量共享同一个类型，`entry<TabDestination>` 无法把三个 Tab 分开。
  */
 @Serializable
-sealed interface TabDestination : DeepLinkDestination, RequireLogin
+sealed interface TabDestination :
+  DeepLinkDestination,
+  RequireLogin
 
 @Serializable
 data object HomeDestination : TabDestination

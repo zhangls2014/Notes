@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.VisibilityOff: ImageVector
   get() {
-    if (_VisibilityOff != null) {
-      return _VisibilityOff!!
-    }
-    _VisibilityOff = ImageVector.Builder(
+    cachedVisibilityOff?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.VisibilityOff",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -117,11 +114,11 @@ val Icons.Rounded.VisibilityOff: ImageVector
       }
     }.build()
 
-    return _VisibilityOff!!
+    cachedVisibilityOff = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _VisibilityOff: ImageVector? = null
+private var cachedVisibilityOff: ImageVector? = null
 
 @Preview(name = "VisibilityOff", showBackground = true)
 @Composable

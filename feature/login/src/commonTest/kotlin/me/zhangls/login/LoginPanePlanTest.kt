@@ -183,7 +183,8 @@ class LoginPanePlanTest {
     // 分区，而不是横跨铰链。这条断言钉住"铰链几何确实传到了脚手架"。
     // （分区的切法是 ThreePaneScaffold 的职责，不在这里重复断言。）
     val (adaptiveInfo, _) = windowAndDirective(
-      widthDp = 674, heightDp = 841,
+      widthDp = 674,
+      heightDp = 841,
       posture = Posture(
         hingeList = listOf(
           HingeInfo(
@@ -211,11 +212,7 @@ private fun tabletopPosture() = Posture(
   ),
 )
 
-private fun plan(
-  widthDp: Int,
-  heightDp: Int,
-  posture: Posture = Posture(),
-): LoginPanePlan {
+private fun plan(widthDp: Int, heightDp: Int, posture: Posture = Posture()): LoginPanePlan {
   val (_, directive) = windowAndDirective(widthDp, heightDp, posture)
   return loginPanePlan(directive)
 }

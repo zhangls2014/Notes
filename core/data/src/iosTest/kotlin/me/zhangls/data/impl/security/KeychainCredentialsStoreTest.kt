@@ -2,8 +2,8 @@ package me.zhangls.data.impl.security
 
 import kotlinx.coroutines.test.runTest
 import me.zhangls.data.model.AuthTokens
-import kotlin.test.Test
 import kotlin.test.Ignore
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -27,6 +27,8 @@ class KeychainCredentialsStoreTest {
       store.clear()
       assertNull(store.read())
       store.clear()
-    } finally { store.clear() }
+    } finally {
+      store.clear()
+    }
   }
 }

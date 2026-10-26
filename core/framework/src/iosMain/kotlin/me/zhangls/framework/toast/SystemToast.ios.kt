@@ -20,8 +20,8 @@ import platform.Foundation.NSOperationQueue
 import platform.UIKit.NSTextAlignmentCenter
 import platform.UIKit.UIAccessibilityAnnouncementNotification
 import platform.UIKit.UIAccessibilityPostNotification
-import platform.UIKit.UIContentSizeCategoryDidChangeNotification
 import platform.UIKit.UIColor
+import platform.UIKit.UIContentSizeCategoryDidChangeNotification
 import platform.UIKit.UIEvent
 import platform.UIKit.UIFont
 import platform.UIKit.UIFontTextStyleSubheadline
@@ -55,7 +55,7 @@ class IosSystemToast(private val host: UIViewController) : SystemToast {
         // 等淡入完成后播报；替换或关闭会取消此协程，不让旧提示延迟播报。
         delay(TOAST_ANIMATION_MILLIS.milliseconds)
         toast.announce()
-        delay(((if (longDuration) 3500L else 2000L) - TOAST_ANIMATION_MILLIS).milliseconds)
+        delay(((if (longDuration) TOAST_LONG_MILLIS else TOAST_SHORT_MILLIS) - TOAST_ANIMATION_MILLIS).milliseconds)
         toast.fadeOut()
         delay(TOAST_ANIMATION_MILLIS.milliseconds)
       } finally {
@@ -72,6 +72,8 @@ class IosSystemToast(private val host: UIViewController) : SystemToast {
   }
 }
 
+private const val TOAST_LONG_MILLIS = 3500L
+private const val TOAST_SHORT_MILLIS = 2000L
 private const val TOAST_ANIMATION_MILLIS = 250L
 private const val TOAST_ANIMATION_SECONDS = 0.25
 

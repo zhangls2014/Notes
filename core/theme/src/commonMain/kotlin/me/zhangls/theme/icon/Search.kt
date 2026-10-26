@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Search: ImageVector
   get() {
-    if (_Search != null) {
-      return _Search!!
-    }
-    _Search = ImageVector.Builder(
+    cachedSearch?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Search",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -58,11 +55,11 @@ val Icons.Rounded.Search: ImageVector
       }
     }.build()
 
-    return _Search!!
+    cachedSearch = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Search: ImageVector? = null
+private var cachedSearch: ImageVector? = null
 
 @Preview(name = "Search", showBackground = true)
 @Composable

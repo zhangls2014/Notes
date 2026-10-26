@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.scene.SinglePaneSceneStrategy
+import kotlinx.collections.immutable.toImmutableList
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -35,22 +36,30 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class BackdropMotionTest {
   private val compose = createComposeRule()
+
   @get:Rule val rules = drainMainLooperAfter(compose)
   private val stack = mutableStateListOf(0, 1)
   private lateinit var view: View
   private val maximumTint = Color.Gray.red * 0.24f
 
   private fun launch() {
-    android.provider.Settings.Global.putFloat(RuntimeEnvironment.getApplication().contentResolver,
-      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+    android.provider.Settings.Global.putFloat(
+      RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
     compose.setContent {
       view = LocalView.current
       Box(Modifier.requiredSize(400.dp, 800.dp).testTag("window")) {
         DeviceCornerNavDisplay(
-          entries = stack.map { key -> NavEntry(key) {
-            Box(Modifier.fillMaxSize().background(if (key == 1) Color.Red else Color.Blue))
-          } },
-          sceneStrategies = listOf(SinglePaneSceneStrategy()),
+          entries = (
+            stack.map { key ->
+              NavEntry(key) {
+                Box(Modifier.fillMaxSize().background(if (key == 1) Color.Red else Color.Blue))
+              }
+            }
+            ).toImmutableList(),
+          sceneStrategies = (listOf(SinglePaneSceneStrategy<Int>())).toImmutableList(),
           onBack = { stack.removeLast() },
           corners = DeviceCorners(0f, 0f, 0f, 0f),
         )
@@ -72,7 +81,7 @@ class BackdropMotionTest {
     try {
       compose.runOnIdle { stack.removeLast() }
       var fadingFrames = 0
-      repeat((PredictiveMotionDuration + PageExitFadeDuration) / 16 + 12) {
+      repeat((PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION) / 16 + 12) {
         val image = frame()
         val centerRed = image[200, 400].red
         val marginRed = image[0, 400].red
@@ -97,16 +106,25 @@ class BackdropMotionTest {
       val dispatcher = checkNotNull(view.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
       compose.runOnIdle { dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 400f, 0f, BackEventCompat.EDGE_LEFT)) }
       repeat(3) { frame() }
-      compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 400f, 1f, BackEventCompat.EDGE_LEFT)) }
+      compose.runOnIdle {
+        dispatcher.dispatchOnBackProgressed(
+          BackEventCompat(390f, 400f, 1f, BackEventCompat.EDGE_LEFT),
+        )
+      }
       repeat(3) { frame() }
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
       var restoringFrames = 0
-      repeat((PredictiveMotionDuration + PageExitFadeDuration) / 16 + 12) {
+      repeat((PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION) / 16 + 12) {
         val image = frame()
-        val pagePixels = (0 until 400).count { image[it, 400].red > 0.99f }
+        val pagePixels = (0 until 400).count { x -> image[x, 400].red > 0.99f }
         val scaleProgress = (400f - pagePixels) / 60f
         if (scaleProgress in 0.2f..0.8f) {
-          assertEquals("Backdrop must restore with the page scale", maximumTint * scaleProgress, image[0, 400].red, 0.009f)
+          assertEquals(
+            "Backdrop must restore with the page scale",
+            maximumTint * scaleProgress,
+            image[0, 400].red,
+            0.009f,
+          )
           restoringFrames++
         }
       }

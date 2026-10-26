@@ -1,10 +1,10 @@
 package me.zhangls.framework.nav
 
 import androidx.navigation3.runtime.NavKey
-import kotlin.reflect.KClass
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
+import kotlin.reflect.KClass
 
 /**
  * 把一个导航目的地登记进返回栈的序列化注册表。
@@ -21,10 +21,7 @@ import kotlinx.serialization.modules.polymorphic
  *
  * 收拢成单个函数，是为了让"新增一个目的地"只有这一处需要记得改，而不是两处。
  */
-fun <T : Destination> SerializersModuleBuilder.registerDestination(
-  kClass: KClass<T>,
-  serializer: KSerializer<T>,
-) {
+fun <T : Destination> SerializersModuleBuilder.registerDestination(kClass: KClass<T>, serializer: KSerializer<T>) {
   polymorphic(NavKey::class) { subclass(kClass, serializer) }
   polymorphic(Destination::class) { subclass(kClass, serializer) }
 }

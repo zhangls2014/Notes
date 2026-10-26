@@ -7,9 +7,9 @@ import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
-import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutNavigation
+import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailNavigation
 import me.zhangls.framework.nav.NavigationContribution
 import me.zhangls.login.api.LoginDestination
@@ -19,8 +19,8 @@ import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.MainNavigation
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.profile.api.ProfileDestination
-import me.zhangls.profile.api.ProfileOrigin
 import me.zhangls.profile.api.ProfileNavigation
+import me.zhangls.profile.api.ProfileOrigin
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -111,7 +111,6 @@ class NavBackStackSerializationTest {
     assertEquals(legacy, json.encodeToString(keySerializer, key))
   }
 
-  private fun roundTrip(stack: NavBackStack<NavKey>): NavBackStack<NavKey> {
-    return json.decodeFromString(serializer, json.encodeToString(serializer, stack))
-  }
+  private fun roundTrip(stack: NavBackStack<NavKey>): NavBackStack<NavKey> =
+    json.decodeFromString(serializer, json.encodeToString(serializer, stack))
 }

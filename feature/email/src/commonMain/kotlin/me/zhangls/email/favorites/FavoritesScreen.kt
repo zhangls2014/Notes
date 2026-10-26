@@ -17,10 +17,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * @param navigateToDetail 点击邮件后的回调
  */
 @Composable
-fun FavoritesScreen(
-  openedEmailId: Long? = null,
-  navigateToDetail: (Long) -> Unit = {},
-) {
+fun FavoritesScreen(openedEmailId: Long? = null, navigateToDetail: (Long) -> Unit = {}) {
   // key 与首页区分，语义同 HomeScreen
   val viewModel: EmailViewModel = koinViewModel(key = EmailViewModel.KEY_FAVORITES)
 

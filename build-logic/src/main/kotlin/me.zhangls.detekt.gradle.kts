@@ -29,14 +29,22 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
+  val generatedDirectory = project.layout.buildDirectory.get().asFile
+  exclude { it.file.toPath().startsWith(generatedDirectory.toPath()) }
   reports {
     html.required.set(true)
     markdown.required.set(true)
   }
 }
 
+tasks.withType<DetektCreateBaselineTask>().configureEach {
+  val generatedDirectory = project.layout.buildDirectory.get().asFile
+  exclude { it.file.toPath().startsWith(generatedDirectory.toPath()) }
+}
+
 dependencies {
   detektPlugins(kmp.findLibrary("detekt-formatting").get())
+  detektPlugins(kmp.findLibrary("detekt-compose").get())
 }
 
 // detekt 的默认源目录是 JVM 布局（src/main/kotlin、src/test/kotlin），
@@ -49,13 +57,18 @@ pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
   val kotlin = extensions.getByType<KotlinMultiplatformExtension>()
   val moduleDir = projectDir.invariantSeparatorsPath
 
-  val kmpSourceDirs = kotlin.sourceSets
-    .flatMap { it.kotlin.srcDirs }
-    .filter { dir ->
-      // 排除 KSP / BuildKonfig 等生成目录，只扫手写源码
-      dir.exists() && !dir.invariantSeparatorsPath.removePrefix(moduleDir).startsWith("/build/")
-    }
+  val kmpSourceDirs = providers.provider {
+    // host-test 与 Native 源集可能在约定插件之后创建，不能提前快照目录列表。
+    kotlin.sourceSets
+      .flatMap { it.kotlin.srcDirs }
+      .filter { dir ->
+        // 排除 KSP / BuildKonfig 等生成目录，只扫手写源码。
+        !dir.invariantSeparatorsPath.removePrefix(moduleDir).startsWith("/build/")
+      }
+  }
 
-  tasks.withType<Detekt>().configureEach { setSource(kmpSourceDirs) }
-  tasks.withType<DetektCreateBaselineTask>().configureEach { setSource(kmpSourceDirs) }
+  // 仅普通任务需要补齐 KMP 目录。类型解析及 source-set 任务保留插件提供的源集、
+  // classpath 和 friend paths，避免把 iOS 实现混入 Android compilation。
+  tasks.named<Detekt>("detekt") { setSource(kmpSourceDirs) }
+  tasks.named<DetektCreateBaselineTask>("detektBaseline") { setSource(kmpSourceDirs) }
 }

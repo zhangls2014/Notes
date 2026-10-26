@@ -2,10 +2,10 @@ package me.zhangls.email.component
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,11 +28,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun NewEmailFab(
-  isSending: Boolean,
-  listState: LazyListState,
-  onOpenDraft: () -> Unit,
-) {
+internal fun NewEmailFab(isSending: Boolean, listState: LazyListState, onOpenDraft: () -> Unit) {
   // LazyListState 只恢复位置，不恢复滚动方向；布局前 canScrollBackward 也为 false。
   // 单独恢复展开状态，避免切回 Tab 时先展开再收起。
   var expanded by rememberSaveable { mutableStateOf(true) }
@@ -56,7 +52,7 @@ internal fun NewEmailFab(
           stringResource(Res.string.email_action_sending)
         } else {
           stringResource(Res.string.email_action_new_email)
-        }
+        },
       )
     },
     icon = {
@@ -67,7 +63,7 @@ internal fun NewEmailFab(
       } else {
         Icon(
           imageVector = Icons.Rounded.Edit,
-          contentDescription = stringResource(Res.string.email_action_new_email)
+          contentDescription = stringResource(Res.string.email_action_new_email),
         )
       }
     },

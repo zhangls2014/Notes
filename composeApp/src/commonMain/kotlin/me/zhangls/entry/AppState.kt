@@ -1,11 +1,10 @@
 package me.zhangls.entry
 
 import kotlinx.serialization.Serializable
+import me.zhangls.framework.mvi.MviState
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
 import me.zhangls.model.FontSizeConfig
-import me.zhangls.framework.mvi.MviState
-
 
 /**
  * @author zhangls

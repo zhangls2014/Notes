@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.FormatSize: ImageVector
   get() {
-    if (_FormatSize != null) {
-      return _FormatSize!!
-    }
-    _FormatSize = ImageVector.Builder(
+    cachedFormatSize?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.FormatSize",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -68,11 +65,11 @@ val Icons.Rounded.FormatSize: ImageVector
       }
     }.build()
 
-    return _FormatSize!!
+    cachedFormatSize = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _FormatSize: ImageVector? = null
+private var cachedFormatSize: ImageVector? = null
 
 @Preview(name = "FormatSize", showBackground = true)
 @Composable

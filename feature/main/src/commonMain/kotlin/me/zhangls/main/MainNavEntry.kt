@@ -68,7 +68,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   ) {
     koinInject<EmailEntry>().HomeScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Home),
-      navigateToDetail = { navigateToEmailDetail(EmailListScene.Home, it) },
+      navigateToDetail = { emailId -> navigateToEmailDetail(EmailListScene.Home, emailId) },
       onProfileClick = { navigateToProfile(ProfileOrigin.Home) },
     )
   }
@@ -79,7 +79,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   ) {
     koinInject<EmailEntry>().FavoritesScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Favorites),
-      navigateToDetail = { navigateToEmailDetail(EmailListScene.Favorites, it) },
+      navigateToDetail = { emailId -> navigateToEmailDetail(EmailListScene.Favorites, emailId) },
     )
   }
 
@@ -96,8 +96,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
 }
 
 /** 详情确实属于给定场景时取其邮件 id，否则为 null（别的场景的详情不该点亮本列表）。 */
-private fun EmailDetailDestination.emailIdIn(scene: EmailListScene): Long? =
-  emailId.takeIf { this.scene == scene }
+private fun EmailDetailDestination.emailIdIn(scene: EmailListScene): Long? = emailId.takeIf { this.scene == scene }
 
 /**
  * 宽窗口下详情栏还没有内容时的空态。

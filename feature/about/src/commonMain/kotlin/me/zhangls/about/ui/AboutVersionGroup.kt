@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.Icon
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,12 +35,15 @@ import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_build_number
 import notes.feature.about.generated.resources.about_check_updates
 import notes.feature.about.generated.resources.about_collapsed
-import notes.feature.about.generated.resources.about_expanded
 import notes.feature.about.generated.resources.about_coming_soon
+import notes.feature.about.generated.resources.about_expanded
 import notes.feature.about.generated.resources.about_unknown
 import notes.feature.about.generated.resources.about_update_description
 import notes.feature.about.generated.resources.about_version
 import org.jetbrains.compose.resources.stringResource
+
+private const val EXPANDED_BUILD_INFO_ROTATION = 90f
+private const val COLLAPSED_BUILD_INFO_ROTATION = 270f
 
 @Composable
 internal fun AboutVersionGroup(appInfo: AboutAppInfo, expanded: Boolean, onToggleBuildInfo: () -> Unit) {
@@ -58,8 +61,13 @@ internal fun AboutVersionGroup(appInfo: AboutAppInfo, expanded: Boolean, onToggl
         .semantics { stateDescription = stateLabel }
         .clickable(role = Role.Button, onClick = onToggleBuildInfo),
       trailing = {
-        Icon(Icons.Rounded.ArrowBackIosNew, contentDescription = null,
-          modifier = Modifier.size(20.dp).rotate(if (expanded) 90f else 270f))
+        Icon(
+          Icons.Rounded.ArrowBackIosNew,
+          contentDescription = null,
+          modifier = Modifier.size(20.dp).rotate(
+            if (expanded) EXPANDED_BUILD_INFO_ROTATION else COLLAPSED_BUILD_INFO_ROTATION,
+          ),
+        )
       },
     )
     if (expanded) {
@@ -70,7 +78,7 @@ internal fun AboutVersionGroup(appInfo: AboutAppInfo, expanded: Boolean, onToggl
         shape = inner,
       )
     }
-    // TODO: Connect update checking after release channels and platform behavior are defined.
+    // Update checks await release-channel and platform integration; see docs/testing/pending-acceptance.md.
     // The disabled button communicates availability without triggering an update check.
     AboutInfoRow(
       title = stringResource(Res.string.about_check_updates),

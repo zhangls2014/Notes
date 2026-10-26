@@ -42,14 +42,19 @@ class DeviceCornerShapeTest {
       val pose = PageMotionGeometry.transform(pageSize, progress)
       val outline = DeviceCornerShape(DeviceCorners(10f, 20f, 30f, 40f), pose.scaleX, pose.scaleX)
         .createOutline(pageSize, LayoutDirection.Ltr, Density(1f)) as Outline.Rounded
-      val radii = listOf(outline.roundRect.topLeftCornerRadius, outline.roundRect.topRightCornerRadius,
-        outline.roundRect.bottomRightCornerRadius, outline.roundRect.bottomLeftCornerRadius)
+      val radii = listOf(
+        outline.roundRect.topLeftCornerRadius,
+        outline.roundRect.topRightCornerRadius,
+        outline.roundRect.bottomRightCornerRadius,
+        outline.roundRect.bottomLeftCornerRadius,
+      )
       for ((radius, expected) in radii.zip(listOf(10f, 20f, 30f, 40f))) {
         assertEquals("Displayed X radius at progress=$progress", expected, radius.x * pose.scaleX, 0.001f)
         assertEquals("Displayed Y radius at progress=$progress", expected, radius.y * pose.scaleX, 0.001f)
       }
     }
   }
+
   @Test fun restorationReturnsCornersToOriginalContourWithoutChangingScale() {
     for (visibility in listOf(1f, 0.5f, 0f)) {
       val outline = DeviceCornerShape(DeviceCorners(10f, 20f, 30f, 40f), 0.88f, 0.88f, visibility)
@@ -58,5 +63,4 @@ class DeviceCornerShapeTest {
       assertEquals(40f * visibility, outline.roundRect.bottomLeftCornerRadius.y * 0.88f, 0.001f)
     }
   }
-
 }

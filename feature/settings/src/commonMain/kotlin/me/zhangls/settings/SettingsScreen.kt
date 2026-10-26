@@ -1,7 +1,7 @@
 package me.zhangls.settings
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,10 +34,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * @author zhangls
  */
 @Composable
-internal fun SettingsScreen(
-  viewModel: SettingsViewModel = koinViewModel(),
-  onResult: (SettingsResult) -> Unit = {}
-) {
+internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onResult: (SettingsResult) -> Unit = {}) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 领域模型在 UI 层映射为表现层模型（回调在此绑到 viewModel）。
   // 以 settings 与 viewModel 为 key：只在取值变化时重建，且不会捕获过期的 sendIntent
@@ -44,10 +42,11 @@ internal fun SettingsScreen(
     state.settings.toPreferenceUiModels(viewModel::sendIntent)
   }
 
+  val currentOnResult by rememberUpdatedState(onResult)
   LaunchedEffect(viewModel) {
     viewModel.effect.collect { effect ->
       when (effect) {
-        is SettingsResult -> onResult(effect)
+        is SettingsResult -> currentOnResult(effect)
       }
     }
   }
@@ -55,7 +54,7 @@ internal fun SettingsScreen(
   Scaffold(
     topBar = {
       CenteredTopAppBar(title = stringResource(Res.string.settings_label_settings))
-    }
+    },
   ) { padding ->
     // 行的渲染全在 core:preference（PreferenceRow），本屏只负责列表装配与顺序
     ProvidePreferenceLocals {
@@ -72,14 +71,15 @@ internal fun SettingsScreen(
           items(
             count = preferences.size,
             key = { index -> preferences[index].spec.key },
-            contentType = { index -> preferences[index]::class }
+            contentType = { index -> preferences[index]::class },
           ) { index ->
             val model = preferences[index]
             val standalone = model is PreferenceUiModel.Action
             PreferenceRow(
               model = model,
               isGroupStart = index == 0 || standalone || preferences[index - 1] is PreferenceUiModel.Action,
-              isGroupEnd = index == preferences.lastIndex || standalone || preferences[index + 1] is PreferenceUiModel.Action,
+              isGroupEnd =
+              index == preferences.lastIndex || standalone || preferences[index + 1] is PreferenceUiModel.Action,
               modifier = Modifier.padding(
                 start = 16.dp,
                 end = 16.dp,
@@ -112,7 +112,7 @@ internal fun SettingsScreen(
       dismiss = {
         val result = DialogResult.Dismiss(dialogState.dialogId)
         viewModel.sendIntent(SettingsIntent.DialogCallback(result))
-      }
+      },
     )
   }
 }

@@ -1,8 +1,8 @@
 package me.zhangls.data.impl.repository
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.first
@@ -12,17 +12,29 @@ import me.zhangls.data.impl.security.StoredCredentials
 import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import okio.FileSystem
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class UserRepositorySecurityTest {
   @Test
   fun migratesLegacyCredentialsAndRemovesPlaintext() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val store = FakeStore()
     val repository = UserRepositoryImpl(prefs, store)
     try {
-      prefs.edit { it[stringPreferencesKey("user")] = """{"id":"one","nickname":"User","accessToken":"old-secret","refreshToken":"refresh-secret"}""" }
+      prefs.edit {
+        it[
+          stringPreferencesKey(
+            "user",
+          ),
+        ] = """{"id":"one","nickname":"User","accessToken":"old-secret","refreshToken":"refresh-secret"}"""
+      }
       assertEquals("one", repository.userFlow.first()?.id)
       assertEquals("old-secret", repository.getTokens()?.accessToken)
       val raw = prefs.data.first()[stringPreferencesKey("user")]!!
@@ -34,12 +46,15 @@ class UserRepositorySecurityTest {
       repository.clear()
       assertNull(store.value)
       assertNull(repository.userFlow.first())
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun avatarUpdateRejectsChangedUserOrAvatarButKeepsSearchHistory() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-avatar-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-avatar-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val repository = UserRepositoryImpl(prefs, FakeStore())
     try {
@@ -56,12 +71,15 @@ class UserRepositorySecurityTest {
       repository.clear()
       assertFalse(repository.updateAvatar("signed-out", user))
       assertNull(repository.getUser())
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun failedMigrationRetainsLegacyDataForRetry() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val store = FakeStore().apply { failWrites = true }
     val repository = UserRepositoryImpl(prefs, store)
@@ -71,12 +89,15 @@ class UserRepositorySecurityTest {
       assertTrue(prefs.data.first()[stringPreferencesKey("user")]!!.contains("secret"))
       store.failWrites = false
       assertEquals("secret", repository.getTokens()?.accessToken)
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun loginStoresOnlyProfileAndRejectsMismatchedCredentials() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val store = FakeStore()
     val repository = UserRepositoryImpl(prefs, store)
@@ -89,12 +110,15 @@ class UserRepositorySecurityTest {
       assertNull(repository.userFlow.first())
       store.value = null
       assertNull(repository.userFlow.first())
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun missingCredentialsInvalidatePersistedSession() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val store = FakeStore()
     val repository = UserRepositoryImpl(prefs, store)
@@ -103,12 +127,15 @@ class UserRepositorySecurityTest {
       store.value = null // Platform detected permanently lost key or corrupt ciphertext.
       assertNull(repository.getTokens())
       assertNull(prefs.data.first()[stringPreferencesKey("user")])
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun interruptedMigrationKeepsNewerSecureCredentials() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val store = FakeStore().apply { value = StoredCredentials("one", AuthTokens("new-secret")) }
     val repository = UserRepositoryImpl(prefs, store)
@@ -116,12 +143,15 @@ class UserRepositorySecurityTest {
       prefs.edit { it[stringPreferencesKey("user")] = """{"id":"one","nickname":"User","accessToken":"old-secret"}""" }
       assertEquals("new-secret", repository.getTokens()?.accessToken)
       assertFalse(prefs.data.first()[stringPreferencesKey("user")]!!.contains("Token"))
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun failedLogoutCannotResurrectLegacyCredentials() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     var failDeletes = true
     val guarded = object : DataStore<Preferences> {
@@ -142,12 +172,15 @@ class UserRepositorySecurityTest {
       failDeletes = false
       assertNull(repository.getTokens())
       assertNull(repository.getUser())
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   @Test
   fun observationRetriesUnavailableStorageWithoutDeletingSession() = runTest {
-    val path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
     val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
     val store = FakeStore()
     val repository = UserRepositoryImpl(prefs, store)
@@ -157,7 +190,9 @@ class UserRepositorySecurityTest {
       assertEquals("one", repository.userFlow.first()?.id)
       assertEquals("secret", repository.getTokens()?.accessToken)
       assertTrue(prefs.data.first()[stringPreferencesKey("user")] != null)
-    } finally { FileSystem.SYSTEM.delete(path, mustExist = false) }
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
   }
 
   private class FakeStore : SecureTokenStore {
@@ -175,6 +210,8 @@ class UserRepositorySecurityTest {
       check(!failWrites)
       value = credentials
     }
-    override suspend fun clear() { value = null }
+    override suspend fun clear() {
+      value = null
+    }
   }
 }

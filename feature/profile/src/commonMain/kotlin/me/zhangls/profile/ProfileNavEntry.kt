@@ -9,6 +9,6 @@ import org.koin.compose.koinInject
 
 fun EntryProviderScope<NavKey>.profileNavEntry(effect: (NavEffect) -> Unit) {
   entry<ProfileDestination> {
-    koinInject<ProfileEntry>().Screen(onBackPressed = { effect(NavEffect.Popup) })
+    koinInject<ProfileEntry>().Screen(onBack = { effect(NavEffect.Popup) })
   }
 }

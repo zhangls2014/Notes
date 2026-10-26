@@ -6,41 +6,33 @@ package me.zhangls.login.domain
 object LoginValidator {
   private const val MIN_PASSWORD_LENGTH = 8
 
-  fun validateAccount(account: String): AccountError? {
-    return if (account.isBlank()) {
-      AccountError.Empty
-    } else {
-      null
-    }
+  fun validateAccount(account: String): AccountError? = if (account.isBlank()) {
+    AccountError.Empty
+  } else {
+    null
   }
 
   /**
    * 密码规则：密码至少包含字母、数字、特殊符号中的两种
    */
-  fun validatePassword(password: String): PasswordError? {
-    if (password.isEmpty()) return PasswordError.Empty
-    if (password.length < MIN_PASSWORD_LENGTH) return PasswordError.TooShort
+  fun validatePassword(password: String): PasswordError? = when {
+    password.isEmpty() -> PasswordError.Empty
 
-    // 字母
-    val hasLetter = password.any { it.isLetter() }
-    // 数字
-    val hasDigit = password.any { it.isDigit() }
-    // 特殊符号
-    val hasSpecial = password.any { it.isLetterOrDigit().not() }
+    password.length < MIN_PASSWORD_LENGTH -> PasswordError.TooShort
 
-    val typeCount = listOf(hasLetter, hasDigit, hasSpecial).count { it }
+    else -> {
+      // 字母
+      val hasLetter = password.any { it.isLetter() }
+      // 数字
+      val hasDigit = password.any { it.isDigit() }
+      // 特殊符号
+      val hasSpecial = password.any { it.isLetterOrDigit().not() }
 
-    if (typeCount < 2) {
-      return PasswordError.WeakType
+      val typeCount = listOf(hasLetter, hasDigit, hasSpecial).count { it }
+      if (typeCount < 2) PasswordError.WeakType else null
     }
-
-    return null
   }
 
-  fun validateAll(account: String, password: String): Boolean {
-    validateAccount(account)?.let { return false }
-    validatePassword(password)?.let { return false }
-
-    return true
-  }
+  fun validateAll(account: String, password: String): Boolean =
+    validateAccount(account) == null && validatePassword(password) == null
 }

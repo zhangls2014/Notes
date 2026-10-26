@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.ExitToApp: ImageVector
   get() {
-    if (_ExitToApp != null) {
-      return _ExitToApp!!
-    }
-    _ExitToApp = ImageVector.Builder(
+    cachedExitToApp?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.ExitToApp",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -82,11 +79,11 @@ val Icons.Rounded.ExitToApp: ImageVector
       }
     }.build()
 
-    return _ExitToApp!!
+    cachedExitToApp = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _ExitToApp: ImageVector? = null
+private var cachedExitToApp: ImageVector? = null
 
 @Preview(name = "ExitToApp", showBackground = true)
 @Composable

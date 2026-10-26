@@ -15,7 +15,7 @@ internal class CommonRepositoryImpl(prefsDataStore: DataStore<Preferences>) : Co
     name = "common",
     serializer = CommonModel.serializer(),
     dataStore = prefsDataStore,
-    defaultValue = CommonModel()
+    defaultValue = CommonModel(),
   )
 
   override val commonFlow: Flow<CommonModel> = dataStore.read().map { it ?: CommonModel() }

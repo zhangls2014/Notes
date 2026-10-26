@@ -7,7 +7,7 @@ import org.koin.core.annotation.Singleton
 @Singleton(binds = [ProfileEntry::class])
 class ProfileEntryImpl : ProfileEntry {
   @Composable
-  override fun Screen(onBackPressed: () -> Unit) {
-    ProfileScreen(onBackPressed = onBackPressed)
+  override fun Screen(onBack: () -> Unit) {
+    ProfileScreen(onBack = onBack)
   }
 }

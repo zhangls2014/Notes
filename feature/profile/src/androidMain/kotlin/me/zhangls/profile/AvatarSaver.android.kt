@@ -9,12 +9,12 @@ internal actual class AvatarSaver(private val fileManager: AppFileManager) : Ava
   actual override suspend fun save(avatar: KmpFile): String? {
     val uri = avatar.uri
     val targetPath = fileManager.createImageFile(avatarFilename(fileManager.getFileExtension(uri)))
+    var copied = false
     return try {
-      if (fileManager.copyUriToFile(uri, targetPath)) targetPath
-      else { fileManager.deleteFile(targetPath); null }
-    } catch (error: Exception) {
-      fileManager.deleteFile(targetPath)
-      throw error
+      copied = fileManager.copyUriToFile(uri, targetPath)
+      targetPath.takeIf { copied }
+    } finally {
+      if (!copied) fileManager.deleteFile(targetPath)
     }
   }
 

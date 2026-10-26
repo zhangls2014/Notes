@@ -9,7 +9,6 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 
-
 @Module(includes = [DataModule::class, FrameworkModule::class])
 @ComponentScan("me.zhangls.login")
 class LoginModule {

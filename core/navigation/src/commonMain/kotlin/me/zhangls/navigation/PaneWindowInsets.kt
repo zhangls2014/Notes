@@ -17,10 +17,10 @@ import kotlin.math.roundToInt
 /** Consume space outside this pane without padding or moving the pane itself. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PaneWindowInsets(content: @Composable () -> Unit) {
+fun PaneWindowInsets(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
   val outsidePane = remember { MutableWindowInsets() }
   Box(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxSize()
       .onGloballyPositioned { coordinates ->
         val rootSize = coordinates.findRootCoordinates().size

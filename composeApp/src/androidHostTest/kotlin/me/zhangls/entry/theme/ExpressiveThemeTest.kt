@@ -5,15 +5,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.unit.Density
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -31,8 +32,8 @@ class ExpressiveThemeTest {
   @get:Rule val compose = createComposeRule()
 
   @Test fun systemFontScaleIsPreservedAndAppSizeIsRelative() {
-    var systemScale by mutableStateOf(1.3f)
-    var appScale by mutableStateOf(1f)
+    var systemScale by mutableFloatStateOf(1.3f)
+    var appScale by mutableFloatStateOf(1f)
     var observedScale = 0f
     var observedDensity = 0f
     compose.setContent {
@@ -65,19 +66,25 @@ class ExpressiveThemeTest {
   @Test fun themeSwitchesPreserveDynamicColorsAndUserFontScale() {
     var dark by mutableStateOf(false)
     var dynamic by mutableStateOf<ColorScheme?>(null)
-    var scale by mutableStateOf(1f)
+    var scale by mutableFloatStateOf(1f)
     lateinit var colors: ColorScheme
     var observedScale = 0f
     compose.setContent {
       ComposeAppTheme(darkTheme = dark, dynamicScheme = dynamic, fontScale = scale) {
         val currentColors = MaterialTheme.colorScheme
         val currentScale = LocalDensity.current.fontScale
-        SideEffect { colors = currentColors; observedScale = currentScale }
+        SideEffect {
+          colors = currentColors
+          observedScale = currentScale
+        }
       }
     }
     lateinit var builtInLight: ColorScheme
     compose.runOnIdle { builtInLight = colors }
-    compose.runOnIdle { dark = true; scale = 1.5f }
+    compose.runOnIdle {
+      dark = true
+      scale = 1.5f
+    }
     compose.runOnIdle {
       assertNotEquals(builtInLight.surface, colors.surface)
       assertEquals(1.5f, observedScale)
@@ -108,8 +115,14 @@ class ExpressiveThemeTest {
       }
     }
     compose.runOnIdle {
-      assertTrue("Action label weight: ${typography.labelLarge.fontWeight}", typography.labelLarge.fontWeight!!.weight >= 600)
-      assertTrue("Title weight: ${typography.titleMedium.fontWeight}", typography.titleMedium.fontWeight!!.weight >= 600)
+      assertTrue(
+        "Action label weight: ${typography.labelLarge.fontWeight}",
+        checkNotNull(typography.labelLarge.fontWeight).weight >= 600,
+      )
+      assertTrue(
+        "Title weight: ${typography.titleMedium.fontWeight}",
+        checkNotNull(typography.titleMedium.fontWeight).weight >= 600,
+      )
       assertEquals(Typography().bodyLarge.fontSize, typography.bodyLarge.fontSize)
       assertEquals(Typography().bodyMedium.fontSize, typography.bodyMedium.fontSize)
     }

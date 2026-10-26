@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
-
 /**
  * 基于 Preferences DataStore 的 JSON 序列化读写封装。
  *
@@ -32,12 +31,9 @@ internal class AppDataStore<T>(
     encodeDefaults = true
   }
 
-
-  fun read(): Flow<T?> {
-    return dataStore.data
-      .map { it[key]?.decodeOrNull() }
-      .distinctUntilChanged()
-  }
+  fun read(): Flow<T?> = dataStore.data
+    .map { it[key]?.decodeOrNull() }
+    .distinctUntilChanged()
 
   suspend fun updateData(transform: (t: T?) -> T?) {
     dataStore.edit { prefs ->
@@ -62,11 +58,7 @@ internal class AppDataStore<T>(
    *
    * 写入路径同样走这里：解析失败时以 [defaultValue] 为基底做更新，而不是让异常中断写入。
    */
-  private fun String.decodeOrNull(): T? {
-    return runCatching { json.decodeFromString(serializer, this) }.getOrNull()
-  }
+  private fun String.decodeOrNull(): T? = runCatching { json.decodeFromString(serializer, this) }.getOrNull()
 
-  private fun T.encode(): String {
-    return json.encodeToString(serializer, this)
-  }
+  private fun T.encode(): String = json.encodeToString(serializer, this)
 }

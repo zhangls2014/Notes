@@ -2,13 +2,13 @@
 
 package me.zhangls.framework.toast
 
+import platform.UIKit.UIContentSizeCategoryAccessibilityExtraExtraExtraLarge
+import platform.UIKit.UIContentSizeCategoryLarge
+import platform.UIKit.UIFontDescriptorTextStyleAttribute
+import platform.UIKit.UIFontTextStyleSubheadline
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import platform.UIKit.UIFontDescriptorTextStyleAttribute
-import platform.UIKit.UIFontTextStyleSubheadline
-import platform.UIKit.UIContentSizeCategoryLarge
-import platform.UIKit.UIContentSizeCategoryAccessibilityExtraExtraExtraLarge
 
 class ToastAccessibilityTest {
   @Test

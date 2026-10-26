@@ -6,16 +6,21 @@ import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.net.Uri
 import com.mohamedrejeb.calf.io.KmpFile
-import java.io.File
 import kotlinx.coroutines.runBlocking
 import me.zhangls.data.util.AppFileManager
-import org.junit.Assert.*
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowContentResolver
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37])
@@ -26,8 +31,8 @@ class AvatarSaverTest {
   @Test fun consecutiveSelectionsHaveDistinctPathsAndManagedDeletionPreservesSources() = runBlocking {
     val source = File.createTempFile("profile-source", ".png")
     source.writeBytes(byteArrayOf(1, 2, 3))
-    val first = saver.save(KmpFile(Uri.fromFile(source)))!!
-    val second = saver.save(KmpFile(Uri.fromFile(source)))!!
+    val first = checkNotNull(saver.save(KmpFile(Uri.fromFile(source))))
+    val second = checkNotNull(saver.save(KmpFile(Uri.fromFile(source))))
     try {
       assertNotEquals(first, second)
       assertArrayEquals(source.readBytes(), File(first).readBytes())
@@ -47,7 +52,13 @@ class AvatarSaverTest {
     val provider = object : ContentProvider() {
       override fun onCreate() = true
       override fun getType(uri: Uri) = "image/png"
-      override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor? = null
+      override fun query(
+        uri: Uri,
+        projection: Array<out String>?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+        sortOrder: String?,
+      ): Cursor? = null
       override fun insert(uri: Uri, values: ContentValues?): Uri? = null
       override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?) = 0
       override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?) = 0

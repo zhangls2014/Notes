@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Check: ImageVector
   get() {
-    if (_Check != null) {
-      return _Check!!
-    }
-    _Check = ImageVector.Builder(
+    cachedCheck?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Check",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -46,11 +43,11 @@ val Icons.Rounded.Check: ImageVector
       }
     }.build()
 
-    return _Check!!
+    cachedCheck = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Check: ImageVector? = null
+private var cachedCheck: ImageVector? = null
 
 @Preview(name = "Check", showBackground = true)
 @Composable

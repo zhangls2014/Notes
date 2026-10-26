@@ -3,7 +3,6 @@ package me.zhangls.theme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 
-
 internal val lightScheme = lightColorScheme(
   primary = primaryLight,
   onPrimary = onPrimaryLight,

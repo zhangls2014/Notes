@@ -82,10 +82,7 @@ fun PreferenceRow(
 }
 
 @Composable
-private fun ToggleRow(
-  model: PreferenceUiModel.Toggle,
-  modifier: Modifier = Modifier,
-) {
+private fun ToggleRow(model: PreferenceUiModel.Toggle, modifier: Modifier = Modifier) {
   val spec = model.spec
   SwitchPreference(
     value = model.value,
@@ -97,15 +94,12 @@ private fun ToggleRow(
     },
     icon = {
       Icon(imageVector = spec.icon, contentDescription = null)
-    }
+    },
   )
 }
 
 @Composable
-private fun <T> SelectRow(
-  model: PreferenceUiModel.Select<T>,
-  modifier: Modifier = Modifier,
-) {
+private fun <T> SelectRow(model: PreferenceUiModel.Select<T>, modifier: Modifier = Modifier) {
   val spec = model.spec
   val optionTextMap = spec.options.associate {
     it.value to stringResource(it.label)
@@ -115,7 +109,7 @@ private fun <T> SelectRow(
     onValueChange = model.onValueChange,
     values = spec.options.map { it.value },
     modifier = modifier,
-    valueToText = { AnnotatedString(optionTextMap[it] ?: "") },
+    valueToText = { AnnotatedString(optionTextMap[it].orEmpty()) },
     title = { Text(text = stringResource(spec.title)) },
     // 摘要直接取当前取值对应的选项文案（见 PreferenceSpec.Select.summary 的单一来源说明）
     summary = spec.summary(model.value)?.let {
@@ -123,15 +117,12 @@ private fun <T> SelectRow(
     },
     icon = {
       Icon(imageVector = spec.icon, contentDescription = null)
-    }
+    },
   )
 }
 
 @Composable
-private fun ActionRow(
-  model: PreferenceUiModel.Action,
-  modifier: Modifier = Modifier,
-) {
+private fun ActionRow(model: PreferenceUiModel.Action, modifier: Modifier = Modifier) {
   val spec = model.spec
   // tint 是"危险操作"之类的语义着色，null 表示交给主题默认色
   val tint = spec.tint?.toColor() ?: Color.Unspecified
@@ -149,6 +140,6 @@ private fun ActionRow(
         contentDescription = null,
         tint = spec.tint?.toColor() ?: LocalContentColor.current,
       )
-    }
+    },
   )
 }

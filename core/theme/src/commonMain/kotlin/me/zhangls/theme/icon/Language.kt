@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Language: ImageVector
   get() {
-    if (_Language != null) {
-      return _Language!!
-    }
-    _Language = ImageVector.Builder(
+    cachedLanguage?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Language",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -126,11 +123,11 @@ val Icons.Rounded.Language: ImageVector
       }
     }.build()
 
-    return _Language!!
+    cachedLanguage = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Language: ImageVector? = null
+private var cachedLanguage: ImageVector? = null
 
 @Preview(name = "Language", showBackground = true)
 @Composable

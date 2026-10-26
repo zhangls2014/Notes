@@ -4,21 +4,21 @@ import androidx.compose.runtime.AbstractApplier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composition
 import androidx.compose.runtime.Recomposer
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.test.Test
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import me.zhangls.about.AboutEntryImpl
+import me.zhangls.about.api.AboutAppInfo
+import me.zhangls.about.api.AboutEntry
 import me.zhangls.email.EmailEntryImpl
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.login.LoginEntryImpl
 import me.zhangls.login.api.LoginEntry
-import me.zhangls.settings.SettingsEntryImpl
-import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.profile.ProfileEntryImpl
 import me.zhangls.profile.api.ProfileEntry
-import me.zhangls.about.AboutEntryImpl
-import me.zhangls.about.api.AboutAppInfo
-import me.zhangls.about.api.AboutEntry
+import me.zhangls.settings.SettingsEntryImpl
+import me.zhangls.settings.api.SettingsEntry
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /** Exercise the Compose interface ABI across modules on Kotlin/Native, without UI or Koin. */
 class EmailEntryDispatchTest {
@@ -33,7 +33,7 @@ class EmailEntryDispatchTest {
       val screens: List<@Composable () -> Unit> = listOf(
         { entry.HomeScreen(openedEmailId = null, navigateToDetail = {}, onProfileClick = {}) },
         { entry.FavoritesScreen(openedEmailId = 42L, navigateToDetail = {}) },
-        { entry.DetailScreen(emailId = 42L, onBackPressed = {}) },
+        { entry.DetailScreen(emailId = 42L, onBack = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {
@@ -59,8 +59,8 @@ class EmailEntryDispatchTest {
       val screens: List<@Composable () -> Unit> = listOf(
         { login.Screen(onLoginResult = {}) },
         { settings.Screen {} },
-        { profile.Screen(onBackPressed = {}) },
-        { about.Screen(AboutAppInfo("2.3.1", "42.7.1"), onBackPressed = {}) },
+        { profile.Screen(onBack = {}) },
+        { about.Screen(AboutAppInfo("2.3.1", "42.7.1"), onBack = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

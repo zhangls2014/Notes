@@ -32,7 +32,7 @@ fun ContainedLoadingIndicator(
     modifier = modifier
       .fillMaxSize()
       .background(backgroundColor),
-    contentAlignment = Alignment.Center
+    contentAlignment = Alignment.Center,
   ) {
     ContainedLoadingIndicator(
       modifier = Modifier.size(loadingSize).semantics {

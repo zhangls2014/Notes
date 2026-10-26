@@ -6,12 +6,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -26,6 +26,8 @@ import me.zhangls.data.repository.UserRepository
 import org.koin.core.annotation.Singleton
 import kotlin.time.Duration.Companion.seconds
 
+private const val MAX_SEARCH_HISTORY_SIZE = 10
+
 @Singleton(binds = [UserRepository::class])
 internal class UserRepositoryImpl(
   private val prefsDataStore: DataStore<Preferences>,
@@ -33,7 +35,10 @@ internal class UserRepositoryImpl(
 ) : UserRepository {
   private val mutex = Mutex()
   private val userKey = stringPreferencesKey("user")
-  private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+  private val json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+  }
 
   override val userFlow: Flow<UserModel?> = prefsDataStore.data
     .onStart { mutex.withLock { migrate() } }
@@ -75,7 +80,9 @@ internal class UserRepositoryImpl(
     val current = readProfile() ?: return@withLock false
     if (current.id != expectedUser.id || current.nickname != expectedUser.nickname ||
       current.avatar != expectedUser.avatar || matchingCredentials(current) == null
-    ) return@withLock false
+    ) {
+      return@withLock false
+    }
     prefsDataStore.edit { it[userKey] = json.encodeToString(current.copy(avatar = avatar)) }
     true
   }
@@ -84,7 +91,10 @@ internal class UserRepositoryImpl(
     val normalized = keyword.trim()
     if (normalized.isEmpty()) return
     updateProfile { user ->
-      user.copy(emailSearchHistory = (listOf(normalized) + user.emailSearchHistory.filter { it != normalized }).take(10))
+      user.copy(
+        emailSearchHistory = (listOf(normalized) + user.emailSearchHistory.filter { it != normalized })
+          .take(MAX_SEARCH_HISTORY_SIZE),
+      )
     }
   }
 
@@ -130,16 +140,19 @@ internal class UserRepositoryImpl(
     val raw = prefsDataStore.data.first()[userKey] ?: return
     val user = decode(raw) ?: return
     val obj = json.parseToJsonElement(raw).jsonObject
-    if ("accessToken" !in obj && "refreshToken" !in obj) return
-    val access = obj["accessToken"]?.jsonPrimitive?.contentOrNull.orEmpty()
-    if (access.isNotBlank()) {
-      val refresh = obj["refreshToken"]?.jsonPrimitive?.contentOrNull.orEmpty()
-      // Prefer an already migrated same-account credential after an interrupted migration.
-      val existing = secureStore.read()
-      if (existing?.userId != user.id) secureStore.write(StoredCredentials(user.id, AuthTokens(access, refresh)))
-      val saved = secureStore.read()
-      check(saved?.userId == user.id && saved.tokens.accessToken.isNotBlank()) { "Credential migration verification failed" }
+    if ("accessToken" in obj || "refreshToken" in obj) {
+      val access = obj["accessToken"]?.jsonPrimitive?.contentOrNull.orEmpty()
+      if (access.isNotBlank()) {
+        val refresh = obj["refreshToken"]?.jsonPrimitive?.contentOrNull.orEmpty()
+        // Prefer an already migrated same-account credential after an interrupted migration.
+        val existing = secureStore.read()
+        if (existing?.userId != user.id) secureStore.write(StoredCredentials(user.id, AuthTokens(access, refresh)))
+        val saved = secureStore.read()
+        check(
+          saved?.userId == user.id && saved.tokens.accessToken.isNotBlank(),
+        ) { "Credential migration verification failed" }
+      }
+      prefsDataStore.edit { it[userKey] = json.encodeToString(user) }
     }
-    prefsDataStore.edit { it[userKey] = json.encodeToString(user) }
   }
 }

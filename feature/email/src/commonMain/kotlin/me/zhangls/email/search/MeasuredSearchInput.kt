@@ -18,8 +18,9 @@ import androidx.compose.ui.unit.constrainWidth
 @Composable
 internal fun MeasuredSearchInput(
   measurementKey: Any,
+  measurementField: @Composable () -> Unit,
   modifier: Modifier = Modifier,
-  inputField: @Composable (measuring: Boolean) -> Unit,
+  inputField: @Composable () -> Unit,
 ) {
   val density = LocalDensity.current
   val layoutDirection = LocalLayoutDirection.current
@@ -29,7 +30,7 @@ internal fun MeasuredSearchInput(
   SubcomposeLayout(modifier = modifier) { constraints ->
     val naturalWidth = measurement.width ?: subcompose(SearchInputSlot.Measurement) {
       Box(Modifier.clearAndSetSemantics {}, propagateMinConstraints = true) {
-        inputField(true)
+        measurementField()
       }
     }.single().measure(constraints).width.also {
       // 零宽宿主尚未就绪，不把临时零尺寸保留为基准。
@@ -37,7 +38,7 @@ internal fun MeasuredSearchInput(
     }
     val width = constraints.constrainWidth(naturalWidth)
     val input = subcompose(SearchInputSlot.Input) {
-      inputField(false)
+      inputField()
     }.single().measure(constraints.copy(minWidth = width, maxWidth = width))
     layout(input.width, input.height) {
       input.placeRelative(0, 0)
