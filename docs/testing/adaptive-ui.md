@@ -31,19 +31,28 @@
 
 模块 detekt 未通过：composeApp 113 项、feature:main 9 项，包含格式问题及签名／缩进规则冲突。分层首轮快照对比为 135／9 项，修改前为 126／9 项，新增 10 项为两空格函数签名触发的 `FunctionSignature` 提示，并清除 1 项 import 排序问题；临时副本验证四空格签名又触发两空格 `Indentation` 规则。保留项目风格，未修改规则、baseline 或添加绕过标记。
 
+当前测试归属：显示、几何与像素回归位于 `core:navigation`，应用外壳、场景选择、Tab 与真实 Feature 集成回归位于 `composeApp`。上文数量为分层需求的历史证据，不代表模块拆分后重新执行的结果。
+
+2026-10-27 模块拆分回归：Android API 37 / Robolectric Native Graphics 下，`core:navigation` 分批执行 16 项全部通过；完整 `composeApp` 执行 166 项通过、629 项按场景跳过、0 失败/错误。Android `assembleDebug` 的四个变体通过；iOS 组合根编译通过，导航模块在首次综合构建中实际编译、最终复核为 `UP-TO-DATE`，未执行 iOS 运行时或双端设备验收，正式截图基线未更新。
+
+首次将完整测试、多变体 dex 与 iOS 编译合并执行时，Gradle 报告 GC thrashing，进程终止前窄屏 `tabSwitchDisposesAnInFlightDetailTransition` 出现一次断言失败；该次运行没有完整验收结果。拆分前 HEAD 临时快照及拆分后工作区分别独立执行此方法，均为 2 通过、15 条件跳过；完整应用测试在单次 8GB Gradle 堆、2 个 worker 下独立重跑通过，随后独立完成整包构建。未确认首次断言失败的根因，不因单次重跑通过关闭联合稳定性待验收项。
+
+拆分后 detekt 未通过：`composeApp` 41 项、`core:navigation` 77 项。与拆分前组合根报告按文件名、规则和消息逐条对照，113 项原有问题全部保留（其中 72 项随实现迁移）；新增 5 项均来自公开显示包装器的 `FunctionSignature` 提示，与上文两/四空格签名规则冲突一致。本次保持项目风格，没有修改规则、baseline 或添加绕过；不把静态检查标记通过。
+
 可重复执行：
 
 ```bash
 ./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' \
-  --tests '*LayeredNavDisplayTest*' --tests '*ProfileNavigationTest*' --tests '*BackdropMotionTest*' \
+  --tests '*LayeredNavDisplayTest*' --tests '*ProfileNavigationTest*' \
   --tests '*AboutUiTest*' --tests '*AboutAppInfoTest*' --tests '*TabNavigationTest*' \
   --tests '*NavBackStackSerializationTest*' --tests '*AppSceneStrategiesTest*' \
-  --tests '*PageMotionGeometryTest*' --tests '*DeviceCornerShapeTest*' --tests '*DeviceCornerOpacityTest*' \
+  :core:navigation:testAndroidHostTest --tests '*PageMotionGeometryTest*' \
+  --tests '*DeviceCornerShapeTest*' --tests '*DeviceCornerOpacityTest*' --tests '*BackdropMotionTest*' \
   :feature:main:testAndroidHostTest :androidApp:assembleDevFullDebug :composeApp:compileKotlinIosSimulatorArm64
 
 # Native 像素用例分别执行，联合稳定性另行跟踪
-./gradlew :composeApp:testAndroidHostTest --tests '*PageMotionNavigationTest*'
-./gradlew :composeApp:testAndroidHostTest --tests '*DeviceCornerNavigationTest*'
+./gradlew :core:navigation:testAndroidHostTest --tests '*PageMotionNavigationTest*'
+./gradlew :core:navigation:testAndroidHostTest --tests '*DeviceCornerNavigationTest*'
 ```
 
 未完成事项见 [集中清单](pending-acceptance.md)。

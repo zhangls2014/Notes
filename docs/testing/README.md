@@ -12,12 +12,15 @@
 | `core:data` | `commonTest`、`iosTest` | 用户资料/登录凭据协调、明文迁移与真实 Keychain 集成边界 |
 | `core:database` | `commonTest`、`iosTest` | 收件人编码与历史 schema 迁移 |
 | `core:theme` | `commonTest` | 铰链几何 |
+| `core:navigation` | `androidHostTest` | 页面几何、设备圆角、预测返回与遮罩逐帧回归 |
 | `core:framework` | `iosTest` | 原生 Toast 布局、Dynamic Type 与播报调度 |
 | `feature:main` | `commonTest` | 导航套件尺寸策略 |
 | `feature:login` | `commonTest` | 登录窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
 | `feature:email` | `androidHostTest` | 邮件列表无障碍操作与新建邮件表单 |
 | `feature:profile` | `androidHostTest` | 头像复制/清理、原子更新、ViewModel 与页面交互 |
 | `feature:about` | 由组合根测试覆盖 | `AboutAppInfoTest`、`AboutUiTest` 与自适应导航回归 |
+
+导航显示机制的测试位于 `core/navigation/src/androidHostTest/kotlin/me/zhangls/navigation/`，只依赖本模块与测试库；`LayeredNavDisplayTest`、`AppSceneStrategiesTest`、Tab 和序列化测试继续在组合根验证。Native 像素用例分批命令见 [自适应 UI 回归](adaptive-ui.md)。
 
 API 模块不承载页面测试；跨 Feature 导航和真实 Entry 装配在 `composeApp` 验证。模块目录对应 Gradle 路径，例如 `feature/profile` 对应 `:feature:profile`。
 
@@ -28,6 +31,7 @@ API 模块不承载页面测试；跨 Feature 导航和真实 Entry 装配在 `c
 ```bash
 ./gradlew :composeApp:testAndroidHostTest :core:data:testAndroidHostTest \
   :core:database:testAndroidHostTest :core:theme:testAndroidHostTest \
+  :core:navigation:testAndroidHostTest \
   :feature:main:testAndroidHostTest :feature:login:testAndroidHostTest \
   :feature:email:testAndroidHostTest :feature:profile:testAndroidHostTest
 ```

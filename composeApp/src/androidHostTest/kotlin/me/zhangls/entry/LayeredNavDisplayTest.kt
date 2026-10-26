@@ -29,6 +29,8 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.main.api.HomeDestination
+import me.zhangls.navigation.PageExitFadeDuration
+import me.zhangls.navigation.PredictiveMotionDuration
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.api.ProfileOrigin
 import me.zhangls.theme.ComposeAppTheme

@@ -33,6 +33,7 @@ kotlin {
         implementation(projects.core.preference)
         implementation(projects.core.network)
         implementation(projects.core.framework)
+        implementation(projects.core.navigation)
         // 依赖 email 契约(api)；AppNavHost 引用 EmailDetailDestination
         implementation(projects.feature.emailApi)
         implementation(projects.feature.email)
@@ -51,7 +52,6 @@ kotlin {
 
         implementation(kmp.androidx.lifecycle.viewmodel.navigation3)
         implementation(kmp.jetbrains.navigation3.ui)
-        implementation(kmp.androidx.navigationevent.compose)
         // 列表-详情场景策略：NavDisplay 的 sceneStrategies 用它装配"列表栏 + 详情栏"，
         // 于是"首页分栏 / 收藏页整页替换"这两种表现合一，且两端 directive 口径一致
         implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)

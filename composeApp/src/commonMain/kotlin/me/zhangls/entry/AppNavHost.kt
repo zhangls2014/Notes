@@ -30,6 +30,7 @@ import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.mainNavEntries
+import me.zhangls.navigation.PaneWindowInsets
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.profileNavEntry
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo

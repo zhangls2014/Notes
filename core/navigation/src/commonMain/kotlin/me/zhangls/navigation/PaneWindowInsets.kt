@@ -1,4 +1,4 @@
-package me.zhangls.entry
+package me.zhangls.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
 /** Consume space outside this pane without padding or moving the pane itself. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun PaneWindowInsets(content: @Composable () -> Unit) {
+fun PaneWindowInsets(content: @Composable () -> Unit) {
   val outsidePane = remember { MutableWindowInsets() }
   Box(
     modifier = Modifier

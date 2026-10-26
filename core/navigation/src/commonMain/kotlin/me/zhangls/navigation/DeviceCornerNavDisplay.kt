@@ -1,4 +1,4 @@
-package me.zhangls.entry
+package me.zhangls.navigation
 
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
@@ -49,8 +49,8 @@ import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 
-internal const val PredictiveMotionDuration = 220
-internal const val PageExitFadeDuration = 120
+const val PredictiveMotionDuration = 220
+const val PageExitFadeDuration = 120
 private const val PreviewTimelineFraction = PredictiveMotionDuration.toFloat() / (PredictiveMotionDuration + PageExitFadeDuration)
 private val SheetBackEasing = CubicBezierEasing(0.1f, 0.1f, 0f, 1f)
 private val LocalPredictiveGestureProgress = staticCompositionLocalOf<() -> Float?> { { null } }
@@ -60,8 +60,8 @@ private val LocalActiveEntryKeys = staticCompositionLocalOf<Set<Any>> { emptySet
 private val LocalPageMotionState = staticCompositionLocalOf<PageMotionState?> { null }
 
 /** Read the same curve as the page layer, without copying progress through an effect. */
-internal class PageMotionState {
-  val readers = mutableStateMapOf<Any, () -> Float>()
+class PageMotionState {
+  internal val readers = mutableStateMapOf<Any, () -> Float>()
   val hasPages: Boolean get() = readers.isNotEmpty()
   val navigationProgress: Float
     get() = when (readers.size) {
@@ -76,11 +76,29 @@ internal class PageMotionState {
 
 /** Single-page entry, return and predictive back share the Material bottom sheet scale curve. */
 @Composable
+fun <T : Any> DeviceCornerNavDisplay(
+  entries: List<NavEntry<T>>,
+  sceneStrategies: List<SceneStrategy<T>>,
+  onBack: () -> Unit,
+  backEnabled: Boolean? = null,
+  pageMotionState: PageMotionState? = null,
+) {
+  DeviceCornerNavDisplay(
+    entries = entries,
+    sceneStrategies = sceneStrategies,
+    onBack = onBack,
+    corners = rememberDeviceCorners(),
+    backEnabled = backEnabled,
+    pageMotionState = pageMotionState,
+  )
+}
+
+@Composable
 internal fun <T : Any> DeviceCornerNavDisplay(
   entries: List<NavEntry<T>>,
   sceneStrategies: List<SceneStrategy<T>>,
   onBack: () -> Unit,
-  corners: DeviceCorners? = rememberDeviceCorners(),
+  corners: DeviceCorners?,
   backEnabled: Boolean? = null,
   pageMotionState: PageMotionState? = null,
 ) {

@@ -31,6 +31,7 @@ Gradle 中启用的模块：
 :core:preference
 :core:network
 :core:framework
+:core:navigation
 
 :feature:main       :feature:main-api
 :feature:login      :feature:login-api
@@ -43,7 +44,7 @@ Gradle 中启用的模块：
 :android:output:login
 ```
 
-`settings.gradle.kts` 当前包含 23 个模块；`build-logic` 通过 `includeBuild` 提供约定插件，不计入这 23 个模块。`iosApp` 是 Xcode 工程，不是 Gradle 模块。
+`settings.gradle.kts` 当前包含 24 个模块；`build-logic` 通过 `includeBuild` 提供约定插件，不计入这 24 个模块。`iosApp` 是 Xcode 工程，不是 Gradle 模块。
 
 ## 2. 模块职责
 
@@ -69,7 +70,8 @@ Gradle 中启用的模块：
 | `core:theme` | 主题、图标、通用 Compose 组件、内容宽度和窗口事实 |
 | `core:preference` | 设置项展示元数据、通用设置控件和渲染契约 |
 | `core:network` | Ktor 客户端、认证、响应和错误封装 |
-| `core:framework` | MVI 基类、Navigation 3 抽象、Deep Link 和全局 Effect |
+| `core:framework` | MVI 基类、Navigation 3 契约、Deep Link 和全局 Effect |
+| `core:navigation` | 导航显示、预测返回转场、设备圆角和窗格安全区；不依赖 Feature，不拥有应用返回栈或业务导航策略 |
 
 `core:model` 的准入条件是：类型出现在数据模块的公开签名中，或同时被数据层与含 Compose 的基础模块消费。只服务一个 Feature 的类型留在该 Feature。
 
@@ -96,6 +98,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 |---|---|
 | 共享入口与装配 | `composeApp/src/commonMain/kotlin/me/zhangls/entry/`：`App.kt`、`AppNavHost.kt`、`NotesModule.kt`、`NavigationRegistry.kt` |
 | 返回栈与导航策略 | 同一包下的 `AppNavigationState.kt`、`NavHandler.kt`、`AppSceneStrategies.kt` |
+| 导航显示与转场 | `core/navigation/src/commonMain/kotlin/me/zhangls/navigation/`；设备圆角读取分别位于 `androidMain` / `iosMain` |
 | Feature 稳定契约 | `feature/<name>-api/src/commonMain/kotlin/me/zhangls/<name>/api/` |
 | Feature 页面与实现 | `feature/<name>/src/commonMain/kotlin/me/zhangls/<name>/`，业务状态放在 `mvi/`，页面放在 `ui/` 或业务子包 |
 | 数据公开面与内部实现 | `core/data/src/commonMain/kotlin/me/zhangls/data/` |
@@ -179,6 +182,10 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 状态跨进程持久化是 opt-in：`savedKey` 默认 `null`。只有确认状态体积小、可序列化且不含密码、token 或其他敏感数据时，才允许传入 key。`AppViewModel` 显式使用 `savedKey = "state"`；邮件、搜索和登录状态有意保持为纯内存态。
 
 ### Navigation 3
+
+导航显示机制位于 `core:navigation`：`DeviceCornerNavDisplay`、页面缩放/淡出与遮罩、设备圆角、`SafeAreaSceneStrategy` 和 `PaneWindowInsets`。模块不读取第二套窗口事实，不依赖 `core:framework` 或 Feature，也不持有应用返回栈。公开面仅包括显示入口、宿主协调外壳所需的只读页面进度、动画时长和安全区包装；设备圆角值、几何计算与事件桥接保持内部实现。设备圆角的 expect/actual 与显示机制一起维护。
+
+应用策略继续由 `composeApp` 拥有：`AppNavigationState`、`NavHandler`、`AppSceneStrategies`、`LayeredNavDisplay` 和 `TabFadeThrough`。`LayeredNavDisplay` 调用 `feature:main` 的 `AppShell`，并通过 `PageMotionState` 的只读进度协调外壳；显示模块内部维护进度读取器。`Destination`、`NavEffect`、`RequireLogin`、Deep Link 和导航贡献仍位于 `core:framework`，与显示机制分开维护。
 
 顶层导航保留首页、收藏、设置三个独立 Entry，各自拥有返回栈。Tab 根之间没有返回历史；根页面返回交还平台，详情返回所属列表。点击不同 Tab 调用组合根的 `NavHandler.selectTab`，恢复目标 Tab 的页面、滚动位置和多选状态；重选当前 Tab 不改变当前详情。显式导航到 Tab 目的地（如深链）则回到该 Tab 根页面。
 
