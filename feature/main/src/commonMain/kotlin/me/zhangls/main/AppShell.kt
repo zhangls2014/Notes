@@ -8,18 +8,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ShortNavigationBarDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.WideNavigationRailDefaults
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuite
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
@@ -41,6 +46,7 @@ import notes.feature.main.generated.resources.main_label_home
 import notes.feature.main.generated.resources.main_label_settings
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 /**
  * 一个 Tab 的展示信息。顺序即导航套件里的顺序。
@@ -70,14 +76,14 @@ private enum class MainTab(
  * @param selected 当前选中的 Tab，由返回栈决定；为 `null` 表示当前不在任何 Tab 内
  *   （如登录页），此时不显示导航套件
  * @param onSelectTab 点击某个 Tab
- * @param showNavigation 是否展示导航套件；次级页面可隐藏导航，仍保留所属 Tab
+ * @param navigationProgress 导航可见比例，与全屏页面的缩放进度共用；0 隐藏，1 完全显示
  * @param content 外壳内容，即 `NavDisplay`
  */
 @Composable
 fun AppShell(
   selected: TabDestination?,
   onSelectTab: (TabDestination) -> Unit,
-  showNavigation: Boolean = true,
+  navigationProgress: () -> Float = { 1f },
   content: @Composable () -> Unit,
 ) {
   if (selected == null) {
@@ -88,28 +94,55 @@ fun AppShell(
   // 窗口形态由组合根算一次后下发（`App` → `LocalWindowAdaptiveInfo`）。
   // 外壳不自己算：一个窗口只有一种形态，两处各算一次会在分屏拖拽 / 折叠时得到互相矛盾的答案。
   val adaptiveInfo = LocalWindowAdaptiveInfo.current
-  val layoutType = remember(adaptiveInfo, showNavigation) {
-    if (showNavigation) adaptiveInfo.navigationSuiteType() else NavigationSuiteType.None
-  }
+  val layoutType = remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
+  val visible by remember(navigationProgress) { derivedStateOf { navigationProgress() > 0f } }
+  val isBar = layoutType == NavigationSuiteType.ShortNavigationBarCompact ||
+    layoutType == NavigationSuiteType.ShortNavigationBarMedium
 
-  NavigationSuiteScaffold(
-    navigationSuiteItems = {
-      MainTab.entries.forEach { tab ->
-        item(
-          icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
-          label = { Text(stringResource(tab.label)) },
-          selected = tab.destination == selected,
-          onClick = { onSelectTab(tab.destination) },
-        )
-      }
-    },
-    layoutType = layoutType,
+  Surface(
+    color = NavigationSuiteScaffoldDefaults.containerColor,
+    contentColor = NavigationSuiteScaffoldDefaults.contentColor,
   ) {
-    Box(
-      Modifier
-        .consumeWindowInsets(layoutType.navigationSuiteInsets()),
-    ) {
-      content()
+    // The library scaffold starts its own animation. Reuse its components and measurement
+    // contract here, placing navigation directly from the page's current progress instead.
+    Layout(content = {
+      Box {
+        NavigationSuite(layoutType = layoutType) {
+          MainTab.entries.forEach { tab ->
+            item(
+              modifier = if (visible) Modifier else Modifier.clearAndSetSemantics {},
+              icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
+              label = { Text(stringResource(tab.label)) },
+              selected = tab.destination == selected,
+              onClick = { onSelectTab(tab.destination) },
+            )
+          }
+        }
+      }
+      Box(Modifier.consumeWindowInsets(if (visible) layoutType.navigationSuiteInsets() else WindowInsets(0, 0, 0, 0))) {
+        content()
+      }
+    }) { measurables, constraints ->
+      val navigation = measurables[0].measure(constraints.copy(minWidth = 0, minHeight = 0))
+      val fraction = navigationProgress().coerceIn(0f, 1f)
+      val occupied = ((if (isBar) navigation.height else navigation.width) * fraction).roundToInt()
+      val bodyConstraints = if (isBar) {
+        val height = constraints.maxHeight - occupied
+        constraints.copy(minHeight = height, maxHeight = height)
+      } else {
+        val width = constraints.maxWidth - occupied
+        constraints.copy(minWidth = width, maxWidth = width)
+      }
+      val body = measurables[1].measure(bodyConstraints)
+      layout(constraints.maxWidth, constraints.maxHeight) {
+        if (isBar) {
+          body.placeRelative(0, 0)
+          navigation.placeRelative(0, constraints.maxHeight - occupied)
+        } else {
+          body.placeRelative(occupied, 0)
+          navigation.placeRelative(occupied - navigation.width, 0)
+        }
+      }
     }
   }
 }
@@ -140,23 +173,9 @@ fun WindowAdaptiveInfo.navigationSuiteType(): NavigationSuiteType {
 }
 
 /**
- * 导航套件自己占用的那部分系统内边距。外壳必须把它**消费**掉，而不是像原先那样
- * "约定内容区少留白某一侧"（`NavigationPlacement` + `toContentPadding`）。
- *
- * 两个理由：
- *
- * 1. **库没消费**。`NavigationSuiteScaffold` 只对 `NavigationBar` / `NavigationRail` /
- *    `NavigationDrawer` 三种旧形态调用了 `consumeWindowInsets`；本应用实际使用的
- *    `ShortNavigationBar*` 与 `WideNavigationRail*` 全部落在它的 `else -> NoWindowInsets`
- *    分支上 —— 什么都不消费。若外壳不补上，内容区的 `Scaffold` 会把底部（或左侧）系统栏
- *    内边距再算一遍，与导航套件重复留白。
- * 2. **归零一侧是第二套真相**。原先"哪几边保留"由消费方各自换算，注释里也承认这份逻辑
- *    "原先在三个消费方各写了一遍并已漂移"；它当下没出问题，只是因为"库不消费"与
- *    "无条件归零那一侧"两件互相不知道的事凑巧互补。而且它把 `LayoutDirection.Ltr` 写死，
- *    RTL 下 Rail 落在右侧时内容会被压住。
- *
- * 消费之后内容区读到 0，各页面直接用 `Scaffold` 给的 padding。方向语义由
- * `WindowInsetsSides` 表达，RTL 问题不再存在。
+ * 导航有可见占位时，外壳消费导航所在侧的系统 Insets，避免页面 Scaffold 重复留白。
+ * 完全隐藏时不消费，让底层页面使用完整窗口的安全区。方向由 WindowInsetsSides
+ * 表达，侧栏在 RTL 下移动到右侧时仍消费实际的 Start 边。
  */
 @Composable
 private fun NavigationSuiteType.navigationSuiteInsets(): WindowInsets = when (this) {
@@ -168,8 +187,7 @@ private fun NavigationSuiteType.navigationSuiteInsets(): WindowInsets = when (th
   NavigationSuiteType.WideNavigationRailExpanded,
   -> WideNavigationRailDefaults.windowInsets.only(WindowInsetsSides.Start)
 
-  // 旧三形态由 NavigationSuiteScaffold 自己消费；None 表示不渲染导航套件。
-  // 这里再消费一次不会出错（consumeWindowInsets 会与已有值相减并夹到 0），但没必要。
+  // 当前导航策略只选择上面的 ShortNavigationBar / WideNavigationRail 形态。
   else -> WindowInsets(0, 0, 0, 0)
 }
 

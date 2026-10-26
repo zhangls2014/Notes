@@ -964,11 +964,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       val during = page.fetchSemanticsNode().boundsInRoot
       org.junit.Assert.assertEquals("Safe area moves with the centered page",
         (before.height - during.height) / 2f, during.top - before.top, 1f)
-      org.junit.Assert.assertEquals("Page center X stays fixed", before.center.x, during.center.x, 0.5f)
+      org.junit.Assert.assertEquals("Left-edge back preserves the inset opposite anchor",
+        before.left + before.width * 0.75f, during.left + during.width * 0.75f, 0.5f)
       org.junit.Assert.assertEquals("Page center Y stays fixed", before.center.y, during.center.y, 0.5f)
-      // Material child correction preserves the page content aspect ratio, including its safe area.
+      // Uniform scaling preserves the page content aspect ratio, including its safe area.
       org.junit.Assert.assertEquals("Scale includes safe-area height",
-        before.height * (1f - 48f / before.width), during.height, 1f)
+        before.height * 0.85f, during.height, 1f)
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
       repeat(3) { advancePageMotionBy(500); compose.waitForIdle() }
       org.junit.Assert.assertEquals("Cancellation restores the complete page", before,
@@ -1296,6 +1297,32 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     compose.onNodeWithText("Reply all").assertIsDisplayed()
     compose.onAllNodesWithText("Window layout 3").onLast().assertIsDisplayed()
+  }
+
+  @Test fun fullscreenProfileReturnPreservesMailPanesAcrossPostureChanges() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x1000" || scenario.fold != null)
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    settle()
+    fun panes() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes().map { it.boundsInRoot }
+    val before = panes()
+    compose.onNodeWithContentDescription("Profile").performClick()
+    waitFor("Change avatar")
+    settle()
+    compose.onNodeWithText("Reply all").assertDoesNotExist()
+    compose.onNodeWithContentDescription("Home").assertDoesNotExist()
+    if (scenario.fold != null) {
+      compose.runOnIdle { flat = !flat }
+      settle()
+    }
+    compose.onNodeWithContentDescription("Back").performClick()
+    settle()
+    compose.onNodeWithText("Reply all").assertIsDisplayed()
+    compose.onNodeWithContentDescription("Home").assertIsSelected()
+    org.junit.Assert.assertEquals("Returning restores the same mail panes at the same hinge geometry", before, panes())
   }
 
   @Test fun tabRootsReleaseBackAndDetailsReturnToFavorites() {

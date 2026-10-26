@@ -78,8 +78,8 @@ class DeviceCornerNavigationTest {
       compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(190f, 400f, 0.5f, BackEventCompat.EDGE_LEFT)) }
       compose.mainClock.advanceTimeByFrame()
       val halfway = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
-      // Material's total width reduction is capped at 48dp; even mid-gesture x=30 stays inside.
-      assertTrue("Page follows current progress within a frame", halfway[30, 400].red > 0.99f)
+      // The page stays at least 85% wide; x=60 remains inside throughout the gesture.
+      assertTrue("Page follows current progress within a frame", halfway[60, 400].red > 0.99f)
       assertTrue("Initial gesture frame must not expose an empty or blended page",
         halfway[0, 400] == Color.Red || halfway[0, 400].blue > 0.85f)
       repeat(3) { compose.mainClock.advanceTimeByFrame(); compose.waitForIdle() }
@@ -94,16 +94,16 @@ class DeviceCornerNavigationTest {
       compose.waitForIdle()
       val reversed = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
       assertTrue("Reversal follows the finger without a spring tail: " +
-        "bounds=${compose.onNodeWithTag("page-1").fetchSemanticsNode().boundsInRoot}, pixel=${reversed[16, 400]}",
-        reversed[16, 400].red > 0.99f)
+        "bounds=${compose.onNodeWithTag("page-1").fetchSemanticsNode().boundsInRoot}, pixel=${reversed[40, 400]}",
+        reversed[40, 400].red > 0.99f)
       compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(390f, 400f, 1f, BackEventCompat.EDGE_LEFT)) }
       advanceMotionBy(1000)
       val preview = compose.onNodeWithTag("surface").captureToImage().toPixelMap()
-      // Material sheet scaling removes 48dp of width and 24dp of height, anchored at the page center.
+      // The 85% page anchors at x=300, with its top-left bound at (45, 60).
       if (rounded) {
-        assertTrue("Rounded corner reveals previous page", preview[29, 53].blue > 0.85f)
+        assertTrue("Rounded corner reveals previous page", preview[50, 65].blue > 0.85f)
       } else {
-        assertTrue("Default animation keeps square corners", preview[29, 53].red > 0.9f)
+        assertTrue("Default animation keeps square corners", preview[50, 65].red > 0.9f)
       }
       assertTrue("Page center remains red", preview[200, 400].red > 0.9f)
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }

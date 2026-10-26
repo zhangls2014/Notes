@@ -87,20 +87,21 @@ class DeviceCornerOpacityTest {
       var fadingFrames = 0
       var opaqueShrinkingFrames = 0
       var previousRed = 1f
-      repeat(32) {
-        advanceMotionBy(16)
+      // The shrink can be slowed independently of the fade; sample both using actual frames.
+      repeat((PredictiveMotionDuration + PageExitFadeDuration) / 16 + 8) {
+        compose.mainClock.advanceTimeByFrame()
         compose.waitForIdle()
         val pixel = compose.onNodeWithTag("surface").captureToImage().toPixelMap()[200, 400]
         val bounds = compose.onAllNodesWithTag("page-ordinary-detail").fetchSemanticsNodes()
           .firstOrNull()?.boundsInRoot
-        if (bounds != null && bounds.width in 352.5f..399.5f) {
+        if (bounds != null && bounds.width in 340.5f..399.5f) {
           assertTrue("Shrinking finishes before the page starts fading", pixel.red > 0.99f)
           opaqueShrinkingFrames++
         }
         assertTrue("Return fades continuously toward the previous page", pixel.red <= previousRed + 0.01f)
         if (pixel.red in 0.2f..0.9f && pixel.blue > 0.05f) {
           assertTrue("Fading keeps the completed gesture scale", bounds != null &&
-            kotlin.math.abs(bounds.width - 352f) < 0.5f)
+            kotlin.math.abs(bounds.width - 340f) < 0.5f)
           fadingFrames++
         }
         previousRed = pixel.red
