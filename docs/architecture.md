@@ -149,7 +149,7 @@ Repository 接口和对外模型不得出现 Room 类型。数据库模型与公
 | `me.zhangls.kmp-compose` | Compose runtime、foundation、UI、resources 和 Material 3 |
 | `me.zhangls.kmp-compose-api` | 仅为 Feature API 注入 Compose runtime 与编译器 |
 | `me.zhangls.kmp-koin` | Koin 注解、BOM、Koin 编译器插件，并应用 KSP 插件供 Room 使用 |
-| `me.zhangls.detekt` | 根配置、各模块 baseline、手写 KMP 源集扫描和报告 |
+| `me.zhangls.detekt` | 根配置、各模块 baseline、手写 KMP 源集扫描、平台 compilation 类型解析、Compose Rules 和报告 |
 
 新增 Feature API 使用 `me.zhangls.kmp-compose-api`，不要自行重复配置 Compose 插件。依赖版本统一来自 `gradle/kmp.versions.toml`。
 
@@ -157,7 +157,9 @@ Koin 由 `io.insert-koin.compiler.plugin` 处理注解，通过 `org.koin.plugin
 
 共享模块统一启用 Android `withHostTest {}`；包含 Compose UI 的宿主测试目前位于 `composeApp`、`feature:email` 和 `feature:profile`，由各模块启用 Android 资源并声明 Robolectric/Compose 测试依赖。iOS target 为 `iosArm64` 与 `iosSimulatorArm64`，均输出静态 framework。测试选择与命令见 [测试指南](testing/README.md)。
 
-`me.zhangls.detekt` 扫描各模块实际存在的 Kotlin 源集，排除构建生成目录，使用模块自己的 `config/detekt/baseline.xml`。根 `detekt` 无源集，不能代表项目检查通过。
+`me.zhangls.detekt` 的普通任务扫描各模块实际存在的手写 Kotlin 源集，排除模块实际 `build` 目录，使用模块自己的 `config/detekt/baseline.xml`。类型解析任务保留插件提供的 Android compilation 源集、classpath 和 friend paths，生成类通过 classpath 参与符号解析；Native 源码的普通扫描不能代替 Native 编译和运行验证。Compose Rules 版本只在版本目录维护，当前版本全部规则启用，根配置仅保留偏离默认值的选项。任务入口与覆盖边界见[测试指南](testing/README.md#类型解析与-compose-检查)。根项目的无源码结果不能代表项目检查通过。
+
+IO dispatcher 由 `DataModule` 构造参数提供，默认使用 `Dispatchers.IO`，作为模块成员 provider 注册后供数据库、文件、邮件和头像流程注入。当前只注册一个 `CoroutineDispatcher`；测试显式传入测试 dispatcher。`core:database.create()` 的公开参数也允许注入，默认值保留原无参调用行为。模块 provider 放在 `DataModule` 内，避免 Native 跨模块顶层函数按返回类型包过滤的限制。
 
 ## 5. 运行时架构
 
@@ -204,7 +206,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
 
-首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。根导航通过 `rememberAppSceneStrategies` 为所有目的地装配统一场景策略：宽屏存在多个水平分区或平台报告横向铰链时，允许保留自适应单窗格场景及详情空态；仅由窄窗口高度达到 Expanded 而产生的多个纵向分区，不作为保留自适应单窗格场景的依据。实际多窗格仍由 Adaptive 接管，普通单页统一交给 Navigation 3 的页面场景。登录页内部的 `SupportingPaneScaffold` 独立消费原有 directive，继续保持左右分栏、纵向分区数限制为 1 和既有铰链处理，不受根场景选择影响。单窗格进入详情与按钮返回复用预测返回的中心缩放：进入时由缩小状态放大到完整页面，返回时由完整页面缩小退出；进入缩放使用 `PredictiveMotionDuration`；普通与手势返回都先保持不透明地补完缩小阶段，到达预览终点后才保持尺寸执行 `PageExitFadeDuration` 的页面淡出，列表保持原位，不使用横向滑动；拖动预览和取消恢复保持页面不透明；灰色遮罩透明度随缩放进度变化，最高为 24%。根导航通过 `DeviceCornerNavDisplay` 装配库的 SceneState 与返回事件；单页预测返回采用与新建邮件 Material 3 BottomSheet 相同的 CubicBezier(0.1, 0.1, 0, 1) 曲线；终点固定为原尺寸的 85%，横纵轴使用同一比例，不随页面宽度改变，保持文字与图片比例。普通进入／按钮返回在自身内容区内居中缩放；手势从物理左侧开始时锚定视口横向 75%、纵向 50% 处，从右侧开始时锚定横向 25%、纵向 50% 处（距对侧边缘均为视口宽度的 25%），拖动途中及松手后的取消／提交保持该锚点，恢复完整尺寸后清除；尺寸用于计算锚点偏移，缩放终点统一为 85%，不测量或补偿页面相对窗口的偏移。背景和圆角裁剪放在可见页面层内，以该层的实际尺寸为裁剪边界，避免底部圆角落在页面之外或残留背景遮挡上一页。只有页面参与变换，外壳不缩放。缩放时在上一页与当前页面之间绘制灰色遮罩，透明度为 24% 乘以当前缩放进度；手势取消时遮罩直接随缩放进度回退；普通／手势提交均在剩余缩小完成后，与页面共用 `commitProgress()` 淡出，淡出时长由 `PageExitFadeDuration` 决定。遮罩透明度统一为 `0.24 × motionProgress × 页面不透明度`，不维护独立计时器，页面消失时归零。遮罩不参与缩放；邮件详情的遮罩只覆盖内容区，个人信息／关于应用的遮罩覆盖包含底层导航在内的完整窗口。单页邮件详情的 Scaffold 全尺寸绘制，包括状态栏下方的安全区域背景；安全区仅用于页面内部内容避让，不在缩放层之外预留顶部 padding。系统状态栏图标不属于应用页面。绘制层直接读取原始手势状态，拖动不经过弹簧动画的时间采样；仅供 NavDisplay 使用的事件输入将预览映射到 `PredictiveMotionDuration / (PredictiveMotionDuration + PageExitFadeDuration)`，为手势达到 100% 后仍保留完整的页面淡出时长。取消时反向映射为原始缩放进度；提交时从松手姿态保持不透明地补完剩余缩小，再固定最终姿态淡出，淡出结束后移除页面与遮罩。普通返回自动播放完整的缩小阶段，两条路径使用同一缩小/淡出阶段边界；进入和取消不淡出。当前缩小时长为 220ms、页面淡出时长为 120ms；十倍调试时长已用于过程验证，测试按实际时长取样。独立事件分发器仅驱动场景动画，不拥有导航栈，随显示容器销毁而释放。Android 通过 AndroidX Core 的 `ViewCompat.getRootWindowInsets()` 和 `WindowInsetsCompat.getRoundedCorner()` 读取当前窗口四角半径（底层圆角能力要求 Android 12+），对参与缩放的单页 Scene 添加以页面实际边界为轮廓的圆角裁剪，半径按页面最终缩放比例补偿，拖动期间显示半径不随手势进度变化；取消返回时，圆角可见度按当前页面缩放进度相对松手时缩放进度的比例同步回退，页面恢复完整尺寸时一并恢复未裁剪轮廓并解除裁剪，不再追加独立的圆角恢复动画。分栏 Scene、应用外壳与浮层不增加该变换或裁剪；平台读取结果为 `null` 时，两端统一采用 48dp 默认半径（对应 iOS 逻辑长度 48pt），并按当前 Compose density 转为 px；系统提供的零半径保留，不触发默认值。iOS 当前仍未读取原生圆角，因此使用该默认值。默认值由 Xander 指定为 48pt（2026-10-07），作为两端共用的设计值，不再采用机型表中位数；不引入第三方圆角库或调用私有 API。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
+首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。根导航通过 `rememberAppSceneStrategies` 为所有目的地装配统一场景策略：宽屏存在多个水平分区或平台报告横向铰链时，允许保留自适应单窗格场景及详情空态；仅由窄窗口高度达到 Expanded 而产生的多个纵向分区，不作为保留自适应单窗格场景的依据。实际多窗格仍由 Adaptive 接管，普通单页统一交给 Navigation 3 的页面场景。登录页内部的 `SupportingPaneScaffold` 独立消费原有 directive，继续保持左右分栏、纵向分区数限制为 1 和既有铰链处理，不受根场景选择影响。单窗格进入详情与按钮返回复用预测返回的中心缩放：进入时由缩小状态放大到完整页面，返回时由完整页面缩小退出；进入缩放使用 `PREDICTIVE_MOTION_DURATION`；普通与手势返回都先保持不透明地补完缩小阶段，到达预览终点后才保持尺寸执行 `PAGE_EXIT_FADE_DURATION` 的页面淡出，列表保持原位，不使用横向滑动；拖动预览和取消恢复保持页面不透明；灰色遮罩透明度随缩放进度变化，最高为 24%。根导航通过 `DeviceCornerNavDisplay` 装配库的 SceneState 与返回事件；单页预测返回采用与新建邮件 Material 3 BottomSheet 相同的 CubicBezier(0.1, 0.1, 0, 1) 曲线；终点固定为原尺寸的 85%，横纵轴使用同一比例，不随页面宽度改变，保持文字与图片比例。普通进入／按钮返回在自身内容区内居中缩放；手势从物理左侧开始时锚定视口横向 75%、纵向 50% 处，从右侧开始时锚定横向 25%、纵向 50% 处（距对侧边缘均为视口宽度的 25%），拖动途中及松手后的取消／提交保持该锚点，恢复完整尺寸后清除；尺寸用于计算锚点偏移，缩放终点统一为 85%，不测量或补偿页面相对窗口的偏移。背景和圆角裁剪放在可见页面层内，以该层的实际尺寸为裁剪边界，避免底部圆角落在页面之外或残留背景遮挡上一页。只有页面参与变换，外壳不缩放。缩放时在上一页与当前页面之间绘制灰色遮罩，透明度为 24% 乘以当前缩放进度；手势取消时遮罩直接随缩放进度回退；普通／手势提交均在剩余缩小完成后，与页面共用 `commitProgress()` 淡出，淡出时长由 `PAGE_EXIT_FADE_DURATION` 决定。遮罩透明度统一为 `0.24 × motionProgress × 页面不透明度`，不维护独立计时器，页面消失时归零。遮罩不参与缩放；邮件详情的遮罩只覆盖内容区，个人信息／关于应用的遮罩覆盖包含底层导航在内的完整窗口。单页邮件详情的 Scaffold 全尺寸绘制，包括状态栏下方的安全区域背景；安全区仅用于页面内部内容避让，不在缩放层之外预留顶部 padding。系统状态栏图标不属于应用页面。绘制层直接读取原始手势状态，拖动不经过弹簧动画的时间采样；仅供 NavDisplay 使用的事件输入将预览映射到 `PREDICTIVE_MOTION_DURATION / (PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION)`，为手势达到 100% 后仍保留完整的页面淡出时长。取消时反向映射为原始缩放进度；提交时从松手姿态保持不透明地补完剩余缩小，再固定最终姿态淡出，淡出结束后移除页面与遮罩。普通返回自动播放完整的缩小阶段，两条路径使用同一缩小/淡出阶段边界；进入和取消不淡出。当前缩小时长为 220ms、页面淡出时长为 120ms；十倍调试时长已用于过程验证，测试按实际时长取样。独立事件分发器仅驱动场景动画，不拥有导航栈，随显示容器销毁而释放。Android 通过 AndroidX Core 的 `ViewCompat.getRootWindowInsets()` 和 `WindowInsetsCompat.getRoundedCorner()` 读取当前窗口四角半径（底层圆角能力要求 Android 12+），对参与缩放的单页 Scene 添加以页面实际边界为轮廓的圆角裁剪，半径按页面最终缩放比例补偿，拖动期间显示半径不随手势进度变化；取消返回时，圆角可见度按当前页面缩放进度相对松手时缩放进度的比例同步回退，页面恢复完整尺寸时一并恢复未裁剪轮廓并解除裁剪，不再追加独立的圆角恢复动画。分栏 Scene、应用外壳与浮层不增加该变换或裁剪；平台读取结果为 `null` 时，两端统一采用 48dp 默认半径（对应 iOS 逻辑长度 48pt），并按当前 Compose density 转为 px；系统提供的零半径保留，不触发默认值。iOS 当前仍未读取原生圆角，因此使用该默认值。默认值由 Xander 指定为 48pt（2026-10-07），作为两端共用的设计值，不再采用机型表中位数；不引入第三方圆角库或调用私有 API。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
 
 ### 自适应布局
 
@@ -244,7 +246,7 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 
 应用内功能图标统一来自 [Google Fonts Material Symbols](https://fonts.google.com/icons)，采用 Rounded，默认未填充（`FILL=0`），由 `core:theme` 提供共享矢量。明确的填充变体允许保留，`StarFill` 使用官方 `FILL=1` 版本表达收藏状态。这里的未填充指 Material Symbols 的 FILL 轴，并非要求矢量路径不使用填充绘制。登录页、关于应用页与桌面启动图标属于品牌图标，保留现有设计；品牌图标的深浅色适配独立于功能图标风格约束。
 
-功能图标由 `tools/material-symbols/generate.py` 从固定版本的 Google 官方 Rounded SVG 生成，默认参数为 `FILL=0 / wght=400 / GRAD=0 / opsz=24`，填充例外在 manifest 中显式记录；原始 SVG、名称映射、版本与 SHA-256 一并保存。`--check` 校验来源文件、生成输出和目录清单。生成 Kotlin 去掉原始注释，import 与正文之间保留两行空行，沿用缓存属性与 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。邮件收藏保留 Star/StarFill 切换，同时使用主题按钮颜色及无障碍文案表达状态。
+功能图标由 `tools/material-symbols/generate.py` 从固定版本的 Google 官方 Rounded SVG 生成，默认参数为 `FILL=0 / wght=400 / GRAD=0 / opsz=24`，填充例外在 manifest 中显式记录；原始 SVG、名称映射、版本与 SHA-256 一并保存。`--check` 校验来源文件、生成输出和目录清单。生成 Kotlin 去掉原始注释，缓存属性使用 `cached<Name>` 命名并保持原有惰性复用机制，保留 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。邮件收藏保留 Star/StarFill 切换，同时使用主题按钮颜色及无障碍文案表达状态。
 
 共享 UI 的主题入口是 `core:theme/ComposeAppTheme`，使用 `MaterialExpressiveTheme` 和 `MotionScheme.expressive()`。字体与形状分别由同模块的 `AppTypography`、`AppShapes` 提供；标题与操作标签使用强调字重，正文保留 Material 原有尺寸。Typography 显式使用带 fontFamily 的构造器，避免兼容无参构造器把强调样式映射回普通样式。
 

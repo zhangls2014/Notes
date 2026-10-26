@@ -18,5 +18,5 @@ data class SearchState(
   val user: UserModel? = null,
   val searchText: String = "",
   val searchBarValue: SearchBarValue = SearchBarValue.Collapsed,
-  val searchHistory: List<String> = emptyList()
+  val searchHistory: List<String> = emptyList(),
 ) : MviState

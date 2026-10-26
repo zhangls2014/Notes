@@ -10,9 +10,9 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -43,15 +43,17 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEvent
 import androidx.navigationevent.NavigationEventDispatcher
 import androidx.navigationevent.NavigationEventDispatcherOwner
-import androidx.navigationevent.NavigationEventInput
 import androidx.navigationevent.NavigationEventHandler
+import androidx.navigationevent.NavigationEventInput
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import kotlinx.collections.immutable.ImmutableList
 
-const val PredictiveMotionDuration = 220
-const val PageExitFadeDuration = 120
-private const val PreviewTimelineFraction = PredictiveMotionDuration.toFloat() / (PredictiveMotionDuration + PageExitFadeDuration)
+const val PREDICTIVE_MOTION_DURATION = 220
+const val PAGE_EXIT_FADE_DURATION = 120
+private const val PREVIEW_TIMELINE_FRACTION =
+  PREDICTIVE_MOTION_DURATION.toFloat() / (PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION)
 private val SheetBackEasing = CubicBezierEasing(0.1f, 0.1f, 0f, 1f)
 private val LocalPredictiveGestureProgress = staticCompositionLocalOf<() -> Float?> { { null } }
 private data class GestureAnchor(val x: Float, val committed: Boolean = false)
@@ -77,8 +79,8 @@ class PageMotionState {
 /** Single-page entry, return and predictive back share the Material bottom sheet scale curve. */
 @Composable
 fun <T : Any> DeviceCornerNavDisplay(
-  entries: List<NavEntry<T>>,
-  sceneStrategies: List<SceneStrategy<T>>,
+  entries: ImmutableList<NavEntry<T>>,
+  sceneStrategies: ImmutableList<SceneStrategy<T>>,
   onBack: () -> Unit,
   backEnabled: Boolean? = null,
   pageMotionState: PageMotionState? = null,
@@ -95,8 +97,8 @@ fun <T : Any> DeviceCornerNavDisplay(
 
 @Composable
 internal fun <T : Any> DeviceCornerNavDisplay(
-  entries: List<NavEntry<T>>,
-  sceneStrategies: List<SceneStrategy<T>>,
+  entries: ImmutableList<NavEntry<T>>,
+  sceneStrategies: ImmutableList<SceneStrategy<T>>,
   onBack: () -> Unit,
   corners: DeviceCorners?,
   backEnabled: Boolean? = null,
@@ -105,8 +107,11 @@ internal fun <T : Any> DeviceCornerNavDisplay(
   val resolvedCorners = corners.orDefault(LocalDensity.current)
   val strategies = remember(sceneStrategies, resolvedCorners) {
     sceneStrategies.map { strategy ->
-      if (strategy is SinglePaneSceneStrategy<T>) DeviceCornerSceneStrategy(strategy, resolvedCorners)
-      else strategy
+      if (strategy is SinglePaneSceneStrategy<T>) {
+        DeviceCornerSceneStrategy(strategy, resolvedCorners)
+      } else {
+        strategy
+      }
     }
   }
   val sceneState = rememberSceneState(entries = entries, sceneStrategies = strategies, onBack = onBack)
@@ -164,7 +169,9 @@ internal fun <T : Any> DeviceCornerNavDisplay(
   }
 }
 
-private class PageTransitionInput : NavigationEventInput(), NavigationEventDispatcherOwner {
+private class PageTransitionInput :
+  NavigationEventInput(),
+  NavigationEventDispatcherOwner {
   override val navigationEventDispatcher = NavigationEventDispatcher().also { it.addInput(this) }
   private var lastEvent: NavigationEvent? = null
   private var gestureSceneKey: Any? = null
@@ -184,8 +191,13 @@ private class PageTransitionInput : NavigationEventInput(), NavigationEventDispa
       anchors[sceneKey] = GestureAnchor(anchorX)
     }
     gestureProgress = event.progress
-    val preview = NavigationEvent(event.swipeEdge, event.progress * PreviewTimelineFraction,
-      event.touchX, event.touchY, event.frameTimeMillis)
+    val preview = NavigationEvent(
+      event.swipeEdge,
+      event.progress * PREVIEW_TIMELINE_FRACTION,
+      event.touchX,
+      event.touchY,
+      event.frameTimeMillis,
+    )
     if (lastEvent == null) {
       dispatchOnBackStarted(preview)
     }
@@ -219,10 +231,8 @@ private class DeviceCornerSceneStrategy<T : Any>(
   }
 }
 
-private data class DeviceCornerScene<T : Any>(
-  val delegate: Scene<T>,
-  val corners: DeviceCorners?,
-) : Scene<T> by delegate {
+private data class DeviceCornerScene<T : Any>(val delegate: Scene<T>, val corners: DeviceCorners?) :
+  Scene<T> by delegate {
   override val content: @Composable () -> Unit = {
     val transition = LocalNavAnimatedContentScope.current.transition
     val readGestureProgress = LocalPredictiveGestureProgress.current
@@ -237,9 +247,18 @@ private data class DeviceCornerScene<T : Any>(
       transitionSpec = {
         // Root lists move between single-pane and list-detail scenes on resize. They never
         // scale out; retaining their scene for an invisible animation overlaps iOS overlays.
-        if (delegate.previousEntries.isEmpty()) snap()
-        else tween(if (gestureProgress != null || predictiveExit || committed)
-          PredictiveMotionDuration + PageExitFadeDuration else PredictiveMotionDuration, easing = LinearEasing)
+        if (delegate.previousEntries.isEmpty()) {
+          snap()
+        } else {
+          tween(
+            if (gestureProgress != null || predictiveExit || committed) {
+              PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION
+            } else {
+              PREDICTIVE_MOTION_DURATION
+            },
+            easing = LinearEasing,
+          )
+        }
       },
       label = "page scale progress",
     ) { if (it == EnterExitState.Visible) 0f else 1f }
@@ -248,36 +267,43 @@ private data class DeviceCornerScene<T : Any>(
     }
     SideEffect {
       if (gestureProgress != null && transition.currentState == EnterExitState.Visible &&
-        transition.targetState == EnterExitState.PostExit) {
+        transition.targetState == EnterExitState.PostExit
+      ) {
         predictiveExit = true
         lastGestureProgress = gestureProgress
       } else if (gestureProgress == null && transition.currentState == EnterExitState.Visible &&
-        transition.targetState == EnterExitState.Visible) {
+        transition.targetState == EnterExitState.Visible
+      ) {
         predictiveExit = false
       }
     }
     // Apply direct progress once NavDisplay has mounted the previous scene. Otherwise the very
     // first progress event would expose an empty frame before the scene seek effect has run.
-    val outgoing = predictiveExit || (gestureProgress != null &&
-      transition.currentState == EnterExitState.Visible && transition.targetState == EnterExitState.PostExit)
+    val outgoing = predictiveExit || (
+      gestureProgress != null &&
+        transition.currentState == EnterExitState.Visible && transition.targetState == EnterExitState.PostExit
+      )
     val ordinaryMotion = delegate.previousEntries.isNotEmpty() &&
       (transition.currentState != EnterExitState.Visible || transition.targetState != EnterExitState.Visible)
     val transforming = outgoing || ordinaryMotion
-    fun commitProgress(): Float {
-      return ((timelineProgress - PreviewTimelineFraction) / (1f - PreviewTimelineFraction)).coerceIn(0f, 1f)
-    }
+    fun commitProgress(): Float =
+      ((timelineProgress - PREVIEW_TIMELINE_FRACTION) / (1f - PREVIEW_TIMELINE_FRACTION)).coerceIn(0f, 1f)
     fun pageOpacity(): Float = if (committed) 1f - commitProgress() else 1f
     fun motionProgress(): Float = if (transforming) {
       val progress = readGestureProgress() ?: if (committed || predictiveExit) {
-        timelineProgress / PreviewTimelineFraction
-      } else timelineProgress
+        timelineProgress / PREVIEW_TIMELINE_FRACTION
+      } else {
+        timelineProgress
+      }
       SheetBackEasing.transform(progress.coerceIn(0f, 1f))
-    } else 0f
+    } else {
+      0f
+    }
     val gestureEndedOnPage = gestureProgress == null && !committed
     val restored = gestureEndedOnPage && gestureAnchors?.containsKey(key) == true && motionProgress() == 0f
     SideEffect {
       // Reset from the visible pose, not a retained seek timeline; all anchors coincide at 100%.
-      if (restored) gestureAnchors?.remove(key)
+      if (restored) gestureAnchors.remove(key)
     }
     val motionState = LocalPageMotionState.current
     if (motionState != null && delegate.previousEntries.isNotEmpty()) {
@@ -286,42 +312,50 @@ private data class DeviceCornerScene<T : Any>(
         val reader = { readMotion() }
         motionState.readers[key] = reader
         onDispose {
-          if (motionState.readers[key] === reader) motionState.readers.remove(key)
+          if (motionState.readers[key] === reader) motionState.readers -= key
         }
       }
     }
     // Untransformed backdrop draws over the previous page and below the scaled current page.
-    Box(Modifier.fillMaxSize().drawBehind {
-      if (transforming) {
-        drawRect(Color.Gray.copy(alpha = 0.24f * motionProgress() * pageOpacity()))
-      }
-    }) {
-      Box(Modifier.fillMaxSize().graphicsLayer {
-        alpha = pageOpacity()
-        val fraction = motionProgress()
-        val anchor = gestureAnchors?.get(key)?.takeIf { !committed || it.committed }
-        val pose = PageMotionGeometry.transform(size, fraction, anchor?.x ?: 0.5f)
-        scaleX = pose.scaleX
-        scaleY = pose.scaleY
-        translationX = pose.translationX
-        translationY = pose.translationY
-        transformOrigin = TransformOrigin(0f, 0f)
-      }) {
-        // Clip the visible page, compensating corner radii for its uniform scale.
-        Box(Modifier.fillMaxSize().graphicsLayer {
+    Box(
+      Modifier.fillMaxSize().drawBehind {
+        if (transforming) {
+          drawRect(Color.Gray.copy(alpha = 0.24f * motionProgress() * pageOpacity()))
+        }
+      },
+    ) {
+      Box(
+        Modifier.fillMaxSize().graphicsLayer {
+          alpha = pageOpacity()
           val fraction = motionProgress()
-          val pose = PageMotionGeometry.transform(size, fraction)
-          // This layer is the visible page. Its total X/Y scale is pose.scaleX on both axes.
-          clip = transforming
-          if (corners != null) {
-            // Cancellation reverses the same timeline as scale; committing keeps full corners.
-            val cornerVisibility = if (predictiveExit && readGestureProgress() == null) {
-              val releasedFraction = SheetBackEasing.transform(lastGestureProgress.coerceIn(0f, 1f))
-              if (releasedFraction > 0f) (fraction / releasedFraction).coerceIn(0f, 1f) else 0f
-            } else 1f
-            shape = DeviceCornerShape(corners, pose.scaleX, pose.scaleX, cornerVisibility)
-          }
-        }.background(if (transforming) MaterialTheme.colorScheme.background else Color.Transparent)) {
+          val anchor = gestureAnchors?.get(key)?.takeIf { !committed || it.committed }
+          val pose = PageMotionGeometry.transform(size, fraction, anchor?.x ?: 0.5f)
+          scaleX = pose.scaleX
+          scaleY = pose.scaleY
+          translationX = pose.translationX
+          translationY = pose.translationY
+          transformOrigin = TransformOrigin(0f, 0f)
+        },
+      ) {
+        // Clip the visible page, compensating corner radii for its uniform scale.
+        Box(
+          Modifier.fillMaxSize().graphicsLayer {
+            val fraction = motionProgress()
+            val pose = PageMotionGeometry.transform(size, fraction)
+            // This layer is the visible page. Its total X/Y scale is pose.scaleX on both axes.
+            clip = transforming
+            if (corners != null) {
+              // Cancellation reverses the same timeline as scale; committing keeps full corners.
+              val cornerVisibility = if (predictiveExit && readGestureProgress() == null) {
+                val releasedFraction = SheetBackEasing.transform(lastGestureProgress.coerceIn(0f, 1f))
+                if (releasedFraction > 0f) (fraction / releasedFraction).coerceIn(0f, 1f) else 0f
+              } else {
+                1f
+              }
+              shape = DeviceCornerShape(corners, pose.scaleX, pose.scaleX, cornerVisibility)
+            }
+          }.background(if (transforming) MaterialTheme.colorScheme.background else Color.Transparent),
+        ) {
           delegate.content()
         }
       }

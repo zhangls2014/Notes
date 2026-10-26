@@ -37,6 +37,7 @@ kotlin {
 
         // Paging3
         implementation(kmp.androidx.paging.compose)
+        implementation(kmp.jetbrains.kotlinx.collections.immutable)
 
       }
     }

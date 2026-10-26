@@ -50,6 +50,7 @@ kotlin {
         implementation(projects.feature.aboutApi)
         implementation(projects.feature.about)
 
+        implementation(kmp.jetbrains.kotlinx.collections.immutable)
         implementation(kmp.androidx.lifecycle.viewmodel.navigation3)
         implementation(kmp.jetbrains.navigation3.ui)
         // 列表-详情场景策略：NavDisplay 的 sceneStrategies 用它装配"列表栏 + 详情栏"，

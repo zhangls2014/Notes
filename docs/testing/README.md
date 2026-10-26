@@ -13,14 +13,16 @@
 | `core:database` | `commonTest`、`iosTest` | 收件人编码与历史 schema 迁移 |
 | `core:theme` | `commonTest` | 铰链几何 |
 | `core:navigation` | `androidHostTest` | 页面几何、设备圆角、预测返回与遮罩逐帧回归 |
-| `core:framework` | `iosTest` | 原生 Toast 布局、Dynamic Type 与播报调度 |
+| `core:framework` | `commonTest`、`iosTest` | Deep Link 字符串解析；原生 Toast 布局、Dynamic Type 与播报调度 |
 | `feature:main` | `commonTest` | 导航套件尺寸策略 |
-| `feature:login` | `commonTest` | 登录窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
+| `feature:login` | `commonTest` | 登录输入校验、窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
 | `feature:email` | `androidHostTest` | 邮件列表无障碍操作与新建邮件表单 |
 | `feature:profile` | `androidHostTest` | 头像复制/清理、原子更新、ViewModel 与页面交互 |
 | `feature:about` | 由组合根测试覆盖 | `AboutAppInfoTest`、`AboutUiTest` 与自适应导航回归 |
 
 导航显示机制的测试位于 `core/navigation/src/androidHostTest/kotlin/me/zhangls/navigation/`，只依赖本模块与测试库；`LayeredNavDisplayTest`、`AppSceneStrategiesTest`、Tab 和序列化测试继续在组合根验证。Native 像素用例分批命令见 [自适应 UI 回归](adaptive-ui.md)。
+
+`core/framework/src/commonTest/kotlin/` 按生产代码包结构镜像放置纯逻辑测试，文件使用 `<Subject>Test.kt`；Deep Link 解析用例放在 `me/zhangls/framework/deeplink/`，平台 Toast 用例继续保留在 `iosTest`。
 
 API 模块不承载页面测试；跨 Feature 导航和真实 Entry 装配在 `composeApp` 验证。模块目录对应 Gradle 路径，例如 `feature/profile` 对应 `:feature:profile`。
 
@@ -81,6 +83,36 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 # 按修改模块运行 detekt，例如个人信息和关于应用
 ./gradlew :feature:profile:detekt :feature:about:detekt
 ```
+
+`config/detekt/detekt.yml` 中各启用的 ktlint 规则独立读取 `indentSize`，签名、参数、表达式和换行规则均统一为 `2`，避免自动修正时重新引入四空格缩进。图标 import 与正文之间遵循 ktlint 的一行空行规则，不设项目格式例外。上述格式规则保持启用，不通过关闭检查或新增 baseline 消除格式差异。
+
+文件命名遵循根 AGENTS.md 的职责命名约定，KMP 平台文件沿用 `<Name>.android.kt`、`<Name>.ios.kt`。`naming.MatchingDeclarationName` 与 `ktlint.Filename` 的严格类型同名要求不作为项目门禁，两条规则统一关闭，不再维护逐文件或平台排除清单。文件名准确性及 PascalCase 由代码审查约束；类型、函数、属性命名及其他格式、异常和复杂度规则继续启用。
+
+### 类型解析与 Compose 检查
+
+KMP 的普通 `:<module>:detekt` 延迟读取全部已注册源集，扫描各平台手写源码，不带类型解析，避免遗漏后创建的宿主测试和 Native 目录。`detektMainAndroid`、`detektHostTestAndroid` 使用 detekt 插件提供的 Android production/host-test 源集、编译 classpath 和 friend paths；不能把 iOS 源码混入这些任务。生成源码按模块实际构建目录路径排除，生成类仍通过编译 classpath 参与符号解析。iOS 源码仍由普通扫描覆盖，Native 类型与平台 API 的正确性继续通过 iOS 编译和测试验证。
+
+在已配置 JDK 25 的环境串行执行：
+
+```bash
+# 所有 KMP 模块的生产与宿主测试语义检查
+./gradlew detektMainAndroid detektHostTestAndroid --continue
+
+# Android 宿主的代表性 Debug 变体
+./gradlew :androidApp:detektDevFullDebug :androidApp:detektDevFullDebugUnitTest --continue
+./gradlew :androidApp:detektDevFullDebugAndroidTest --continue
+
+# Baseline Profile 测试模块
+./gradlew :android:baselineprofile:detektDevBenchmarkRelease --continue
+```
+
+规则使用现有默认配置，并显式启用 `GlobalCoroutineUsage`、`CoroutineLaunchedInTestWithoutRunTest`、`SuspendFunSwallowedCancellation`。空安全和类型检查中要求类型解析的规则只有在上述 compilation 任务中才会运行，普通扫描零告警不能替代语义分析验收。
+
+用户确认的框架入口和测试源集适配：`UnusedPrivateFunction` 只忽略 `@Preview` 入口，其他私有函数继续检查；`MagicNumber` 保留内置测试目录排除列表并补入 AGP 9 的 `androidHostTest`，生产代码的数值检查不变。测试代码的其他格式、空安全、类型和协程规则仍执行。
+
+Compose Rules 使用 `io.nlopez.compose.rules:detekt:0.6.8`。其[发布说明](https://github.com/mrmans0n/compose-rules/releases/tag/v0.6.8)和 Maven POM 均依赖 detekt `2.0.0-alpha.6`，与项目分析引擎一致。按用户要求，当前版本全部 43 条规则启用；默认启用项不重复配置，仅显式启用默认关闭的 `ComposableNestingDepth`、`Material2`、`PreviewNaming`、`UnstableCollections`，覆盖命名、参数、状态、Effect、内容插槽、Modifier、CompositionLocal 和 ViewModel 等检查；规则选项保持库默认值，含类型解析要求的规则随 compilation 任务运行。规则清单以 `config/detekt/detekt.yml` 为准；升级时重新评审，不自动修复 UI 或更新 baseline。
+
+本机缺少全局 JDK 25 时，可按[升级规范](../dependency-upgrades.md)使用项目内发行版，并在命令前显式设置 `JAVA_HOME`；不修改系统注册。2026-10-27 的版本、路径、探针对照和覆盖扩展记录见[接入验证](../audits/2026-10-27-detekt-analysis.md)，该次告警数不代表以后提交的结果。
 
 根 `detekt` 没有源集，不作为有效检查。共享模块的 detekt 使用根配置与各模块 baseline，扫描手写 Kotlin 源集，排除生成目录。所有命令按需串行执行；同一仓库目录不得同时启动两个 Gradle 构建。整包构建出现 Java heap space 时使用 [AGENTS.md](../../AGENTS.md) 中的 8GB 堆参数。
 

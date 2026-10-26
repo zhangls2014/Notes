@@ -10,6 +10,6 @@ import org.koin.compose.koinInject
 
 fun EntryProviderScope<NavKey>.aboutNavEntry(appInfo: AboutAppInfo, effect: (NavEffect) -> Unit) {
   entry<AboutDestination> {
-    koinInject<AboutEntry>().Screen(appInfo, onBackPressed = { effect(NavEffect.Popup) })
+    koinInject<AboutEntry>().Screen(appInfo, onBack = { effect(NavEffect.Popup) })
   }
 }

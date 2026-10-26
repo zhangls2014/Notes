@@ -5,14 +5,10 @@ import platform.Foundation.NSBundle
 
 @Singleton(binds = [AppInfo::class])
 class IosAppInfo : AppInfo {
-  override fun getVersionName(): String {
-    return NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String ?: ""
-  }
+  override fun getVersionName(): String =
+    (NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String).orEmpty()
 
-  override fun getVersionCode(): Long {
-    return getBuildNumber()?.toLongOrNull() ?: 0L
-  }
+  override fun getVersionCode(): Long = getBuildNumber()?.toLongOrNull() ?: 0L
 
-  override fun getBuildNumber(): String? =
-    NSBundle.mainBundle.infoDictionary?.get("CFBundleVersion") as? String
+  override fun getBuildNumber(): String? = NSBundle.mainBundle.infoDictionary?.get("CFBundleVersion") as? String
 }

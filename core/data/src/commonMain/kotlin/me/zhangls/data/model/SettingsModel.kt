@@ -1,15 +1,14 @@
 package me.zhangls.data.model
 
 import kotlinx.serialization.Serializable
-import me.zhangls.model.FontSizeConfig
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
-
+import me.zhangls.model.FontSizeConfig
 
 @Serializable
 data class SettingsModel(
   val dynamicColor: Boolean = false,
   val darkTheme: DarkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
   val fontSize: FontSizeConfig = FontSizeConfig.STANDARD,
-  val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM
+  val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM,
 )

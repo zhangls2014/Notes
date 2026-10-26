@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ShortNavigationBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,8 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.window.core.layout.WindowSizeClass
@@ -51,11 +54,7 @@ import kotlin.math.roundToInt
 /**
  * 一个 Tab 的展示信息。顺序即导航套件里的顺序。
  */
-private enum class MainTab(
-  val destination: TabDestination,
-  val label: StringResource,
-  val icon: ImageVector,
-) {
+private enum class MainTab(val destination: TabDestination, val label: StringResource, val icon: ImageVector) {
   HOME(HomeDestination, Res.string.main_label_home, Icons.Rounded.Home),
   FAVORITES(FavoritesDestination, Res.string.main_label_favorites, Icons.Rounded.Favorite),
   SETTINGS(SettingsDestination, Res.string.main_label_settings, Icons.Rounded.Settings),
@@ -83,46 +82,71 @@ private enum class MainTab(
 fun AppShell(
   selected: TabDestination?,
   onSelectTab: (TabDestination) -> Unit,
+  modifier: Modifier = Modifier,
   navigationProgress: () -> Float = { 1f },
   content: @Composable () -> Unit,
 ) {
-  if (selected == null) {
-    content()
-    return
+  // Keep one surface and one content position when entering or leaving a Tab. Moving the
+  // NavDisplay subtree between branches conflicts with its own movable entry content.
+  val layoutType = if (selected == null) {
+    null
+  } else {
+    // 窗口事实由组合根提供；无导航时不读取或派生第二套窗口策略。
+    val adaptiveInfo = LocalWindowAdaptiveInfo.current
+    remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
+  }
+  val navigationVisible by remember(navigationProgress) { derivedStateOf { navigationProgress() > 0f } }
+  val visible = layoutType != null && navigationVisible
+  val measurePolicy = remember(layoutType, navigationProgress) {
+    navigationMeasurePolicy(layoutType, navigationProgress)
   }
 
-  // 窗口形态由组合根算一次后下发（`App` → `LocalWindowAdaptiveInfo`）。
-  // 外壳不自己算：一个窗口只有一种形态，两处各算一次会在分屏拖拽 / 折叠时得到互相矛盾的答案。
-  val adaptiveInfo = LocalWindowAdaptiveInfo.current
-  val layoutType = remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
-  val visible by remember(navigationProgress) { derivedStateOf { navigationProgress() > 0f } }
-  val isBar = layoutType == NavigationSuiteType.ShortNavigationBarCompact ||
-    layoutType == NavigationSuiteType.ShortNavigationBarMedium
-
   Surface(
-    color = NavigationSuiteScaffoldDefaults.containerColor,
-    contentColor = NavigationSuiteScaffoldDefaults.contentColor,
+    modifier = modifier,
+    color = if (layoutType == null) Color.Transparent else NavigationSuiteScaffoldDefaults.containerColor,
+    contentColor = if (layoutType == null) LocalContentColor.current else NavigationSuiteScaffoldDefaults.contentColor,
   ) {
     // The library scaffold starts its own animation. Reuse its components and measurement
     // contract here, placing navigation directly from the page's current progress instead.
-    Layout(content = {
-      Box {
-        NavigationSuite(layoutType = layoutType) {
-          MainTab.entries.forEach { tab ->
-            item(
-              modifier = if (visible) Modifier else Modifier.clearAndSetSemantics {},
-              icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
-              label = { Text(stringResource(tab.label)) },
-              selected = tab.destination == selected,
-              onClick = { onSelectTab(tab.destination) },
-            )
+    Layout(
+      content = {
+        if (layoutType != null) {
+          Box {
+            NavigationSuite(layoutType = layoutType) {
+              MainTab.entries.forEach { tab ->
+                item(
+                  modifier = if (visible) Modifier else Modifier.clearAndSetSemantics {},
+                  icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.label)) },
+                  label = { Text(stringResource(tab.label)) },
+                  selected = tab.destination == selected,
+                  onClick = { onSelectTab(tab.destination) },
+                )
+              }
+            }
           }
         }
-      }
-      Box(Modifier.consumeWindowInsets(if (visible) layoutType.navigationSuiteInsets() else WindowInsets(0, 0, 0, 0))) {
-        content()
-      }
-    }) { measurables, constraints ->
+        val contentModifier = if (layoutType == null) {
+          Modifier
+        } else {
+          Modifier.consumeWindowInsets(if (visible) layoutType.navigationSuiteInsets() else WindowInsets(0, 0, 0, 0))
+        }
+        Box(contentModifier, propagateMinConstraints = layoutType == null) {
+          content()
+        }
+      },
+      measurePolicy = measurePolicy,
+    )
+  }
+}
+
+private fun navigationMeasurePolicy(layoutType: NavigationSuiteType?, navigationProgress: () -> Float): MeasurePolicy =
+  MeasurePolicy { measurables, constraints ->
+    val isBar = layoutType == NavigationSuiteType.ShortNavigationBarCompact ||
+      layoutType == NavigationSuiteType.ShortNavigationBarMedium
+    if (layoutType == null) {
+      val body = measurables.single().measure(constraints)
+      layout(body.width, body.height) { body.placeRelative(0, 0) }
+    } else {
       val navigation = measurables[0].measure(constraints.copy(minWidth = 0, minHeight = 0))
       val fraction = navigationProgress().coerceIn(0f, 1f)
       val occupied = ((if (isBar) navigation.height else navigation.width) * fraction).roundToInt()
@@ -145,7 +169,6 @@ fun AppShell(
       }
     }
   }
-}
 
 /**
  * Navigation is a single-pane surface: only window size controls its placement.

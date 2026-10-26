@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
+import kotlinx.collections.immutable.ImmutableSet
 import me.zhangls.data.model.EmailModel
 import me.zhangls.email.mvi.EmailIntent
 import notes.feature.email.generated.resources.Res
@@ -29,7 +30,7 @@ internal fun EmailPagedList(
   listState: LazyListState,
   contentPadding: PaddingValues,
   isFavorite: Boolean,
-  selectedItems: Set<Long>,
+  selectedItems: ImmutableSet<Long>,
   openedEmailId: Long?,
   navigateToDetail: (Long) -> Unit,
   onIntent: (EmailIntent) -> Unit,
@@ -38,7 +39,7 @@ internal fun EmailPagedList(
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
       contentPadding = contentPadding,
-      state = listState
+      state = listState,
     ) {
       if (emailItems.loadState.refresh is LoadState.NotLoading && emailItems.itemCount == 0) {
         item {
@@ -62,7 +63,9 @@ internal fun EmailPagedList(
           isOpened = item.id == openedEmailId,
           isSelected = if (isFavorite) false else selectedItems.contains(item.id),
           navigateToDetail = navigateToDetail,
-          toggleSelection = if (isFavorite) null else {
+          toggleSelection = if (isFavorite) {
+            null
+          } else {
             { id ->
               onIntent(EmailIntent.UpdateSelectedEmail(id))
             }

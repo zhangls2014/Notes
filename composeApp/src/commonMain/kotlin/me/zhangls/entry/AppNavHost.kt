@@ -3,7 +3,7 @@ package me.zhangls.entry
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.savedstate.serialization.SavedStateConfiguration
+import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.email.api.EmailDetailDestination
@@ -45,7 +46,7 @@ import org.koin.compose.koinInject
 fun AppNavHost(
   viewModel: AppViewModel,
   deepLinkDestination: DeepLinkDestination? = null,
-  onDeepLinkConsumed: () -> Unit = {},
+  onDeepLinkConsume: () -> Unit = {},
 ) {
   // 登录状态
   val state by viewModel.state.collectAsStateWithLifecycle()
@@ -78,7 +79,7 @@ fun AppNavHost(
   // 也免掉了组合期写返回栈这段副作用。
   // 注意初始内容同样要过登录守卫 —— 它是首屏，不是"已经过检查的栈内容"。
   val initialDeepLink = remember { deepLinkDestination }
-  val navigationState = rememberAppNavigationState(config, initialBackStack(initialDeepLink, isLogin))
+  val navigationState = rememberAppNavigationState(config, initialBackStack(initialDeepLink, isLogin).toImmutableList())
   val backStack = navigationState.backStack
 
   // navHandler 会被传进 NavDisplay 的 entryProvider，而 rememberDecoratedNavEntries 按返回栈
@@ -95,12 +96,12 @@ fun AppNavHost(
   // 这里用引用比较而非 equals：同一条 URL 再次打开也应当重新导航。
   // 另外 MainActivity 在 Activity 重建时会重新从 intent 取 URL，此时它会被当作"首帧"值，
   // 因此不会被误判成新导航而重复压栈。
-  LaunchedEffect(deepLinkDestination) {
-    val destination = deepLinkDestination ?: return@LaunchedEffect
+  SideEffect(deepLinkDestination) {
+    val destination = deepLinkDestination ?: return@SideEffect
     if (destination !== initialDeepLink) {
       navHandler(NavEffect.Navigate(destination))
     }
-    onDeepLinkConsumed()
+    onDeepLinkConsume()
   }
 
   val sceneStrategies = rememberAppSceneStrategies<NavKey>()
@@ -169,14 +170,14 @@ fun AppNavHost(
       onSelectTab = navHandler::selectTab,
     ) { readAlpha, selectedTab, selectTab ->
       LayeredNavDisplay(
-        entries = entriesByRoot.getValue(navigationState.selectedRoot),
+        entries = entriesByRoot.getValue(navigationState.selectedRoot).toImmutableList(),
         fullscreenEntryCount = backStack.takeLastWhile { it is ProfileDestination || it is AboutDestination }.size,
         displayKey = navigationState.selectedRoot,
         contentAlpha = readAlpha,
         selected = selectedTab,
         onSelectTab = selectTab,
         onBack = { navHandler(NavEffect.Popup) },
-        sceneStrategies = sceneStrategies,
+        sceneStrategies = sceneStrategies.toImmutableList(),
       )
     }
   }

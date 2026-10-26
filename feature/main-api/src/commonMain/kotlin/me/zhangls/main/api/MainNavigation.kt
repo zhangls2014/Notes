@@ -18,6 +18,6 @@ object MainNavigation : NavigationContribution {
   }
 
   override val deepLinkMatchers: List<DeepLinkMatcher> = listOf(
-    DeepLinkMatcher { request -> if (request.path == PATH_HOME) HomeDestination else null }
+    DeepLinkMatcher { request -> if (request.path == PATH_HOME) HomeDestination else null },
   )
 }

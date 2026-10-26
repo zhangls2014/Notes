@@ -14,6 +14,7 @@ kotlin {
     commonMain.dependencies {
       // NavEntry and SceneStrategy are part of the public display and safe-area APIs.
       api(kmp.jetbrains.navigation3.ui)
+      api(kmp.jetbrains.kotlinx.collections.immutable)
       api(kmp.jetbrains.compose.runtime)
       implementation(kmp.androidx.navigationevent.compose)
     }

@@ -8,15 +8,13 @@ import androidx.compose.ui.unit.dp
 
 val AppLogo: ImageVector
   get() {
-    if (_AppLogo != null) {
-      return _AppLogo!!
-    }
-    _AppLogo = ImageVector.Builder(
+    cachedAppLogo?.let { return it }
+    val image = ImageVector.Builder(
       name = "AppLogo",
       defaultWidth = 108.dp,
       defaultHeight = 108.dp,
       viewportWidth = 108f,
-      viewportHeight = 108f
+      viewportHeight = 108f,
     ).apply {
       path(fill = SolidColor(Color(0xFF0F2A44))) {
         moveTo(24f, 0f)
@@ -61,8 +59,8 @@ val AppLogo: ImageVector
       }
     }.build()
 
-    return _AppLogo!!
+    cachedAppLogo = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _AppLogo: ImageVector? = null
+private var cachedAppLogo: ImageVector? = null

@@ -7,9 +7,4 @@ package me.zhangls.data.model
  * - 发件账户由数据层取默认账户，调用方不必传；
  * - [recipientIds] 是收件人 ID 集合，落盘编码（JSON 数组字符串）由数据层内部完成。
  */
-data class EmailDraft(
-  val recipientIds: Set<Long>,
-  val subject: String,
-  val body: String,
-  val createdAt: String,
-)
+data class EmailDraft(val recipientIds: Set<Long>, val subject: String, val body: String, val createdAt: String)

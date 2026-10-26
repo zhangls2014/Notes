@@ -16,9 +16,7 @@ import org.koin.core.annotation.Singleton
 @Singleton(binds = [SettingsEntry::class])
 class SettingsEntryImpl : SettingsEntry {
   @Composable
-  override fun Screen(
-    onResult: (SettingsResult) -> Unit,
-  ) {
+  override fun Screen(onResult: (SettingsResult) -> Unit) {
     SettingsScreen(
       onResult = onResult,
     )

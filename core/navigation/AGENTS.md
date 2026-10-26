@@ -2,7 +2,7 @@
 
 本模块遵循根 AGENTS.md；职责与依赖边界见 [架构文档](../../docs/architecture.md#navigation-3)。
 
-- `src/commonMain/kotlin/me/zhangls/navigation/` 放导航显示、转场与窗格安全区实现；文件使用所声明类型或 Composable 的英文名称。
+- `src/commonMain/kotlin/me/zhangls/navigation/` 放导航显示、转场与窗格安全区实现；文件优先使用主要类型或 Composable 的英文名称，包含多个紧密相关声明时可按共同职责命名，遵循根 AGENTS.md。
 - `src/androidMain/`、`src/iosMain/` 只放设备圆角的平台实现。
 - `src/androidHostTest/kotlin/me/zhangls/navigation/` 放显示、几何与逐帧像素回归；宿主集成测试保留在 composeApp。测试辅助文件只服务本模块，不从应用模块引用。
 - 不依赖 Feature、core:framework 或应用组合根，不拥有返回栈、登录规则、Tab 归属或窗口事实。

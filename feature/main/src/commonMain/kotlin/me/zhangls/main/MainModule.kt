@@ -10,14 +10,13 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 
-
 // EmailModule 由组合根（composeApp）引入；main 仅依赖 email 契约（:feature:email-api）
 @Module(
   includes = [
     DataModule::class,
     NetworkModule::class,
-    FrameworkModule::class
-  ]
+    FrameworkModule::class,
+  ],
 )
 @ComponentScan("me.zhangls.main")
 class MainModule {

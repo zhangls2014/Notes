@@ -13,6 +13,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import me.zhangls.main.api.TabDestination
 
+private const val TAB_FADE_OUT_MILLIS = 90
+private const val TAB_FADE_IN_MILLIS = 210
+
 /** Sequential fades keep a single active NavDisplay and its original Entry state ownership. */
 @Composable
 internal fun TabFadeThrough(
@@ -20,26 +23,28 @@ internal fun TabFadeThrough(
   onSelectTab: (TabDestination) -> Unit,
   content: @Composable (alpha: () -> Float, selected: TabDestination?, onSelect: (TabDestination) -> Unit) -> Unit,
 ) {
-  if (selected == null) {
-    content({ 1f }, null, onSelectTab)
-    return
-  }
-  val alpha = remember { Animatable(1f) }
-  val readAlpha = remember(alpha) { { alpha.value } }
-  val scope = rememberCoroutineScope()
-  var requested by remember { mutableStateOf<TabDestination?>(null) }
-  var job by remember { mutableStateOf<Job?>(null) }
-  content(readAlpha, requested ?: selected) { target ->
-    if (target == requested || (target == selected && job?.isActive != true)) return@content
-    job?.cancel()
-    requested = target
-    job = scope.launch {
-      if (target != selected) {
-        alpha.animateTo(0f, tween(90, easing = LinearEasing))
-        onSelectTab(target)
+  val alpha = if (selected != null) remember { Animatable(1f) } else null
+  val scope = if (selected != null) rememberCoroutineScope() else null
+  val readAlpha = remember(alpha) { { alpha?.value ?: 1f } }
+  var requested by remember(selected == null) { mutableStateOf<TabDestination?>(null) }
+  var job by remember(selected == null) { mutableStateOf<Job?>(null) }
+  val selectTab: (TabDestination) -> Unit = if (selected == null) {
+    onSelectTab
+  } else {
+    select@{ target ->
+      if (target == requested || (target == selected && job?.isActive != true)) return@select
+      job?.cancel()
+      requested = target
+      val animation = checkNotNull(alpha)
+      job = checkNotNull(scope).launch {
+        if (target != selected) {
+          animation.animateTo(0f, tween(TAB_FADE_OUT_MILLIS, easing = LinearEasing))
+          onSelectTab(target)
+        }
+        animation.animateTo(1f, tween(TAB_FADE_IN_MILLIS, easing = LinearEasing))
+        requested = null
       }
-      alpha.animateTo(1f, tween(210, easing = LinearEasing))
-      requested = null
     }
   }
+  content(readAlpha, requested ?: selected, selectTab)
 }

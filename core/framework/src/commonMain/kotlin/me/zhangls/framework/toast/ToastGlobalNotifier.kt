@@ -19,7 +19,7 @@ class ToastGlobalNotifier {
 
   private val _toast = MutableSharedFlow<ToastEffect>(
     extraBufferCapacity = TOAST_BUFFER_SIZE,
-    onBufferOverflow = BufferOverflow.DROP_OLDEST
+    onBufferOverflow = BufferOverflow.DROP_OLDEST,
   )
   val toast = _toast.asSharedFlow()
 

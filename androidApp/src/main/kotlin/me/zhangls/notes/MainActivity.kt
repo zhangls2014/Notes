@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
 import me.zhangls.entry.App
 
-
 class MainActivity : AppCompatActivity() {
   private var deepLinkUrl by mutableStateOf<String?>(null)
 
@@ -29,7 +28,7 @@ class MainActivity : AppCompatActivity() {
       val context = LocalContext.current
 
       App(
-        onDarkThemeChanged = {
+        onDarkThemeChange = {
           val lightBars = it.not()
           WindowInsetsControllerCompat(window, window.decorView).run {
             // 状态栏图标颜色（亮色图标 = 深色背景）
@@ -38,18 +37,20 @@ class MainActivity : AppCompatActivity() {
             isAppearanceLightNavigationBars = lightBars
           }
         },
-        onLanguageChanged = {
+        onLanguageChange = {
           AppCompatDelegate.setApplicationLocales(it.toLocales())
         },
-        onDynamicColorChanged = { darkTheme ->
-          (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-          } else {
-            null
-          })
+        onDynamicColorChange = { darkTheme ->
+          (
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+              if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            } else {
+              null
+            }
+            )
         },
         deepLinkUrl = deepLinkUrl,
-        onDeepLinkConsumed = { deepLinkUrl = null }
+        onDeepLinkConsume = { deepLinkUrl = null },
       )
     }
   }

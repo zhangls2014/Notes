@@ -4,34 +4,29 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import me.zhangls.data.model.EmailModel
-import me.zhangls.email.mvi.EmailIntent
-import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.theme.component.AdaptiveContent
-import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.component.CenteredTopAppBar
+import me.zhangls.theme.layout.ContentWidth
 import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_action_email_reply
 import notes.feature.email.generated.resources.email_action_email_reply_all
@@ -43,15 +38,11 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun EmailDetail(
-  emailId: Long,
-  viewModel: EmailViewModel,
-  onBackPressed: (() -> Unit)?
+  model: EmailModel?,
+  threads: LazyPagingItems<EmailModel>,
+  onBack: (() -> Unit)?,
+  onFavoriteClick: (Long) -> Unit,
 ) {
-  val emailFlow = remember(viewModel, emailId) { viewModel.getEmail(emailId) }
-  val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
-  val model by emailFlow.collectAsStateWithLifecycle(null)
-  val threads = threadFlow.collectAsLazyPagingItems()
-
   // Draw the page through the status-bar safe area. Insets belong to its inner content,
   // so the background and safe area stay inside the navigation transform together.
   Scaffold(
@@ -59,9 +50,9 @@ internal fun EmailDetail(
     contentWindowInsets = WindowInsets.safeDrawing,
     topBar = {
       model?.subject?.let {
-        CenteredTopAppBar(title = it.toDisplaySubject(), navigate = onBackPressed)
+        CenteredTopAppBar(title = it.toDisplaySubject(), navigate = onBack)
       }
-    }
+    },
   ) { padding ->
     // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉，
     // 读到的是"内容区真正可用"的内边距。本组件无论作为首页分栏的详情、还是作为独立的
@@ -75,14 +66,14 @@ internal fun EmailDetail(
         item {
           model?.let {
             EmailDetailItem(model = it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
-              viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
+              onFavoriteClick(id)
             }
           }
         }
         items(count = threads.itemCount, key = threads.itemKey { it.id }) {
           val item = threads[it] ?: return@items
           EmailDetailItem(model = item, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { id ->
-            viewModel.sendIntent(EmailIntent.UpdateFavorite(id))
+            onFavoriteClick(id)
           }
         }
       }
@@ -142,7 +133,7 @@ fun EmailDetailItem(model: EmailModel, modifier: Modifier = Modifier, onFavorite
 private fun ReplyButton(
   modifier: Modifier = Modifier,
   textRes: StringResource = Res.string.email_action_email_reply,
-  onClick: () -> Unit = {}
+  onClick: () -> Unit = {},
 ) {
   FilledTonalButton(
     onClick = onClick,

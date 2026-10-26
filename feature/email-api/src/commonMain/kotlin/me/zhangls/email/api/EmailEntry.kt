@@ -30,11 +30,7 @@ interface EmailEntry {
    * @param onProfileClick 点击搜索栏用户头像，交由宿主打开个人信息页
    */
   @Composable
-  fun HomeScreen(
-    openedEmailId: Long?,
-    navigateToDetail: (Long) -> Unit,
-    onProfileClick: () -> Unit,
-  )
+  fun HomeScreen(openedEmailId: Long?, navigateToDetail: (Long) -> Unit, onProfileClick: () -> Unit)
 
   /**
    * 以内联方式渲染收藏邮件列表（作为主界面的一个 Tab，而非独立导航目的地）。
@@ -44,21 +40,15 @@ interface EmailEntry {
    * @param onProfileClick 点击搜索栏用户头像，交由宿主打开个人信息页
    */
   @Composable
-  fun FavoritesScreen(
-    openedEmailId: Long?,
-    navigateToDetail: (Long) -> Unit,
-  )
+  fun FavoritesScreen(openedEmailId: Long?, navigateToDetail: (Long) -> Unit)
 
   /**
    * 渲染邮件详情页（作为独立导航目的地，由导航装配调用）。
    *
    * @param emailId 邮件 id
-   * @param onBackPressed 返回上一页的回调。**是否显示返回键由实现自己判断**：
+   * @param onBack 返回上一页的回调。**是否显示返回键由实现自己判断**：
    *   宽窗口下列表与详情同屏，详情一侧不该有返回键；只有详情独占窗口时才有意义
    */
   @Composable
-  fun DetailScreen(
-    emailId: Long,
-    onBackPressed: () -> Unit,
-  )
+  fun DetailScreen(emailId: Long, onBack: () -> Unit)
 }

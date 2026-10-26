@@ -1,12 +1,19 @@
 package me.zhangls.data.impl.security
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.CoreFoundation.*
-import platform.Security.*
+import platform.CoreFoundation.CFBooleanGetTypeID
+import platform.CoreFoundation.CFDictionaryGetValue
+import platform.CoreFoundation.CFGetTypeID
+import platform.CoreFoundation.CFRelease
+import platform.CoreFoundation.kCFBooleanFalse
+import platform.CoreFoundation.kCFBooleanTrue
+import platform.Security.kSecAttrSynchronizable
+import platform.Security.kSecMatchLimit
+import platform.Security.kSecMatchLimitOne
+import platform.Security.kSecReturnData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-
 
 @OptIn(ExperimentalForeignApi::class)
 class KeychainQueryTest {
@@ -18,7 +25,9 @@ class KeychainQueryTest {
       assertEquals(CFBooleanGetTypeID(), CFGetTypeID(value), "Security requires CFBoolean for kSecReturnData")
       assertEquals<Any?>(kCFBooleanTrue, value)
       assertEquals<Any?>(kSecMatchLimitOne, CFDictionaryGetValue(query, kSecMatchLimit))
-    } finally { CFRelease(query) }
+    } finally {
+      CFRelease(query)
+    }
   }
 
   @Test
@@ -29,7 +38,9 @@ class KeychainQueryTest {
         val value = assertNotNull(CFDictionaryGetValue(query, kSecAttrSynchronizable))
         assertEquals(CFBooleanGetTypeID(), CFGetTypeID(value), "Security requires CFBoolean for kSecAttrSynchronizable")
         assertEquals<Any?>(kCFBooleanFalse, value)
-      } finally { CFRelease(query) }
+      } finally {
+        CFRelease(query)
+      }
     }
   }
 }

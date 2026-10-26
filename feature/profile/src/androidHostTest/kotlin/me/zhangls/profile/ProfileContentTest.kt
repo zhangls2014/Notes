@@ -38,7 +38,7 @@ class ProfileContentTest {
   private fun launch() {
     compose.setContent {
       ComposeAppTheme(fontScale = 2f) {
-        ProfileContent(state, onBackPressed = { back++ }, onChangeAvatar = { selections++ })
+        ProfileContent(state, onBack = { back++ }, onChangeAvatar = { selections++ })
       }
     }
   }

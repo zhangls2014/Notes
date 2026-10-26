@@ -3,10 +3,14 @@ package me.zhangls.entry
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.serialization.NavBackStackSerializer
 import androidx.savedstate.serialization.SavedStateConfiguration
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.serialization.PolymorphicSerializer
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
@@ -29,16 +33,20 @@ internal fun NavKey.stackRoot(): NavKey = if (this is LoginDestination) LoginDes
 @Composable
 internal fun rememberAppNavigationState(
   configuration: SavedStateConfiguration,
-  initialStack: List<NavKey>,
+  initialStack: ImmutableList<NavKey>,
 ): AppNavigationState {
   val initialRoot = initialStack.first().stackRoot()
   val selection = rememberNavBackStack(configuration, initialRoot)
   val stacks = navigationRoots.associateWith { root ->
     key(root) {
-      rememberNavBackStack(
-        configuration,
-        *(if (root == initialRoot) initialStack else emptyList()).toTypedArray(),
-      )
+      rememberSerializable(
+        configuration = configuration,
+        serializer = NavBackStackSerializer(PolymorphicSerializer(NavKey::class)),
+      ) {
+        NavBackStack<NavKey>().apply {
+          if (root == initialRoot) addAll(initialStack)
+        }
+      }
     }
   }
   return remember { AppNavigationState(selection, stacks) }

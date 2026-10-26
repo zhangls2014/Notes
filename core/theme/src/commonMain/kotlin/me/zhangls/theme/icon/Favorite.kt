@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Favorite: ImageVector
   get() {
-    if (_Favorite != null) {
-      return _Favorite!!
-    }
-    _Favorite = ImageVector.Builder(
+    cachedFavorite?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Favorite",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -74,11 +71,11 @@ val Icons.Rounded.Favorite: ImageVector
       }
     }.build()
 
-    return _Favorite!!
+    cachedFavorite = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Favorite: ImageVector? = null
+private var cachedFavorite: ImageVector? = null
 
 @Preview(name = "Favorite", showBackground = true)
 @Composable

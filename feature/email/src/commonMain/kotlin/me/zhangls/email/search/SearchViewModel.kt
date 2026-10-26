@@ -4,10 +4,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
@@ -28,8 +27,9 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 internal class SearchViewModel(
   savedStateHandle: SavedStateHandle,
-  private val emailsRepository: EmailsRepository,
+  emailsRepository: EmailsRepository,
   private val userRepository: UserRepository,
+  private val ioDispatcher: CoroutineDispatcher,
 ) : MviViewModel<SearchState, SearchIntent>(
   initialState = SearchState(),
   stateSerializer = SearchState.serializer(),
@@ -39,7 +39,7 @@ internal class SearchViewModel(
   val searchResults = state
     .map { it.searchText }
     .flatMapLatest { emailsRepository.searchEmails(it) }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
     .cachedIn(viewModelScope)
 
@@ -52,7 +52,7 @@ internal class SearchViewModel(
     viewModelScope.launch {
       userRepository.userFlow.collectLatest {
         dispatch(SearchAction.UpdateUser(it))
-        dispatch(SearchAction.UpdateSearchHistory(it?.emailSearchHistory ?: emptyList()))
+        dispatch(SearchAction.UpdateSearchHistory(it?.emailSearchHistory.orEmpty()))
       }
     }
   }

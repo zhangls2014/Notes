@@ -9,7 +9,6 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSURLIsExcludedFromBackupKey
 import platform.Foundation.NSUserDomainMask
 
-
 @OptIn(ExperimentalForeignApi::class)
 @Singleton
 actual class AppFileManager {
@@ -34,7 +33,9 @@ actual class AppFileManager {
   private fun getDataStoreDirectory(): String {
     val datastoreDir = supportDir() + "/datastore"
     createDir(datastoreDir)
-    check(NSURL.fileURLWithPath(datastoreDir).setResourceValue(true, forKey = NSURLIsExcludedFromBackupKey, error = null)) {
+    check(
+      NSURL.fileURLWithPath(datastoreDir).setResourceValue(true, forKey = NSURLIsExcludedFromBackupKey, error = null),
+    ) {
       "Unable to exclude preferences from backup"
     }
     return datastoreDir
@@ -70,7 +71,7 @@ actual class AppFileManager {
         path = path,
         withIntermediateDirectories = true,
         attributes = null,
-        error = null
+        error = null,
       )
     }
   }
@@ -81,7 +82,7 @@ actual class AppFileManager {
       fileManager.createFileAtPath(
         path = path,
         contents = null,
-        attributes = null
+        attributes = null,
       )
     } else {
       true
@@ -99,19 +100,15 @@ actual class AppFileManager {
     return requireNotNull(directory?.path)
   }
 
-  fun fileExtension(filepath: NSURL): String {
-    return filepath.pathExtension ?: ""
-  }
+  fun fileExtension(filepath: NSURL): String = filepath.pathExtension ?: ""
 
-  fun copyPathToFile(srcUrl: NSURL, destPath: String): Boolean {
-    return try {
-      val manager = NSFileManager.defaultManager
-      val destUrl = NSURL.fileURLWithPath(destPath)
-      val result = manager.copyItemAtURL(srcUrl, destUrl, null)
-      result
-    } catch (_: Exception) {
-      false
-    }
+  fun copyPathToFile(srcUrl: NSURL, destPath: String): Boolean = try {
+    val manager = NSFileManager.defaultManager
+    val destUrl = NSURL.fileURLWithPath(destPath)
+    val result = manager.copyItemAtURL(srcUrl, destUrl, null)
+    result
+  } catch (_: Exception) {
+    false
   }
 
   actual fun deleteFile(path: String) {

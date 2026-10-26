@@ -7,16 +7,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import me.zhangls.email.search.EmailSearchBar
+import kotlinx.collections.immutable.persistentListOf
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailState
+import me.zhangls.email.search.EmailSearchBar
 import me.zhangls.theme.component.SimpleDialog
 import me.zhangls.theme.icon.Cancel
 import me.zhangls.theme.icon.Delete
@@ -49,13 +50,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EmailTopBar(
   state: EmailState,
-  scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
   onIntent: (EmailIntent) -> Unit,
   onResultClick: (Long) -> Unit,
   onProfileClick: () -> Unit,
+  scrollBehavior: SearchBarScrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(),
 ) {
   var showDeleteConfirmation by remember { mutableStateOf(false) }
-  LaunchedEffect(state.selectedItems.isEmpty()) {
+  SideEffect(state.selectedItems.isEmpty()) {
     if (state.selectedItems.isEmpty()) showDeleteConfirmation = false
   }
 
@@ -68,7 +69,7 @@ internal fun EmailTopBar(
       )
     } else {
       // 动作在构造时即绑定到具体 Intent，不依赖字符串资源身份分发
-      val items = listOf(
+      val items = persistentListOf(
         ActionItem(Icons.Rounded.StarFill, Res.string.email_action_favorite) {
           onIntent(EmailIntent.MultiFavorite)
         },

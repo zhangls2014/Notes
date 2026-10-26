@@ -17,6 +17,7 @@ import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.zhangls.data.model.AccountModel
 import me.zhangls.data.model.EmailModel
@@ -46,10 +47,16 @@ class EmailListAccessibilityTest {
       body = "Message content",
       createdAt = "09:30",
     )
-    val emails = MutableStateFlow(PagingData.from(
-      listOf(email),
-      sourceLoadStates = LoadStates(LoadState.NotLoading(false), LoadState.NotLoading(true), LoadState.NotLoading(true)),
-    ))
+    val emails = MutableStateFlow(
+      PagingData.from(
+        listOf(email),
+        sourceLoadStates = LoadStates(
+          LoadState.NotLoading(false),
+          LoadState.NotLoading(true),
+          LoadState.NotLoading(true),
+        ),
+      ),
+    )
     compose.setContent {
       ComposeAppTheme {
         EmailPagedList(
@@ -57,7 +64,7 @@ class EmailListAccessibilityTest {
           listState = rememberLazyListState(),
           contentPadding = PaddingValues(),
           isFavorite = isFavorite,
-          selectedItems = selectedItems,
+          selectedItems = selectedItems.toImmutableSet(),
           openedEmailId = null,
           navigateToDetail = { opened += it },
           onIntent = { intent ->
@@ -67,7 +74,9 @@ class EmailListAccessibilityTest {
               } else {
                 selectedItems + intent.emailId
               }
+
               is EmailIntent.UpdateFavorite -> favorites += intent.emailId
+
               else -> error("Unexpected intent: $intent")
             }
           },

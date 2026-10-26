@@ -2,6 +2,7 @@ package me.zhangls.preference
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import me.zhangls.model.DarkThemeConfig
 import me.zhangls.theme.icon.DarkMode
 import me.zhangls.theme.icon.Icons
@@ -37,6 +38,7 @@ object DarkThemePreference {
    * 这是"当前是否深色"的唯一判定口径，主题装配与依赖该状态的 UI 都应走这里。
    */
   @Composable
+  @ReadOnlyComposable
   fun isDark(darkTheme: DarkThemeConfig): Boolean = when (darkTheme) {
     DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     DarkThemeConfig.LIGHT -> false

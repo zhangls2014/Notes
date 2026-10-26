@@ -1,5 +1,8 @@
 package me.zhangls.model
 
+private const val SPAM_MAILBOX_CODE = 3
+private const val TRASH_MAILBOX_CODE = 4
+
 /**
  * 邮箱分类。
  *
@@ -14,6 +17,6 @@ enum class MailboxType(val value: Int) {
   INBOX(0),
   DRAFTS(1),
   SENT(2),
-  SPAM(3),
-  TRASH(4),
+  SPAM(SPAM_MAILBOX_CODE),
+  TRASH(TRASH_MAILBOX_CODE),
 }

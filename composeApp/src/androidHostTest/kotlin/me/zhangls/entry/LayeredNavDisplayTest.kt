@@ -13,24 +13,33 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertWidthIsEqualTo
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
+import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.main.api.HomeDestination
-import me.zhangls.navigation.PageExitFadeDuration
-import me.zhangls.navigation.PredictiveMotionDuration
+import me.zhangls.navigation.PAGE_EXIT_FADE_DURATION
+import me.zhangls.navigation.PREDICTIVE_MOTION_DURATION
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.api.ProfileOrigin
 import me.zhangls.theme.ComposeAppTheme
@@ -50,6 +59,7 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class LayeredNavDisplayTest {
   private val compose = createComposeRule()
+
   @get:Rule val rules = drainMainLooperAfter(compose)
 
   @Test fun profilePreviewCancellationAndCommitRetainFullViewportAndBaseEntry() {
@@ -65,8 +75,11 @@ class LayeredNavDisplayTest {
   }
 
   private fun assertLayeredReturn(destination: NavKey, commitWithGesture: Boolean = true) {
-    android.provider.Settings.Global.putFloat(RuntimeEnvironment.getApplication().contentResolver,
-      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+    android.provider.Settings.Global.putFloat(
+      RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
     val stack = mutableStateListOf<NavKey>(HomeDestination)
     lateinit var view: View
     var mounts = 0
@@ -84,8 +97,10 @@ class LayeredNavDisplayTest {
                 mounts++
                 onDispose { disposals++ }
               }
-              Box(Modifier.fillMaxSize().onGloballyPositioned { baseBounds = it.boundsInRoot() }
-                .testTag("base").background(Color.Blue).clickable { clicks++ })
+              Box(
+                Modifier.fillMaxSize().onGloballyPositioned { coordinates -> baseBounds = coordinates.boundsInRoot() }
+                  .testTag("base").background(Color.Blue).clickable { clicks++ },
+              )
             } else {
               Box(Modifier.fillMaxSize().testTag("fullscreen").background(Color.Red))
             }
@@ -96,14 +111,17 @@ class LayeredNavDisplayTest {
         ComposeAppTheme {
           Box(Modifier.fillMaxSize().testTag("window")) {
             LayeredNavDisplay(
-              entries = entries,
+              entries = (entries).toImmutableList(),
               fullscreenEntryCount = stack.size - 1,
               displayKey = HomeDestination,
               contentAlpha = { 1f },
               selected = HomeDestination,
               onSelectTab = { clicks++ },
-              sceneStrategies = listOf(SinglePaneSceneStrategy()),
-              onBack = { pops++; stack.removeLast() },
+              sceneStrategies = (listOf(SinglePaneSceneStrategy<NavKey>())).toImmutableList(),
+              onBack = {
+                pops++
+                stack.removeLast()
+              },
             )
           }
         }
@@ -121,7 +139,7 @@ class LayeredNavDisplayTest {
       compose.runOnIdle { stack.add(destination) }
       var entryFrames = 0
       repeat(16) {
-        compose.mainClock.advanceTimeBy((PredictiveMotionDuration / 16).toLong())
+        compose.mainClock.advanceTimeBy((PREDICTIVE_MOTION_DURATION / 16).toLong())
         compose.waitForIdle()
         if (compose.onAllNodesWithTag("fullscreen").fetchSemanticsNodes().isNotEmpty()) {
           assertNavigationMatchesPage()
@@ -135,7 +153,7 @@ class LayeredNavDisplayTest {
       compose.mainClock.autoAdvance = true
     }
     fun settle() {
-      compose.mainClock.advanceTimeBy((PredictiveMotionDuration + PageExitFadeDuration + 2000).toLong())
+      compose.mainClock.advanceTimeBy((PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION + 2000).toLong())
       compose.waitForIdle()
     }
     settle()
@@ -145,7 +163,10 @@ class LayeredNavDisplayTest {
     compose.mainClock.autoAdvance = false
     fun preview(edge: Int, progress: Float) {
       compose.runOnIdle { dispatcher.dispatchOnBackStarted(BackEventCompat(0f, 200f, 0f, edge)) }
-      repeat(3) { compose.mainClock.advanceTimeByFrame(); compose.waitForIdle() }
+      repeat(3) {
+        compose.mainClock.advanceTimeByFrame()
+        compose.waitForIdle()
+      }
       compose.runOnIdle { dispatcher.dispatchOnBackProgressed(BackEventCompat(400f * progress, 200f, progress, edge)) }
       compose.mainClock.advanceTimeBy(1500)
       compose.waitForIdle()
@@ -174,13 +195,24 @@ class LayeredNavDisplayTest {
         compose.mainClock.advanceTimeByFrame()
         compose.waitForIdle()
         assertNavigationMatchesPage()
-        assertEquals("Cancellation retains the inset opposite anchor", 600f,
-          compose.onNodeWithTag("fullscreen").fetchSemanticsNode().boundsInRoot.let { it.left + it.width * 0.75f }, 0.5f)
+        assertEquals(
+          "Cancellation retains the inset opposite anchor",
+          600f,
+          compose.onNodeWithTag(
+            "fullscreen",
+          ).fetchSemanticsNode().boundsInRoot.let { bounds -> bounds.left + bounds.width * 0.75f },
+          0.5f,
+        )
       }
       settle()
       preview(BackEventCompat.EDGE_LEFT, 1f)
       val bounds = compose.onNodeWithTag("fullscreen").fetchSemanticsNode().boundsInRoot
-      assertEquals("Left-edge back anchors at seventy-five percent of the viewport", 600f, bounds.left + bounds.width * 0.75f, 0.5f)
+      assertEquals(
+        "Left-edge back anchors at seventy-five percent of the viewport",
+        600f,
+        bounds.left + bounds.width * 0.75f,
+        0.5f,
+      )
       assertEquals("Full-screen page reaches eighty-five percent", 680f, bounds.width, 0.5f)
       val expectedRailTint = Color.Gray.red * 0.24f + railColor.red * 0.76f
       var shadedRail = frame()[0, 200]
@@ -202,18 +234,26 @@ class LayeredNavDisplayTest {
 
       if (commitWithGesture) preview(BackEventCompat.EDGE_RIGHT, 0.5f)
       compose.runOnIdle { dispatcher.onBackPressed() }
-      repeat(3) { compose.mainClock.advanceTimeByFrame(); compose.waitForIdle() }
+      repeat(3) {
+        compose.mainClock.advanceTimeByFrame()
+        compose.waitForIdle()
+      }
       val exiting = compose.onNodeWithTag("fullscreen").fetchSemanticsNode().boundsInRoot
       assertNavigationMatchesPage()
       if (commitWithGesture) {
-        assertEquals("Right-edge commit anchors at twenty-five percent of the viewport", 200f, exiting.left + exiting.width * 0.25f, 0.5f)
+        assertEquals(
+          "Right-edge commit anchors at twenty-five percent of the viewport",
+          200f,
+          exiting.left + exiting.width * 0.25f,
+          0.5f,
+        )
       } else {
         assertEquals("Ordinary return stays centered after cancellation", 400f, exiting.center.x, 0.5f)
       }
       compose.runOnIdle { dispatcher.onBackPressed() }
       assertEquals("Repeated back during exit cannot pop the underlying page", 1, pops)
       repeat(16) {
-        compose.mainClock.advanceTimeBy((PredictiveMotionDuration / 16).toLong())
+        compose.mainClock.advanceTimeBy((PREDICTIVE_MOTION_DURATION / 16).toLong())
         compose.waitForIdle()
         if (compose.onAllNodesWithTag("fullscreen").fetchSemanticsNodes().isNotEmpty()) {
           assertNavigationMatchesPage()

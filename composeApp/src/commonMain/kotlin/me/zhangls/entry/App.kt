@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,11 +24,11 @@ internal expect fun rememberSystemToast(): SystemToast
 
 @Composable
 fun App(
-  onDarkThemeChanged: (Boolean) -> Unit = {},
-  onLanguageChanged: (AppLanguage) -> Unit = {},
-  onDynamicColorChanged: (darkTheme: Boolean) -> ColorScheme? = { null },
+  onDarkThemeChange: (Boolean) -> Unit = {},
+  onLanguageChange: (AppLanguage) -> Unit = {},
+  onDynamicColorChange: (darkTheme: Boolean) -> ColorScheme? = { null },
   deepLinkUrl: String? = null,
-  onDeepLinkConsumed: () -> Unit = {},
+  onDeepLinkConsume: () -> Unit = {},
 ) {
   val viewModel: AppViewModel = koinViewModel()
   val systemToast = rememberSystemToast()
@@ -43,14 +44,14 @@ fun App(
   val darkTheme = DarkThemePreference.isDark(state.darkTheme)
   val fontScale = state.fontSize.value
 
-  LaunchedEffect(state.appLanguage) {
+  SideEffect(state.appLanguage) {
     state.appLanguage?.also {
-      onLanguageChanged(it)
+      onLanguageChange(it)
     }
   }
 
-  LaunchedEffect(darkTheme) {
-    onDarkThemeChanged(darkTheme)
+  SideEffect(darkTheme) {
+    onDarkThemeChange(darkTheme)
   }
 
   // 窗口形态在这里算一次，向下只下发事实。放在 ComposeAppTheme **之上**：尺寸类是用
@@ -68,13 +69,13 @@ fun App(
   ) {
     ComposeAppTheme(
       darkTheme = darkTheme,
-      dynamicScheme = if (state.dynamicColor) onDynamicColorChanged(darkTheme) else null,
+      dynamicScheme = if (state.dynamicColor) onDynamicColorChange(darkTheme) else null,
       fontScale = fontScale,
     ) {
       AppNavHost(
         viewModel = viewModel,
         deepLinkDestination = deepLinkDestination,
-        onDeepLinkConsumed = onDeepLinkConsumed
+        onDeepLinkConsume = onDeepLinkConsume,
       )
 
       LaunchedEffect(viewModel, systemToast) {

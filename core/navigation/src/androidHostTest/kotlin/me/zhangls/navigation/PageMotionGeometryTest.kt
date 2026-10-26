@@ -33,8 +33,11 @@ class PageMotionGeometryTest {
     val pose = PageMotionGeometry.transform(Size(400f, 736f), 1f)
     assertEquals(368f, 368f * pose.scaleY + pose.translationY, 0.001f)
     assertEquals(200f, 200f * pose.scaleX + pose.translationX, 0.001f)
-    val outline = DeviceCornerShape(DeviceCorners(20f, 30f, 40f, 50f),
-      pose.scaleX, pose.scaleX)
+    val outline = DeviceCornerShape(
+      DeviceCorners(20f, 30f, 40f, 50f),
+      pose.scaleX,
+      pose.scaleX,
+    )
       .createOutline(Size(400f, 736f), LayoutDirection.Ltr, Density(1f)) as Outline.Rounded
     assertEquals(736f, outline.roundRect.bottom, 0.001f)
     assertEquals(40f, outline.roundRect.bottomRightCornerRadius.y * pose.scaleX, 0.001f)

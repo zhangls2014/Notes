@@ -13,7 +13,9 @@ import kotlin.test.assertNotNull
 
 class DatabaseMigrationTest {
   @Test fun migratesVersion1WithoutLosingData() = verifyMigration(1)
+
   @Test fun migratesVersion2WithoutLosingData() = verifyMigration(2)
+
   @Test fun migratesVersion3WithoutLosingData() = verifyMigration(3)
 
   private fun verifyMigration(version: Int) = runBlocking {
@@ -23,14 +25,24 @@ class DatabaseMigrationTest {
     check(files.createDirectoryAtPath(directory, true, null, null))
     try {
       BundledSQLiteDriver().open(path).use { connection ->
-        fun execute(sql: String) = connection.prepare(sql).use { it.step(); Unit }
+        fun execute(sql: String) = connection.prepare(sql).use {
+          it.step()
+          Unit
+        }
         historicalSchemas.getValue(version).forEach(::execute)
         val defaultColumn = if (version >= 3) ", isDefault" else ""
         val defaultValue = if (version >= 3) ", 1" else ""
-        execute("INSERT INTO account (id, firstName, lastName, email, altEmail, avatar$defaultColumn) VALUES (1, 'Ada', 'Lovelace', 'ada@example.com', '', ''$defaultValue)")
+        execute(
+          "INSERT INTO account (id, firstName, lastName, email, altEmail, avatar$defaultColumn) " +
+            "VALUES (1, 'Ada', 'Lovelace', 'ada@example.com', '', ''$defaultValue)",
+        )
         val recipientsColumn = if (version >= 2) ", recipientIds" else ""
         val recipientsValue = if (version >= 2) ", '[2,3]'" else ""
-        execute("INSERT INTO email (id, senderId, subject, body, isImportant, isStarred, mailbox, createdAt$recipientsColumn) VALUES (7, 1, 'Keep this message', 'Historical body', 1, 0, 0, '2026-01-01'$recipientsValue)")
+        execute(
+          "INSERT INTO email (id, senderId, subject, body, isImportant, isStarred, mailbox, " +
+            "createdAt$recipientsColumn) VALUES (7, 1, 'Keep this message', 'Historical body', 1, 0, " +
+            "0, '2026-01-01'$recipientsValue)",
+        )
       }
       val database = AppDatabaseFactory().getDatabaseBuilder(path).create()
       try {

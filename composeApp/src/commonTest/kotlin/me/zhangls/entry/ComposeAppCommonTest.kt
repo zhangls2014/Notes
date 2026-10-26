@@ -2,11 +2,13 @@ package me.zhangls.entry
 
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailNavigation
+import me.zhangls.framework.deeplink.DeepLinkMatcher
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.MainNavigation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ComposeAppCommonTest {
 
@@ -47,5 +49,25 @@ class ComposeAppCommonTest {
   fun `parse deep link fail when path not matched`() {
     val destination = parseDeepLink("https://notes.zhangls.me/unknown?id=1", matchers)
     assertNull(destination)
+  }
+
+  @Test
+  fun `reject invalid links before invoking matchers`() {
+    val recordingMatcher = DeepLinkMatcher { error("Invalid links must not reach matchers") }
+    listOf(null, "", "http://notes.zhangls.me/home", "https://example.com/home").forEach {
+      assertNull(parseDeepLink(it, listOf(recordingMatcher)))
+    }
+  }
+
+  @Test
+  fun `first matching destination wins`() {
+    var laterMatcherCalled = false
+    val first = DeepLinkMatcher { HomeDestination }
+    val later = DeepLinkMatcher {
+      laterMatcherCalled = true
+      EmailDetailDestination(1)
+    }
+    assertEquals(HomeDestination, parseDeepLink("https://notes.zhangls.me/home", listOf(first, later)))
+    assertTrue(!laterMatcherCalled)
   }
 }

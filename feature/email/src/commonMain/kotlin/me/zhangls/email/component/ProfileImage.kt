@@ -19,13 +19,12 @@ import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.allDrawableResources
 import org.jetbrains.compose.resources.painterResource
 
-
 @Composable
-fun ProfileImage(drawableKey: String, description: String?) {
+fun ProfileImage(drawableKey: String, description: String?, modifier: Modifier = Modifier) {
   val drawableResource = Res.allDrawableResources.getValue(drawableKey)
 
   Image(
-    modifier = Modifier
+    modifier = modifier
       .size(40.dp)
       .clip(CircleShape),
     painter = painterResource(drawableResource),

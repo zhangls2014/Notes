@@ -1,11 +1,15 @@
 package me.zhangls.email.component
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.test.assertIsDisplayed
@@ -14,17 +18,15 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetState
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 import me.zhangls.theme.ComposeAppTheme
-import me.zhangls.theme.layout.ProvideModalViewport
 import me.zhangls.theme.layout.ImeHandoffFocusState
+import me.zhangls.theme.layout.ProvideModalViewport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -73,9 +75,9 @@ class NewEmailSheetContentTest {
         Box(Modifier.requiredSize(width, height)) {
           ProvideModalViewport {
             NewEmailSheet(
-              recipients = emptyList(),
+              recipients = persistentListOf(),
               visible = visible,
-              selectedRecipientIds = emptySet(),
+              selectedRecipientIds = persistentSetOf(),
               subject = "",
               body = "",
               isSending = false,
@@ -93,18 +95,24 @@ class NewEmailSheetContentTest {
     for ((newWidth, newHeight) in listOf(400.dp to 180.dp, 280.dp to 300.dp)) {
       compose.onNodeWithText("Cancel").performScrollTo().performClick()
       compose.onNodeWithText("Recipients").assertDoesNotExist()
-      compose.runOnIdle { width = newWidth; height = newHeight }
+      compose.runOnIdle {
+        width = newWidth
+        height = newHeight
+      }
       compose.runOnIdle { visible = true }
       compose.onNodeWithText("Recipients").assertIsDisplayed()
       val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
-      assertTrue("Reopened form must use rotated host height $newHeight: $viewport",
-        viewport.height <= newHeight.value)
+      assertTrue(
+        "Reopened form must use rotated host height $newHeight: $viewport",
+        viewport.height <= newHeight.value,
+      )
       compose.onNodeWithText("Save").performScrollTo().assertIsDisplayed()
     }
   }
 
   @OptIn(ExperimentalMaterial3Api::class)
-  @Test fun iosPreferredSizePassKeepsSheetInsideRotatedViewport() {
+  @Test
+  fun iosPreferredSizePassKeepsSheetInsideRotatedViewport() {
     var viewport by mutableStateOf(DpSize(280.dp, 400.dp))
     compose.setContent {
       ComposeAppTheme {
@@ -131,17 +139,19 @@ class NewEmailSheetContentTest {
       compose.runOnIdle { viewport = size }
       compose.waitForIdle()
       val bounds = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
-      assertTrue("Sheet must remain within $size after preferred-size measurement: $bounds",
+      assertTrue(
+        "Sheet must remain within $size after preferred-size measurement: $bounds",
         bounds.left >= 0f && bounds.top >= 0f && bounds.right <= size.width.value &&
-          bounds.bottom <= size.height.value && bounds.height > 0f)
+          bounds.bottom <= size.height.value && bounds.height > 0f,
+      )
     }
   }
 
   @Composable private fun Form(maxHeight: Dp = 260.dp, onSave: () -> Unit = {}) {
     NewEmailSheetContent(
       maxHeight = maxHeight,
-      recipients = emptyList(),
-      selectedRecipientIds = emptySet(),
+      recipients = persistentListOf(),
+      selectedRecipientIds = persistentSetOf(),
       subject = "",
       body = "",
       isSending = false,

@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.AccountCircle: ImageVector
   get() {
-    if (_AccountCircle != null) {
-      return _AccountCircle!!
-    }
-    _AccountCircle = ImageVector.Builder(
+    cachedAccountCircle?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.AccountCircle",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -96,11 +93,11 @@ val Icons.Rounded.AccountCircle: ImageVector
       }
     }.build()
 
-    return _AccountCircle!!
+    cachedAccountCircle = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _AccountCircle: ImageVector? = null
+private var cachedAccountCircle: ImageVector? = null
 
 @Preview(name = "AccountCircle", showBackground = true)
 @Composable

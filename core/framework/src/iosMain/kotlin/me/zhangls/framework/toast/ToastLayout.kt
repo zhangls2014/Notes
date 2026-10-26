@@ -7,12 +7,7 @@ internal data class ToastInsets(
   val right: Double = 0.0,
 )
 
-internal data class ToastFrame(
-  val x: Double,
-  val y: Double,
-  val width: Double,
-  val height: Double,
-)
+internal data class ToastFrame(val x: Double, val y: Double, val width: Double, val height: Double)
 
 /** Layout in the host root view's coordinates, including small resizable windows. */
 internal fun toastFrame(

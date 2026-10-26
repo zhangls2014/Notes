@@ -5,10 +5,14 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import me.zhangls.email.component.EmailDetail
+import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
 import org.koin.compose.viewmodel.koinViewModel
-
 
 /**
  * 邮件详情页：作为独立的导航目的地渲染。
@@ -21,17 +25,18 @@ import org.koin.compose.viewmodel.koinViewModel
  * 两种情况下内容完全一样，只有"要不要给返回键"不同（见 [isDetailPaneShownAlone]）。
  */
 @Composable
-internal fun EmailDetailScreen(
-  emailId: Long,
-  onBackPressed: () -> Unit = {},
-  viewModel: EmailViewModel = koinViewModel(),
-) {
+internal fun EmailDetailScreen(emailId: Long, onBack: () -> Unit = {}, viewModel: EmailViewModel = koinViewModel()) {
+  val emailFlow = remember(viewModel, emailId) { viewModel.getEmail(emailId) }
+  val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
+  val model by emailFlow.collectAsStateWithLifecycle(null)
+  val threads = threadFlow.collectAsLazyPagingItems()
   EmailDetail(
-    emailId = emailId,
-    viewModel = viewModel,
+    model = model,
+    threads = threads,
+    onFavoriteClick = { viewModel.sendIntent(EmailIntent.UpdateFavorite(it)) },
     // 只有详情独占窗口时才给返回键：宽窗口下列表与详情同屏，返回键没有意义
     // （M3 的列表-详情在双栏态不给详情一侧返回键）
-    onBackPressed = onBackPressed.takeIf { isDetailPaneShownAlone() },
+    onBack = onBack.takeIf { isDetailPaneShownAlone() },
   )
 }
 
@@ -51,7 +56,7 @@ private fun isDetailPaneShownAlone(): Boolean {
   // 用 targetState 而不是 currentState：预测性返回的拖动过程会改 currentState，
   // 用它会让返回键在拖拽中闪烁。
   val listPaneValue = sceneScope.scaffoldTransitionScope.scaffoldStateTransition.targetState[
-    ListDetailPaneScaffoldRole.List
+    ListDetailPaneScaffoldRole.List,
   ]
   return listPaneValue == PaneAdaptedValue.Hidden
 }

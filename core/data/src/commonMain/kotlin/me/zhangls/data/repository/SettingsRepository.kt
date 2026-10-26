@@ -2,9 +2,9 @@ package me.zhangls.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import me.zhangls.data.model.SettingsModel
-import me.zhangls.model.FontSizeConfig
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
+import me.zhangls.model.FontSizeConfig
 
 interface SettingsRepository {
   val settingsFlow: Flow<SettingsModel>

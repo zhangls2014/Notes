@@ -19,7 +19,7 @@ data class EmailWithSender(
 
   @Relation(
     parentColumns = ["senderId"],
-    entityColumns = ["id"]
+    entityColumns = ["id"],
   )
   val sender: AccountEntity,
 )

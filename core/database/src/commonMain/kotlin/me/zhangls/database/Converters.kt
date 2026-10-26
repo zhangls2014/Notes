@@ -11,7 +11,5 @@ class Converters {
 
   @Suppress("unused")
   @ColumnTypeConverter
-  fun intToMailboxType(value: Int): MailboxType {
-    return MailboxType.entries.find { it.value == value } ?: MailboxType.INBOX
-  }
+  fun intToMailboxType(value: Int): MailboxType = MailboxType.entries.find { it.value == value } ?: MailboxType.INBOX
 }

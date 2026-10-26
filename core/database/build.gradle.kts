@@ -11,6 +11,8 @@ kotlin {
       dependencies {
         // MailboxType 出现在 EmailEntity / Converters 的签名中
         api(projects.core.model)
+        // CoroutineDispatcher 出现在 create() 的公开参数中。
+        api(kmp.jetbrains.kotlinx.coroutines.core)
 
         // api：`RoomDatabase` 是 `AppDatabase` 的父类型，Kotlin 要求父类型对使用方可见，
         // 故 core:data 必须能在 classpath 上看到 room3-runtime。

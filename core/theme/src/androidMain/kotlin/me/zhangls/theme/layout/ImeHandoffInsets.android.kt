@@ -15,8 +15,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
 
-private const val KeyboardHandoffDelayMillis = 200L
-private const val KeyboardHandoffWindowMillis = 400L
+private const val KEYBOARD_HANDOFF_DELAY_MILLIS = 200L
+private const val KEYBOARD_HANDOFF_WINDOW_MILLIS = 400L
 
 @Composable
 actual fun rememberImeHandoffInsets(focusState: ImeHandoffFocusState): WindowInsets {
@@ -33,7 +33,7 @@ actual fun rememberImeHandoffInsets(focusState: ImeHandoffFocusState): WindowIns
   LaunchedEffect(ime, density, focusState, focusState.handoffGeneration) {
     val generation = focusState.handoffGeneration
     // Expire even if the replacement keyboard has exactly the same height.
-    delay(KeyboardHandoffWindowMillis.milliseconds)
+    delay(KEYBOARD_HANDOFF_WINDOW_MILLIS.milliseconds)
     expiredGeneration = generation
   }
 
@@ -42,7 +42,7 @@ actual fun rememberImeHandoffInsets(focusState: ImeHandoffFocusState): WindowIns
       .collectLatest { (bottom, protecting, _) ->
         // Only focus handoffs debounce decreases. Normal dismissal follows the real inset.
         // Each new inset cancels the pending release; protection has a bounded lifetime.
-        if (protecting && bottom < retainedBottom) delay(KeyboardHandoffDelayMillis.milliseconds)
+        if (protecting && bottom < retainedBottom) delay(KEYBOARD_HANDOFF_DELAY_MILLIS.milliseconds)
         retainedBottom = bottom
       }
   }

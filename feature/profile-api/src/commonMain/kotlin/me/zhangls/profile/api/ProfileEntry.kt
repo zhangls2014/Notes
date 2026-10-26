@@ -6,5 +6,5 @@ import androidx.compose.runtime.Composable
 interface ProfileEntry {
   // 跨模块 Native @Composable 抽象方法不声明默认参数。
   @Composable
-  fun Screen(onBackPressed: () -> Unit)
+  fun Screen(onBack: () -> Unit)
 }

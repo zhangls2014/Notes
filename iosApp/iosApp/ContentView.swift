@@ -7,7 +7,7 @@ struct ComposeView: UIViewControllerRepresentable {
     let deepLinkUrl: String?
 
     func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.MainViewController(deepLinkUrl: deepLinkUrl)
+        MainViewControllerKt.mainViewController(deepLinkUrl: deepLinkUrl)
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {

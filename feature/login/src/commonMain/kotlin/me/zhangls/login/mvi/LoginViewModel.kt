@@ -2,11 +2,11 @@ package me.zhangls.login.mvi
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import me.zhangls.data.model.UserModel
 import me.zhangls.data.model.AuthTokens
-import kotlinx.coroutines.CancellationException
+import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
@@ -26,11 +26,11 @@ class LoginViewModel(
   savedStateHandle: SavedStateHandle,
   private val userRepository: UserRepository,
   private val settingsRepository: SettingsRepository,
-  private val toastGlobalNotifier: ToastGlobalNotifier
+  private val toastGlobalNotifier: ToastGlobalNotifier,
 ) : MviViewModel<LoginState, LoginIntent>(
   initialState = LoginState(),
   stateSerializer = LoginState.serializer(),
-  savedStateHandle = savedStateHandle
+  savedStateHandle = savedStateHandle,
 ) {
   init {
     viewModelScope.launch {
@@ -98,7 +98,7 @@ class LoginViewModel(
   /**
    * 无后端环境下的本地模拟登录：直接构造用户并持久化。
    *
-   * TODO: 接入真实登录接口后替换为网络请求
+   * 真实登录接入与模拟凭据替换见 docs/testing/pending-acceptance.md。
    */
   private fun login() {
     viewModelScope.launch {

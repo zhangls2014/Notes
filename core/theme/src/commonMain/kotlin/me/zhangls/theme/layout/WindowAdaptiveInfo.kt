@@ -83,7 +83,7 @@ val WindowAdaptiveInfo.isExpandedWidthOrWider: Boolean
 /** 宽度是否达到 ExtraLarge 档（≥ 1600dp，桌面级窗口）。 */
 val WindowAdaptiveInfo.isExtraLargeWidthOrWider: Boolean
   get() = windowSizeClass.isWidthAtLeastBreakpoint(
-    WindowSizeClass.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND
+    WindowSizeClass.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND,
   )
 
 /**
@@ -99,7 +99,7 @@ val WindowAdaptiveInfo.isExtraLargeWidthOrWider: Boolean
 val LocalPaneScaffoldDirective = staticCompositionLocalOf<PaneScaffoldDirective> {
   error(
     "LocalPaneScaffoldDirective 未被提供：" +
-      "必须由组合根用 rememberPaneScaffoldDirective(rememberWindowAdaptiveInfo()) 提供"
+      "必须由组合根用 rememberPaneScaffoldDirective(rememberWindowAdaptiveInfo()) 提供",
   )
 }
 

@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.DarkMode: ImageVector
   get() {
-    if (_DarkMode != null) {
-      return _DarkMode!!
-    }
-    _DarkMode = ImageVector.Builder(
+    cachedDarkMode?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.DarkMode",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -68,11 +65,11 @@ val Icons.Rounded.DarkMode: ImageVector
       }
     }.build()
 
-    return _DarkMode!!
+    cachedDarkMode = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _DarkMode: ImageVector? = null
+private var cachedDarkMode: ImageVector? = null
 
 @Preview(name = "DarkMode", showBackground = true)
 @Composable

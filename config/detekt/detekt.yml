@@ -25,6 +25,9 @@ complexity:
       - Preview
 
 naming:
+  MatchingDeclarationName:
+    # 项目允许多个相关声明按共同职责命名，准确性由代码审查判断。
+    active: false
   FunctionNaming:
     # @Composable 按 Compose 约定使用 PascalCase，与 functionPattern 的大小写规则冲突
     ignoreAnnotated:
@@ -32,8 +35,102 @@ naming:
       - Preview
 
 ktlint:
+  Filename:
+    # 与根 AGENTS.md 的职责命名约定一致，PascalCase 由代码审查约束。
+    active: false
+  FunctionSignature:
+    # 签名规则独立读取缩进大小，与下方 Indentation 保持一致。
+    indentSize: 2
   Indentation:
     # 项目惯例为 2 空格缩进（全仓 .kt/.kts 实测：前导空格呈 2/4/6/8 等差分布，
     # AGENTS.md 中的示例亦为 2 空格），而 ktlint 规则集默认 indentSize: 4。
     # 按既有代码风格对齐，而非改动约 200 个源文件去适配 4 空格。
     indentSize: 2
+  AnnotationOnSeparateLine:
+    indentSize: 2
+  ArgumentListWrapping:
+    indentSize: 2
+  BinaryExpressionWrapping:
+    indentSize: 2
+  ChainWrapping:
+    indentSize: 2
+  ClassSignature:
+    indentSize: 2
+  CommentWrapping:
+    indentSize: 2
+  ConditionWrapping:
+    indentSize: 2
+  ContextReceiverListWrapping:
+    indentSize: 2
+  ContextReceiverMapping:
+    indentSize: 2
+  EnumWrapping:
+    indentSize: 2
+  FunctionExpressionBody:
+    indentSize: 2
+  FunctionLiteral:
+    indentSize: 2
+  KdocWrapping:
+    indentSize: 2
+  ModifierListSpacing:
+    indentSize: 2
+  MultiLineIfElse:
+    indentSize: 2
+  MultilineLoop:
+    indentSize: 2
+  ParameterListWrapping:
+    indentSize: 2
+  ParameterWrapping:
+    indentSize: 2
+  PropertyWrapping:
+    indentSize: 2
+  SpacingAroundCurly:
+    indentSize: 2
+  StatementWrapping:
+    indentSize: 2
+  TypeArgumentListSpacing:
+    indentSize: 2
+  TypeParameterListSpacing:
+    indentSize: 2
+  Wrapping:
+    indentSize: 2
+
+# 与 Compose 入口及 AGP 测试布局对齐，不放宽生产代码规则。
+style:
+  UnusedPrivateFunction:
+    # Preview 是 IDE 调用入口，与现有 inspections 入口约定一致。
+    ignoreAnnotated:
+      - Preview
+  MagicNumber:
+    # 保留 detekt 2.0.0-alpha.6 默认排除列表，补齐 AGP 9 的测试源集名。
+    excludes:
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/androidHostTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+      - '**/*.kts'
+
+# 在默认协程规则上增加生命周期、测试启动和取消传播检查。
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+  CoroutineLaunchedInTestWithoutRunTest:
+    active: true
+  SuspendFunSwallowedCancellation:
+    active: true
+
+# Compose Rules 0.6.8：默认启用项沿用库配置，仅补齐四条默认关闭的规则。
+Compose:
+  ComposableNestingDepth:
+    active: true
+  Material2:
+    active: true
+  PreviewNaming:
+    active: true
+  UnstableCollections:
+    active: true

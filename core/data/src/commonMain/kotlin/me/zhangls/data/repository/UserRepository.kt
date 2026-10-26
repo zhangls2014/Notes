@@ -1,8 +1,8 @@
 package me.zhangls.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import me.zhangls.data.model.UserModel
 import me.zhangls.data.model.AuthTokens
+import me.zhangls.data.model.UserModel
 
 interface UserRepository {
   val userFlow: Flow<UserModel?>

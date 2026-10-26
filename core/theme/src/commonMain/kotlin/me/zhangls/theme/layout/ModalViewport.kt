@@ -15,8 +15,8 @@ val LocalModalViewport = staticCompositionLocalOf<DpSize> {
 
 /** Supplies finite modal bounds without reading another set of platform window facts. */
 @Composable
-fun ProvideModalViewport(content: @Composable () -> Unit) {
-  BoxWithConstraints(Modifier.fillMaxSize()) {
+fun ProvideModalViewport(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+  BoxWithConstraints(modifier.fillMaxSize()) {
     CompositionLocalProvider(LocalModalViewport provides DpSize(maxWidth, maxHeight)) {
       content()
     }

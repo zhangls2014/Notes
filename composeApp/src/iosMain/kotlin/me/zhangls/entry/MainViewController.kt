@@ -8,20 +8,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.window.ComposeUIViewController
 import androidx.compose.ui.uikit.LocalUIViewController
+import androidx.compose.ui.window.ComposeUIViewController
 import me.zhangls.framework.toast.IosSystemToast
 import me.zhangls.framework.toast.SystemToast
 import platform.Foundation.NSNotificationCenter
 
-
 private val LocalIosComposeRebuildToken = staticCompositionLocalOf { false }
 
-fun MainViewController() = ComposeUIViewController {
+fun mainViewController() = ComposeUIViewController {
   AppEntry()
 }
 
-fun MainViewController(deepLinkUrl: String?) = ComposeUIViewController {
+fun mainViewController(deepLinkUrl: String?) = ComposeUIViewController {
   AppEntry(deepLinkUrl = deepLinkUrl)
 }
 
@@ -43,7 +42,7 @@ private fun AppEntry(deepLinkUrl: String? = null) {
     val observer = NSNotificationCenter.defaultCenter.addObserverForName(
       name = LanguageManager.LANGUAGE_DID_CHANGE_NOTIFICATION,
       `object` = null,
-      queue = null
+      queue = null,
     ) { _ ->
       rebuildToken = rebuildToken.not()
     }
@@ -56,9 +55,9 @@ private fun AppEntry(deepLinkUrl: String? = null) {
   CompositionLocalProvider(LocalIosComposeRebuildToken provides rebuildToken) {
     App(
       deepLinkUrl = deepLinkUrl,
-      onLanguageChanged = { language ->
+      onLanguageChange = { language ->
         LanguageManager.updateLanguage(language)
-      }
+      },
     )
   }
 }

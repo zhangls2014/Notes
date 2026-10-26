@@ -44,12 +44,17 @@ internal class DeviceCornerShape(
       val radiusY = (value * visibility / scaleY.coerceAtLeast(0.001f)).coerceIn(0f, rect.height / 2f)
       return CornerRadius(radiusX, radiusY)
     }
-    return Outline.Rounded(RoundRect(
-      left = rect.left, top = rect.top, right = rect.right, bottom = rect.bottom,
-      topLeftCornerRadius = radius(corners.topLeft),
-      topRightCornerRadius = radius(corners.topRight),
-      bottomRightCornerRadius = radius(corners.bottomRight),
-      bottomLeftCornerRadius = radius(corners.bottomLeft),
-    ))
+    return Outline.Rounded(
+      RoundRect(
+        left = rect.left,
+        top = rect.top,
+        right = rect.right,
+        bottom = rect.bottom,
+        topLeftCornerRadius = radius(corners.topLeft),
+        topRightCornerRadius = radius(corners.topRight),
+        bottomRightCornerRadius = radius(corners.bottomRight),
+        bottomLeftCornerRadius = radius(corners.bottomLeft),
+      ),
+    )
   }
 }

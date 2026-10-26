@@ -1,7 +1,6 @@
 package me.zhangls.email.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,14 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -35,9 +35,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import me.zhangls.data.model.AccountModel
-import me.zhangls.theme.layout.LocalModalViewport
 import me.zhangls.theme.layout.ImeHandoffFocusState
+import me.zhangls.theme.layout.LocalModalViewport
 import me.zhangls.theme.layout.imeGestureControl
 import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.email.generated.resources.Res
@@ -53,9 +55,9 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun NewEmailSheet(
-  recipients: List<AccountModel>,
+  recipients: ImmutableList<AccountModel>,
   visible: Boolean,
-  selectedRecipientIds: Set<Long>,
+  selectedRecipientIds: ImmutableSet<Long>,
   subject: String,
   body: String,
   isSending: Boolean,
@@ -113,8 +115,8 @@ internal fun NewEmailSheet(
 @Composable
 internal fun NewEmailSheetContent(
   maxHeight: Dp,
-  recipients: List<AccountModel>,
-  selectedRecipientIds: Set<Long>,
+  recipients: ImmutableList<AccountModel>,
+  selectedRecipientIds: ImmutableSet<Long>,
   subject: String,
   body: String,
   isSending: Boolean,

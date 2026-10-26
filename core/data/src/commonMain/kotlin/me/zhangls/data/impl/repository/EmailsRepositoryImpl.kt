@@ -55,13 +55,11 @@ internal class EmailsRepositoryImpl(
         subject = draft.subject,
         body = draft.body,
         createdAt = draft.createdAt,
-      )
+      ),
     )
   }
 
-  override fun getEmail(id: Long): Flow<EmailModel?> {
-    return emailDao.getEmail(id).map { it?.toModel() }
-  }
+  override fun getEmail(id: Long): Flow<EmailModel?> = emailDao.getEmail(id).map { it?.toModel() }
 
   override suspend fun toggleFavorite(emailId: Long) {
     val entity = emailDao.getEmailById(emailId) ?: return
@@ -82,27 +80,23 @@ internal class EmailsRepositoryImpl(
     }
   }
 
-  override fun getEmailPaging(): Flow<PagingData<EmailModel>> =
-    paging { emailDao.getEmailPaging() }
+  override fun getEmailPaging(): Flow<PagingData<EmailModel>> = paging { emailDao.getEmailPaging() }
 
-  override fun getEmailFavoritePaging(): Flow<PagingData<EmailModel>> =
-    paging { emailDao.getEmailFavoritePaging() }
+  override fun getEmailFavoritePaging(): Flow<PagingData<EmailModel>> = paging { emailDao.getEmailFavoritePaging() }
 
   override fun getThreadEmailsById(parentEmailId: Long): Flow<PagingData<EmailModel>> =
     paging { emailDao.getThreadEmails(parentEmailId) }
 
-  override fun searchEmails(keywords: String): Flow<PagingData<EmailModel>> =
-    paging { emailDao.searchEmails(keywords) }
+  override fun searchEmails(keywords: String): Flow<PagingData<EmailModel>> = paging { emailDao.searchEmails(keywords) }
 
   override fun getAllAccounts(): Flow<List<AccountModel>> =
     accountDao.queryAllAccount().map { accounts -> accounts.map { it.toModel() } }
 
   /** 统一在此把 Room 查询载体映射为对外读模型，签名不外泄 Room 类型。 */
-  private fun paging(source: () -> PagingSource<Int, EmailWithSender>): Flow<PagingData<EmailModel>> =
-    Pager(
-      config = PagingConfig(pageSize = PAGE_SIZE),
-      pagingSourceFactory = source,
-    ).flow.map { data -> data.map { it.toModel() } }
+  private fun paging(source: () -> PagingSource<Int, EmailWithSender>): Flow<PagingData<EmailModel>> = Pager(
+    config = PagingConfig(pageSize = PAGE_SIZE),
+    pagingSourceFactory = source,
+  ).flow.map { data -> data.map { it.toModel() } }
 
   private companion object {
     const val PAGE_SIZE = 5

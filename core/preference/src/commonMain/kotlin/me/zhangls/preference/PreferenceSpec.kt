@@ -11,10 +11,7 @@ import org.jetbrains.compose.resources.StringResource
  *
  * @author zhangls
  */
-data class PreferenceOption<T>(
-  val label: StringResource,
-  val value: T,
-)
+data class PreferenceOption<T>(val label: StringResource, val value: T)
 
 /**
  * 设置项的**静态展示元数据**：一个设置项"长什么样、叫什么"，不含它当前的取值，也不含取值变化后要做什么。

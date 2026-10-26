@@ -14,23 +14,17 @@ import java.io.File
 @Singleton
 actual class AppFileManager(private val context: Context) {
 
-  actual fun getDatabasePath(filename: String): String {
-    return context.getDatabasePath(filename).absolutePath
-  }
+  actual fun getDatabasePath(filename: String): String = context.getDatabasePath(filename).absolutePath
 
-  actual fun getDataStorePath(filename: String): String {
-    return context.dataStoreFile(filename).absolutePath
-  }
+  actual fun getDataStorePath(filename: String): String = context.dataStoreFile(filename).absolutePath
 
   /**
    * 图片存储目录（私有目录）
    */
-  actual fun getImageDir(): String {
-    return File(getPrivateDir(), Environment.DIRECTORY_PICTURES)
-      .apply {
-        if (exists().not()) mkdirs()
-      }.absolutePath
-  }
+  actual fun getImageDir(): String = File(getPrivateDir(), Environment.DIRECTORY_PICTURES)
+    .apply {
+      if (exists().not()) mkdirs()
+    }.absolutePath
 
   /**
    * 私有目录
@@ -45,12 +39,10 @@ actual class AppFileManager(private val context: Context) {
   /**
    * 图片存储目录（私有目录）
    */
-  fun getCacheImageDir(): String {
-    return File(getCacheDir(), Environment.DIRECTORY_PICTURES)
-      .apply {
-        if (exists().not()) mkdirs()
-      }.absolutePath
-  }
+  fun getCacheImageDir(): String = File(getCacheDir(), Environment.DIRECTORY_PICTURES)
+    .apply {
+      if (exists().not()) mkdirs()
+    }.absolutePath
 
   /**
    * 缓存目录
@@ -65,20 +57,16 @@ actual class AppFileManager(private val context: Context) {
   /**
    * 根据文件名生成目标文件
    */
-  actual fun createImageFile(filename: String): String {
-    return File(getImageDir(), filename).apply {
-      if (exists().not()) createNewFile()
-    }.absolutePath
-  }
+  actual fun createImageFile(filename: String): String = File(getImageDir(), filename).apply {
+    if (exists().not()) createNewFile()
+  }.absolutePath
 
   /**
    * 根据文件名生成目标文件
    */
-  fun createCacheImageFile(filename: String): String {
-    return File(getCacheImageDir(), filename).apply {
-      if (exists().not()) createNewFile()
-    }.absolutePath
-  }
+  fun createCacheImageFile(filename: String): String = File(getCacheImageDir(), filename).apply {
+    if (exists().not()) createNewFile()
+  }.absolutePath
 
   fun getFileName(uri: Uri): String? {
     var name: String? = null
@@ -99,7 +87,7 @@ actual class AppFileManager(private val context: Context) {
 
     // 名称为空或不含扩展名时，用 MIME 主类型（如 image）作为文件名回退；不可用时返回空字符串。
     return if (name.isNullOrBlank() || name.contains(".").not()) {
-      context.contentResolver.getType(uri)?.substringBeforeLast("/") ?: ""
+      context.contentResolver.getType(uri)?.substringBeforeLast("/").orEmpty()
     } else {
       name.substringBeforeLast(".")
     }
@@ -110,7 +98,7 @@ actual class AppFileManager(private val context: Context) {
 
     // 名称为空或不含扩展名时，用 MIME 子类型（如 jpeg）作为扩展名回退；不可用时返回空字符串。
     return if (name.isNullOrBlank() || name.contains(".").not()) {
-      context.contentResolver.getType(uri)?.substringAfterLast("/") ?: ""
+      context.contentResolver.getType(uri)?.substringAfterLast("/").orEmpty()
     } else {
       name.substringAfterLast(".")
     }

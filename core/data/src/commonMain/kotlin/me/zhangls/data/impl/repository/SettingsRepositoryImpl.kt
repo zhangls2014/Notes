@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.map
 import me.zhangls.data.impl.datastore.AppDataStore
 import me.zhangls.data.model.SettingsModel
 import me.zhangls.data.repository.SettingsRepository
-import me.zhangls.model.FontSizeConfig
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
+import me.zhangls.model.FontSizeConfig
 import org.koin.core.annotation.Singleton
 
 @Singleton(binds = [SettingsRepository::class])
@@ -18,7 +18,7 @@ internal class SettingsRepositoryImpl(prefsDataStore: DataStore<Preferences>) : 
     name = "settings",
     serializer = SettingsModel.serializer(),
     dataStore = prefsDataStore,
-    defaultValue = SettingsModel()
+    defaultValue = SettingsModel(),
   )
 
   override val settingsFlow: Flow<SettingsModel> = dataStore.read().map { it ?: SettingsModel() }

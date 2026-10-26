@@ -3,10 +3,10 @@ package me.zhangls.entry
 import androidx.compose.runtime.AbstractApplier
 import androidx.compose.runtime.Composition
 import androidx.compose.runtime.Recomposer
+import me.zhangls.preference.ui.ProvidePreferenceLocals
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import me.zhangls.preference.ui.ProvidePreferenceLocals
 
 /** Rendering controlled settings must not initialize a platform preference store. */
 class PreferenceLocalsTest {

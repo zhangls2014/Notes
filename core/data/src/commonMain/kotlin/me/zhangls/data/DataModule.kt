@@ -3,6 +3,9 @@ package me.zhangls.data
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import me.zhangls.data.util.AppFileManager
 import me.zhangls.database.AppDatabase
 import me.zhangls.database.AppDatabaseFactory
@@ -29,15 +32,21 @@ import org.koin.core.annotation.Singleton
  * @author zhangls
  */
 @Module(
-  includes = [DatabaseModule::class]
+  includes = [DatabaseModule::class],
 )
 @ComponentScan("me.zhangls.data")
-class DataModule
+class DataModule(private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) {
+  // 明确作为模块成员登记，避免 Native 跨模块顶层函数按返回类型包过滤。
+  @Singleton
+  internal fun provideIoDispatcher(): CoroutineDispatcher = ioDispatcher
+}
 
 @Singleton
-internal fun provideDatabase(factory: AppDatabaseFactory, manager: AppFileManager): AppDatabase {
-  return factory.getDatabaseBuilder(manager.getDatabasePath(DATABASE_NAME)).create()
-}
+internal fun provideDatabase(
+  factory: AppDatabaseFactory,
+  manager: AppFileManager,
+  ioDispatcher: CoroutineDispatcher,
+): AppDatabase = factory.getDatabaseBuilder(manager.getDatabasePath(DATABASE_NAME)).create(ioDispatcher)
 
 @Factory
 internal fun provideAccountDao(database: AppDatabase): AccountDao = database.accountDao()
@@ -46,9 +55,9 @@ internal fun provideAccountDao(database: AppDatabase): AccountDao = database.acc
 internal fun provideEmailDao(database: AppDatabase): EmailDao = database.emailDao()
 
 @Singleton
-internal fun provideDataStore(manager: AppFileManager): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath {
-  manager.getDataStorePath("notes.preferences_pb").toPath()
-}
+internal fun provideDataStore(manager: AppFileManager): DataStore<Preferences> =
+  PreferenceDataStoreFactory.createWithPath {
+    manager.getDataStorePath("notes.preferences_pb").toPath()
+  }
 
 private const val DATABASE_NAME = "notes.db"
-

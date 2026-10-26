@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,18 +28,9 @@ import notes.feature.email.generated.resources.email_action_cancel_favorite
 import notes.feature.email.generated.resources.email_action_favorite
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * 邮件卡片头部的两种形态。
- *
- * @author zhangls
- */
-internal enum class EmailHeaderVariant {
-  /** 列表项：头像随选中态翻转。 */
-  ListItem,
-
-  /** 详情项：静态头像。 */
-  Detail,
-}
+private const val AVATAR_FLIP_ROTATION = 180F
+private const val AVATAR_MID_ROTATION = 90F
+private const val AVATAR_CAMERA_DISTANCE_SCALE = 12
 
 /**
  * 邮件卡片头部：头像 + 发件人 / 时间 + 收藏按钮。
@@ -95,17 +86,26 @@ internal fun EmailHeader(
       onClick = onFavoriteClick,
       shapes = IconButtonDefaults.shapes(),
       colors = IconButtonDefaults.filledTonalIconButtonColors(
-        containerColor = if (isImportant) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = if (isImportant) MaterialTheme.colorScheme.onPrimaryContainer
-        else MaterialTheme.colorScheme.onSurfaceVariant,
+        containerColor = if (isImportant) {
+          MaterialTheme.colorScheme.primaryContainer
+        } else {
+          MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        contentColor = if (isImportant) {
+          MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+          MaterialTheme.colorScheme.onSurfaceVariant
+        },
       ),
     ) {
       Icon(
         imageVector = if (isImportant) Icons.Rounded.StarFill else Icons.Rounded.Star,
         contentDescription = stringResource(
-          if (isImportant) Res.string.email_action_cancel_favorite
-          else Res.string.email_action_favorite
+          if (isImportant) {
+            Res.string.email_action_cancel_favorite
+          } else {
+            Res.string.email_action_favorite
+          },
         ),
       )
     }
@@ -116,28 +116,30 @@ internal fun EmailHeader(
  * 头像 + 选中翻转：绕 Y 轴翻到背面显示"已选中"图案。
  */
 @Composable
-private fun FlipAvatar(modifier: Modifier = Modifier, isSelected: Boolean, account: AccountModel) {
+private fun FlipAvatar(isSelected: Boolean, account: AccountModel, modifier: Modifier = Modifier) {
   val rotation by animateFloatAsState(
-    targetValue = if (isSelected) 180F else 0F,
+    targetValue = if (isSelected) AVATAR_FLIP_ROTATION else 0F,
     animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
-    label = "rotation"
+    label = "rotation",
   )
 
   Box(
     modifier = modifier
       .graphicsLayer {
         rotationY = rotation
-        cameraDistance = 12 * density
-      }
+        cameraDistance = AVATAR_CAMERA_DISTANCE_SCALE * density
+      },
   ) {
-    if (rotation <= 90F) {
+    if (rotation <= AVATAR_MID_ROTATION) {
       ProfileImage(drawableKey = account.avatar, description = account.fullName)
     }
-    if (rotation > 90F) {
-      SelectedProfileImage(modifier = Modifier.graphicsLayer {
-        // 修正背面的图像
-        rotationY = 180F
-      })
+    if (rotation > AVATAR_MID_ROTATION) {
+      SelectedProfileImage(
+        modifier = Modifier.graphicsLayer {
+          // 修正背面的图像
+          rotationY = AVATAR_FLIP_ROTATION
+        },
+      )
     }
   }
 }

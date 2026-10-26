@@ -1,39 +1,59 @@
 package me.zhangls.entry.adaptive
 
 import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
-import androidx.compose.material3.adaptive.Posture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.material3.adaptive.Posture
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.test.*
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ComposeTimeoutException
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.printToString
 import androidx.compose.ui.unit.LayoutDirection
-import com.github.takahirom.roborazzi.captureRoboImage
+import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
+import com.github.takahirom.roborazzi.captureRoboImage
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
-import me.zhangls.entry.initKoin
 import me.zhangls.entry.drainMainLooperAfter
+import me.zhangls.entry.initKoin
 import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -47,6 +67,7 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ProfileNavigationTest {
   private val compose = createComposeRule()
+
   @get:Rule val rules = drainMainLooperAfter(compose)
   private lateinit var composeView: android.view.View
   private val users = AdaptiveUsers().apply {
@@ -55,16 +76,20 @@ class ProfileNavigationTest {
 
   @Before fun start() {
     initKoin {
-      modules(module {
-        single<android.content.Context> { RuntimeEnvironment.getApplication() }
-        single<UserRepository> { users }
-        single<SettingsRepository> { AdaptiveSettings() }
-        single<EmailsRepository> { AdaptiveEmails() }
-      })
+      modules(
+        module {
+          single<android.content.Context> { RuntimeEnvironment.getApplication() }
+          single<UserRepository> { users }
+          single<SettingsRepository> { AdaptiveSettings() }
+          single<EmailsRepository> { AdaptiveEmails() }
+        },
+      )
     }
   }
 
-  @After fun stop() { stopKoin() }
+  @After fun stop() {
+    stopKoin()
+  }
 
   private fun launch(
     restoration: StateRestorationTester = StateRestorationTester(compose),
@@ -74,7 +99,8 @@ class ProfileNavigationTest {
     restoration.setContent {
       composeView = androidx.compose.ui.platform.LocalView.current
       ProvideWindowAdaptiveInfo(
-        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, height), Posture(),
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, height),
+        Posture(),
       ) {
         ComposeAppTheme {
           AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
@@ -161,8 +187,11 @@ class ProfileNavigationTest {
   @Test
   @Config(qualifiers = "en-rUS-w800dp-h400dp-mdpi")
   fun landscapeProfileReturnStartsFromFullWindow() {
-    android.provider.Settings.Global.putFloat(RuntimeEnvironment.getApplication().contentResolver,
-      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+    android.provider.Settings.Global.putFloat(
+      RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
     launch(width = 800, height = 400)
     compose.onNodeWithContentDescription("Settings").performClick()
     compose.onNodeWithText("Personal information").performClick()
@@ -175,8 +204,10 @@ class ProfileNavigationTest {
       compose.waitForIdle()
       val exiting = compose.onAllNodesWithText("Personal information").fetchSemanticsNodes()
         .minBy { it.boundsInRoot.top }.boundsInRoot
-      assertTrue("Returning full-screen page must not jump past the rail: $start -> $exiting",
-        exiting.left - start.left < 40f)
+      assertTrue(
+        "Returning full-screen page must not jump past the rail: $start -> $exiting",
+        exiting.left - start.left < 40f,
+      )
     } finally {
       compose.mainClock.autoAdvance = true
     }
@@ -193,8 +224,11 @@ class ProfileNavigationTest {
   fun rightNavigationRailTracksTheSameProgress() = assertNavigationMotion(800, 400, rtl = true)
 
   private fun assertNavigationMotion(width: Int, height: Int, rtl: Boolean = false) {
-    android.provider.Settings.Global.putFloat(RuntimeEnvironment.getApplication().contentResolver,
-      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+    android.provider.Settings.Global.putFloat(
+      RuntimeEnvironment.getApplication().contentResolver,
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+      1f,
+    )
     val progress = mutableFloatStateOf(1f)
     compose.setContent {
       ProvideWindowAdaptiveInfo(WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, height), Posture()) {
@@ -218,22 +252,39 @@ class ProfileNavigationTest {
     try {
       fun sampleMotion(fractions: List<Float>): List<Float> = fractions.map { fraction ->
         compose.runOnIdle { progress.floatValue = fraction }
-        repeat(2) { compose.mainClock.advanceTimeByFrame(); compose.waitForIdle() }
+        repeat(2) {
+          compose.mainClock.advanceTimeByFrame()
+          compose.waitForIdle()
+        }
         val actual = extent()
-        org.junit.Assert.assertEquals("Layout must directly track progress=$fraction",
-          full - (full - visible) * fraction, actual, 1f)
+        org.junit.Assert.assertEquals(
+          "Layout must directly track progress=$fraction",
+          full - (full - visible) * fraction,
+          actual,
+          1f,
+        )
         if (width > height) {
           val bounds = compose.onNodeWithTag("shell-content").fetchSemanticsNode().boundsInRoot
-          org.junit.Assert.assertEquals("Rail must stay on the layout's Start side",
-            if (rtl) 0f else full - actual, bounds.left, 1f)
+          org.junit.Assert.assertEquals(
+            "Rail must stay on the layout's Start side",
+            if (rtl) 0f else full - actual,
+            bounds.left,
+            1f,
+          )
         }
         actual
       }
       val hiding = sampleMotion(listOf(0.75f, 0.5f, 0.25f, 0f))
-      assertTrue("Navigation must slide out through intermediate sizes: $hiding", hiding.any { it > visible && it < full })
+      assertTrue(
+        "Navigation must slide out through intermediate sizes: $hiding",
+        hiding.any { it > visible && it < full },
+      )
       org.junit.Assert.assertEquals(full, extent(), 0.5f)
       val showing = sampleMotion(listOf(0.25f, 0.5f, 0.75f, 1f))
-      assertTrue("Navigation must slide in through intermediate sizes: $showing", showing.any { it > visible && it < full })
+      assertTrue(
+        "Navigation must slide in through intermediate sizes: $showing",
+        showing.any { it > visible && it < full },
+      )
       org.junit.Assert.assertEquals(visible, extent(), 0.5f)
     } finally {
       compose.mainClock.autoAdvance = true

@@ -16,12 +16,19 @@ internal actual fun rememberDeviceCorners(): DeviceCorners? {
   val view = LocalView.current
   fun readCorners(): DeviceCorners? {
     val insets = ViewCompat.getRootWindowInsets(view) ?: return null
-    val positions = listOf(RoundedCornerCompat.POSITION_TOP_LEFT, RoundedCornerCompat.POSITION_TOP_RIGHT,
-      RoundedCornerCompat.POSITION_BOTTOM_RIGHT, RoundedCornerCompat.POSITION_BOTTOM_LEFT)
+    val positions = listOf(
+      RoundedCornerCompat.POSITION_TOP_LEFT,
+      RoundedCornerCompat.POSITION_TOP_RIGHT,
+      RoundedCornerCompat.POSITION_BOTTOM_RIGHT,
+      RoundedCornerCompat.POSITION_BOTTOM_LEFT,
+    )
     val roundedCorners = positions.map { insets.getRoundedCorner(it) }
-    if (roundedCorners.all { it == null }) return null
-    val values = roundedCorners.map { it?.radius?.toFloat() ?: 0f }
-    return DeviceCorners(values[0], values[1], values[2], values[3])
+    return if (roundedCorners.all { it == null }) {
+      null
+    } else {
+      val values = roundedCorners.map { it?.radius?.toFloat() ?: 0f }
+      DeviceCorners(values[0], values[1], values[2], values.last())
+    }
   }
   var corners by remember(view) { mutableStateOf(readCorners()) }
   DisposableEffect(view) {

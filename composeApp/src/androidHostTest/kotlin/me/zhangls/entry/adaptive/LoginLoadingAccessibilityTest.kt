@@ -1,15 +1,14 @@
 package me.zhangls.entry.adaptive
 
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -17,6 +16,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.unit.Density
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import androidx.window.core.layout.WindowSizeClass
@@ -40,7 +40,9 @@ class LoginLoadingAccessibilityTest {
   @get:Rule val compose = createComposeRule()
   private val store = ViewModelStore()
 
-  @After fun clearViewModel() { compose.runOnIdle { store.clear() } }
+  @After fun clearViewModel() {
+    compose.runOnIdle { store.clear() }
+  }
 
   private fun launch(users: PendingLoginUsers, systemScale: Float = 1f, appScale: Float = 1f) {
     compose.setContent {

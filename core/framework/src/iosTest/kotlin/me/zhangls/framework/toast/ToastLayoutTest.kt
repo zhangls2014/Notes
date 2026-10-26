@@ -25,7 +25,11 @@ class ToastLayoutTest {
   @Test
   fun clampsLongMessagesToSmallWindowSafeArea() {
     val frame = toastFrame(
-      180.0, 200.0, ToastInsets(top = 80.0, bottom = 100.0), 500.0, 500.0,
+      180.0,
+      200.0,
+      ToastInsets(top = 80.0, bottom = 100.0),
+      500.0,
+      500.0,
     )
     assertEquals(30.0, frame.x)
     assertEquals(80.0, frame.y)

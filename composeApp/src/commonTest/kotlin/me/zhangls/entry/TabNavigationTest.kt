@@ -2,8 +2,8 @@ package me.zhangls.entry
 
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.login.api.LoginDestination
@@ -36,7 +36,10 @@ class TabNavigationTest {
 
   @Test
   fun profilePreservesOriginThroughLoginGuardAndReturn() {
-    for ((origin, root) in listOf(ProfileOrigin.Home to HomeDestination, ProfileOrigin.Settings to SettingsDestination)) {
+    for ((origin, root) in listOf(
+      ProfileOrigin.Home to HomeDestination,
+      ProfileOrigin.Settings to SettingsDestination,
+    )) {
       val profile = ProfileDestination(origin)
       val state = navigationState(NavBackStack<NavKey>(root))
       val handler = NavHandler(state) { false }

@@ -21,11 +21,9 @@ sealed interface AccountError : InputError {
 }
 
 @Composable
-fun AccountError?.text(): String {
-  return when (this) {
-    is AccountError.Empty -> stringResource(Res.string.login_hint_login_account)
-    null -> ""
-  }
+fun AccountError?.text(): String = when (this) {
+  is AccountError.Empty -> stringResource(Res.string.login_hint_login_account)
+  null -> ""
 }
 
 /**
@@ -38,11 +36,9 @@ sealed interface PasswordError : InputError {
 }
 
 @Composable
-fun PasswordError?.text(): String {
-  return when (this) {
-    is PasswordError.Empty -> stringResource(Res.string.login_hint_login_password)
-    is PasswordError.TooShort -> stringResource(Res.string.login_hint_login_password_too_short)
-    is PasswordError.WeakType -> stringResource(Res.string.login_hint_login_password_weak_type)
-    null -> ""
-  }
+fun PasswordError?.text(): String = when (this) {
+  is PasswordError.Empty -> stringResource(Res.string.login_hint_login_password)
+  is PasswordError.TooShort -> stringResource(Res.string.login_hint_login_password_too_short)
+  is PasswordError.WeakType -> stringResource(Res.string.login_hint_login_password_weak_type)
+  null -> ""
 }

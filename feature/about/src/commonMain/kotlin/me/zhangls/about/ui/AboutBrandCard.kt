@@ -36,10 +36,16 @@ internal fun AboutBrandCard() {
       AppIcon(
         modifier = Modifier.size(80.dp).clip(MaterialTheme.shapes.large),
       )
-      Text(appName(), style = MaterialTheme.typography.headlineLarge,
-        textAlign = TextAlign.Center)
-      Text(stringResource(Res.string.about_brand_description), style = MaterialTheme.typography.bodyMedium,
-        textAlign = TextAlign.Center)
+      Text(
+        appName(),
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center,
+      )
+      Text(
+        stringResource(Res.string.about_brand_description),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center,
+      )
     }
   }
 }

@@ -3,8 +3,8 @@ package me.zhangls.entry
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.Destination
@@ -13,26 +13,22 @@ import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
-import me.zhangls.main.api.TabDestination
 import me.zhangls.main.api.SettingsDestination
+import me.zhangls.main.api.TabDestination
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.api.ProfileOrigin
 
 /** 首屏与登录恢复都按目标所属的 Tab 建栈，不记录 Tab 访问历史。 */
-internal fun initialBackStack(deepLink: DeepLinkDestination?, isLogin: Boolean): List<NavKey> =
-  if (!isLogin) {
-    listOf(LoginDestination(redirectTo = deepLink?.takeIf { it is RequireLogin }))
-  } else {
-    stackFor(deepLink ?: HomeDestination)
-  }
+internal fun initialBackStack(deepLink: DeepLinkDestination?, isLogin: Boolean): List<NavKey> = if (!isLogin) {
+  listOf(LoginDestination(redirectTo = deepLink?.takeIf { it is RequireLogin }))
+} else {
+  stackFor(deepLink ?: HomeDestination)
+}
 
 internal fun List<NavKey>.tabSelection(): TabDestination? = firstOrNull() as? TabDestination
 
 /** 每个 Tab 的返回栈独立保留；顶层选择与子页面导航是两个独立操作。 */
-internal class NavHandler(
-  private val state: AppNavigationState,
-  private val isLogin: () -> Boolean,
-) {
+internal class NavHandler(private val state: AppNavigationState, private val isLogin: () -> Boolean) {
   private val backStack: NavBackStack<NavKey> get() = state.backStack
 
   fun selectTab(tab: TabDestination) {
@@ -49,11 +45,14 @@ internal class NavHandler(
     Snapshot.withMutableSnapshot {
       when (effect) {
         is NavEffect.Navigate -> push(effect.dest.guardedByLogin(loggedIn))
+
         is NavEffect.Replace -> {
           backStack.removeLastOrNull()
           push(effect.dest.guardedByLogin(loggedIn))
         }
+
         is NavEffect.Restart -> reset(effect.dest.guardedByLogin(loggedIn))
+
         NavEffect.Popup -> if (backStack.size > 1) backStack.removeLastOrNull()
       }
     }
@@ -96,15 +95,19 @@ private fun stackFor(destination: Destination): List<NavKey> {
 
 private fun rootFor(destination: Destination): Destination = when (destination) {
   is LoginDestination, is TabDestination -> destination
+
   is EmailDetailDestination -> when (destination.scene) {
     EmailListScene.Home -> HomeDestination
     EmailListScene.Favorites -> FavoritesDestination
   }
+
   is ProfileDestination -> when (destination.origin) {
     ProfileOrigin.Home -> HomeDestination
     ProfileOrigin.Settings -> SettingsDestination
   }
+
   AboutDestination -> SettingsDestination
+
   else -> HomeDestination
 }
 

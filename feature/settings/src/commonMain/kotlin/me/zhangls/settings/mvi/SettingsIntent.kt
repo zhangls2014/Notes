@@ -1,10 +1,10 @@
 package me.zhangls.settings.mvi
 
-import me.zhangls.model.FontSizeConfig
-import me.zhangls.model.AppLanguage
-import me.zhangls.model.DarkThemeConfig
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.framework.mvi.MviIntent
+import me.zhangls.model.AppLanguage
+import me.zhangls.model.DarkThemeConfig
+import me.zhangls.model.FontSizeConfig
 
 /**
  * @author zhangls

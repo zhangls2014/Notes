@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
 import me.zhangls.theme.component.CenteredTopAppBar
@@ -27,8 +29,8 @@ import org.jetbrains.compose.resources.stringResource
 internal fun EmailList(
   viewModel: EmailViewModel,
   isFavorite: Boolean,
-  openedEmailId: Long? = null,
   navigateToDetail: (Long) -> Unit,
+  openedEmailId: Long? = null,
   onProfileClick: () -> Unit = {},
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
@@ -71,7 +73,7 @@ internal fun EmailList(
       // （`AppShell`），这里读到的是"内容区真正可用"的内边距，不需要再换算。
       contentPadding = padding,
       isFavorite = isFavorite,
-      selectedItems = state.selectedItems,
+      selectedItems = state.selectedItems.toImmutableSet(),
       openedEmailId = openedEmailId,
       navigateToDetail = navigateToDetail,
       onIntent = { viewModel.sendIntent(it) },
@@ -80,9 +82,9 @@ internal fun EmailList(
 
   if (!isFavorite) {
     NewEmailSheet(
-      recipients = state.accounts,
+      recipients = state.accounts.toImmutableList(),
       visible = state.isEmailDraftVisible,
-      selectedRecipientIds = state.draftRecipientIds,
+      selectedRecipientIds = state.draftRecipientIds.toImmutableSet(),
       subject = state.draftSubject,
       body = state.draftBody,
       isSending = state.isSending,

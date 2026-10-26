@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 
 interface AboutEntry {
   @Composable
-  fun Screen(appInfo: AboutAppInfo, onBackPressed: () -> Unit)
+  fun Screen(appInfo: AboutAppInfo, onBack: () -> Unit)
 }

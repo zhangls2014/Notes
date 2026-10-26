@@ -1,8 +1,8 @@
 package me.zhangls.login.mvi
 
+import me.zhangls.framework.mvi.MviAction
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
-import me.zhangls.framework.mvi.MviAction
 
 /**
  * @author zhangls

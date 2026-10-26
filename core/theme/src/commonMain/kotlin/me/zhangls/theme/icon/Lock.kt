@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Lock: ImageVector
   get() {
-    if (_Lock != null) {
-      return _Lock!!
-    }
-    _Lock = ImageVector.Builder(
+    cachedLock?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Lock",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -80,11 +77,11 @@ val Icons.Rounded.Lock: ImageVector
       }
     }.build()
 
-    return _Lock!!
+    cachedLock = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Lock: ImageVector? = null
+private var cachedLock: ImageVector? = null
 
 @Preview(name = "Lock", showBackground = true)
 @Composable

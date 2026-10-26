@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.StarFill: ImageVector
   get() {
-    if (_StarFill != null) {
-      return _StarFill!!
-    }
-    _StarFill = ImageVector.Builder(
+    cachedStarFill?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.StarFill",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -62,11 +59,11 @@ val Icons.Rounded.StarFill: ImageVector
       }
     }.build()
 
-    return _StarFill!!
+    cachedStarFill = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _StarFill: ImageVector? = null
+private var cachedStarFill: ImageVector? = null
 
 @Preview(name = "StarFill", showBackground = true)
 @Composable

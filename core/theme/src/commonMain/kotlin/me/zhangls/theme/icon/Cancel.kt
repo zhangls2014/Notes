@@ -13,13 +13,10 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-
 val Icons.Rounded.Cancel: ImageVector
   get() {
-    if (_Cancel != null) {
-      return _Cancel!!
-    }
-    _Cancel = ImageVector.Builder(
+    cachedCancel?.let { return it }
+    val image = ImageVector.Builder(
       name = "Rounded.Cancel",
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
@@ -86,11 +83,11 @@ val Icons.Rounded.Cancel: ImageVector
       }
     }.build()
 
-    return _Cancel!!
+    cachedCancel = image
+    return image
   }
 
-@Suppress("ObjectPropertyName")
-private var _Cancel: ImageVector? = null
+private var cachedCancel: ImageVector? = null
 
 @Preview(name = "Cancel", showBackground = true)
 @Composable

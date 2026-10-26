@@ -18,13 +18,10 @@ private const val NOTES_HOST = "notes.zhangls.me"
  *
  * @param matchers 各 feature 的匹配器，按序尝试，第一个匹配成功者胜出
  */
-internal fun parseDeepLink(
-  url: String?,
-  matchers: List<DeepLinkMatcher>,
-): DeepLinkDestination? {
-  val request = parseDeepLinkUrl(url) ?: return null
-  if (request.scheme != HTTPS) return null
-  if (request.host != NOTES_HOST) return null
+internal fun parseDeepLink(url: String?, matchers: List<DeepLinkMatcher>): DeepLinkDestination? {
+  val request = parseDeepLinkUrl(url)
+    ?.takeIf { it.scheme == HTTPS && it.host == NOTES_HOST }
+    ?: return null
 
   return matchers.firstNotNullOfOrNull { it.match(request) }
 }

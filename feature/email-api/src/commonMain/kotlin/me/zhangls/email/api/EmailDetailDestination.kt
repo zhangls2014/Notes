@@ -18,7 +18,6 @@ import me.zhangls.framework.nav.RequireLogin
  *   DeepLink 直达时用默认值 —— 外部链接没有"来自哪个列表"的概念。
  */
 @Serializable
-data class EmailDetailDestination(
-  val emailId: Long,
-  val scene: EmailListScene = EmailListScene.Home,
-) : DeepLinkDestination, RequireLogin
+data class EmailDetailDestination(val emailId: Long, val scene: EmailListScene = EmailListScene.Home) :
+  DeepLinkDestination,
+  RequireLogin

@@ -21,9 +21,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.EmailModel
 import notes.feature.email.generated.resources.Res
+import notes.feature.email.generated.resources.email_action_deselect_email
 import notes.feature.email.generated.resources.email_action_open_email
 import notes.feature.email.generated.resources.email_action_select_email
-import notes.feature.email.generated.resources.email_action_deselect_email
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -37,13 +37,13 @@ internal fun Loading(modifier: Modifier = Modifier) {
 @Composable
 fun EmailListItem(
   model: EmailModel,
+  navigateToDetail: (Long) -> Unit,
+  // null 表示此列表不支持选择，也不暴露长按动作。
+  toggleSelection: ((Long) -> Unit)?,
   modifier: Modifier = Modifier,
   isMultiSelect: Boolean = false,
   isOpened: Boolean = false,
   isSelected: Boolean = false,
-  navigateToDetail: (Long) -> Unit,
-  // null 表示此列表不支持选择，也不暴露长按动作。
-  toggleSelection: ((Long) -> Unit)?,
   onFavoriteClick: (Long) -> Unit = {},
 ) {
   val selectionLabel = stringResource(
@@ -64,9 +64,13 @@ fun EmailListItem(
       ),
     shape = MaterialTheme.shapes.large,
     colors = CardDefaults.cardColors(
-      containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-      else if (isOpened) MaterialTheme.colorScheme.secondaryContainer
-      else MaterialTheme.colorScheme.surfaceContainerLow,
+      containerColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer
+      } else if (isOpened) {
+        MaterialTheme.colorScheme.secondaryContainer
+      } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
+      },
     ),
   ) {
     Column(

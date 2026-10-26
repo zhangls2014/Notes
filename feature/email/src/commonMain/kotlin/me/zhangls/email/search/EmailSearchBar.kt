@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -36,11 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -49,15 +50,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import me.zhangls.data.model.EmailModel
-import me.zhangls.theme.component.UserAvatar
 import me.zhangls.email.component.ProfileImage
 import me.zhangls.email.search.SearchViewModel.Companion.DURATION_SEARCH_DEBOUNCE
 import me.zhangls.theme.component.TooltipIconButton
+import me.zhangls.theme.component.UserAvatar
 import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Icons
@@ -122,14 +125,16 @@ internal fun EmailSearchBar(
       // 系统预测返回可能把焦点交给重新出现的输入框；触摸模式下这会自动展开搜索。
       // 收起时由 InputField 的点击处理启动展开，键盘模式仍允许 Tab 聚焦。
       modifier = modifier.focusProperties {
-        canFocus = !measuring && (searchBarState.currentValue == SearchBarValue.Expanded ||
-          inputModeManager.inputMode != InputMode.Touch)
+        canFocus = !measuring && (
+          searchBarState.currentValue == SearchBarValue.Expanded ||
+            inputModeManager.inputMode != InputMode.Touch
+          )
       },
       onSearch = { closeSearchBar() },
       placeholder = {
         Text(
           text = searchPlaceholder,
-          modifier = Modifier.clearAndSetSemantics {}
+          modifier = Modifier.clearAndSetSemantics {},
         )
       },
       leadingIcon = {
@@ -174,7 +179,7 @@ internal fun EmailSearchBar(
 
     if (searchText.isEmpty()) {
       SearchHistory(
-        searchHistory = state.searchHistory,
+        searchHistory = state.searchHistory.toImmutableList(),
         onHistoryClick = {
           textFieldState.edit { replace(0, length, it) }
           viewModel.sendIntent(SearchIntent.SelectSearchHistory(it))
@@ -203,7 +208,7 @@ internal fun EmailSearchBar(
   // 展开状态回写只用于 ViewModel 快照，不能再作为变化中的 rememberSaveable input。
   // 否则动画途中会重建 SearchBarState，丢失布局坐标，并让点击回调和聚焦逻辑
   // 持有不同的状态对象。初始值只读取一次；重建页面时由 rememberSearchBarState 恢复。
-  LaunchedEffect(searchBarState.currentValue) {
+  SideEffect(searchBarState.currentValue) {
     viewModel.sendIntent(SearchIntent.UpdateSearchBarValue(searchBarState.currentValue))
     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
       // 只清理查询，不再次启动动画；重复收起会取消结果点击正在等待的动画。
@@ -226,10 +231,10 @@ internal fun EmailSearchBar(
     inputField = {
       MeasuredSearchInput(
         measurementKey = searchPlaceholder,
+        measurementField = { inputField(Modifier, true) },
         modifier = Modifier.onSizeChanged { if (it.width > 0) collapsedInputWidth = it.width },
-      ) { measuring ->
-        inputField(Modifier, measuring)
-      }
+        inputField = { inputField(Modifier, false) },
+      )
     },
     colors = SearchBarDefaults.appBarWithSearchColors(
       scrolledSearchBarContainerColor = Color.Unspecified,
@@ -243,7 +248,7 @@ internal fun EmailSearchBar(
       state = searchBarState,
       // 全屏输入跟随 Material 的展开动画宽度。
       inputField = { inputField(Modifier.fillMaxWidth(), false) },
-      content = outputField
+      content = outputField,
     )
   } else {
     ExpandedDockedSearchBar(
@@ -252,20 +257,19 @@ internal fun EmailSearchBar(
       // Observe the placed anchor width so the final resize frame also remeasures the popup.
       modifier = if (collapsedInputWidth > 0) {
         Modifier.width(with(density) { collapsedInputWidth.toDp() })
-      } else Modifier,
+      } else {
+        Modifier
+      },
       properties = dockedSearchPopupProperties(),
       // 只填满 Material 从收起态锚点读取的宽度。
       inputField = { inputField(Modifier.fillMaxWidth(), false) },
-      content = outputField
+      content = outputField,
     )
   }
 }
 
 @Composable
-private fun SearchResults(
-  searchResults: LazyPagingItems<EmailModel>,
-  onResultClick: (Long) -> Unit,
-) {
+private fun SearchResults(searchResults: LazyPagingItems<EmailModel>, onResultClick: (Long) -> Unit) {
   if (searchResults.itemCount <= 0) {
     Text(
       text = stringResource(Res.string.email_msg_no_item_found),
@@ -284,7 +288,7 @@ private fun SearchResults(
         leadingContent = {
           ProfileImage(
             drawableKey = sender.avatar,
-            description = null
+            description = null,
           )
         },
         modifier = Modifier.clickable { onResultClick(email.id) },
@@ -295,7 +299,7 @@ private fun SearchResults(
 
 @Composable
 private fun SearchHistory(
-  searchHistory: List<String>,
+  searchHistory: ImmutableList<String>,
   onHistoryClick: (String) -> Unit,
   onHistoryDelete: (String) -> Unit,
 ) {
@@ -328,7 +332,7 @@ private fun SearchHistory(
         trailingIcon = {
           IconButton(
             onClick = { onHistoryDelete(keyword) },
-            modifier = Modifier.size(AssistChipDefaults.IconSize)
+            modifier = Modifier.size(AssistChipDefaults.IconSize),
           ) {
             Icon(
               imageVector = Icons.Rounded.Clear,
@@ -336,7 +340,7 @@ private fun SearchHistory(
               modifier = Modifier.size(AssistChipDefaults.IconSize),
             )
           }
-        }
+        },
       )
     }
   }

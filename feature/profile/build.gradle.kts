@@ -13,6 +13,7 @@ kotlin {
   sourceSets {
     androidHostTest.dependencies {
       implementation(kmp.junit)
+      implementation(kmp.kotlin.test)
       implementation(kmp.androidx.test.espresso)
       implementation(kmp.androidx.test.ext.junit)
       implementation(kmp.robolectric)
