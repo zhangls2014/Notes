@@ -8,7 +8,7 @@
 
 | 模块 | 当前测试归属 | 重点 |
 |---|---|---|
-| `composeApp` | `commonTest`、`androidHostTest`、`iosTest` | 返回栈序列化、Tab/页面导航、场景策略、主题、自适应布局、个人信息导航、关于页面与跨模块 Entry 调用 |
+| `composeApp` | `commonTest`、`androidHostTest`、`iosTest` | 返回栈序列化、Tab/页面导航、场景策略、主题、自适应布局、个人信息导航、关于页面、跨模块 Entry 调用与网页打开 |
 | `core:data` | `commonTest`、`iosTest` | 用户资料/登录凭据协调、明文迁移与真实 Keychain 集成边界 |
 | `core:database` | `commonTest`、`iosTest` | 收件人编码与历史 schema 迁移 |
 | `core:theme` | `commonTest` | 铰链几何 |
@@ -65,6 +65,10 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 新增或修改跨模块 `@Composable` Entry 时，更新 `composeApp/src/iosTest/kotlin/me/zhangls/entry/EmailEntryDispatchTest.kt`，通过 API 接口调用真实 Feature 实现，显式提供参数，验证 Native 分派。这个测试负责入口链接，不替代页面交互与设备验收。
 
 修改 `core:preference/ProvidePreferenceLocals` 或升级底层控件库时，运行同目录的 `PreferenceLocalsTest.kt`，验证没有应用偏好域时仍能提供 locals；同时检查包装器继续显式传入空的内存数据源。相关回归通过现有 `./gradlew :composeApp:iosSimulatorArm64Test` 执行，不能用 Android 宿主测试或 iOS 编译代替。
+
+### 网页打开能力回归
+
+运行 `./gradlew :composeApp:testAndroidHostTest --tests '*BrowserUriHandlerTest*'` 验证 HTTP/HTTPS 分流、其他协议委托、无效 URL、失败异常契约与 Android Custom Tabs Intent。`./gradlew :composeApp:iosSimulatorArm64Test` 同时覆盖共享分流与 iOS 未附着窗口时拒绝展示的行为。自动测试不访问网络，不证明真实浏览器界面的展示、关闭或浏览历史；设备关闭条件见 [待验收清单](pending-acceptance.md#系统应用内浏览器)。
 
 ## 验证证据与交付记录
 

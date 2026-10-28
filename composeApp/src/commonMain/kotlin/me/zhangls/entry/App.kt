@@ -7,6 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.framework.toast.SystemToast
 import me.zhangls.model.AppLanguage
@@ -32,6 +33,7 @@ fun App(
 ) {
   val viewModel: AppViewModel = koinViewModel()
   val systemToast = rememberSystemToast()
+  val browserUriHandler = rememberBrowserUriHandler()
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 各 feature 对导航的贡献由它们自己的 Koin 模块以多绑定登记，这里一处收集
   val navigationRegistry = rememberNavigationRegistry()
@@ -64,6 +66,7 @@ fun App(
   val paneScaffoldDirective = rememberPaneScaffoldDirective(windowAdaptiveInfo)
 
   CompositionLocalProvider(
+    LocalUriHandler provides browserUriHandler,
     LocalWindowAdaptiveInfo provides windowAdaptiveInfo,
     LocalPaneScaffoldDirective provides paneScaffoldDirective,
   ) {
