@@ -1,4 +1,7 @@
 <resources>
+  <string name="about_open_source_notices">开源软件声明</string>
+  <string name="about_notices_description">第三方开源库与许可证</string>
+  <string name="about_notices_open_failed">无法打开开源软件声明，请重试</string>
   <string name="about_title">关于应用</string>
   <string name="about_brand_description">应用信息与版本更新</string>
   <string name="about_version_information">版本信息</string>

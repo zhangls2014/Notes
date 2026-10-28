@@ -4,6 +4,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.deeplink.DeepLinkDestination
@@ -106,7 +107,7 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
     ProfileOrigin.Settings -> SettingsDestination
   }
 
-  AboutDestination -> SettingsDestination
+  AboutDestination, is OpenSourceNoticesDestination -> SettingsDestination
 
   else -> HomeDestination
 }

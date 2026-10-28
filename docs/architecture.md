@@ -105,7 +105,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 | 共享品牌与头像 | `core/theme/src/commonMain/kotlin/me/zhangls/theme/component/`：`AppBrand.kt`、`UserAvatar.kt` |
 | 构建约定 | `build-logic/src/main/kotlin/`；路径派生工具位于 `me/zhangls/convention/KmpConventions.kt` |
 
-共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`。关于应用页的安装包信息由组合根传入 `AboutViewModel`，构建号展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
+共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。关于应用页的安装包信息由组合根传入 `AboutViewModel`，构建号展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
 
 ## 3. 依赖规则
 
@@ -171,13 +171,19 @@ HTTP/HTTPS 网页使用 Android Custom Tabs 与 iOS `SFSafariViewController`；�
 
 Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏览器回退。iOS 仅从当前 Compose 宿主呈现 Safari 控制器；宿主未附着窗口或已有模态控制器时拒绝打开，避免跨窗口展示和重复弹出，组合销毁时关闭本能力持有的控制器。本能力不用于 OAuth 登录或 JS 交互。
 
+关于应用的「开源软件声明」使用本地嵌入页面，入口始终可用并采用 Material Symbols Rounded `Code` 图标。`web/open-source/` 的四份 HTML 是唯一入库的网页源文件。About 模块通过 Gradle `Sync` 在构建时将各平台的列表与全文同步到 `build/generated/open-source/<platform>Main/composeResources/files/open-source/`，并通过 Compose Resources `customDirectory` 接入对应源集；任务 Provider 关联生成依赖，支持增量构建。源集 `src/` 不保留 HTML 副本，普通构建不执行 Python 或联网刷新依赖，每端安装包只携带自己的两份页面，见[维护规则](../web/open-source/README.md)和[生成工具](../tools/open-source/README.md)。Android WebView 加载 Android 文件，关闭通用文件访问、Content URI 访问和网络加载；iOS WKWebView 加载 iOS 文件，只授予声明资源目录的读取范围。无托管地址、远程配置或部署步骤。
+
+`OpenSourceNoticesDestination` 属于 About API，与 `AboutDestination` 一同归属设置 Tab，并纳入组合根的全屏转场层。列表与许可证详情由 Navigation 3 管理，返回顺序为许可证详情 → 声明列表 → 关于应用 → 设置；原生返回和详情页的返回列表链接都回到应用导航栈。仅两个确切的本地页面 URI 可进入内部导航，同页锚点交给原生 WebView；其他本地文件和非 HTTP(S) 协议不接受，外部项目来源通过现有 `LocalUriHandler` 打开。WebView 随组合释放，iOS 导航 delegate 保持强引用，主动取消加载不提示错误。
+
+组合根把当前 `FontSizeConfig.value`、`DarkThemePreference.isDark` 解析结果和 `MaterialTheme.colorScheme` 的实际颜色放入 `AboutAppInfo`，不下发叠加系统字号后的倍率。网页背景、卡片、正文、辅助文字、边框和强调色依次对应 Material 的 `surface`、`surfaceContainerLow`、`onSurface`、`onSurfaceVariant`、`outlineVariant` 和 `primary`；Android 动态取色直接复用解析后的配色，不根据开关重算。缓存 Entry 通过最新状态提供器读取宿主信息；两端共用外观参数映射，本地文件 URL 附带 `fontScale`、`theme=light|dark` 及 `bg/card/fg/muted/line/accent` 六位 RGB 参数，四份 HTML 在首次正文绘制前应用。颜色仅接受六位十六进制字符串，无效或缺失值保留独立预览的回退配色。站内链接保留外观参数，外部来源不携带；独立预览无有效主题参数时跟随 `prefers-color-scheme`。网页正文与许可证原文基准为 16px/24px，辅助文字和按钮为 14px/20px，组件名称为 16px/24px。每个安装版本自带对应声明，不依赖网络更新。
+
 ### Koin 装配
 
 各模块声明自己的 Koin 注解和 provider，`composeApp` 的 `NotesModule` 是组合根。实现模块负责实现并提供自己的 Entry；调用方只依赖 API 接口。
 
 在 `androidApp/NotesApp.onCreate` 与 `iosApp/iOSApp.init` 中先初始化 Koin，再执行启动数据任务。启动任务 `InitData` 通过构造函数接收 Repository 和平台 `AppInfo`，由组合根解析并在应用级协程中执行；它本身不从全局容器查找依赖，也不持有协程作用域。Android `Context` 只在平台入口传给 Koin，`AndroidAppInfo` 和 `AndroidSystemToast` 仅保存 application context；ViewModel 不依赖平台 `Context`。
 
-关于应用页面同样复用组合根的 `AppInfo`。宿主将版本名称与原始字符串构建号映射为 `AboutAppInfo`，通过 `AboutEntry` 传入 Feature；缺失值显示本地化“未知”。iOS 构建号展示保留 `CFBundleVersion` 原值，启动初始化的数值版本语义不变。共享品牌图标与名称由 `core:theme` 的 `AppIcon` / `appName` 提供，不向 Feature 暴露内部生成资源。设置页只发送 `SettingsResult.OpenAbout`，经 main 的宿主回调交给根导航。About 不要求登录，不带窗格标注；外壳隐藏导航套件，返回后保留设置 Tab 和滚动位置。页面按 `ContentWidth.Form` 单栏居中，更新入口当前为“即将推出”的展示项，不注册点击或发起网络请求。
+关于应用页面同样复用组合根的 `AppInfo`。宿主将版本名称与原始字符串构建号映射为 `AboutAppInfo`，通过 `AboutEntry` 传入 Feature；缺失值显示本地化“未知”。iOS 构建号展示保留 `CFBundleVersion` 原值，启动初始化的数值版本语义不变。共享品牌图标与名称由 `core:theme` 的 `AppIcon` / `appName` 提供，不向 Feature 暴露内部生成资源。设置页只发送 `SettingsResult.OpenAbout`，经 main 的宿主回调交给根导航。About 不要求登录，不带窗格标注；外壳隐藏导航套件，返回后保留设置 Tab 和滚动位置。页面按 `ContentWidth.Form` 单栏居中，滚动视口覆盖工具栏下方的全部可用宽度，左右留白与中间内容共用同一滚动状态；更新入口当前为“即将推出”的展示项，不注册点击或发起网络请求。
 
 应用组合根通过内部平台 `rememberSystemToast()` 装配 `SystemToast`。Android 使用 Koin 的 application-context 单例；iOS 每个 Compose 宿主创建并持有自己的 `IosSystemToast`，组合销毁时取消显示任务、关闭额外窗口。iOS Toast 从实际宿主视图的 `windowScene` 创建触摸穿透窗口，不枚举全局场景或读取主屏幕；根视图布局回调根据当前 bounds 与 safeAreaInsets 重新定位标签，支持窗口缩放与旋转。后台或未附着到场景的宿主不显示 Toast。全局 Toast 事件仍沿用应用的 SharedFlow 机制，多个活跃宿主可各自在自身窗口呈现；它不携带某个业务窗口的目标标识。
 
@@ -210,7 +216,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 - `RequireLogin`：受登录状态保护的目的地；
 - Deep Link 与导航贡献注册机制。
 
-个人信息为 `feature:profile-api` 的 `ProfileDestination`，由 `ProfileNavigation` 登记序列化。`ProfileOrigin` 随 key 保存首页或设置入口，组合根据此选择对应 Tab 栈；两个入口共用 profile 的独立页面，返回与登录重定向均恢复发起入口。页面受 `RequireLogin` 保护，不带窗格标注。`ProfileDestination` 通过显式 `@SerialName` 保留拆分前的 wire identity（`me.zhangls.settings.api.ProfileDestination`），兼容已保存的 NavKey 和登录 redirectTo；代码和导航贡献均属于 profile-api，不依赖旧 settings 类型。个人信息和关于应用显示期间，组合根向 `AppShell` 传入页面进度读取器，保持窗口对应的导航形态，由全屏页面的实际缩放进度直接驱动底部导航或侧栏的位置与内容区占位；复用原导航组件及其测量尺寸，不另启显隐动画。全屏页面与遮罩按完整窗口计算，底层邮件／设置内容保留原 Entry、返回栈和组合。拖动、反向、取消、进入和普通返回共用页面的缩放进度与曲线；缩放进度从 0 到 1 对应导航从隐藏到显示，页面提交淡出期间导航保持显示。上层可见及退出期间，底层不接收触摸、无障碍焦点或返回事件。隐藏导航终态不消费导航侧系统 Insets，恢复页面时导航仍保持隐藏。
+个人信息为 `feature:profile-api` 的 `ProfileDestination`，由 `ProfileNavigation` 登记序列化。`ProfileOrigin` 随 key 保存首页或设置入口，组合根据此选择对应 Tab 栈；两个入口共用 profile 的独立页面，返回与登录重定向均恢复发起入口。页面受 `RequireLogin` 保护，不带窗格标注。`ProfileDestination` 通过显式 `@SerialName` 保留拆分前的 wire identity（`me.zhangls.settings.api.ProfileDestination`），兼容已保存的 NavKey 和登录 redirectTo；代码和导航贡献均属于 profile-api，不依赖旧 settings 类型。连续全屏页面切换时，仍在返回栈中的下层页面保持原尺寸；进入只缩放新的栈顶页，返回只缩放并淡出真正出栈的页面，预测返回取消恢复当前栈顶。个人信息和关于应用显示期间，组合根向 `AppShell` 传入页面进度读取器，保持窗口对应的导航形态，由全屏页面的实际缩放进度直接驱动底部导航或侧栏的位置与内容区占位；复用原导航组件及其测量尺寸，不另启显隐动画。全屏页面与遮罩按完整窗口计算，遮罩作为页面背后的同级节点承接空白区域输入，不在原生 WebView 的父级消费拖动事件；底层邮件／设置内容保留原 Entry、返回栈和组合。拖动、反向、取消、进入和普通返回共用页面的缩放进度与曲线；缩放进度从 0 到 1 对应导航从隐藏到显示，页面提交淡出期间导航保持显示。上层可见及退出期间，底层不接收触摸、无障碍焦点或返回事件。隐藏导航终态不消费导航侧系统 Insets，恢复页面时导航仍保持隐藏。
 
 Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
 

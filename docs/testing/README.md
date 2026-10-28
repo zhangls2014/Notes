@@ -68,7 +68,16 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 ### 网页打开能力回归
 
+所有声明网页的字号、深色模式与主题色由同一套参数传递；`AboutAppInfoTest` 检查实际 Material 颜色到网页配色的映射，`NoticesAppearanceTest` 检查两端参数，`AboutNoticesWebViewTest` 检查缓存 Entry 更新。网页脚本测试同时检查有效／无效配色、站内保留与外链排除。
+
+声明页的真实入口、WebView 挂载与预测返回使用 `*AboutNoticesNavigationTest*`；连续全屏页的下层尺寸与暴露区域像素使用 `*NestedFullscreenNavigationTest*`。Android 原生资源、链接分流和阅读位置使用 `*AboutNoticesWebViewTest*`，与参数化的 About 布局用例分别运行。
+平台资源隔离同时检查 Gradle Sync 各自只复制两份页面、Android 原生资产目录不含 iOS 页面，以及新构建的 APK／iOS App 的实际文件清单。网页的唯一入库源位于 `web/open-source/`，构建副本位于 About 模块的 `build/generated/open-source/`；校验源 HTML 变更能自动触发同步及打包，未变更时复制任务为 `UP-TO-DATE`，并确认配置缓存可复用。源集迁移时使用没有旧资源残留的构建输出，避免增量拷贝误带历史共享网页。
+
 运行 `./gradlew :composeApp:testAndroidHostTest --tests '*BrowserUriHandlerTest*'` 验证 HTTP/HTTPS 分流、其他协议委托、无效 URL、失败异常契约与 Android Custom Tabs Intent。`./gradlew :composeApp:iosSimulatorArm64Test` 同时覆盖共享分流与 iOS 未附着窗口时拒绝展示的行为。自动测试不访问网络，不证明真实浏览器界面的展示、关闭或浏览历史；设备关闭条件见 [待验收清单](pending-acceptance.md#系统应用内浏览器)。
+
+开源声明入口与嵌入页面运行 `./gradlew :composeApp:testAndroidHostTest --tests '*About*Test*' --tests '*NavBackStackSerializationTest*'`，覆盖入口离线可用、包内文件读取、缓存条目的外观更新、站内/外链分流、非声明文件阻断、阅读位置恢复及导航序列化。`./gradlew :feature:about:testAndroidHostTest :feature:about:iosSimulatorArm64Test` 验证两份确切本地文件 URI 的路由边界；`./gradlew :composeApp:iosSimulatorArm64Test` 同时执行共享外观模型与新增真实 Entry 调用回归。
+
+网页生成器运行 `python3 -m unittest discover -s tools/open-source -p 'test_*.py'`，校验预览文件与包内副本一致；依赖和页面刷新步骤见[声明工具](../../tools/open-source/README.md)。`node tools/open-source/test-font-scale.mjs` 覆盖四页在 HTTP 预览、Android/iOS 文件来源下的字号、主题、站内参数保留与外链排除。DOM 夹具不证明真实 WebView 配色或布局；本地文件实际显示、锚点定位、深浅色与字号、外链打开、关闭返回和阅读位置仍需双端设备验收。
 
 ## 验证证据与交付记录
 

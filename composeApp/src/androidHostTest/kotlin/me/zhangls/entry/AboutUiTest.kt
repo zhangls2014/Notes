@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
@@ -64,10 +65,21 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.setContent {
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
         ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-          koinInject<AboutEntry>().Screen(info, onBack = {})
+          koinInject<AboutEntry>().Screen(info, onBack = {}, onOpenSource = {})
         }
       }
     }
+  }
+
+  @Test fun noticesAreAlwaysAvailableOffline() {
+    var opened = false
+    compose.setContent {
+      ComposeAppTheme {
+        koinInject<AboutEntry>().Screen(AboutAppInfo("1.0", "1"), onBack = {}, onOpenSource = { opened = true })
+      }
+    }
+    compose.onNodeWithText("Open-source software notices").performScrollTo().assertIsEnabled().performClick()
+    assertTrue(opened)
   }
 
   @Test fun installedVersionAndDottedBuildCanBeExpandedAndCollapsed() {

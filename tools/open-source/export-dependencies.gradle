@@ -1,0 +1,33 @@
+import groovy.json.JsonOutput
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+
+// Run with -I; deliberately separate from application compilation and CI.
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    root.tasks.register('exportNoticeDependencies') {
+        doLast {
+            def inventories = [:]
+            [android: [':androidApp', 'prdFullReleaseRuntimeClasspath'],
+             ios: [':composeApp', 'iosArm64CompileKlibraries']].each { platform, source ->
+                def configuration = root.project(source[0]).configurations.getByName(source[1])
+                def components = configuration.incoming.resolutionResult.allComponents
+                // Filter project outputs before variant selection: their Android secondary
+                // variants are ambiguous without an AGP artifact type and are not third-party code.
+                def artifacts = configuration.incoming.artifactView {
+                    componentFilter { it instanceof ModuleComponentIdentifier }
+                }.artifacts.artifacts
+                inventories[platform] = components.findAll {
+                    it.id instanceof ModuleComponentIdentifier
+                }.collect {
+                    def id = it.id
+                    [group: id.group, name: id.module, version: id.version,
+                     artifacts: artifacts.findAll { it.id.componentIdentifier == id }.collect { it.file.absolutePath }.sort()]
+                }.unique { "${it.group}:${it.name}:${it.version}" }.sort { "${it.group}:${it.name}" }
+            }
+            def output = new File(root.layout.buildDirectory.get().asFile, 'open-source/artifacts.json')
+            output.parentFile.mkdirs()
+            output.text = JsonOutput.prettyPrint(JsonOutput.toJson(inventories)) + '\n'
+            println("Exported notice dependencies to ${output}")
+        }
+    }
+}

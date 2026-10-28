@@ -7,6 +7,7 @@ import androidx.compose.runtime.Recomposer
 import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.AboutEntry
+import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.EmailEntryImpl
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.login.LoginEntryImpl
@@ -60,7 +61,16 @@ class EmailEntryDispatchTest {
         { login.Screen(onLoginResult = {}) },
         { settings.Screen {} },
         { profile.Screen(onBack = {}) },
-        { about.Screen(AboutAppInfo("2.3.1", "42.7.1"), onBack = {}) },
+        {
+          about.NoticesScreen(
+            page = OpenSourcePage.LIBRARIES,
+            anchor = null,
+            appInfo = AboutAppInfo("1.0", "1"),
+            onBack = {},
+            onNavigate = { _, _ -> },
+          )
+        },
+        { about.Screen(AboutAppInfo("2.3.1", "42.7.1"), onBack = {}, onOpenSource = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

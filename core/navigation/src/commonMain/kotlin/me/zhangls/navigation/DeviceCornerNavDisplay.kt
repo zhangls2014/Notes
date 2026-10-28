@@ -58,7 +58,8 @@ private val SheetBackEasing = CubicBezierEasing(0.1f, 0.1f, 0f, 1f)
 private val LocalPredictiveGestureProgress = staticCompositionLocalOf<() -> Float?> { { null } }
 private data class GestureAnchor(val x: Float, val committed: Boolean = false)
 private val LocalGestureAnchors = staticCompositionLocalOf<MutableMap<Any, GestureAnchor>?> { null }
-private val LocalActiveEntryKeys = staticCompositionLocalOf<Set<Any>> { emptySet() }
+private data class ActivePageStack(val keys: List<Any>, val isPop: Boolean = false)
+private val LocalActiveEntryKeys = staticCompositionLocalOf { ActivePageStack(emptyList()) }
 private val LocalPageMotionState = staticCompositionLocalOf<PageMotionState?> { null }
 
 /** Read the same curve as the page layer, without copying progress through an effect. */
@@ -116,6 +117,7 @@ internal fun <T : Any> DeviceCornerNavDisplay(
   }
   val sceneState = rememberSceneState(entries = entries, sceneStrategies = strategies, onBack = onBack)
   val scene = sceneState.currentScene
+  val activePages = rememberActivePageStack(entries)
   // Reserve a commit tail even when the physical gesture has already reached 100%.
   val transitionInput = remember { PageTransitionInput() }
   val readGestureProgress = remember(transitionInput) { { transitionInput.gestureProgress } }
@@ -156,7 +158,7 @@ internal fun <T : Any> DeviceCornerNavDisplay(
   CompositionLocalProvider(
     LocalPredictiveGestureProgress provides readGestureProgress,
     LocalGestureAnchors provides transitionInput.anchors,
-    LocalActiveEntryKeys provides remember(entries) { entries.map { it.contentKey }.toSet() },
+    LocalActiveEntryKeys provides activePages,
     LocalPageMotionState provides pageMotionState,
   ) {
     NavDisplay(
@@ -166,6 +168,17 @@ internal fun <T : Any> DeviceCornerNavDisplay(
       popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
       predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
     )
+  }
+}
+
+@Composable
+private fun <T : Any> rememberActivePageStack(entries: ImmutableList<NavEntry<T>>): ActivePageStack {
+  val previousKeys = remember { mutableStateOf(entries.map { it.contentKey }) }
+  return remember(entries) {
+    val previous = previousKeys.value
+    val current = entries.map { it.contentKey }
+    previousKeys.value = current
+    ActivePageStack(current, current.size < previous.size && previous.take(current.size) == current)
   }
 }
 
@@ -238,8 +251,8 @@ private data class DeviceCornerScene<T : Any>(val delegate: Scene<T>, val corner
     val readGestureProgress = LocalPredictiveGestureProgress.current
     val gestureProgress = readGestureProgress()
     val gestureAnchors = LocalGestureAnchors.current
-    val activeEntryKeys = LocalActiveEntryKeys.current
-    val committed = delegate.previousEntries.isNotEmpty() && entries.none { it.contentKey in activeEntryKeys }
+    val activePages = LocalActiveEntryKeys.current
+    val committed = delegate.previousEntries.isNotEmpty() && entries.none { it.contentKey in activePages.keys }
     var predictiveExit by remember { mutableStateOf(false) }
     var lastGestureProgress by remember { mutableFloatStateOf(0f) }
     // Keep both pages mounted during entry/return; the list underneath stays untransformed.
@@ -283,7 +296,8 @@ private data class DeviceCornerScene<T : Any>(val delegate: Scene<T>, val corner
       gestureProgress != null &&
         transition.currentState == EnterExitState.Visible && transition.targetState == EnterExitState.PostExit
       )
-    val ordinaryMotion = delegate.previousEntries.isNotEmpty() &&
+    val enteringTopPage = key == activePages.keys.lastOrNull() && !activePages.isPop
+    val ordinaryMotion = delegate.previousEntries.isNotEmpty() && (committed || enteringTopPage) &&
       (transition.currentState != EnterExitState.Visible || transition.targetState != EnterExitState.Visible)
     val transforming = outgoing || ordinaryMotion
     fun commitProgress(): Float =

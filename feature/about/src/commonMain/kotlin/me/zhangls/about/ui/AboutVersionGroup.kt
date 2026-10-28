@@ -100,7 +100,7 @@ internal fun AboutVersionGroup(appInfo: AboutAppInfo, expanded: Boolean, onToggl
 }
 
 @Composable
-private fun AboutInfoRow(
+internal fun AboutInfoRow(
   title: String,
   detail: String,
   icon: ImageVector,

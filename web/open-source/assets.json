@@ -1,0 +1,59 @@
+{
+  "android": [
+    {
+      "coordinate": "google:material-symbols:rounded",
+      "name": "Material Symbols Rounded",
+      "url": "https://github.com/google/material-design-icons",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "noticeFiles": [
+        "../../tools/material-symbols/LICENSE"
+      ]
+    },
+    {
+      "coordinate": "sqlite:sqlite:bundled-by-androidx-2.7.1",
+      "name": "SQLite (AndroidX bundled driver)",
+      "url": "https://www.sqlite.org/copyright.html",
+      "licenses": [
+        "Public-Domain"
+      ],
+      "noticeFiles": []
+    }
+  ],
+  "ios": [
+    {
+      "coordinate": "google:material-symbols:rounded",
+      "name": "Material Symbols Rounded",
+      "url": "https://github.com/google/material-design-icons",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "noticeFiles": [
+        "../../tools/material-symbols/LICENSE"
+      ]
+    },
+    {
+      "coordinate": "jetbrains:skia:m150-1f14f1166a",
+      "name": "Skia (bundled with Skiko 0.150.1)",
+      "url": "https://github.com/JetBrains/skia/releases/tag/m150-1f14f1166a",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "noticeFiles": [
+        "licenses/Skia-LICENSE.txt",
+        "licenses/Skia-third-party-NOTICES.txt",
+        "licenses/Skiko-NOTICE.txt"
+      ]
+    },
+    {
+      "coordinate": "sqlite:sqlite:bundled-by-androidx-2.7.1",
+      "name": "SQLite (AndroidX bundled driver)",
+      "url": "https://www.sqlite.org/copyright.html",
+      "licenses": [
+        "Public-Domain"
+      ],
+      "noticeFiles": []
+    }
+  ]
+}
