@@ -1,1 +1,5 @@
 *.pdf binary
+
+# Preserve upstream license text and the HTML used as build inputs.
+web/open-source/licenses/*.txt -text
+web/open-source/*.html -text

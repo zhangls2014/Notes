@@ -67,7 +67,7 @@ docs/
 - [登录凭据存储验证](testing/secure-token-storage.md)：迁移回归、平台安全存储验收和 Keychain 测试环境限制。
 - [iOS Launch Screen](testing/ios-launch-screen.md)：Android 图标资源映射、系统启动页配置与验证。
 - [iOS Toast 无障碍验证](testing/ios-toast-accessibility.md)：原生字体回归、播报与 Dynamic Type 设备验收。
-- [待验收与已知限制](testing/pending-acceptance.md)：集中跟踪设备验收、截图采集问题和当前升级验证缺口。
+- [待验收与已知限制](testing/pending-acceptance.md)：集中跟踪设备验收、截图采集问题和当前升级验证缺口。 开源声明页面的剩余设备步骤见[验收计划](superpowers/plans/2026-10-28-open-source-notices.md)。
 
 ## 决策与调查证据
 

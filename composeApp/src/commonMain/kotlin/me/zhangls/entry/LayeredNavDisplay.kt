@@ -70,8 +70,7 @@ internal fun LayeredNavDisplay(
         }
       }
     }
-    // The hit target covers the whole viewport, including exposed margins of a shrinking page.
-    // Children receive events first; remaining events cannot fall through to the shell.
+    // A sibling behind the pages catches exposed margins without intercepting native View drags.
     val inputShield = if (covered) {
       Modifier.pointerInput(Unit) {
         awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } }
@@ -79,7 +78,8 @@ internal fun LayeredNavDisplay(
     } else {
       Modifier
     }
-    Box(Modifier.fillMaxSize().graphicsLayer { alpha = contentAlpha() }.then(inputShield)) {
+    Box(Modifier.fillMaxSize().graphicsLayer { alpha = contentAlpha() }) {
+      Box(Modifier.fillMaxSize().then(inputShield))
       key(displayKey) {
         DeviceCornerNavDisplay(
           entries = overlays.toImmutableList(),

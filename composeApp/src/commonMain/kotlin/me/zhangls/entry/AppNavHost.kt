@@ -1,5 +1,6 @@
 package me.zhangls.entry
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
@@ -19,10 +20,12 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.emailNavEntry
 import me.zhangls.entry.util.AppInfo
 import me.zhangls.entry.util.toAboutAppInfo
+import me.zhangls.entry.util.toNoticesColors
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
@@ -32,6 +35,7 @@ import me.zhangls.login.loginNavEntry
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.navigation.PaneWindowInsets
+import me.zhangls.preference.DarkThemePreference
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.profileNavEntry
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
@@ -62,7 +66,12 @@ fun AppNavHost(
   // 具体 Nav Entry、宿主回调与根导航策略仍由 composeApp 显式装配。
   val navigationRegistry = rememberNavigationRegistry()
   val platformAppInfo = koinInject<AppInfo>()
-  val aboutAppInfo = remember(platformAppInfo) { platformAppInfo.toAboutAppInfo() }
+  val darkTheme = DarkThemePreference.isDark(state.darkTheme)
+  val pageColors = MaterialTheme.colorScheme.toNoticesColors()
+  val aboutAppInfo = remember(platformAppInfo, state.fontSize, darkTheme, pageColors) {
+    platformAppInfo.toAboutAppInfo(state.fontSize.value, darkTheme, pageColors)
+  }
+  val currentAboutAppInfo = rememberUpdatedState(aboutAppInfo)
 
   // 返回栈的序列化配置。remember 住：每次重组新建一个 SerializersModule 毫无意义，
   // 还会让 rememberNavBackStack 依赖的配置对象持续变化。
@@ -143,7 +152,7 @@ fun AppNavHost(
 
         emailNavEntry { effect -> navHandler(effect) }
         profileNavEntry { effect -> navHandler(effect) }
-        aboutNavEntry(aboutAppInfo) { effect -> navHandler(effect) }
+        aboutNavEntry(appInfo = { currentAboutAppInfo.value }) { effect -> navHandler(effect) }
 
         loginNavEntry { result, destination ->
           if (result == LoginResult.Success) {
@@ -171,7 +180,9 @@ fun AppNavHost(
     ) { readAlpha, selectedTab, selectTab ->
       LayeredNavDisplay(
         entries = entriesByRoot.getValue(navigationState.selectedRoot).toImmutableList(),
-        fullscreenEntryCount = backStack.takeLastWhile { it is ProfileDestination || it is AboutDestination }.size,
+        fullscreenEntryCount = backStack.takeLastWhile {
+          it is ProfileDestination || it is AboutDestination || it is OpenSourceNoticesDestination
+        }.size,
         displayKey = navigationState.selectedRoot,
         contentAlpha = readAlpha,
         selected = selectedTab,

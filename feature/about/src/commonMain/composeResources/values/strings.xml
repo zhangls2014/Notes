@@ -1,4 +1,7 @@
 <resources>
+  <string name="about_open_source_notices">Open-source software notices</string>
+  <string name="about_notices_description">Third-party libraries and licenses</string>
+  <string name="about_notices_open_failed">Unable to open the notices. Please try again.</string>
   <string name="about_title">About app</string>
   <string name="about_brand_description">App information and updates</string>
   <string name="about_version_information">Version information</string>

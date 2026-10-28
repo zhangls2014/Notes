@@ -8,6 +8,7 @@ import me.zhangls.framework.nav.registerDestination
 object AboutNavigation : NavigationContribution {
   override val navModule = SerializersModule {
     registerDestination(AboutDestination::class, AboutDestination.serializer())
+    registerDestination(OpenSourceNoticesDestination::class, OpenSourceNoticesDestination.serializer())
   }
   override val deepLinkMatchers: List<DeepLinkMatcher> = emptyList()
 }

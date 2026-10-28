@@ -9,6 +9,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutNavigation
+import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailNavigation
 import me.zhangls.framework.nav.NavigationContribution
@@ -58,7 +60,12 @@ class NavBackStackSerializationTest {
 
   @Test
   fun aboutRestoresAboveSettingsWithoutRequiringLogin() {
-    val stack = NavBackStack<NavKey>(SettingsDestination, AboutDestination)
+    val stack = NavBackStack<NavKey>(
+      SettingsDestination,
+      AboutDestination,
+      OpenSourceNoticesDestination(),
+      OpenSourceNoticesDestination(OpenSourcePage.LICENSES, "license-MIT"),
+    )
     assertEquals(stack.toList(), roundTrip(stack).toList())
     kotlin.test.assertFalse((AboutDestination as Any) is me.zhangls.framework.nav.RequireLogin)
   }

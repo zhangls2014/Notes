@@ -1,0 +1,9 @@
+{
+  "Apache-2.0.txt": "https://raw.githubusercontent.com/spdx/license-list-data/main/text/Apache-2.0.txt",
+  "MIT.txt": "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar!/META-INF/LICENSE.txt",
+  "BSD-3-Clause.txt": "https://raw.githubusercontent.com/JetBrains/skia/m150-1f14f1166a/LICENSE",
+  "Skiko-NOTICE.txt": "https://raw.githubusercontent.com/JetBrains/skiko/v0.150.1/NOTICE",
+  "Skia-LICENSE.txt": "https://raw.githubusercontent.com/JetBrains/skia/m150-1f14f1166a/LICENSE",
+  "Skia-third-party-NOTICES.txt": "https://github.com/JetBrains/skia/releases/download/m150-1f14f1166a/Skia-m150-1f14f1166a-ios-Release-arm64.zip",
+  "Public-Domain.txt": "https://www.sqlite.org/copyright.html"
+}
