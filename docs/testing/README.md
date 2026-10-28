@@ -69,6 +69,7 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 ### 网页打开能力回归
 
 所有声明网页的字号、深色模式与主题色由同一套参数传递；`AboutAppInfoTest` 检查实际 Material 颜色到网页配色的映射，`NoticesAppearanceTest` 检查两端参数，`AboutNoticesWebViewTest` 检查缓存 Entry 更新。网页脚本测试同时检查有效／无效配色、站内保留与外链排除。
+Expressive 网页验收覆盖静止／按下／取消与释放跳转、三个操作链接、浅深色和代表性色板、320／800px 宽度及 1／1.5／2 倍字号。浏览器应实测按钮圆角、48px 最小目标、状态层、28px 容器和无横向溢出；DOM 参数测试不能替代这些效果检查。原生夹具需核对实际启动页面与配置，并等待浏览器动画和渲染帧完成后采样，不能将宿主固定延迟等同于页面已经完成动画。临时原生夹具的候选截图与测量记录放入 `build/reports/open-source-expressive/`，不更新正式基线；Android WebView 加载 iOS HTML 的结果不算 iOS WKWebView 验收。
 
 声明页的真实入口、WebView 挂载与预测返回使用 `*AboutNoticesNavigationTest*`；连续全屏页的下层尺寸与暴露区域像素使用 `*NestedFullscreenNavigationTest*`。Android 原生资源、链接分流和阅读位置使用 `*AboutNoticesWebViewTest*`，与参数化的 About 布局用例分别运行。
 平台资源隔离同时检查 Gradle Sync 各自只复制两份页面、Android 原生资产目录不含 iOS 页面，以及新构建的 APK／iOS App 的实际文件清单。网页的唯一入库源位于 `web/open-source/`，构建副本位于 About 模块的 `build/generated/open-source/`；校验源 HTML 变更能自动触发同步及打包，未变更时复制任务为 `UP-TO-DATE`，并确认配置缓存可复用。源集迁移时使用没有旧资源残留的构建输出，避免增量拷贝误带历史共享网页。

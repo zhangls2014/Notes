@@ -12,5 +12,7 @@ internal fun AboutAppInfo.noticesAppearanceParameters(): Map<String, String> = b
     put("muted", colors.muted)
     put("line", colors.outline)
     put("accent", colors.accent)
+    colors.primaryContainer?.let { put("container", it) }
+    colors.onPrimaryContainer?.let { put("on-container", it) }
   }
 }

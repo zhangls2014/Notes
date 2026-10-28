@@ -21,4 +21,6 @@ data class NoticesColors(
   val muted: String,
   val outline: String,
   val accent: String,
+  val primaryContainer: String? = null,
+  val onPrimaryContainer: String? = null,
 )

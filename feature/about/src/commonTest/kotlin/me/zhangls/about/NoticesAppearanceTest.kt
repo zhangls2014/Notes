@@ -19,7 +19,16 @@ class NoticesAppearanceTest {
       buildNumber = "1",
       fontScale = 1.5f,
       darkTheme = true,
-      pageColors = NoticesColors("151713", "1e211b", "e4e7dd", "b4baaa", "373e31", "aad395"),
+      pageColors = NoticesColors(
+        background = "151713",
+        card = "1e211b",
+        foreground = "e4e7dd",
+        muted = "b4baaa",
+        outline = "373e31",
+        accent = "aad395",
+        primaryContainer = "354e16",
+        onPrimaryContainer = "cdeda3",
+      ),
     )
     assertEquals(
       mapOf(
@@ -31,6 +40,8 @@ class NoticesAppearanceTest {
         "muted" to "b4baaa",
         "line" to "373e31",
         "accent" to "aad395",
+        "container" to "354e16",
+        "on-container" to "cdeda3",
       ),
       info.noticesAppearanceParameters(),
     )

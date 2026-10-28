@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
+const colorNames = ['bg', 'card', 'fg', 'muted', 'line', 'accent', 'container', 'on-container'];
+
 const paletteCases = [
   [null, {}],
-  [{ bg: 'faf9f6', card: 'ffffff', fg: '252621', muted: '62665c', line: 'dde1d5', accent: '3e6839' }],
-  [{ bg: '151713', card: '1e211b', fg: 'e4e7dd', muted: 'b4baaa', line: '373e31', accent: 'aad395' }],
-  [{ bg: '123456', card: '#ffffff', fg: 'red', muted: '12345', line: '1234567', accent: 'red;display:none' }, { bg: '123456' }],
+  [{ bg: 'faf9f6', card: 'ffffff', fg: '252621', muted: '62665c', line: 'dde1d5', accent: '3e6839', container: 'cdeda3', 'on-container': '354e16' }],
+  [{ bg: '151713', card: '1e211b', fg: 'e4e7dd', muted: 'b4baaa', line: '373e31', accent: 'aad395', container: '354e16', 'on-container': 'cdeda3' }],
+  [{ bg: '123456', card: '#ffffff', fg: 'red', muted: '12345', line: '1234567', accent: 'red;display:none', container: '#fff', 'on-container': '1; color:red' }, { bg: '123456' }],
 ];
 
 for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
@@ -37,6 +39,14 @@ for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
           const root = { style: { setProperty(name, value) { this[name] = value; } } };
           root.dataset = {};
           let onReady;
+          const buttonHandlers = new Map();
+          const actionButton = {
+            dataset: {},
+            addEventListener(event, callback, options) {
+              assert.equal(options.passive, true, 'Feedback must preserve native gestures');
+              buttonHandlers.set(event, callback);
+            },
+          };
           const links = scaleLinks.map(match => {
             const href = match[1] ?? match[2];
             return { href, getAttribute: () => href };
@@ -47,6 +57,7 @@ for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
             documentElement: root,
             addEventListener(event, callback) { assert.equal(event, 'DOMContentLoaded'); onReady = callback; },
             querySelectorAll(selector) {
+              if (selector === 'a.button') return [actionButton];
               assert.equal(selector, 'a[data-font-scale]');
               return [...links, extra];
             },
@@ -56,16 +67,36 @@ for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
           assert.equal(root.style['--app-font-scale'], String(expectedScale));
           const expectedTheme = theme === 'light' || theme === 'dark' ? theme : undefined;
           assert.equal(root.dataset.theme, expectedTheme);
-          for (const name of ['bg', 'card', 'fg', 'muted', 'line', 'accent']) {
+          for (const name of colorNames) {
             assert.equal(root.style[`--${name}`], expected[name] ? `#${expected[name]}` : undefined);
           }
           onReady();
+          const fire = (name, values = {}) => buttonHandlers.get(name)({
+            preventDefault() { assert.fail('Feedback must not intercept gestures'); },
+            ...values,
+          });
+          for (const name of ['pointerup', 'pointercancel', 'pointerleave', 'blur']) {
+            fire('pointerdown', { isPrimary: true, button: 0 });
+            assert.equal(actionButton.dataset.pressed, 'true');
+            fire(name);
+            assert.equal(actionButton.dataset.pressed, undefined);
+          }
+          fire('pointerdown', { isPrimary: false, button: 0 });
+          assert.equal(actionButton.dataset.pressed, undefined);
+          fire('pointerdown', { isPrimary: true, button: 2 });
+          assert.equal(actionButton.dataset.pressed, undefined);
+          fire('keydown', { key: 'Enter', repeat: false });
+          assert.equal(actionButton.dataset.pressed, 'true');
+          fire('keyup');
+          assert.equal(actionButton.dataset.pressed, undefined);
+          fire('keydown', { key: ' ', repeat: false });
+          assert.equal(actionButton.dataset.pressed, undefined, 'Space retains native link scrolling');
           for (const link of [...links, extra]) {
             const target = new URL(link.href, location);
             assert.equal(target.searchParams.get('fontScale'), String(expectedScale));
             assert.equal(target.searchParams.get('theme'), expectedTheme ?? null);
             assert.equal(target.origin, location.origin);
-            for (const name of ['bg', 'card', 'fg', 'muted', 'line', 'accent']) {
+            for (const name of colorNames) {
               assert.equal(target.searchParams.get(name), expected[name] ?? null);
             }
           }

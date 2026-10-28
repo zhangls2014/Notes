@@ -18,6 +18,16 @@ flex row. Keep each button's text on one line and move whole buttons to the next
 line when space is insufficient. The component list's top navigation uses plain,
 vertically centered links, including the link to full license texts.
 
+The four pages follow the app's Material 3 Expressive design. Group cards and the
+introductory container use the app's 28px extra-large corner. Component action links share
+a Filled Tonal treatment: the same capsule corner in resting and pressed states,
+and a state layer on hover/press. Pressing must not morph the corner shape. Passive pointer/keyboard events maintain the pressed
+attribute and clear it on release, cancel, leave, blur or key release; only the
+primary left button and Enter activate it. Space preserves native link scrolling. Action targets are at least
+48px high. Retain native link semantics, scrolling and cancellation; do not add
+pointer handlers that prevent default gestures. Focus is visible and reduced-motion
+preferences disable decorative transitions. Body and action type scales stay unchanged.
+
 Typography follows the application's baseline reading styles: 16px/24px body and
 license text, 14px/20px auxiliary text and action buttons, and 16px/24px component
 names at browser defaults. Relative units scale these values together. App launch
@@ -29,9 +39,10 @@ only when a single button would otherwise exceed the card width at large scales.
 App URLs also carry `theme=light` or `theme=dark`, resolved from the application's
 existing theme policy. This explicit theme overrides the browser's system theme;
 absent/invalid theme parameters use `prefers-color-scheme`. Local navigation retains
-all appearance parameters. App launches also supply six validated RGB hex colors:
+all appearance parameters. App launches supply validated RGB hex colors:
 `bg` (surface), `card` (surfaceContainerLow), `fg` (onSurface), `muted`
-(onSurfaceVariant), `line` (outlineVariant), and `accent` (primary). Use the resolved
+(onSurfaceVariant), `line` (outlineVariant), `accent` (primary), `container`
+(primaryContainer), and `on-container` (onPrimaryContainer). Use the resolved
 Material color scheme, including Android dynamic colors; do not recreate palettes
 from a preference flag. Only six-digit RGB hex values are accepted and retained in
 local links. Missing/invalid values keep the standalone light/dark fallback palettes.

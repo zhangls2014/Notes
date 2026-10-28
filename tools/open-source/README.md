@@ -58,7 +58,7 @@ python3 tools/open-source/generate.py
 lists link to their corresponding `-licenses.html` pages for full license and NOTICE
 text. The generator updates the four checked-in HTML files in `web/open-source/`.
 Android and iOS builds sync only their own two pages into generated Compose resources. They inline their own styles and a small script that applies
-the app-only font scale, resolved light/dark theme and six Material colors across local navigation. The Node test
+the app-only font scale, resolved light/dark theme and eight Material colors across local navigation. The Node test
 executes the generated script in isolated DOM fixtures, including default, 1x,
 1.5x, 2x and invalid inputs combined with explicit/default/invalid themes and valid/invalid palettes (1,920 cases across four pages and three URL origins). It does not verify browser rendering or native font
 metrics. No Python or Node packages need installation.
@@ -68,3 +68,8 @@ tracks source HTML as inputs and reuses unchanged Sync outputs. Each Sync destin
 is owned by its task; stale generated files are removed during synchronization.
 When moving resources between source sets, validate packages without historical
 shared-resource outputs. This migration check is separate from normal regeneration.
+
+The inline CSS shares the app's Expressive shape/type hierarchy. Component action
+links use primary-container colors, unchanged capsule corners in resting/pressed states and
+state layers; reduced-motion preferences disable these transitions. Passive pointer/keyboard
+listeners maintain press state without cancelling native scrolling or link navigation.

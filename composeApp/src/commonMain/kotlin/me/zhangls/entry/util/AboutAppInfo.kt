@@ -30,6 +30,8 @@ internal fun ColorScheme.toNoticesColors(): NoticesColors = NoticesColors(
   muted = onSurfaceVariant.toRgbHex(),
   outline = outlineVariant.toRgbHex(),
   accent = primary.toRgbHex(),
+  primaryContainer = primaryContainer.toRgbHex(),
+  onPrimaryContainer = onPrimaryContainer.toRgbHex(),
 )
 
 private fun Color.toRgbHex(): String = (toArgb() and RGB_MASK).toString(HEX_RADIX).padStart(RGB_HEX_LENGTH, '0')
