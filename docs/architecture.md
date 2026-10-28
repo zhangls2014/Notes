@@ -163,6 +163,14 @@ IO dispatcher 由 `DataModule` 构造参数提供，默认使用 `Dispatchers.IO
 
 ## 5. 运行时架构
 
+### 网页打开能力
+
+`composeApp` 在实际 UI 宿主中创建平台 `UriHandler`，通过根节点的 `LocalUriHandler` 提供给共享 UI。Feature 使用 `LocalUriHandler.current.openUri(url)` 或 Compose 的 URL 链接注解，不持有平台控制器，也不增加浏览器导航目的地。本能力不自动识别正文链接或新增页面入口。
+
+HTTP/HTTPS 网页使用 Android Custom Tabs 与 iOS `SFSafariViewController`；其他协议交回 Compose 原有 `UriHandler`，保留邮件、电话等系统处理方式。网页地址须包含有效主机，不接受空地址、控制字符或缺少主机的 URL。无法打开时遵循 `UriHandler` 的 `IllegalArgumentException` 契约，由调用方处理失败提示，不静默吞掉失败。
+
+Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏览器回退。iOS 仅从当前 Compose 宿主呈现 Safari 控制器；宿主未附着窗口或已有模态控制器时拒绝打开，避免跨窗口展示和重复弹出，组合销毁时关闭本能力持有的控制器。本能力不用于 OAuth 登录或 JS 交互。
+
 ### Koin 装配
 
 各模块声明自己的 Koin 注解和 provider，`composeApp` 的 `NotesModule` 是组合根。实现模块负责实现并提供自己的 Entry；调用方只依赖 API 接口。

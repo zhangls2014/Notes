@@ -72,6 +72,7 @@ kotlin {
 
     androidMain.dependencies {
       // Core
+      implementation(kmp.androidx.browser)
       implementation(kmp.androidx.core)
       implementation(kmp.androidx.activity.compose)
       implementation(kmp.androidx.lifecycle.compose)

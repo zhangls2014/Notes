@@ -13,6 +13,7 @@ agp = "9.3.1"
 robolectric = "4.17"
 roborazzi = "1.76.0"
 androidx-activity = "1.13.0"
+androidx-browser = "1.10.0"
 androidx-lifecycle = "2.11.0"
 androidx-window = "1.5.1"
 androidx-navigationevent = "1.2.0"
@@ -56,6 +57,7 @@ detekt = { id = "dev.detekt", version.ref = "detekt" }
 
 
 [libraries]
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidx-browser" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 jetbrains-compose-ui-test-junit4 = { group = "org.jetbrains.compose.ui", name = "ui-test-junit4", version.ref = "jetbrains-compose" }
