@@ -77,7 +77,16 @@ class AboutNoticesWebViewTest {
       info.value = info.value.copy(
         fontScale = 2f,
         darkTheme = true,
-        pageColors = NoticesColors("151713", "1e211b", "e4e7dd", "b4baaa", "373e31", "aad395"),
+        pageColors = NoticesColors(
+          background = "151713",
+          card = "1e211b",
+          foreground = "e4e7dd",
+          muted = "b4baaa",
+          outline = "373e31",
+          accent = "aad395",
+          primaryContainer = "354e16",
+          onPrimaryContainer = "cdeda3",
+        ),
       )
     }
     compose.runOnIdle {
@@ -90,6 +99,8 @@ class AboutNoticesWebViewTest {
       org.junit.Assert.assertEquals("b4baaa", uri.getQueryParameter("muted"))
       org.junit.Assert.assertEquals("373e31", uri.getQueryParameter("line"))
       org.junit.Assert.assertEquals("aad395", uri.getQueryParameter("accent"))
+      org.junit.Assert.assertEquals("354e16", uri.getQueryParameter("container"))
+      org.junit.Assert.assertEquals("cdeda3", uri.getQueryParameter("on-container"))
     }
   }
 

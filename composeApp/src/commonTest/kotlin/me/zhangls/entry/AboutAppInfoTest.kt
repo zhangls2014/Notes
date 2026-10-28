@@ -21,11 +21,25 @@ class AboutAppInfoTest {
         onSurfaceVariant = Color(0xFF405060),
         outlineVariant = Color(0xFF708090),
         primary = Color(0xFF0011EE),
+        primaryContainer = Color(0xFF112233),
+        onPrimaryContainer = Color(0xFFDDEEFF),
       )
     }
     for (scheme in schemes) {
       val colors = scheme.toNoticesColors()
-      assertEquals(NoticesColors("010203", "102030", "aabbcc", "405060", "708090", "0011ee"), colors)
+      assertEquals(
+        NoticesColors(
+          background = "010203",
+          card = "102030",
+          foreground = "aabbcc",
+          muted = "405060",
+          outline = "708090",
+          accent = "0011ee",
+          primaryContainer = "112233",
+          onPrimaryContainer = "ddeeff",
+        ),
+        colors,
+      )
       assertEquals(colors, appInfo("1.0", "1").toAboutAppInfo(pageColors = colors).pageColors)
     }
   }

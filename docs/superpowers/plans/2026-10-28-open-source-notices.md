@@ -33,3 +33,29 @@ existing combined-run presentation instability documented in
 
 Keep this plan while acceptance remains open. File deletion requires Xander's
 separate authorization under the repository rules.
+
+## Expressive follow-up implementation plan (approved 2026-10-28)
+
+**Goal:** Match the app's Material 3 Expressive hierarchy and tonal button press
+feedback across the four existing pages, preserving content and navigation.
+
+**Architecture:** Keep the inline HTML/CSS generator and Gradle Sync packaging.
+Pass resolved primary-container colors through the existing host appearance model;
+use passive pointer/keyboard press state and CSS focus/state-layer feedback without
+intercepting scrolling or navigation.
+
+**Tech stack:** Kotlin/Compose Material 3, Python generation, native HTML/CSS.
+
+- [x] Extend appearance regressions for container/content colors and local-link retention.
+- [x] Map resolved Material colors and regenerate all four pages with 28px cards,
+  tonal 48px-minimum actions, stable capsule corners during press, and reduced motion.
+- [x] Run generator/script, native resource/navigation, Android and iOS checks.
+  Inspect rendered colors, press/release/cancel, wrapping and 1/1.5/2 font scales.
+- [x] Update current architecture and central device acceptance evidence. Keep
+  upstream text, group counts, top plain links and package isolation unchanged.
+
+Implementation and available automatic/rendered checks are complete. Full app/device
+acceptance remains in the central checklist; no formal screenshot baseline was changed.
+
+Follow-up correction (2026-10-28): pressing keeps the resting corner unchanged;
+only the state layer animates. This supersedes the earlier 12px morph proposal.
