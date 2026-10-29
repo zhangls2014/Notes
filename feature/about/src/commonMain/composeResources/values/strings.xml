@@ -29,4 +29,6 @@
   <string name="about_release_contents">Update contents</string>
   <string name="about_release_view_history">View update history</string>
   <string name="about_release_current_empty">No release notes for this version.</string>
+  <string name="about_release_switch_columns">Switch to columns</string>
+  <string name="about_release_switch_single">Switch to single column</string>
 </resources>

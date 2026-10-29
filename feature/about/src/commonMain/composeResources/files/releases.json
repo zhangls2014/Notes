@@ -24,6 +24,50 @@
           "en": "Release history adapts to wide windows with a multi-column waterfall layout.",
           "zh": "历史更新根据窗口宽度自适应展示为单列、双列或三列瀑布流。"
         }
+      },
+      {
+        "type": "fixed",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Current-version notes and release history now show the same categories and content.",
+          "zh": "统一关于应用与历史更新的分类和内容展示。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "On unfolded foldables, switch between one column and hinge-aligned columns with a rotating icon.",
+          "zh": "折叠设备全开时默认单列，点击右上角图标切换铰链分列，图标带旋转过渡。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Release cards fill their available pane width while preserving hinge clearance.",
+          "zh": "历史更新卡片铺满所属窗格的可用宽度，并保留铰链避让。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Keep hinge-aligned release cards stable during predictive back gestures.",
+          "zh": "修复预测性返回手势导致铰链分列卡片宽度与文字换行变化。"
+        }
       }
     ]
   }
