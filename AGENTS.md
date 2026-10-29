@@ -8,6 +8,8 @@ Notes 是 Kotlin Multiplatform 应用，使用 Compose Multiplatform、Navigatio
 
 ## 构建与验证
 
+遇到 JDK 缺失或版本不匹配时，先检查 Android Studio 应用包内的 JBR/JDK，核对 `bin/java -version` 与 `bin/javac -version`，不得只凭 `java_home -V`、当前 `JAVA_HOME` 或 `PATH` 判定未安装。macOS 默认检查 `/Applications/Android Studio.app/Contents/jbr/Contents/Home`；自定义安装或其他系统按实际安装位置检查。版本满足项目要求且处于工具链支持范围时，优先通过命令级 `JAVA_HOME`（运行 JVM）或 `-Porg.gradle.java.installations.paths`（编译 toolchain）复用，不修改系统配置、不把本机绝对路径写入共享构建配置；没有匹配版本再使用 Gradle 自动下载。检查步骤见 [本地配置](README.md#本地配置)。
+
 ```bash
 # Android 整包构建（:composeApp 是 library，没有 assembleDebug）
 ./gradlew :androidApp:assembleDebug
