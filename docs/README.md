@@ -76,6 +76,8 @@ docs/
 
 以下调查记录特定日期的代码、环境与测量结果，不能直接外推为当前状态。
 
+- [2026-10-30 设置选择弹窗旋转恢复](audits/2026-10-30-preference-dialog-restoration.md)：第三方 ListPreference 的三组隔离对照、当前源码包的小窗口复现与设置页最小修复回归。
+
 - [重要决策记录](decisions.md)：铰链范围、Tab 状态、IME、主题、凭据与 Feature 边界的决策理由。
 - [2026-10-27 detekt 类型解析与 Compose Rules 接入](audits/2026-10-27-detekt-analysis.md)：源集快照漏扫及生成目录过滤修正、版本兼容、规则探针对照、构建回归与扩展检查范围。
 - [2026-10-09 全项目依赖升级检查](audits/2026-10-09-dependency-upgrade.md)：71 个显式版本坐标及 BOM、平台工件和工具链上限；Paging/NavigationEvent 已升级，Kotlin 受 Koin 验证上限限制保留，含回归结果。

@@ -99,14 +99,14 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("View update history").assertDoesNotExist()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(hasText("2026-10-30")).fetchSemanticsNodes().isNotEmpty()
     }
     assertReleaseChanges()
     compose.onNodeWithText("View update history").performScrollTo().performClick()
     compose.onNodeWithText("Release notes").assertIsDisplayed()
     compose.onNodeWithText("About app").assertDoesNotExist()
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(hasText("2026-10-30")).fetchSemanticsNodes().isNotEmpty()
     }
     assertReleaseChanges()
     compose.onNodeWithContentDescription("Back").performClick()
