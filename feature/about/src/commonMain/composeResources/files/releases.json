@@ -1,0 +1,19 @@
+[
+  {
+    "version": "1.1.0",
+    "date": null,
+    "changes": [
+      {
+        "type": "added",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "View release notes offline from About app.",
+          "zh": "在关于应用中离线查看版本更新日志。"
+        }
+      }
+    ]
+  }
+]

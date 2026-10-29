@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -28,6 +29,7 @@ import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.theme.ComposeAppTheme
@@ -107,6 +109,20 @@ class AboutNoticesNavigationTest {
         }
       }
     }
+  }
+
+  @Test fun historyUsesNavigationStackAndReturnsToAbout() {
+    launch()
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    compose.onNodeWithText("View update history").performScrollTo().performClick()
+    compose.waitForIdle()
+    assertEquals(ReleaseHistoryDestination, stack.last())
+    compose.onNodeWithText("Release notes").assertIsDisplayed()
+    compose.onNodeWithContentDescription("Back").performClick()
+    compose.waitForIdle()
+    assertEquals(AboutDestination, stack.last())
+    compose.onNodeWithText("About app").assertIsDisplayed()
+    compose.onNodeWithText("Build number").assertDoesNotExist()
   }
 
   @Test fun clickingNoticesMountsWebViewAndPredictiveReturnRevealsAbout() {

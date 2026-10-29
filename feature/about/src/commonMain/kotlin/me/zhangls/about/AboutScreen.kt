@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit) {
+internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenReleaseHistory: () -> Unit) {
   val viewModel = koinViewModel<AboutViewModel>()
   val state by viewModel.state.collectAsStateWithLifecycle()
   Scaffold(topBar = {
@@ -60,8 +60,9 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit) {
         )
         AboutVersionGroup(
           appInfo = state.appInfo,
-          expanded = state.isBuildInfoExpanded,
-          onToggleBuildInfo = { viewModel.sendIntent(AboutIntent.ToggleBuildInfo) },
+          expanded = state.isVersionInfoExpanded,
+          onToggleVersionInfo = { viewModel.sendIntent(AboutIntent.ToggleVersionInfo) },
+          onOpenReleaseHistory = onOpenReleaseHistory,
         )
         val noticesShape = MaterialTheme.shapes.extraLarge
         AboutInfoRow(

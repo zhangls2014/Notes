@@ -13,8 +13,13 @@ class AboutEntryImpl : AboutEntry {
   }
 
   @Composable
-  override fun Screen(onBack: () -> Unit, onOpenSource: () -> Unit) {
-    AboutScreen(onBack, onOpenSource)
+  override fun Screen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenReleaseHistory: () -> Unit) {
+    AboutScreen(onBack, onOpenSource, onOpenReleaseHistory)
+  }
+
+  @Composable
+  override fun ReleaseHistoryScreen(onBack: () -> Unit) {
+    me.zhangls.about.ReleaseHistoryScreen(onBack)
   }
 
   @Composable

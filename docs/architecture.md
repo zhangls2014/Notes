@@ -86,7 +86,7 @@ Gradle 中启用的模块：
 | `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
 | `feature:settings-api` / `feature:settings` | 设置入口/结果契约和设置行为/UI |
 | `feature:profile-api` / `feature:profile` | 个人信息入口/导航契约、用户资料展示和头像修改 UI |
-| `feature:about-api` / `feature:about` | 关于应用目的地/入口契约、品牌信息、安装包版本展示与构建号展开 |
+| `feature:about-api` / `feature:about` | 关于应用目的地/入口契约、品牌信息、安装包版本展示、版本更新摘要展开与离线更新列表 |
 
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
@@ -105,7 +105,9 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 | 共享品牌与头像 | `core/theme/src/commonMain/kotlin/me/zhangls/theme/component/`：`AppBrand.kt`、`UserAvatar.kt` |
 | 构建约定 | `build-logic/src/main/kotlin/`；路径派生工具位于 `me/zhangls/convention/KmpConventions.kt` |
 
-共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，构建号展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
+共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，版本更新摘要展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
+
+更新日志由 About 实现模块拥有，使用共享 JSON 资源随包分发，当前版本摘要位于版本号展开区，历史更新通过展开区入口进入独立的 Navigation 3 列表页面，纳入设置返回栈并注册目的地序列化；解析、版本排序、平台过滤与展示均留在模块内部；不依赖数据库或网络。维护规则见 [应用版本与更新记录](app-releases.md)。
 
 ## 3. 依赖规则
 
@@ -157,7 +159,7 @@ Koin 由 `io.insert-koin.compiler.plugin` 处理注解，通过 `org.koin.plugin
 
 共享模块统一启用 Android `withHostTest {}`；包含 Compose UI 的宿主测试目前位于 `composeApp`、`feature:email` 和 `feature:profile`，由各模块启用 Android 资源并声明 Robolectric/Compose 测试依赖。iOS target 为 `iosArm64` 与 `iosSimulatorArm64`，均输出静态 framework。测试选择与命令见 [测试指南](testing/README.md)。
 
-`me.zhangls.detekt` 的普通任务扫描各模块实际存在的手写 Kotlin 源集，排除模块实际 `build` 目录，使用模块自己的 `config/detekt/baseline.xml`。类型解析任务保留插件提供的 Android compilation 源集、classpath 和 friend paths，生成类通过 classpath 参与符号解析；Native 源码的普通扫描不能代替 Native 编译和运行验证。Compose Rules 版本只在版本目录维护，当前版本全部规则启用，根配置仅保留偏离默认值的选项。任务入口与覆盖边界见[测试指南](testing/README.md#类型解析与-compose-检查)。根项目的无源码结果不能代表项目检查通过。
+`me.zhangls.detekt` 的普通任务扫描各模块实际存在的手写 Kotlin 源集，排除模块实际 `build` 目录，使用模块自己的 `config/detekt/baseline.xml`。类型解析任务保留插件提供的 Android compilation 源集、classpath 和 friend paths，生成类通过 classpath 参与符号解析；Native 源码的普通扫描不能代替 Native 编译和运行验证。Compose Rules 版本只在版本目录维护，当前版本全部规则启用，根配置仅保留偏离默认值的选项。任务入口与覆盖边界见[测试指南](testing/README.md#类型解析与-compose-检查)。根项目的无源码结果不能代表项目检查通过。 类构造函数允许按可读性选择单行或多行；根 detekt 配置关闭 `ktlint.ClassSignature` 的强制换行形状检查，缩进、行长与参数列表检查继续由其他规则负责。
 
 IO dispatcher 由 `DataModule` 构造参数提供，默认使用 `Dispatchers.IO`，作为模块成员 provider 注册后供数据库、文件、邮件和头像流程注入。当前只注册一个 `CoroutineDispatcher`；测试显式传入测试 dispatcher。`core:database.create()` 的公开参数也允许注入，默认值保留原无参调用行为。模块 provider 放在 `DataModule` 内，避免 Native 跨模块顶层函数按返回类型包过滤的限制。
 

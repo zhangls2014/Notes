@@ -8,6 +8,9 @@ import me.zhangls.framework.nav.Destination
 data object AboutDestination : Destination
 
 @Serializable
+data object ReleaseHistoryDestination : Destination
+
+@Serializable
 enum class OpenSourcePage { LIBRARIES, LICENSES }
 
 @Serializable

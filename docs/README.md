@@ -22,11 +22,14 @@
 - [根 README.md](../README.md)：面向开发者的项目概览、环境要求和快速开始。
 - [依赖与工具链升级规范](dependency-upgrades.md)：官方范围上限、正式版优先、版本兼容选择、验证和授权边界。
 
+- [应用版本与更新记录](app-releases.md)：版本递增、离线更新日志数据格式与发布维护流程。
+
 ## 文档目录
 
 ```text
 docs/
 ├── README.md              # 文档入口与保留规则
+├── app-releases.md        # 应用版本与离线更新记录规则
 ├── architecture.md        # 当前模块职责、依赖边界与运行时架构
 ├── dependency-upgrades.md # 长期依赖与工具链升级规范
 ├── decisions.md           # 重要决策的理由与历史追溯

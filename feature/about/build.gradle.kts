@@ -8,6 +8,7 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(projects.core.theme)
+      implementation(kmp.jetbrains.kotlinx.serialization.json)
       implementation(kmp.jetbrains.compose.material3.adaptive)
       implementation(kmp.jetbrains.compose.material3.adaptive.layout)
       implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)
