@@ -76,21 +76,40 @@ Notes/
 ### 环境要求
 
 - 支持当前 KMP/Compose 版本的 Android Studio
-- JDK 25（编译 toolchain；建议运行 Gradle 的 JDK 与其一致）
+- 可启动 Gradle 的 JDK（例如 Android Studio 的 JBR 21）；编译 toolchain JDK 25 由 Gradle 自动准备
 - Android SDK Platform 37.0 与 Build Tools 37.0.0
 - Xcode 26.4（当前 Kotlin 官方兼容表所列版本；本机 Xcode 27 不作为该范围的验收环境）
 - Android 9（API 28）或更高版本的设备/模拟器
 
 ### 本地配置
 
-先设置当前进程的 `JAVA_HOME` 指向已有 JDK 25，再执行 Gradle。本机 Android Studio 内置 JBR 25.0.3，本次使用：
+项目通过 [Foojay resolver](https://github.com/gradle/foojay-toolchains) 为已有的 `jvmToolchain` 配置下载源。Gradle 优先使用检测到的匹配 JDK；缺少 JDK 25 时首次构建自动下载，缓存到 `$GRADLE_USER_HOME/jdks`（默认 `~/.gradle/jdks`）。使用同一 Gradle 用户目录的终端、IDE 和 worktree 可以复用缓存，无需逐次设置 `JAVA_HOME`，不修改系统 JDK 注册。首次准备需要访问 Foojay API 与发行版下载站点；不要在用户级 Gradle 配置中关闭自动检测或自动下载。
+
+可先检查启动 JVM 和已检测的 toolchain，再运行测试以触发缺失 JDK 的下载：
 
 ```bash
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
-"$JAVA_HOME/bin/java" -version
+./gradlew --version
+./gradlew -q javaToolchains
+./gradlew :core:framework:testAndroidHostTest
 ```
 
-这只是当前终端的环境设置，其他机器按实际 JDK 25 路径调整。IDE 的 Gradle JDK 也选择 JDK 25；编译 toolchain 与字节码目标分别维护。版本上限按官方兼容表确定，不以项目实测通过为由越界。
+`javaToolchains` 只列出安装，不会主动下载；实际编译或测试任务解析 toolchain 时才下载。`--version` 显示的是 Gradle 启动与运行 JVM，不代表编译或测试使用的 JDK。IDE 的 Gradle JDK 可继续使用兼容的 JBR；编译 toolchain 与字节码目标分别维护，版本上限遵循[升级规范](docs/dependency-upgrades.md)。离线环境需提前完成一次联网构建以准备 JDK 和依赖。
+
+遇到 JDK 缺失或版本不匹配时，先检查 Android Studio 自带的 JBR/JDK。macOS 默认位置可执行：
+
+```bash
+"/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java" -version
+"/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/javac" -version
+```
+
+自定义安装或其他系统使用实际安装路径。确认版本满足项目要求及工具链支持范围后，可用命令级参数提供给 Gradle，无需系统注册；例如只补充编译 toolchain 的搜索路径：
+
+```bash
+./gradlew -q javaToolchains \
+  -Porg.gradle.java.installations.paths="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+```
+
+后续构建或测试命令需带上同一参数。如果需要 Gradle 运行 JVM 本身也是该版本，则为该命令设置 `JAVA_HOME`。不能仅凭 `java_home -V` 未列出或 shell 默认版本不同，就判定本机没有所需 JDK；没有匹配的现有安装时，再使用上述自动下载机制。
 
 Android SDK 路径使用机器级环境变量，所有 Git worktree 共用。例如 macOS 默认安装位置：
 

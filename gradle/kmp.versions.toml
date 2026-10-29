@@ -8,6 +8,7 @@ android-buildTools = "37.0.0"
 # 编译 JDK 与字节码目标分别维护，相关 Kotlin/Java 任务统一消费
 jdk = "25"
 jvm-target = "25"
+foojay-resolver = "1.0.0"
 
 agp = "9.3.1"
 robolectric = "4.17"

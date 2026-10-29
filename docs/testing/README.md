@@ -127,7 +127,7 @@ KMP 的普通 `:<module>:detekt` 延迟读取全部已注册源集，扫描各�
 
 Compose Rules 使用 `io.nlopez.compose.rules:detekt:0.6.8`。其[发布说明](https://github.com/mrmans0n/compose-rules/releases/tag/v0.6.8)和 Maven POM 均依赖 detekt `2.0.0-alpha.6`，与项目分析引擎一致。按用户要求，当前版本全部 43 条规则启用；默认启用项不重复配置，仅显式启用默认关闭的 `ComposableNestingDepth`、`Material2`、`PreviewNaming`、`UnstableCollections`，覆盖命名、参数、状态、Effect、内容插槽、Modifier、CompositionLocal 和 ViewModel 等检查；规则选项保持库默认值，含类型解析要求的规则随 compilation 任务运行。规则清单以 `config/detekt/detekt.yml` 为准；升级时重新评审，不自动修复 UI 或更新 baseline。
 
-本机缺少全局 JDK 25 时，可按[升级规范](../dependency-upgrades.md)使用项目内发行版，并在命令前显式设置 `JAVA_HOME`；不修改系统注册。2026-10-27 的版本、路径、探针对照和覆盖扩展记录见[接入验证](../audits/2026-10-27-detekt-analysis.md)，该次告警数不代表以后提交的结果。
+编译与宿主测试的 JDK 由 Gradle toolchain 自动准备，检查与缓存规则见[本地配置](../../README.md#本地配置)。若检查工具要求 Gradle 运行 JVM 本身也是 JDK 25，可仅为该命令显式设置 `JAVA_HOME` 指向已有的 JDK 25，不修改系统注册。2026-10-27 的版本、路径、探针对照和覆盖扩展记录见[接入验证](../audits/2026-10-27-detekt-analysis.md)，该次告警数不代表以后提交的结果。
 
 根 `detekt` 没有源集，不作为有效检查。共享模块的 detekt 使用根配置与各模块 baseline，扫描手写 Kotlin 源集，排除生成目录。所有命令按需串行执行；同一仓库目录不得同时启动两个 Gradle 构建。整包构建出现 Java heap space 时使用 [AGENTS.md](../../AGENTS.md) 中的 8GB 堆参数。
 

@@ -2,6 +2,13 @@ rootProject.name = "Notes"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+  // Settings 插件解析早于版本目录生成，直接读取同一版本源。
+  val foojayVersion = providers.fileContents(layout.settingsDirectory.file("gradle/kmp.versions.toml"))
+    .asText.get().lineSequence().first { it.startsWith("foojay-resolver =") }
+    .substringAfter('"').substringBefore('"')
+  plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version foojayVersion
+  }
   includeBuild("build-logic")
   repositories {
     google {
@@ -14,6 +21,9 @@ pluginManagement {
     mavenCentral()
     gradlePluginPortal()
   }
+}
+plugins {
+  id("org.gradle.toolchains.foojay-resolver-convention")
 }
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
