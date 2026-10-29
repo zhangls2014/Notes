@@ -63,14 +63,42 @@ adb -s "$device_serial" shell wm density
 
 ## 5. 折叠姿态
 
-支持 emulator console posture 的 AVD 可以使用：
+先确认目标 AVD，再切换折叠状态。以下命令可直接在终端执行，将 `emulator-5554` 替换为实际序列号：
 
 ```bash
+device_serial=emulator-5554
+adb -s "$device_serial" emu avd name
+
+# 折叠，切换到外屏
+adb -s "$device_serial" emu fold
+
+# 展开，切换到内屏
+adb -s "$device_serial" emu unfold
+```
+
+需要半开等姿态时，先查看当前模拟器提供的姿态编号帮助，再分别执行目标命令：
+
+```bash
+adb -s "$device_serial" emu posture
+
+# 闭合
+adb -s "$device_serial" emu posture 1
+
+# 半开
 adb -s "$device_serial" emu posture 2
+
+# 完全展开
+adb -s "$device_serial" emu posture 3
+
+# 支持铰链角度传感器的 AVD 可进一步设置为 90°
 adb -s "$device_serial" emu sensor set hinge-angle0 90
 ```
 
-常见 posture 值为 `1 closed`、`2 half-opened`、`3 opened`、`4 flipped`、`5 tent`。模拟器注入不能替代物理折叠设备验证；修改窗口几何后，如果铰链不再横跨窗口，平台可能丢弃该 FoldingFeature。
+以上是独立操作示例，不需要整段连续执行。`posture` 不带参数用于显示用法，可能返回 `KO usage`，不代表切换失败。常见 posture 值为 `1 closed`、`2 half-opened`、`3 opened`、`4 flipped`、`5 tent`，具体支持范围取决于 AVD；Pixel Fold 等标准模板通常只支持 `1`、`2`、`3`。半开姿态还需结合设备旋转验证书本式或桌面支架式布局。
+
+结束测试时恢复测试前的折叠姿态；如果测试从完全展开开始，使用 `emu unfold` 恢复。折叠命令不设置 `wm size` / `wm density` 覆盖值；若测试还修改了尺寸、密度或旋转，仍须执行本文的退出清理和收尾验证。
+
+命令依据见 [Android 官方模拟器控制说明](https://developer.android.com/blog/posts/emulator-control-for-adaptive-app-development)。模拟器注入不能替代物理折叠设备验证；修改窗口几何后，如果铰链不再横跨窗口，平台可能丢弃该 FoldingFeature。
 
 布局验证应覆盖：
 
