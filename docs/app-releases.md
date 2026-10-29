@@ -34,7 +34,7 @@
 
 ## 展示与验收
 
-关于应用保留品牌卡与检查更新入口。点击版本号展开当前安装版本的更新内容和“查看历史更新”入口；构建号只用于平台发布管理，不在关于应用展示。页面不另设顶层更新日志栏目。摘要只匹配当前安装版本，没有对应记录时显示暂无记录，不借用最新版本内容。历史更新使用独立导航页面，以可滚动的版本列表展示，支持返回、主题及字体缩放。读取失败显示错误提示，不伪造空历史；再次进入可重新读取。
+关于应用保留品牌卡与检查更新入口。点击版本号展开当前安装版本的更新内容和“查看历史更新”入口；构建号只用于平台发布管理，不在关于应用展示。页面不另设顶层更新日志栏目。摘要只匹配当前安装版本，没有对应记录时显示暂无记录，不借用最新版本内容。历史更新使用独立导航页面，以可滚动的版本网格展示：复用窗口分级，小于 Expanded 时单列、Expanded/Large 双列、ExtraLarge 三列；按从左到右、再从上到下的顺序展示版本。每列内容宽度基于 `ContentWidth.Form`，卡片内外边距与列间距均保持 16dp，支持返回、主题及字体缩放。读取失败显示错误提示，不伪造空历史；再次进入可重新读取。
 
 实施顺序与验证：先定义规则与索引，再实现 JSON 解析和数据校验（版本唯一、排序、平台与语言），随后接入列表页面并测试进入/返回，最后执行 `:feature:about:testAndroidHostTest`、相关 About 宿主测试和 iOS 编译。正式截图基线不在本次更新范围内。
 
@@ -42,7 +42,7 @@
 ./gradlew :feature:about:testAndroidHostTest :feature:about:detekt
 ./gradlew :composeApp:testAndroidHostTest --tests '*AboutUiTest*' \
   --tests '*AboutNoticesNavigationTest*' --tests '*OpenSourceNavigationTest*' \
-  --tests '*NavBackStackSerializationTest*'
+  --tests '*NavBackStackSerializationTest*' --tests '*ReleaseHistoryAdaptiveTest*'
 ./gradlew :composeApp:compileKotlinIosSimulatorArm64
 # 修改 AboutEntry 时必须执行真实入口调用回归
 ./gradlew :composeApp:iosSimulatorArm64Test

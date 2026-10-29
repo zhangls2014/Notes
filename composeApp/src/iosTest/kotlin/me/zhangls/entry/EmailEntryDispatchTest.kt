@@ -77,7 +77,11 @@ class EmailEntryDispatchTest {
           )
         },
         { about.ProjectScreen("https://example.com", onBack = {}) },
-        { about.ReleaseHistoryScreen(onBack = {}) },
+        {
+          me.zhangls.theme.layout.ProvideWindowAdaptiveInfo(androidx.window.core.layout.WindowSizeClass(840, 900)) {
+            about.ReleaseHistoryScreen(onBack = {})
+          }
+        },
         { about.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = {}) },
       )
       for (screen in screens) {

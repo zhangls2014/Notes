@@ -13,6 +13,17 @@
           "en": "View release notes offline from About app.",
           "zh": "在关于应用中离线查看版本更新日志。"
         }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Release history adapts to wide windows with multiple columns.",
+          "zh": "历史更新根据窗口宽度自适应展示为单列、双列或三列。"
+        }
       }
     ]
   }
