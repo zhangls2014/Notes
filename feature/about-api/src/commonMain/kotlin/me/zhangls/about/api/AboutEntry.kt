@@ -7,7 +7,10 @@ interface AboutEntry {
   fun ProjectScreen(url: String, onBack: () -> Unit)
 
   @Composable
-  fun Screen(onBack: () -> Unit, onOpenSource: () -> Unit)
+  fun Screen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenReleaseHistory: () -> Unit)
+
+  @Composable
+  fun ReleaseHistoryScreen(onBack: () -> Unit)
 
   @Composable
   fun NoticesScreen(

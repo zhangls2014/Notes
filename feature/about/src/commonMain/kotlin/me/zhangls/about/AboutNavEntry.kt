@@ -7,6 +7,7 @@ import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.feature.about.generated.resources.Res
@@ -22,7 +23,11 @@ fun EntryProviderScope<NavKey>.aboutNavEntry(
     koinInject<AboutEntry>().Screen(
       onBack = { effect(NavEffect.Popup) },
       onOpenSource = { effect(NavEffect.Navigate(OpenSourceNoticesDestination())) },
+      onOpenReleaseHistory = { effect(NavEffect.Navigate(ReleaseHistoryDestination)) },
     )
+  }
+  entry<ReleaseHistoryDestination> {
+    koinInject<AboutEntry>().ReleaseHistoryScreen(onBack = { effect(NavEffect.Popup) })
   }
   entry<OpenSourceNoticesDestination>(metadata = paneMetadata) { destination ->
     val uriHandler = LocalUriHandler.current

@@ -77,7 +77,8 @@ class EmailEntryDispatchTest {
           )
         },
         { about.ProjectScreen("https://example.com", onBack = {}) },
-        { about.Screen(onBack = {}, onOpenSource = {}) },
+        { about.ReleaseHistoryScreen(onBack = {}) },
+        { about.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

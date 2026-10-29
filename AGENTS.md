@@ -116,3 +116,7 @@ adb -s <serial> shell wm density reset   # 修改过密度时
 ```
 
 随后查询 `wm size` / `wm density`，确认没有 `Override`。不得硬编码某机型的默认值。自动化脚本应通过 `trap` 或 `finally` 保证失败和中断时也还原；设备断连导致无法恢复时必须明确告知用户。完整流程见 [docs/testing/android-emulator.md](docs/testing/android-emulator.md)。
+
+### 应用版本与更新记录
+
+- 版本与本地更新日志遵循 [应用版本规则](docs/app-releases.md)。每次用户可感知的变更在同一需求中维护 `feature/about/src/commonMain/composeResources/files/releases.json` 的未发布记录；不因每次提交升级版本，不补造历史发布。

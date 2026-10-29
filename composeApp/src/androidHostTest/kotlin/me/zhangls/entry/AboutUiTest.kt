@@ -2,6 +2,10 @@ package me.zhangls.entry
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
@@ -11,6 +15,7 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -67,24 +72,66 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.setContent {
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
         ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-          koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = {})
+          var historyVisible by remember { mutableStateOf(false) }
+          val entry = koinInject<AboutEntry>()
+          if (historyVisible) {
+            entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
+          } else {
+            entry.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = { historyVisible = true })
+          }
         }
       }
     }
+  }
+
+  @Test fun releaseHistoryPageOpensOfflineAndReturns() {
+    launch(AboutAppInfo("1.1.0", "2"))
+    compose.onNodeWithText("Release notes").assertDoesNotExist()
+    compose.onNodeWithText("View update history").assertDoesNotExist()
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    compose.waitUntil(timeoutMillis = 10_000) {
+      compose.onAllNodes(hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithText("View release notes offline from About app.", substring = true)
+      .performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("View update history").performScrollTo().performClick()
+    compose.onNodeWithText("Release notes").assertIsDisplayed()
+    compose.onNodeWithText("About app").assertDoesNotExist()
+    compose.waitUntil(timeoutMillis = 10_000) {
+      compose.onAllNodes(hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithText("View release notes offline from About app.", substring = true)
+      .performScrollTo().assertIsDisplayed()
+    compose.onNodeWithContentDescription("Back").performClick()
+    compose.onNodeWithText("Release notes").assertDoesNotExist()
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    compose.onNodeWithText("View update history").assertDoesNotExist()
+    compose.onNodeWithText("Update contents").assertDoesNotExist()
+  }
+
+  @Test fun missingCurrentVersionDoesNotShowAnotherVersionsNotes() {
+    launch(AboutAppInfo("2.3.1", "42.7.1"))
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    compose.waitUntil(timeoutMillis = 10_000) {
+      compose.onAllNodes(hasText("No release notes for this version.")).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithText("No release notes for this version.").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("View release notes offline from About app.", substring = true).assertDoesNotExist()
+    compose.onNodeWithText("View update history").performScrollTo().assertIsDisplayed()
   }
 
   @Test fun noticesAreAlwaysAvailableOffline() {
     var opened = false
     compose.setContent {
       ComposeAppTheme {
-        koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = { opened = true })
+        koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = { opened = true }, onOpenReleaseHistory = {})
       }
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo().assertIsEnabled().performClick()
     assertTrue(opened)
   }
 
-  @Test fun installedVersionAndDottedBuildCanBeExpandedAndCollapsed() {
+  @Test fun installedVersionExpandsUpdatesWithoutBuildNumber() {
     launch(AboutAppInfo("2.3.1", "42.7.1"))
     repeat(3) {
       compose.mainClock.advanceTimeBy(1000)
@@ -94,7 +141,9 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("2.3.1").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("Build number").assertDoesNotExist()
     compose.onNodeWithText("Version").performClick()
-    compose.onNodeWithText("42.7.1").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Build number").assertDoesNotExist()
+    compose.onNodeWithText("42.7.1").assertDoesNotExist()
+    compose.onNodeWithText("Update contents").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.onNodeWithText("Build number").assertDoesNotExist()
     compose.onNodeWithText("Check for updates").performScrollTo().assertIsDisplayed()

@@ -32,7 +32,6 @@ import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Info
 import me.zhangls.theme.icon.Refresh
 import notes.feature.about.generated.resources.Res
-import notes.feature.about.generated.resources.about_build_number
 import notes.feature.about.generated.resources.about_check_updates
 import notes.feature.about.generated.resources.about_collapsed
 import notes.feature.about.generated.resources.about_coming_soon
@@ -42,11 +41,16 @@ import notes.feature.about.generated.resources.about_update_description
 import notes.feature.about.generated.resources.about_version
 import org.jetbrains.compose.resources.stringResource
 
-private const val EXPANDED_BUILD_INFO_ROTATION = 90f
-private const val COLLAPSED_BUILD_INFO_ROTATION = 270f
+private const val EXPANDED_VERSION_INFO_ROTATION = 90f
+private const val COLLAPSED_VERSION_INFO_ROTATION = 270f
 
 @Composable
-internal fun AboutVersionGroup(appInfo: AboutAppInfo, expanded: Boolean, onToggleBuildInfo: () -> Unit) {
+internal fun AboutVersionGroup(
+  appInfo: AboutAppInfo,
+  expanded: Boolean,
+  onToggleVersionInfo: () -> Unit,
+  onOpenReleaseHistory: () -> Unit,
+) {
   val outer = MaterialTheme.shapes.extraLarge
   val inner = MaterialTheme.shapes.extraSmall
   val versionShape = outer.copy(bottomStart = inner.bottomStart, bottomEnd = inner.bottomEnd)
@@ -59,24 +63,19 @@ internal fun AboutVersionGroup(appInfo: AboutAppInfo, expanded: Boolean, onToggl
       shape = versionShape,
       modifier = Modifier.clip(versionShape)
         .semantics { stateDescription = stateLabel }
-        .clickable(role = Role.Button, onClick = onToggleBuildInfo),
+        .clickable(role = Role.Button, onClick = onToggleVersionInfo),
       trailing = {
         Icon(
           Icons.Rounded.ArrowBackIosNew,
           contentDescription = null,
           modifier = Modifier.size(20.dp).rotate(
-            if (expanded) EXPANDED_BUILD_INFO_ROTATION else COLLAPSED_BUILD_INFO_ROTATION,
+            if (expanded) EXPANDED_VERSION_INFO_ROTATION else COLLAPSED_VERSION_INFO_ROTATION,
           ),
         )
       },
     )
     if (expanded) {
-      AboutInfoRow(
-        title = stringResource(Res.string.about_build_number),
-        detail = appInfo.buildNumber ?: stringResource(Res.string.about_unknown),
-        icon = Icons.Rounded.Info,
-        shape = inner,
-      )
+      AboutReleaseSummary(appInfo.versionName, inner, onOpenReleaseHistory)
     }
     // Update checks await release-channel and platform integration; see docs/testing/pending-acceptance.md.
     // The disabled button communicates availability without triggering an update check.

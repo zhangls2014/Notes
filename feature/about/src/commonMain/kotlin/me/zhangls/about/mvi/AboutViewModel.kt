@@ -15,8 +15,8 @@ internal class AboutViewModel(savedStateHandle: SavedStateHandle, appInfo: AppIn
   ) {
   override fun handleIntent(intent: AboutIntent) {
     when (intent) {
-      AboutIntent.ToggleBuildInfo -> updateState {
-        AboutReducer.reduce(this, AboutAction.SetBuildInfoExpanded(!isBuildInfoExpanded))
+      AboutIntent.ToggleVersionInfo -> updateState {
+        AboutReducer.reduce(this, AboutAction.SetVersionInfoExpanded(!isVersionInfoExpanded))
       }
     }
   }

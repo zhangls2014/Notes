@@ -29,6 +29,7 @@ import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.email.emailNavEntry
@@ -222,7 +223,8 @@ fun AppNavHost(
       LayeredNavDisplay(
         entries = entriesByRoot.getValue(navigationState.selectedRoot).toImmutableList(),
         fullscreenEntryCount = backStack.takeLastWhile {
-          it is ProfileDestination || it is AboutDestination || it is OpenSourceNoticesDestination
+          it is ProfileDestination || it is AboutDestination ||
+            it is ReleaseHistoryDestination || it is OpenSourceNoticesDestination
         }.size,
         displayKey = navigationState.selectedRoot,
         contentAlpha = readAlpha,

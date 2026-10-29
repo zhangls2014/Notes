@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.framework.nav.Destination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.main.api.HomeDestination
@@ -13,6 +14,20 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class OpenSourceNavigationTest {
+  @Test
+  fun historyReturnsToAboutAndUsesSettingsRootWithoutLogin() {
+    val state = AppNavigationState(
+      NavBackStack(SettingsDestination),
+      navigationRoots.associateWith { NavBackStack<NavKey>(it) },
+    )
+    val handler = NavHandler(state) { false }
+    handler(NavEffect.Navigate(AboutDestination))
+    handler(NavEffect.Navigate(ReleaseHistoryDestination))
+    assertEquals(listOf<NavKey>(SettingsDestination, AboutDestination, ReleaseHistoryDestination), state.backStack.toList())
+    handler(NavEffect.Popup)
+    assertEquals(AboutDestination, state.backStack.last())
+  }
+
   @Test
   fun noticesAndLicensesReturnThroughAboutToSettings() {
     val settings = NavBackStack<NavKey>(SettingsDestination)

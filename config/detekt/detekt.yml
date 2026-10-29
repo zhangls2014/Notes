@@ -55,7 +55,10 @@ ktlint:
   ChainWrapping:
     indentSize: 2
   ClassSignature:
-    indentSize: 2
+    # 类构造函数允许单行或多行，不强制把短的多行声明合并。
+    # 参数数量阈值会反向强制其他单行声明展开，因此不使用该选项。
+    # 缩进、行长与参数列表仍由对应规则检查。
+    active: false
   CommentWrapping:
     indentSize: 2
   ConditionWrapping:

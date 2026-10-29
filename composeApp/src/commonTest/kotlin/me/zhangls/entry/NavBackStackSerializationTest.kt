@@ -11,6 +11,7 @@ import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutNavigation
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailNavigation
 import me.zhangls.framework.nav.NavigationContribution
@@ -63,6 +64,7 @@ class NavBackStackSerializationTest {
     val stack = NavBackStack<NavKey>(
       SettingsDestination,
       AboutDestination,
+      ReleaseHistoryDestination,
       OpenSourceNoticesDestination(),
       OpenSourceNoticesDestination(OpenSourcePage.LICENSES, "license-MIT"),
     )
