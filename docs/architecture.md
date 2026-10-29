@@ -277,6 +277,8 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 
 共享 UI 的主题入口是 `core:theme/ComposeAppTheme`，使用 `MaterialExpressiveTheme` 和 `MotionScheme.expressive()`。字体与形状分别由同模块的 `AppTypography`、`AppShapes` 提供；标题与操作标签使用强调字重，正文保留 Material 原有尺寸。Typography 显式使用带 fontFamily 的构造器，避免兼容无参构造器把强调样式映射回普通样式。
 
+Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog 窗口，以整个应用窗口为居中参照，避免隐藏手势提示线后上下系统栏占用不对称造成偏移；通过 `LocalBasicAlertDialogOverride` 复用默认 Material 布局，保留宽度、语义与关闭行为，覆盖更新内容、通用提示和 Preference 选择框。iOS 保持默认实现；不对弹窗添加铰链避让或固定位置补偿。
+
 主题保留内置品牌配色、动态色、深浅色和用户字号设置。应用字号是相对系统字号的倍率：标准字号复用系统 Density，中／大字号将系统 fontScale 与应用倍率相乘，保留 density；窗口事实仍在主题之外读取。Feature 从 `MaterialTheme` 读取颜色、字体与形状；关键按钮和共享图标按钮显式采用形变重载，自定义头像空间动画使用主题 MotionScheme。邮件列表与详情卡片使用主题 large 圆角和容器色，打开、多选、收藏状态各有语义颜色。确认对话框使用标准 AlertDialog，保留字符串与 AnnotatedString 重载，以及显式按钮回调关闭语义。
 
 登录有效提交在 Intent 同步处理阶段置为加载中，加载期间 ViewModel 拒绝重复提交及表单修改，UI 禁用账号、密码、清空、可见性切换和登录按钮，并释放输入焦点。主题与语言入口继续可用。共享加载指示器只负责视觉与带名称的 polite live region／进度语义，交互约束由调用方的 enabled 状态和业务守卫承担。

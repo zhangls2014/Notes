@@ -45,7 +45,7 @@ fun ComposeAppTheme(
       motionScheme = MotionScheme.expressive(),
       typography = AppTypography,
       shapes = AppShapes,
-      content = content,
+      content = { ProvideAlertDialogWindow(content) },
     )
   }
 }

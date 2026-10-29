@@ -101,6 +101,16 @@
           "en": "See what’s new on the first launch of each app version.",
           "zh": "每个版本首次启动时弹窗展示本次更新内容。"
         }
+      },
+      {
+        "type": "fixed",
+        "platforms": [
+          "android"
+        ],
+        "text": {
+          "en": "Keep dialogs centered when the system gesture indicator is hidden.",
+          "zh": "修复隐藏系统手势提示线时弹窗未居中的问题。"
+        }
       }
     ]
   }
