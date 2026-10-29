@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -54,24 +54,24 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit) {
     CenteredTopAppBar(title = stringResource(Res.string.about_release_history), navigate = onBack)
   }) { padding ->
     AdaptiveContent(modifier = Modifier.fillMaxSize().padding(padding), maxWidth = maxWidth) {
-      LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
+      LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(columns),
         modifier = Modifier.fillMaxSize().testTag("release-history-grid"),
         contentPadding = PaddingValues(spacing),
         horizontalArrangement = Arrangement.spacedBy(spacing),
-        verticalArrangement = Arrangement.spacedBy(spacing),
+        verticalItemSpacing = spacing,
       ) {
         val loaded = result
         when {
-          loaded == null -> item(span = { GridItemSpan(maxLineSpan) }) {
+          loaded == null -> item(span = StaggeredGridItemSpan.FullLine) {
             Text(stringResource(Res.string.about_release_loading))
           }
 
-          loaded.isFailure -> item(span = { GridItemSpan(maxLineSpan) }) {
+          loaded.isFailure -> item(span = StaggeredGridItemSpan.FullLine) {
             Text(stringResource(Res.string.about_release_failed))
           }
 
-          loaded.getOrThrow().isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+          loaded.getOrThrow().isEmpty() -> item(span = StaggeredGridItemSpan.FullLine) {
             Text(stringResource(Res.string.about_release_empty))
           }
 
