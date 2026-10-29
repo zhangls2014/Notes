@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
@@ -45,6 +46,10 @@ class ReleaseNotesDialogTest {
       compose.onAllNodes(androidx.compose.ui.test.hasText("What’s new in 1.1.0")).fetchSemanticsNodes().isNotEmpty()
     }
     compose.onNodeWithText("What’s new in 1.1.0").assertIsDisplayed()
+    compose.onNodeWithText("Unreleased").assertIsDisplayed()
+    compose.onNodeWithText("Added").assertIsDisplayed()
+    compose.onNodeWithText("Improved").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Fixed").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("Got it").performClick()
     compose.onNodeWithText("What’s new in 1.1.0").assertDoesNotExist()
     compose.runOnIdle { assertEquals(1, dismissed) }

@@ -10,11 +10,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import me.zhangls.about.ui.ReleaseChanges
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_release_dialog_dismiss
 import notes.feature.about.generated.resources.about_release_dialog_title
+import notes.feature.about.generated.resources.about_release_unreleased
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -27,11 +28,10 @@ internal fun ReleaseNotesDialog(version: String, onDismiss: () -> Unit) {
     text = {
       Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        for (change in release.changes) {
-          Text("• ${change.localizedText(Locale.current.language)}")
-        }
+        Text(release.date ?: stringResource(Res.string.about_release_unreleased))
+        ReleaseChanges(release)
       }
     },
     confirmButton = {
