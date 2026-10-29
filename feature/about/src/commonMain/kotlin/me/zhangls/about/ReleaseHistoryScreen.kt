@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -15,11 +17,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.layout.ContentWidth
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.isExpandedWidthOrWider
+import me.zhangls.theme.layout.isExtraLargeWidthOrWider
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_release_added
 import notes.feature.about.generated.resources.about_release_empty
@@ -31,24 +37,43 @@ import notes.feature.about.generated.resources.about_release_loading
 import notes.feature.about.generated.resources.about_release_unreleased
 import org.jetbrains.compose.resources.stringResource
 
+private const val EXTRA_LARGE_COLUMNS = 3
+
 @Composable
 internal fun ReleaseHistoryScreen(onBack: () -> Unit) {
   val result by rememberReleaseHistory()
+  val window = LocalWindowAdaptiveInfo.current
+  val columns = when {
+    window.isExtraLargeWidthOrWider -> EXTRA_LARGE_COLUMNS
+    window.isExpandedWidthOrWider -> 2
+    else -> 1
+  }
+  val spacing = 16.dp
+  val maxWidth = ContentWidth.Form * columns + spacing * (columns - 1)
   Scaffold(topBar = {
     CenteredTopAppBar(title = stringResource(Res.string.about_release_history), navigate = onBack)
   }) { padding ->
-    AdaptiveContent(modifier = Modifier.fillMaxSize().padding(padding), maxWidth = ContentWidth.Form) {
-      LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    AdaptiveContent(modifier = Modifier.fillMaxSize().padding(padding), maxWidth = maxWidth) {
+      LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = Modifier.fillMaxSize().testTag("release-history-grid"),
+        contentPadding = PaddingValues(spacing),
+        horizontalArrangement = Arrangement.spacedBy(spacing),
+        verticalArrangement = Arrangement.spacedBy(spacing),
       ) {
         val loaded = result
         when {
-          loaded == null -> item { Text(stringResource(Res.string.about_release_loading)) }
+          loaded == null -> item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(stringResource(Res.string.about_release_loading))
+          }
 
-          loaded.isFailure -> item { Text(stringResource(Res.string.about_release_failed)) }
+          loaded.isFailure -> item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(stringResource(Res.string.about_release_failed))
+          }
 
-          loaded.getOrThrow().isEmpty() -> item { Text(stringResource(Res.string.about_release_empty)) }
+          loaded.getOrThrow().isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(stringResource(Res.string.about_release_empty))
+          }
 
           else -> items(loaded.getOrThrow(), key = { it.version }) { release ->
             ReleaseHistoryItem(release)
@@ -61,7 +86,11 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit) {
 
 @Composable
 private fun ReleaseHistoryItem(release: AppRelease) {
-  Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+  Surface(
+    modifier = Modifier.testTag("release-${release.version}"),
+    shape = MaterialTheme.shapes.extraLarge,
+    color = MaterialTheme.colorScheme.surfaceContainerLow,
+  ) {
     Column(
       modifier = Modifier.fillMaxWidth().padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(12.dp),

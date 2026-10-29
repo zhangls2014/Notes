@@ -2,6 +2,7 @@ package me.zhangls.entry
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.material3.adaptive.Posture
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,10 +22,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.computeWindowSizeClass
 import com.github.takahirom.roborazzi.captureRoboImage
 import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
+import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -71,13 +75,18 @@ class AboutUiTest(private val scenario: Scenario) {
     provideAboutAppInfo(info)
     compose.setContent {
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
-        ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-          var historyVisible by remember { mutableStateOf(false) }
-          val entry = koinInject<AboutEntry>()
-          if (historyVisible) {
-            entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
-          } else {
-            entry.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = { historyVisible = true })
+        ProvideWindowAdaptiveInfo(
+          WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(scenario.width, scenario.height),
+          Posture(),
+        ) {
+          ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
+            var historyVisible by remember { mutableStateOf(false) }
+            val entry = koinInject<AboutEntry>()
+            if (historyVisible) {
+              entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
+            } else {
+              entry.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = { historyVisible = true })
+            }
           }
         }
       }
