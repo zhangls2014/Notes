@@ -490,6 +490,32 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.waitForIdle()
   }
 
+  @Test fun foldingWithOpenDraftKeepsHomeAndDraftContent() {
+    org.junit.Assume.assumeTrue(scenario.name == "900x1000")
+    users.userFlow.value = UserModel("test", "Reviewer")
+    launch()
+    waitFor("Adaptive review")
+    compose.onNodeWithText("Adaptive review").performClick()
+    waitFor("Reply all")
+    compose.onNodeWithContentDescription("New email").performClick()
+    waitFor("Recipients")
+    compose.onNodeWithText("Subject").performTextInput("Fold draft subject")
+    compose.onNodeWithText("Body").performTextInput("Fold draft body")
+    compose.runOnIdle { focusManager.clearFocus() }
+    compose.runOnIdle { width = 400 }
+    settle()
+    compose.onNode(isDialog()).assertExists()
+    compose.onNodeWithText("Fold draft subject").assertExists()
+    compose.onNodeWithText("Fold draft body").assertExists()
+    compose.onNodeWithText("Cancel").performScrollTo().performClick()
+    settle()
+    compose.onNodeWithContentDescription("New email").assertIsDisplayed()
+    compose.onNodeWithText("Reply all").assertDoesNotExist()
+    compose.runOnIdle { width = 900 }
+    settle()
+    compose.onNodeWithText("Reply all").assertDoesNotExist()
+  }
+
   @Test fun draftActionsRemainReachableAboveIme() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
     users.userFlow.value = UserModel("test", "Reviewer")

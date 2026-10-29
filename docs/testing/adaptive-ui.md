@@ -13,6 +13,29 @@
 
 选择理由见 [重要决策记录](../decisions.md)，相关回归保留在本页；未解决问题与设备验收集中见 [待验收清单](pending-acceptance.md)。当前布局与输入策略以 [架构文档](../architecture.md) 为准。
 
+## 写信展开时窗口收窄（2026-10-29）
+
+`HomeDraftNavigationTest` 验证草稿展开时收窄会退出首页详情、无草稿时保留详情、收藏详情不受影响，以及宿主重建后仍保留草稿可见标记。宿主恢复用例在普通 `remember` 下失败，改为 `rememberSaveable` 后通过；只保存布尔标记，不保存草稿正文。
+
+`AdaptiveUiTest.foldingWithOpenDraftKeepsHomeAndDraftContent` 使用真实 AppNavHost 和 Feature 实现、确定性 Repository，在 900×1000dp 打开详情和写信，输入主题及正文后收窄为 400×1000dp：验证弹层和输入保留，取消后首页可见、详情不存在，重新展开也不恢复旧详情。1 个适用场景通过，16 个其他参数场景按条件跳过；该测试不模拟平台折叠事件或 Activity 重建，不生成候选截图或更新正式基线。
+
+iOS `EmailEntryDispatchTest` 两项真实实现分派测试通过；Android DevFull Debug 构建通过。
+
+设备复查：Pixel_10_Pro_Fold / emulator-5554 在 OPENED（852×883dp）→CLOSED（443×970dp）时会重建 Activity。原修复仅用 `remember` 镜像可见标记，设备上仍进入详情，APK SHA-256 比对确认安装产物一致。将标记纳入保存状态后，通过 `cmd device_state state 0` 从 OPENED 切换为 CLOSED，确认弹层、主题 `FoldCheck` 及已选收件人保留；返回收起弹层后显示首页。设备验证未修改分辨率或密度。测试结束释放 device_state 覆盖，确认 OPENED、无尺寸或密度覆盖。该证据来自模拟器终态，不代表实体设备或动画中间帧验收。
+
+2026-10-30 复验：确认模拟器安装 APK 与本地最终产物 SHA-256 一致后，从 OPENED 首页打开详情与现有草稿，通过真实 `device_state` 切换到 CLOSED。断言弹层、主题 `FoldCheck` 和已选收件人保留；返回收起弹层后首页 FAB 存在且无详情返回按钮，再打开写信仍保留草稿。全部断言通过。`finally` 释放状态覆盖并确认恢复 OPENED，`wm size` / `wm density` 只读查询无 Override；未修改显示尺寸或密度，未发送邮件。本次未重跑上一轮构建或宿主测试。
+
+`StateRestorationTester` 销毁整棵组合时会清理 Entry 内存 ViewModel，不能用该工具的整页草稿丢失替代 Android 配置重建结论；宿主保存状态、普通窗口收窄和平台实际折叠分别验证。实体折叠设备、键盘打开时的切换与动画中间帧尚未验收，见[待验收清单](pending-acceptance.md)。
+
+```bash
+./gradlew :composeApp:testAndroidHostTest --tests '*HomeDraftNavigationTest*' \
+  --tests '*HomeEmailPaneMotionTest*' --tests '*AppSceneStrategiesTest*' \
+  --tests '*AdaptiveUiTest.foldingWithOpenDraftKeepsHomeAndDraftContent*' \
+  :feature:email:testAndroidHostTest \
+  :composeApp:iosSimulatorArm64Test --tests '*EmailEntryDispatchTest*' \
+  :androidApp:assembleDevFullDebug
+```
+
 ## 全屏次级页面与导航显隐（2026-10-26）
 
 个人信息／关于应用在应用外壳上层执行全屏缩放与遮罩，底层 Entry 保持组合；侧栏／底栏直接读取页面进度，提交淡出期间保持显示。组件尺寸、图标颜色、留白、Tab 状态、邮件分栏与铰链规则保持现状。实现边界见 [架构文档](../architecture.md#navigation-3)。

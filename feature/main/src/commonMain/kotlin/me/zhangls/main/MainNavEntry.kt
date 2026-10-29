@@ -63,6 +63,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   navigateToAbout: () -> Unit,
   onLogout: () -> Unit,
   homeMetadata: Map<String, Any> = homePaneMetadata,
+  onDraftVisibilityChange: (Boolean) -> Unit = {},
 ) {
   entry<HomeDestination>(
     metadata = homeMetadata,
@@ -71,6 +72,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Home),
       navigateToDetail = { emailId -> navigateToEmailDetail(EmailListScene.Home, emailId) },
       onProfileClick = { navigateToProfile(ProfileOrigin.Home) },
+      onDraftVisibilityChange = onDraftVisibilityChange,
     )
   }
 

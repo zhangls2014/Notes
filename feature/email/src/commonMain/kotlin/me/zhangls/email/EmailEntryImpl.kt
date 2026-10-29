@@ -18,11 +18,17 @@ import me.zhangls.email.home.HomeScreen as HomeScreenImpl
 @Singleton(binds = [EmailEntry::class])
 class EmailEntryImpl : EmailEntry {
   @Composable
-  override fun HomeScreen(openedEmailId: Long?, navigateToDetail: (Long) -> Unit, onProfileClick: () -> Unit) {
+  override fun HomeScreen(
+    openedEmailId: Long?,
+    navigateToDetail: (Long) -> Unit,
+    onProfileClick: () -> Unit,
+    onDraftVisibilityChange: (Boolean) -> Unit,
+  ) {
     HomeScreenImpl(
       openedEmailId = openedEmailId,
       navigateToDetail = navigateToDetail,
       onProfileClick = onProfileClick,
+      onDraftVisibilityChange = onDraftVisibilityChange,
     )
   }
 
