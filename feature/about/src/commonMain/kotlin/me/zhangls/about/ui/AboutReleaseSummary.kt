@@ -9,11 +9,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import me.zhangls.about.rememberReleaseHistory
+import me.zhangls.about.AppRelease
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_release_contents
 import notes.feature.about.generated.resources.about_release_current_empty
@@ -24,8 +23,12 @@ import notes.feature.about.generated.resources.about_release_view_history
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun AboutReleaseSummary(version: String?, shape: Shape, onOpenHistory: () -> Unit) {
-  val result by rememberReleaseHistory()
+internal fun AboutReleaseSummary(
+  version: String?,
+  result: Result<List<AppRelease>>?,
+  shape: Shape,
+  onOpenHistory: () -> Unit,
+) {
   Surface(shape = shape, color = MaterialTheme.colorScheme.surfaceContainerLow) {
     Column(
       modifier = Modifier.fillMaxWidth().padding(16.dp),

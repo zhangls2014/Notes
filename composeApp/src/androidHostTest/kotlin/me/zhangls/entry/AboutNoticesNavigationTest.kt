@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
@@ -25,6 +27,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.IntSize
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -99,7 +102,10 @@ class AboutNoticesNavigationTest {
       }
       val entries = rememberDecoratedNavEntries(
         backStack = stack,
-        entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
+        entryDecorators = listOf(
+          rememberSaveableStateHolderNavEntryDecorator(),
+          rememberViewModelStoreNavEntryDecorator(),
+        ),
         entryProvider = provider,
       )
       ProvideWindowAdaptiveInfo(WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, 600), posture) {
@@ -133,9 +139,38 @@ class AboutNoticesNavigationTest {
     compose.onNodeWithText("Build number").assertDoesNotExist()
   }
 
-  @Test fun clickingNoticesMountsWebViewAndPredictiveReturnRevealsAbout() {
+  @Test fun returningFromNoticesPreservesScroll() {
+    provideAboutAppInfo(me.zhangls.about.api.AboutAppInfo("1.1.0", "2"))
     launch()
-    compose.onNodeWithText("Open-source software notices").performScrollTo().performClick()
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    compose.waitUntil(timeoutMillis = 10_000) {
+      compose.onAllNodes(androidx.compose.ui.test.hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithText("Open-source software notices").performScrollTo()
+    val before = compose.onNode(hasScrollAction()).fetchSemanticsNode()
+      .config[SemanticsProperties.VerticalScrollAxisRange].value()
+    assertTrue("Must start scrolled", before > 0f)
+    compose.onNodeWithText("Open-source software notices").performClick()
+    compose.waitForIdle()
+    compose.onNodeWithContentDescription("Back").performClick()
+    compose.waitForIdle()
+    val after = compose.onNode(hasScrollAction()).fetchSemanticsNode()
+      .config[SemanticsProperties.VerticalScrollAxisRange].value()
+    assertEquals("Returning must restore the same scroll offset", before, after, 0.5f)
+  }
+
+  @Test fun clickingNoticesMountsWebViewAndPredictiveReturnRevealsAbout() {
+    provideAboutAppInfo(me.zhangls.about.api.AboutAppInfo("1.1.0", "2"))
+    launch()
+    compose.onNodeWithText("Version").performScrollTo().performClick()
+    compose.waitUntil(timeoutMillis = 10_000) {
+      compose.onAllNodes(androidx.compose.ui.test.hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithText("Open-source software notices").performScrollTo()
+    val initialScroll = compose.onNode(hasScrollAction()).fetchSemanticsNode()
+      .config[SemanticsProperties.VerticalScrollAxisRange].value()
+    assertTrue("Must start scrolled", initialScroll > 0f)
+    compose.onNodeWithText("Open-source software notices").performClick()
     compose.waitForIdle()
     assertEquals(OpenSourceNoticesDestination(), stack.last())
     compose.runOnIdle {
@@ -161,6 +196,9 @@ class AboutNoticesNavigationTest {
       compose.waitForIdle()
       assertEquals(listOf<NavKey>(SettingsDestination, AboutDestination), stack.toList())
       compose.onNodeWithText("About app").assertIsDisplayed()
+      val restoredScroll = compose.onNode(hasScrollAction()).fetchSemanticsNode()
+        .config[SemanticsProperties.VerticalScrollAxisRange].value()
+      assertEquals("Predictive return preserves scroll", initialScroll, restoredScroll, 0.5f)
     } finally {
       compose.mainClock.autoAdvance = true
     }

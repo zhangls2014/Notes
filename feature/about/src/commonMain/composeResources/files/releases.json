@@ -4,6 +4,17 @@
     "date": null,
     "changes": [
       {
+        "type": "fixed",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "About app content scrolls behind the bottom safe area and keeps its scroll position when returning from open-source notices.",
+          "zh": "关于应用内容延伸至底部安全区域，修复从开源软件声明返回后滚动位置改变的问题。"
+        }
+      },
+      {
         "type": "added",
         "platforms": [
           "android",

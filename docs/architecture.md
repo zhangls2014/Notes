@@ -245,6 +245,8 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 登录页设置入口位于表单区域右上角。Logo、输入框与按钮组成的表单主体在高度足够时居中；高度不足时保持原有尺寸和间距，由纵向滚动与 IME 留白处理。
 
+页面默认要求内容延伸至底部安全区域，实现 Edge-to-Edge。滚动视口延伸至底部，底部安全距离作为可滚动内容的末尾留白，保证末项滚到底后完整可见、可操作；固定底部控件仍避让手势区域，已消费的 Insets 不重复计算。顶部和左右仍按安全区布局。
+
 Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:windowSoftInputMode="adjustResize"`；minSdk 保持 28。移除该属性后，连接的 API 36 真机采用 `adjustPan`，登录按钮被滚动视口裁切；恢复后由 Xander 确认问题消失。键盘避让由实际页面或弹层消费 Compose IME Insets：登录表单消费受保护的 inset，写邮件使用弹层内容 inset；全屏搜索沿用 Material 的 `fullScreenWindowInsets`（`safeDrawing`），停靠搜索沿用组件内置 IME padding，不重复添加占位。API 28/29 的真实窗口分发仍需设备验证，API 30+ 宿主注入回归不能证明旧系统兼容性，范围见 [Android IME 回归](testing/adaptive-ui.md#android-ime-窗口策略2026-10-09)。
 
 登录与新建邮件页的 IME 切换保护由 `core:theme/layout` 的 `ImeHandoffFocusState` 和 `rememberImeHandoffInsets` 共享。Android 在焦点回调中记录同一表单内的输入框切换，仅在切换后的 400 ms 窗口内保留下降中的键盘占位，待高度连续稳定 200 ms 后释放，以吸收普通键盘与系统安全键盘切换时的短暂空档。高度增加立即避让，失焦立即取消保护；保护窗口外的正常收起逐帧跟随真实 IME，不额外等待。登录表单通过 `windowInsetsPadding` 消费受保护的 inset；新建邮件页把它与 `ModalBottomSheet` 默认内容 inset 合并，让弹层继续在自己的窗口中避让键盘。iOS 使用原生 IME inset，不应用 Android 保护策略。
@@ -385,9 +387,9 @@ HTML 的上下外边距一致（普通 24px，窄窗格 16px），首尾元素�
 列表尺寸和详情进入动画为 250ms，详情退出为 200ms；关闭保留期为
 350ms，为 lookahead 测量与动画启动留出时间，且随系统动画比例缩放。
 
-声明与项目来源网页的背景延伸至底部手势区域，顶部和左右仍按安全区布局。
+声明与项目来源网页的背景同样延伸至底部手势区域。
 底部安全距离由网页滚动内容承担，不以原生 WebView 外边距裁短视口；
-声明 Scene 的外层安全区同样保留底部绘制范围。该规则只应用于网页页面。
+声明 Scene 的外层安全区同样保留底部绘制范围。网页 Scene 的处理仅作用于对应场景，其他页面在自身内容布局中遵循上述默认要求。
 
 首页邮件列表在全开/普通宽窗未选择详情时铺满内容区；选择后才按根 SceneStrategy 分栏，
 复用声明页的列表尺寸和详情进入/退出动画。全开时单列表清空铰链排除区域，
