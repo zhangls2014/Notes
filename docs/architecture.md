@@ -107,7 +107,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 
 共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，版本更新摘要展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
 
-更新日志由 About 实现模块拥有，使用共享 JSON 资源随包分发，当前版本摘要位于版本号展开区，历史更新通过展开区入口进入独立的 Navigation 3 页面；版本网格消费 `LocalWindowAdaptiveInfo`，按 Compact/Medium 单列、Expanded/Large 双列、ExtraLarge 三列展示，沿用 `ContentWidth.Form` 计算整体宽度，不读取铰链或引入第二套窗口断点；纳入设置返回栈并注册目的地序列化；解析、版本排序、平台过滤与展示均留在模块内部；不依赖数据库或网络。维护规则见 [应用版本与更新记录](app-releases.md)。
+更新日志由 About 实现模块拥有，使用共享 JSON 资源随包分发，当前版本摘要位于版本号展开区，历史更新通过展开区入口进入独立的 Navigation 3 页面；版本瀑布流消费 `LocalWindowAdaptiveInfo`，按 Compact/Medium 单列、Expanded/Large 双列、ExtraLarge 三列展示，卡片按自然高度填入较短列、不强制行对齐，沿用 `ContentWidth.Form` 计算整体宽度，不读取铰链或引入第二套窗口断点；纳入设置返回栈并注册目的地序列化；解析、版本排序、平台过滤与展示均留在模块内部；不依赖数据库或网络。维护规则见 [应用版本与更新记录](app-releases.md)。
 
 ## 3. 依赖规则
 
