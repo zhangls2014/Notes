@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="email_action_close_detail">关闭详情</string>
     <string name="email_label_favorites">收藏</string>
     <string name="email_action_new_email">新建邮件</string>
     <string name="email_action_open_email">打开邮件</string>

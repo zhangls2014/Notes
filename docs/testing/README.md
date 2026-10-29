@@ -18,7 +18,7 @@
 | `feature:login` | `commonTest` | 登录输入校验、窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
 | `feature:email` | `androidHostTest` | 邮件列表无障碍操作与新建邮件表单 |
 | `feature:profile` | `androidHostTest` | 头像复制/清理、原子更新、ViewModel 与页面交互 |
-| `feature:about` | 由组合根测试覆盖 | `AboutAppInfoTest`、`AboutUiTest` 与自适应导航回归 |
+| `feature:about` | `commonTest`；页面由组合根宿主测试覆盖 | 包信息映射、网页外观与路由；`AboutUiTest` 与自适应导航回归 |
 
 导航显示机制的测试位于 `core/navigation/src/androidHostTest/kotlin/me/zhangls/navigation/`，只依赖本模块与测试库；`LayeredNavDisplayTest`、`AppSceneStrategiesTest`、Tab 和序列化测试继续在组合根验证。Native 像素用例分批命令见 [自适应 UI 回归](adaptive-ui.md)。
 
@@ -41,10 +41,11 @@ API 模块不承载页面测试；跨 Feature 导航和真实 Entry 装配在 `c
 个人信息或关于应用修改时，先运行所属模块测试，再验证组合根的入口、返回与目的地兼容：
 
 ```bash
+./gradlew :feature:about:testAndroidHostTest
 ./gradlew :feature:profile:testAndroidHostTest \
   :composeApp:testAndroidHostTest \
   --tests '*ProfileNavigationTest*' --tests '*NavBackStackSerializationTest*' \
-  --tests '*AboutAppInfoTest*' --tests '*AboutUiTest*' \
+  --tests '*AboutUiTest*' \
   --tests '*AdaptiveUiTest.aboutPageOpensFromSettingsAndReturnsToItsTab*'
 ```
 
@@ -68,7 +69,7 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 ### 网页打开能力回归
 
-所有声明网页的字号、深色模式与主题色由同一套参数传递；`AboutAppInfoTest` 检查实际 Material 颜色到网页配色的映射，`NoticesAppearanceTest` 检查两端参数，`AboutNoticesWebViewTest` 检查缓存 Entry 更新。网页脚本测试同时检查有效／无效配色、站内保留与外链排除。
+所有声明网页的字号、深色模式与主题色由同一套参数传递；`AboutAppInfoTest` 检查实际 Material 颜色到网页配色的映射，`NoticesAppearanceTest` 检查两端参数，`AboutNoticesWebViewTest` 检查缓存 Entry 直接消费主题更新，以及系统字号与应用倍率叠加后的 URL 参数；版本信息由测试注入的 `AppInfo` 提供。网页脚本测试同时检查有效／无效配色、站内保留与外链排除。
 Expressive 网页验收覆盖静止／按下／取消与释放跳转、三个操作链接、浅深色和代表性色板、320／800px 宽度及 1／1.5／2 倍字号。浏览器应实测按钮圆角、48px 最小目标、状态层、28px 容器和无横向溢出；DOM 参数测试不能替代这些效果检查。原生夹具需核对实际启动页面与配置，并等待浏览器动画和渲染帧完成后采样，不能将宿主固定延迟等同于页面已经完成动画。临时原生夹具的候选截图与测量记录放入 `build/reports/open-source-expressive/`，不更新正式基线；Android WebView 加载 iOS HTML 的结果不算 iOS WKWebView 验收。
 
 声明页的真实入口、WebView 挂载与预测返回使用 `*AboutNoticesNavigationTest*`；连续全屏页的下层尺寸与暴露区域像素使用 `*NestedFullscreenNavigationTest*`。Android 原生资源、链接分流和阅读位置使用 `*AboutNoticesWebViewTest*`，与参数化的 About 布局用例分别运行。

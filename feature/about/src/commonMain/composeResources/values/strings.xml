@@ -13,4 +13,10 @@
   <string name="about_unknown">Unknown</string>
   <string name="about_expanded">Build information expanded</string>
   <string name="about_collapsed">Build information collapsed</string>
+  <string name="about_project_source">Project source</string>
+  <string name="about_project_open_browser">Open in browser</string>
+  <string name="about_project_load_failed">Unable to load this page. You can open it in your browser.</string>
+  <string name="about_copyright_notices">Copyright and notices</string>
+  <string name="about_license">License</string>
+  <string name="about_close_detail">Close detail</string>
 </resources>

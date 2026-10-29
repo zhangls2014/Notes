@@ -8,6 +8,9 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(projects.core.theme)
+      implementation(kmp.jetbrains.compose.material3.adaptive)
+      implementation(kmp.jetbrains.compose.material3.adaptive.layout)
+      implementation(kmp.jetbrains.compose.material3.adaptive.navigation3)
       // aboutNavEntry exposes NavEffect and AboutAppInfo.
       api(projects.core.framework)
       api(projects.feature.aboutApi)
@@ -21,7 +24,7 @@ compose.resources {
     val outputDirectory = layout.buildDirectory.dir("generated/open-source/${platform}Main/composeResources")
     val syncNotices = tasks.register<Sync>("sync${platform.replaceFirstChar { it.uppercaseChar() }}NoticesResources") {
       from(rootProject.layout.projectDirectory.dir("web/open-source")) {
-        include("$platform.html", "$platform-licenses.html")
+        include("$platform.html", "$platform-license-*.html", "$platform-notice-*.html")
         into("files/open-source")
       }
       into(outputDirectory)

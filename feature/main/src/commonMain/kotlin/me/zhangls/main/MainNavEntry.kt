@@ -30,13 +30,13 @@ import org.koin.compose.koinInject
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 private val homePaneMetadata = ListDetailSceneStrategy.listPane(
   sceneKey = EmailListScene.Home,
-  detailPlaceholder = { DetailPlaceholder() },
+  detailPlaceholder = { EmailDetailPlaceholder() },
 )
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 private val favoritesPaneMetadata = ListDetailSceneStrategy.listPane(
   sceneKey = EmailListScene.Favorites,
-  detailPlaceholder = { DetailPlaceholder() },
+  detailPlaceholder = { EmailDetailPlaceholder() },
 )
 
 /**
@@ -62,9 +62,10 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   navigateToProfile: (ProfileOrigin) -> Unit,
   navigateToAbout: () -> Unit,
   onLogout: () -> Unit,
+  homeMetadata: Map<String, Any> = homePaneMetadata,
 ) {
   entry<HomeDestination>(
-    metadata = homePaneMetadata,
+    metadata = homeMetadata,
   ) {
     koinInject<EmailEntry>().HomeScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Home),
@@ -99,15 +100,12 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
 private fun EmailDetailDestination.emailIdIn(scene: EmailListScene): Long? = emailId.takeIf { this.scene == scene }
 
 /**
- * 宽窗口下详情栏还没有内容时的空态。
- *
- * 宽窗口上列表栏与详情栏是同时存在的，无铰链时列表采用 directive 的默认首选宽度，
- * 详情占安全内容区的剩余宽度；有铰链时物理分区优先。空态避免列表先拉满整幅宽度，
- * 选中第一封邮件时又突然缩窄。
+ * 分栏保留但尚未选择邮件时的提示。首页半开空态与收藏页复用同一 UI，
+ * 文本、样式和本地化保持一致；详情内容的退出动画不隐藏此空态。
  */
 @Composable
-private fun DetailPlaceholder() {
-  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun EmailDetailPlaceholder(modifier: Modifier = Modifier) {
+  Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
     Text(
       text = stringResource(Res.string.main_msg_select_email),
       style = MaterialTheme.typography.bodyLarge,

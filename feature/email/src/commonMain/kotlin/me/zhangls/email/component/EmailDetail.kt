@@ -14,6 +14,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,8 +29,11 @@ import androidx.paging.compose.itemKey
 import me.zhangls.data.model.EmailModel
 import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
+import me.zhangls.theme.icon.Close
+import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.layout.ContentWidth
 import notes.feature.email.generated.resources.Res
+import notes.feature.email.generated.resources.email_action_close_detail
 import notes.feature.email.generated.resources.email_action_email_reply
 import notes.feature.email.generated.resources.email_action_email_reply_all
 import org.jetbrains.compose.resources.StringResource
@@ -36,12 +42,14 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * @author zhangls
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun EmailDetail(
   model: EmailModel?,
   threads: LazyPagingItems<EmailModel>,
   onBack: (() -> Unit)?,
   onFavoriteClick: (Long) -> Unit,
+  onClose: (() -> Unit)? = null,
 ) {
   // Draw the page through the status-bar safe area. Insets belong to its inner content,
   // so the background and safe area stay inside the navigation transform together.
@@ -50,7 +58,17 @@ internal fun EmailDetail(
     contentWindowInsets = WindowInsets.safeDrawing,
     topBar = {
       model?.subject?.let {
-        CenteredTopAppBar(title = it.toDisplaySubject(), navigate = onBack)
+        CenteredTopAppBar(
+          title = it.toDisplaySubject(),
+          navigate = onBack,
+          actions = {
+            onClose?.let { close ->
+              IconButton(onClick = close, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.email_action_close_detail))
+              }
+            }
+          },
+        )
       }
     },
   ) { padding ->

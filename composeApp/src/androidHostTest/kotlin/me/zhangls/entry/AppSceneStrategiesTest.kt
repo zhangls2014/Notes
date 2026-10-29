@@ -9,6 +9,7 @@ import androidx.compose.material3.adaptive.HingeInfo
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -19,6 +20,8 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
+import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.navigation.DeviceCornerNavDisplay
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.Assert.assertEquals
@@ -96,6 +99,46 @@ class AppSceneStrategiesTest {
       }
     } finally {
       compose.mainClock.autoAdvance = true
+    }
+  }
+
+  @Test fun noticesLicenseAndProjectDetailsFollowWindowChanges() {
+    val width = mutableIntStateOf(900)
+    val license = OpenSourceNoticesDestination(OpenSourcePage.LICENSES, "license-MIT")
+    val project = OpenSourceNoticesDestination(projectUrl = "https://example.com")
+    val selected = mutableStateOf<OpenSourceNoticesDestination?>(null)
+    lateinit var scene: Scene<OpenSourceNoticesDestination>
+    lateinit var detailContentKey: Any
+    compose.setContent {
+      ProvideWindowAdaptiveInfo(
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width.intValue, 800),
+        Posture(),
+      ) {
+        val list = OpenSourceNoticesDestination()
+        val detail = selected.value
+        val entries = buildList {
+          add(NavEntry(list, metadata = noticesPaneMetadata(list)) { Box(Modifier.fillMaxSize()) })
+          if (detail != null) {
+            add(NavEntry(detail, metadata = noticesPaneMetadata(detail)) { Box(Modifier.fillMaxSize()) })
+          }
+        }
+        detailContentKey = entries.last().contentKey
+        scene = rememberSceneState(entries, rememberAppSceneStrategies(), onBack = {}).currentScene
+      }
+    }
+    compose.runOnIdle { assertEquals("open-source-notices", scene.key) }
+    for (destination in listOf(license, project)) {
+      compose.runOnIdle {
+        selected.value = destination
+        width.intValue = 900
+      }
+      compose.runOnIdle { assertEquals("open-source-notices", scene.key) }
+      compose.runOnIdle { width.intValue = 400 }
+      compose.runOnIdle { assertEquals(detailContentKey, scene.key) }
+      compose.runOnIdle { width.intValue = 900 }
+      compose.runOnIdle { assertEquals("open-source-notices", scene.key) }
+      compose.runOnIdle { selected.value = null }
+      compose.runOnIdle { assertEquals("open-source-notices", scene.key) }
     }
   }
 

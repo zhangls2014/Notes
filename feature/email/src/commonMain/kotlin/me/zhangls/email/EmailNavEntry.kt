@@ -21,15 +21,20 @@ import org.koin.compose.koinInject
  * 整页详情虽然看起来正常，但分栏永远不会出现：这是实测才会暴露的接线遗漏。
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.emailNavEntry(effect: (NavEffect) -> Unit) {
+fun EntryProviderScope<NavKey>.emailNavEntry(
+  paneMetadata: (EmailDetailDestination) -> Map<String, Any> = {
+    ListDetailSceneStrategy.detailPane(sceneKey = it.scene)
+  },
+  closeDetail: ((EmailDetailDestination) -> Unit)? = null,
+  effect: (NavEffect) -> Unit,
+) {
   entry<EmailDetailDestination>(
-    metadata = { destination ->
-      ListDetailSceneStrategy.detailPane(sceneKey = destination.scene)
-    },
+    metadata = paneMetadata,
   ) {
     koinInject<EmailEntry>().DetailScreen(
       emailId = it.emailId,
       onBack = { effect(NavEffect.Popup) },
+      onClose = { closeDetail?.invoke(it) ?: effect(NavEffect.Popup) },
     )
   }
 }

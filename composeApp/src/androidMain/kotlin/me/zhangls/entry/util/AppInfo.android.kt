@@ -2,6 +2,7 @@ package me.zhangls.entry.util
 
 import android.content.Context
 import android.content.pm.PackageInfo
+import me.zhangls.framework.AppInfo
 import org.koin.core.annotation.Singleton
 
 @Singleton(binds = [AppInfo::class])

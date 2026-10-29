@@ -105,7 +105,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 | 共享品牌与头像 | `core/theme/src/commonMain/kotlin/me/zhangls/theme/component/`：`AppBrand.kt`、`UserAvatar.kt` |
 | 构建约定 | `build-logic/src/main/kotlin/`；路径派生工具位于 `me/zhangls/convention/KmpConventions.kt` |
 
-共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。关于应用页的安装包信息由组合根传入 `AboutViewModel`，构建号展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
+共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，构建号展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
 
 ## 3. 依赖规则
 
@@ -171,11 +171,16 @@ HTTP/HTTPS 网页使用 Android Custom Tabs 与 iOS `SFSafariViewController`；�
 
 Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏览器回退。iOS 仅从当前 Compose 宿主呈现 Safari 控制器；宿主未附着窗口或已有模态控制器时拒绝打开，避免跨窗口展示和重复弹出，组合销毁时关闭本能力持有的控制器。本能力不用于 OAuth 登录或 JS 交互。
 
-关于应用的「开源软件声明」使用本地嵌入页面，入口始终可用并采用 Material Symbols Rounded `Code` 图标。`web/open-source/` 的四份 HTML 是唯一入库的网页源文件。About 模块通过 Gradle `Sync` 在构建时将各平台的列表与全文同步到 `build/generated/open-source/<platform>Main/composeResources/files/open-source/`，并通过 Compose Resources `customDirectory` 接入对应源集；任务 Provider 关联生成依赖，支持增量构建。源集 `src/` 不保留 HTML 副本，普通构建不执行 Python 或联网刷新依赖，每端安装包只携带自己的两份页面，见[维护规则](../web/open-source/README.md)和[生成工具](../tools/open-source/README.md)。Android WebView 加载 Android 文件，关闭通用文件访问、Content URI 访问和网络加载；iOS WKWebView 加载 iOS 文件，只授予声明资源目录的读取范围。无托管地址、远程配置或部署步骤。
+关于应用的「开源软件声明」使用本地嵌入页面，入口始终可用并采用 Material Symbols Rounded `Code` 图标。`web/open-source/` 的列表与独立详情 HTML 是唯一入库的网页源文件。About 模块通过 Gradle `Sync` 在构建时将各平台的列表与独立详情同步到 `build/generated/open-source/<platform>Main/composeResources/files/open-source/`，并通过 Compose Resources `customDirectory` 接入对应源集；任务 Provider 关联生成依赖，支持增量构建。源集 `src/` 不保留 HTML 副本，普通构建不执行 Python 或联网刷新依赖，每端安装包只携带自己的列表及独立详情页面，见[维护规则](../web/open-source/README.md)和[生成工具](../tools/open-source/README.md)。Android WebView 加载 Android 文件，关闭通用文件访问、Content URI 访问和网络加载；iOS WKWebView 加载 iOS 文件，只授予声明资源目录的读取范围。无托管地址、远程配置或部署步骤。
 
-`OpenSourceNoticesDestination` 属于 About API，与 `AboutDestination` 一同归属设置 Tab，并纳入组合根的全屏转场层。列表与许可证详情由 Navigation 3 管理，返回顺序为许可证详情 → 声明列表 → 关于应用 → 设置；原生返回和详情页的返回列表链接都回到应用导航栈。仅两个确切的本地页面 URI 可进入内部导航，同页锚点交给原生 WebView；其他本地文件和非 HTTP(S) 协议不接受，外部项目来源通过现有 `LocalUriHandler` 打开。WebView 随组合释放，iOS 导航 delegate 保持强引用，主动取消加载不提示错误。
+`OpenSourceNoticesDestination` 属于 About API，与 `AboutDestination` 一同归属设置 Tab，并纳入组合根的全屏转场层。列表与许可证详情由 Navigation 3 管理，返回顺序为许可证详情 → 声明列表 → 关于应用 → 设置；原生返回回到应用导航栈。内部导航仅接受本平台列表 URI 及同目录合法命名的许可证／NOTICE 详情文件；其他本地文件和非 HTTP(S) 协议不接受，外部项目来源通过现有 `LocalUriHandler` 打开。WebView 随组合释放，iOS 导航 delegate 保持强引用，主动取消加载不提示错误。
 
-组合根把当前 `FontSizeConfig.value`、`DarkThemePreference.isDark` 解析结果和 `MaterialTheme.colorScheme` 的实际颜色放入 `AboutAppInfo`，不下发叠加系统字号后的倍率。网页背景、卡片、正文、辅助文字、边框和强调色依次对应 Material 的 `surface`、`surfaceContainerLow`、`onSurface`、`onSurfaceVariant`、`outlineVariant` 和 `primary`，另传递 `primaryContainer`／`onPrimaryContainer` 供 Expressive 标题容器与 Filled Tonal 操作使用；Android 动态取色直接复用解析后的配色，不根据开关重算。缓存 Entry 通过最新状态提供器读取宿主信息；两端共用外观参数映射，本地文件 URL 附带 `fontScale`、`theme=light|dark` 及 `bg/card/fg/muted/line/accent/container/on-container` 六位 RGB 参数，四份 HTML 在首次正文绘制前应用。颜色仅接受六位十六进制字符串，无效或缺失值保留独立预览的回退配色。站内链接保留外观参数，外部来源不携带；独立预览无有效主题参数时跟随 `prefers-color-scheme`。网页正文与许可证原文基准为 16px/24px，辅助文字和按钮为 14px/20px，组件名称为 16px/24px。每个安装版本自带对应声明，不依赖网络更新。 四页共用 Expressive 样式：标题容器和分组卡片为 28px 圆角，组件操作为 Filled Tonal 链接，最小触控高度 48px；胶囊圆角按行高计算，正常与按压状态保持同一圆角，不做形变；用 8% 悬停／10% 按压状态层反馈，释放或取消后清除状态层。按钮通过被动指针／键盘事件维护按压状态，在抬起、取消、移出、失焦及按键释放时清除；仅主指针左键与 Enter 激活，Space 保留链接原生滚动语义。样式不依赖 WebKit 的 `:active` 触摸差异，CSS 遵循 `prefers-reduced-motion`，不拦截滚动或导航；正文 16/24、按钮 14/20 基准保持不变。
+关于模块在组合中读取 `LocalDensity.current.fontScale`、主题提供的 `LocalAppDarkTheme` 与 `MaterialTheme.colorScheme`，构成内部 `NoticesAppearance`；字号包含系统与应用倍率的叠加，不再经过 `AppNavHost` 或 `AboutAppInfo`。网页背景、卡片、正文、辅助文字、边框和强调色依次对应 Material 的 `surface`、`surfaceContainerLow`、`onSurface`、`onSurfaceVariant`、`outlineVariant` 和 `primary`，另传递 `primaryContainer`／`onPrimaryContainer` 供 Expressive 标题容器与 Filled Tonal 操作使用；Android 动态取色直接复用解析后的配色，不根据开关重算。缓存 Entry 中的网页组合直接消费当前显示环境；两端共用外观参数映射，本地文件 URL 附带 `fontScale`、`theme=light|dark` 及 `bg/card/fg/muted/line/accent/container/on-container` 六位 RGB 参数，全部 HTML 在首次正文绘制前应用。颜色仅接受六位十六进制字符串，无效或缺失值保留独立预览的回退配色。站内链接保留外观参数，外部来源不携带；独立预览无有效主题参数时跟随 `prefers-color-scheme`。网页正文与许可证原文基准为 16px/24px，辅助文字和按钮为 14px/20px，组件名称为 16px/24px。每个安装版本自带对应声明，不依赖网络更新。 声明页面共用 Expressive 样式：标题容器和分组卡片为 28px 圆角，组件操作为 Filled Tonal 链接，最小触控高度 48px；胶囊圆角按行高计算，正常与按压状态保持同一圆角，不做形变；用 8% 悬停／10% 按压状态层反馈，释放或取消后清除状态层。按钮通过被动指针／键盘事件维护按压状态，在抬起、取消、移出、失焦及按键释放时清除；仅主指针左键与 Enter 激活，Space 保留链接原生滚动语义。样式不依赖 WebKit 的 `:active` 触摸差异，CSS 遵循 `prefers-reduced-motion`，不拦截滚动或导航；正文 16/24、按钮 14/20 基准保持不变。
+
+关于页面入口仅接收导航参数；`AboutAppInfo` 只描述版本号和构建号。
+网页外观数据与转换放在 `feature:about`，在组合中读取 Material 颜色、当前
+语言与 LocalDensity 的最终字号比例；主题在 `core:theme/Theme.kt` 中提供
+已解析的深色状态。平台 WebView 只消费明确的内部外观参数，不订阅设置。
 
 ### Koin 装配
 
@@ -220,7 +225,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` 聚合导航条目、维护根返回栈、执行登录拦截并恢复受保护目标。
 
-首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。根导航通过 `rememberAppSceneStrategies` 为所有目的地装配统一场景策略：宽屏存在多个水平分区或平台报告横向铰链时，允许保留自适应单窗格场景及详情空态；仅由窄窗口高度达到 Expanded 而产生的多个纵向分区，不作为保留自适应单窗格场景的依据。实际多窗格仍由 Adaptive 接管，普通单页统一交给 Navigation 3 的页面场景。登录页内部的 `SupportingPaneScaffold` 独立消费原有 directive，继续保持左右分栏、纵向分区数限制为 1 和既有铰链处理，不受根场景选择影响。单窗格进入详情与按钮返回复用预测返回的中心缩放：进入时由缩小状态放大到完整页面，返回时由完整页面缩小退出；进入缩放使用 `PREDICTIVE_MOTION_DURATION`；普通与手势返回都先保持不透明地补完缩小阶段，到达预览终点后才保持尺寸执行 `PAGE_EXIT_FADE_DURATION` 的页面淡出，列表保持原位，不使用横向滑动；拖动预览和取消恢复保持页面不透明；灰色遮罩透明度随缩放进度变化，最高为 24%。根导航通过 `DeviceCornerNavDisplay` 装配库的 SceneState 与返回事件；单页预测返回采用与新建邮件 Material 3 BottomSheet 相同的 CubicBezier(0.1, 0.1, 0, 1) 曲线；终点固定为原尺寸的 85%，横纵轴使用同一比例，不随页面宽度改变，保持文字与图片比例。普通进入／按钮返回在自身内容区内居中缩放；手势从物理左侧开始时锚定视口横向 75%、纵向 50% 处，从右侧开始时锚定横向 25%、纵向 50% 处（距对侧边缘均为视口宽度的 25%），拖动途中及松手后的取消／提交保持该锚点，恢复完整尺寸后清除；尺寸用于计算锚点偏移，缩放终点统一为 85%，不测量或补偿页面相对窗口的偏移。背景和圆角裁剪放在可见页面层内，以该层的实际尺寸为裁剪边界，避免底部圆角落在页面之外或残留背景遮挡上一页。只有页面参与变换，外壳不缩放。缩放时在上一页与当前页面之间绘制灰色遮罩，透明度为 24% 乘以当前缩放进度；手势取消时遮罩直接随缩放进度回退；普通／手势提交均在剩余缩小完成后，与页面共用 `commitProgress()` 淡出，淡出时长由 `PAGE_EXIT_FADE_DURATION` 决定。遮罩透明度统一为 `0.24 × motionProgress × 页面不透明度`，不维护独立计时器，页面消失时归零。遮罩不参与缩放；邮件详情的遮罩只覆盖内容区，个人信息／关于应用的遮罩覆盖包含底层导航在内的完整窗口。单页邮件详情的 Scaffold 全尺寸绘制，包括状态栏下方的安全区域背景；安全区仅用于页面内部内容避让，不在缩放层之外预留顶部 padding。系统状态栏图标不属于应用页面。绘制层直接读取原始手势状态，拖动不经过弹簧动画的时间采样；仅供 NavDisplay 使用的事件输入将预览映射到 `PREDICTIVE_MOTION_DURATION / (PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION)`，为手势达到 100% 后仍保留完整的页面淡出时长。取消时反向映射为原始缩放进度；提交时从松手姿态保持不透明地补完剩余缩小，再固定最终姿态淡出，淡出结束后移除页面与遮罩。普通返回自动播放完整的缩小阶段，两条路径使用同一缩小/淡出阶段边界；进入和取消不淡出。当前缩小时长为 220ms、页面淡出时长为 120ms；十倍调试时长已用于过程验证，测试按实际时长取样。独立事件分发器仅驱动场景动画，不拥有导航栈，随显示容器销毁而释放。Android 通过 AndroidX Core 的 `ViewCompat.getRootWindowInsets()` 和 `WindowInsetsCompat.getRoundedCorner()` 读取当前窗口四角半径（底层圆角能力要求 Android 12+），对参与缩放的单页 Scene 添加以页面实际边界为轮廓的圆角裁剪，半径按页面最终缩放比例补偿，拖动期间显示半径不随手势进度变化；取消返回时，圆角可见度按当前页面缩放进度相对松手时缩放进度的比例同步回退，页面恢复完整尺寸时一并恢复未裁剪轮廓并解除裁剪，不再追加独立的圆角恢复动画。分栏 Scene、应用外壳与浮层不增加该变换或裁剪；平台读取结果为 `null` 时，两端统一采用 48dp 默认半径（对应 iOS 逻辑长度 48pt），并按当前 Compose density 转为 px；系统提供的零半径保留，不触发默认值。iOS 当前仍未读取原生圆角，因此使用该默认值。默认值由 Xander 指定为 48pt（2026-10-07），作为两端共用的设计值，不再采用机型表中位数；不引入第三方圆角库或调用私有 API。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
+首页和收藏是两个独立的列表场景。邮件详情是独立目的地，列表—详情组合由根导航的 `SceneStrategy` 负责；Feature 内不再创建第二套 pane scaffold。根导航通过 `rememberAppSceneStrategies` 为所有目的地装配统一场景策略：宽屏存在多个水平分区或平台报告横向铰链时，允许保留自适应单窗格场景；首页和开源声明按所选详情按需分栏，收藏页保留详情空态；仅由窄窗口高度达到 Expanded 而产生的多个纵向分区，不作为保留自适应单窗格场景的依据。实际多窗格仍由 Adaptive 接管，普通单页统一交给 Navigation 3 的页面场景。登录页内部的 `SupportingPaneScaffold` 独立消费原有 directive，继续保持左右分栏、纵向分区数限制为 1 和既有铰链处理，不受根场景选择影响。单窗格进入详情与按钮返回复用预测返回的中心缩放：进入时由缩小状态放大到完整页面，返回时由完整页面缩小退出；进入缩放使用 `PREDICTIVE_MOTION_DURATION`；普通与手势返回都先保持不透明地补完缩小阶段，到达预览终点后才保持尺寸执行 `PAGE_EXIT_FADE_DURATION` 的页面淡出，列表保持原位，不使用横向滑动；拖动预览和取消恢复保持页面不透明；灰色遮罩透明度随缩放进度变化，最高为 24%。根导航通过 `DeviceCornerNavDisplay` 装配库的 SceneState 与返回事件；单页预测返回采用与新建邮件 Material 3 BottomSheet 相同的 CubicBezier(0.1, 0.1, 0, 1) 曲线；终点固定为原尺寸的 85%，横纵轴使用同一比例，不随页面宽度改变，保持文字与图片比例。普通进入／按钮返回在自身内容区内居中缩放；手势从物理左侧开始时锚定视口横向 75%、纵向 50% 处，从右侧开始时锚定横向 25%、纵向 50% 处（距对侧边缘均为视口宽度的 25%），拖动途中及松手后的取消／提交保持该锚点，恢复完整尺寸后清除；尺寸用于计算锚点偏移，缩放终点统一为 85%，不测量或补偿页面相对窗口的偏移。背景和圆角裁剪放在可见页面层内，以该层的实际尺寸为裁剪边界，避免底部圆角落在页面之外或残留背景遮挡上一页。只有页面参与变换，外壳不缩放。缩放时在上一页与当前页面之间绘制灰色遮罩，透明度为 24% 乘以当前缩放进度；手势取消时遮罩直接随缩放进度回退；普通／手势提交均在剩余缩小完成后，与页面共用 `commitProgress()` 淡出，淡出时长由 `PAGE_EXIT_FADE_DURATION` 决定。遮罩透明度统一为 `0.24 × motionProgress × 页面不透明度`，不维护独立计时器，页面消失时归零。遮罩不参与缩放；邮件详情的遮罩只覆盖内容区，个人信息／关于应用的遮罩覆盖包含底层导航在内的完整窗口。单页邮件详情的 Scaffold 全尺寸绘制，包括状态栏下方的安全区域背景；安全区仅用于页面内部内容避让，不在缩放层之外预留顶部 padding。系统状态栏图标不属于应用页面。绘制层直接读取原始手势状态，拖动不经过弹簧动画的时间采样；仅供 NavDisplay 使用的事件输入将预览映射到 `PREDICTIVE_MOTION_DURATION / (PREDICTIVE_MOTION_DURATION + PAGE_EXIT_FADE_DURATION)`，为手势达到 100% 后仍保留完整的页面淡出时长。取消时反向映射为原始缩放进度；提交时从松手姿态保持不透明地补完剩余缩小，再固定最终姿态淡出，淡出结束后移除页面与遮罩。普通返回自动播放完整的缩小阶段，两条路径使用同一缩小/淡出阶段边界；进入和取消不淡出。当前缩小时长为 220ms、页面淡出时长为 120ms；十倍调试时长已用于过程验证，测试按实际时长取样。独立事件分发器仅驱动场景动画，不拥有导航栈，随显示容器销毁而释放。Android 通过 AndroidX Core 的 `ViewCompat.getRootWindowInsets()` 和 `WindowInsetsCompat.getRoundedCorner()` 读取当前窗口四角半径（底层圆角能力要求 Android 12+），对参与缩放的单页 Scene 添加以页面实际边界为轮廓的圆角裁剪，半径按页面最终缩放比例补偿，拖动期间显示半径不随手势进度变化；取消返回时，圆角可见度按当前页面缩放进度相对松手时缩放进度的比例同步回退，页面恢复完整尺寸时一并恢复未裁剪轮廓并解除裁剪，不再追加独立的圆角恢复动画。分栏 Scene、应用外壳与浮层不增加该变换或裁剪；平台读取结果为 `null` 时，两端统一采用 48dp 默认半径（对应 iOS 逻辑长度 48pt），并按当前 Compose density 转为 px；系统提供的零半径保留，不触发默认值。iOS 当前仍未读取原生圆角，因此使用该默认值。默认值由 Xander 指定为 48pt（2026-10-07），作为两端共用的设计值，不再采用机型表中位数；不引入第三方圆角库或调用私有 API。详情返回键由 `LocalListDetailSceneScope` 判断，而不是用窗口宽度推测。
 
 ### 自适应布局
 
@@ -230,7 +235,7 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 窗格之间的普通水平、垂直间距统一为 `0.dp`；真实铰链的排除区域仍然保留，不因取消间距而压缩。页面内容（例如邮件卡片）自身的内外边距独立保留。
 
-`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold` 与邮件列表—详情 SceneStrategy 是仅有的铰链感知消费者。邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。Material directive 的排除区域仅包含竖向铰链；按用户审阅截图后的决定，登录页不在窗格内避让横向铰链，品牌与表单使用完整可用高度，保持原有居中与滚动行为。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
+`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold`、邮件及开源声明列表—详情 SceneStrategy 消费铰链指令。有邮件详情时，邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。Material directive 的排除区域仅包含竖向铰链；按用户审阅截图后的决定，登录页不在窗格内避让横向铰链，品牌与表单使用完整可用高度，保持原有居中与滚动行为。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
 
 登录页设置入口位于表单区域右上角。Logo、输入框与按钮组成的表单主体在高度足够时居中；高度不足时保持原有尺寸和间距，由纵向滚动与 IME 留白处理。
 
@@ -250,7 +255,7 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 - 搜索锚点以空查询输入框的首次自然测量宽度为基准，不复制 Material 默认宽度常量。基准仅保存在当前 UI 实例，密度、字号、布局方向或提示文本变化时重测；窗口变窄时服从父约束，不覆盖基准。停靠展开沿用锚点宽度，全屏展开沿用库的动画约束；测量输入框不绘制、不参与焦点或无障碍语义，也不修改真实查询。
 - `AppShell` 根据统一窗口尺寸选择导航形态：宽度 ≥600dp 且高度 <480dp 优先使用折叠 Rail，为内容保留纵向空间；其余沿用库策略，并在高度充足的 ExtraLarge（≥1600dp）窗口展开 Rail。窄窗口保留底栏，不比较尺寸档位下限来推断横竖屏；折叠状态变化不切换底栏/侧栏，避免相同几何下内容窗格移动。
 - `AppShell` 消费导航套件占用的系统内边距；Feature 不接收导航方位参数，外壳不另算铰链安全区域。
-- 列表—详情场景的安全区策略由 `AppNavHost` 按唯一窗口事实选择：没有平台报告的铰链时，`SafeAreaSceneStrategy` 先预留并消费整个场景剩余的 `WindowInsets.safeDrawing`，再采用库默认的列表首选宽度（通常 360dp，ExtraLarge 为 412dp），详情占剩余宽度。详情空态也采用相同分配策略。有铰链时不预扣全局安全区，仍按 directive 的物理排除区域分区；NavEntry 装饰器通过 `PaneWindowInsets` 消费窗格外的空间，各窗格的标准 `Scaffold` 仅避让实际相交的系统安全区。铰链几何优先于首选宽度，单页场景不增加包装。
+- 列表—详情场景的安全区策略由 `AppNavHost` 按唯一窗口事实选择：没有平台报告的铰链时，`SafeAreaSceneStrategy` 先预留并消费整个场景剩余的 `WindowInsets.safeDrawing`，再采用库默认的列表首选宽度（通常 360dp，ExtraLarge 为 412dp），详情占剩余宽度。收藏页详情空态也采用相同分配策略；首页未选择邮件时列表全宽，选择后才采用分栏宽度。有铰链时不预扣全局安全区，仍按 directive 的物理排除区域分区；NavEntry 装饰器通过 `PaneWindowInsets` 消费窗格外的空间，各窗格的标准 `Scaffold` 仅避让实际相交的系统安全区。铰链几何优先于首选宽度，单页场景不增加包装。
 - 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
 - Nav3 SceneStrategy 消费组合根提供的 directive，负责列表—详情分区；无铰链时仅场景整体预留系统安全区，不增加铰链安全带包装。
 - 登录页只按 `maxHorizontalPartitions` 决定左侧品牌区与右侧表单区是否同时展开。横向铰链不触发上下重排：宽度足够时仍左右分栏，宽度不足时使用单列表单。
@@ -339,3 +344,60 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 - 输入容器覆盖键盘增高、切换空档、变矮、正常关闭及失焦，检查系统栏与 IME inset 没有重复消费。
 - iOS 弹层的容器、滚动内容和拖动锚点使用有限的完整视口约束，并在设备上验证关闭后旋转、再次打开和按钮可达性。
 - 设置控件初始化显式提供内存数据源，修改包装器或升级依赖时验证不使用默认平台存储。
+
+### 开源声明语言与详情窗格
+
+声明页面由生成器提供简体中文与英文 UI，应用通过 `lang` 传入当前语言，
+本地跳转保留语言与外观；上游许可和 NOTICE 正文原样保留。
+组合根为声明列表与详情提供同一个 Navigation 3 sceneKey；宽窗保留列表，
+许可证、NOTICE 和项目来源在详情窗格展开。连续选择替换已有详情，
+单窗格按返回栈展示。外部项目使用独立网络 WebView，不放开本地声明视图
+的网络访问；窄窗点击项目来源沿用系统应用内浏览器。
+
+开源声明位于全屏覆盖层，该层同样使用组合根 SceneStrategy；不得强制单窗格，
+否则声明的列表/详情 metadata 不会生效。无窗格 metadata 的页面继续由单窗格回退策略处理。
+
+声明列表在全开/普通宽窗时初始占满内容区域，存在所选详情时参与双窗格；半开例外见下文。
+全开时的单窗格声明列表清空分栏指令中的 `excludedBounds`；打开详情后才按原始
+指令避让铰链，避免单页被限制在物理分区而露出下层设置页。
+许可证和 NOTICE 使用独立静态 HTML（平台前缀与原始声明 ID）；
+客户端根据白名单 ID 解析到对应文件，每个详情只加载一个上游正文，
+不再使用合集锚点。详情无介绍卡片，列表无顶部目录链接。
+
+声明本地网页无加载进度条，项目来源网络网页保留进度指示。列表与详情
+HTML 的上下外边距一致（普通 24px，窄窗格 16px），首尾元素不追加外边距。
+详情工具栏从 Navigation 3 实际窗格 targetState 判断列表是否可见：
+并排显示时右侧关闭，独占时左侧返回；两者都弹出详情并恢复列表。
+
+声明与首页窗格展开/关闭保持同一个 Material 3 Scene；全开时列表初始全宽。关闭动画
+完成前保留真实返回栈条目与原生 WebView，完成后弹出详情；选择新内容
+会取消尚未完成的关闭。动画遵循系统 motion duration scale。窄屏继续
+使用现有整页导航转场，详情替换不重复展开窗格。声明列表始终可见，
+其尺寸通过局部 `AnimatedPaneOverride` 使用独立的 Compose bounds 动画；
+全开详情使用 Material 3 原生窗格动画。此覆盖应用于声明及首页 Scene，避免
+当前自适应组件在关闭首帧使用完成进度而使列表直接跳至最终宽度。
+列表尺寸和详情进入动画为 250ms，详情退出为 200ms；关闭保留期为
+350ms，为 lookahead 测量与动画启动留出时间，且随系统动画比例缩放。
+
+声明与项目来源网页的背景延伸至底部手势区域，顶部和左右仍按安全区布局。
+底部安全距离由网页滚动内容承担，不以原生 WebView 外边距裁短视口；
+声明 Scene 的外层安全区同样保留底部绘制范围。该规则只应用于网页页面。
+
+首页邮件列表在全开/普通宽窗未选择详情时铺满内容区；选择后才按根 SceneStrategy 分栏，
+复用声明页的列表尺寸和详情进入/退出动画。全开时单列表清空铰链排除区域，
+详情展开后恢复原始指令；首页保留原有系统安全区处理。连续选信替换首页
+详情，关闭期间保留原详情及列表实例，延迟弹栈仅作用于发起关闭的返回栈。
+首页与收藏的双窗格详情右侧均提供关闭按钮，窄屏保留返回；收藏页的分栏与空态策略保持原状。
+
+半开姿态（窗口事实中存在非平展铰链）优先于按需展开：首页与声明列表
+保留物理分栏及空详情区域，打开和关闭详情时列表分区不伸缩。详情内容
+使用相同的滑入/淡入、滑出/淡出动画。全开时未选详情仍为全宽列表；
+已有详情时半开/全开的相同铰链几何继续保持相同分区。半开空详情区域
+使用页面底色，避免透出下层页面。
+
+首页半开详情空态复用 Main 模块原有 EmailDetailPlaceholder；提示文本不属于
+被滑出/隐藏的邮件正文。未选邮件及完成关闭后显示提示，详情显示和退出
+期间不叠加空态。网页空详情不显示邮件提示。
+
+收藏页分栏详情的关闭按钮回到收藏根列表并清除该栈的详情历史，避免关闭后
+露出上一封邮件；窄屏返回仍只弹出当前条目。首页关闭继续使用原窗格动画。

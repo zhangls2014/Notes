@@ -13,4 +13,10 @@
   <string name="about_unknown">未知</string>
   <string name="about_expanded">构建信息已展开</string>
   <string name="about_collapsed">构建信息已收起</string>
+  <string name="about_project_source">项目来源</string>
+  <string name="about_project_open_browser">在浏览器打开</string>
+  <string name="about_project_load_failed">无法加载此网页，你可以在浏览器中打开。</string>
+  <string name="about_copyright_notices">版权与附加声明</string>
+  <string name="about_license">许可证</string>
+  <string name="about_close_detail">关闭详情</string>
 </resources>

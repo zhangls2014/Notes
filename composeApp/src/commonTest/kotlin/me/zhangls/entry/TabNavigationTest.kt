@@ -26,6 +26,45 @@ class TabNavigationTest {
     assertEquals(listOf<NavKey>(SettingsDestination), state.backStack.toList())
   }
 
+  @Test fun homeSelectionReplacesDetailAndCloseReturnsToList() {
+    val state = navigationState(NavBackStack<NavKey>(HomeDestination))
+    val handler = NavHandler(state) { true }
+    handler(NavEffect.Navigate(EmailDetailDestination(1L)))
+    handler(NavEffect.Navigate(EmailDetailDestination(2L)))
+    assertEquals(listOf<NavKey>(HomeDestination, EmailDetailDestination(2L)), state.backStack.toList())
+    handler(NavEffect.Popup)
+    assertEquals(listOf<NavKey>(HomeDestination), state.backStack.toList())
+  }
+
+  @Test fun delayedHomeCloseKeepsAnotherTabAndNewerSelectionsIntact() {
+    val detail = EmailDetailDestination(1L)
+    val stack = NavBackStack<NavKey>(HomeDestination, detail)
+    val state = navigationState(stack)
+    val handler = NavHandler(state) { true }
+    handler.selectTab(FavoritesDestination)
+    val favorite = EmailDetailDestination(7L, EmailListScene.Favorites)
+    handler(NavEffect.Navigate(favorite))
+    completePaneClose(stack, detail)
+    assertEquals(listOf<NavKey>(FavoritesDestination, favorite), state.backStack.toList())
+    assertEquals(listOf<NavKey>(HomeDestination), stack.toList())
+    handler.selectTab(HomeDestination)
+    handler(NavEffect.Navigate(EmailDetailDestination(2L)))
+    completePaneClose(stack, detail)
+    assertEquals(EmailDetailDestination(2L), stack.last())
+  }
+
+  @Test fun favoritesCloseDismissesAllDetailsButBackKeepsItsHistory() {
+    val first = EmailDetailDestination(1L, EmailListScene.Favorites)
+    val second = EmailDetailDestination(2L, EmailListScene.Favorites)
+    val state = navigationState(NavBackStack<NavKey>(FavoritesDestination, first, second))
+    val handler = NavHandler(state) { true }
+    handler(NavEffect.Popup)
+    assertEquals(listOf<NavKey>(FavoritesDestination, first), state.backStack.toList())
+    handler(emailDetailCloseEffect(first))
+    assertEquals(listOf<NavKey>(FavoritesDestination), state.backStack.toList())
+    assertEquals(NavEffect.Popup, emailDetailCloseEffect(EmailDetailDestination(1L)))
+  }
+
   private fun navigationState(initial: NavBackStack<NavKey>): AppNavigationState {
     val root = initial.first().stackRoot()
     return AppNavigationState(

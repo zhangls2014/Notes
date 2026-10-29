@@ -43,6 +43,23 @@ class OpenSourceNavigationTest {
   }
 
   @Test
+  fun choosingAnotherDetailReplacesItAndReturnsToList() {
+    val state = AppNavigationState(
+      NavBackStack(SettingsDestination),
+      navigationRoots.associateWith { NavBackStack<NavKey>(it) },
+    )
+    val handler = NavHandler(state) { true }
+    val list = OpenSourceNoticesDestination()
+    handler(NavEffect.Navigate(list))
+    handler(NavEffect.Navigate(OpenSourceNoticesDestination(OpenSourcePage.LICENSES, "license-MIT")))
+    val project = OpenSourceNoticesDestination(projectUrl = "https://example.com")
+    handler(NavEffect.Navigate(project))
+    assertEquals(listOf<NavKey>(SettingsDestination, list, project), state.backStack.toList())
+    handler(NavEffect.Popup)
+    assertEquals(list, state.backStack.last())
+  }
+
+  @Test
   fun eitherPageOpenedDirectlyKeepsSettingsAsItsRoot() {
     for (page in OpenSourcePage.entries) {
       val destination = OpenSourceNoticesDestination(page)

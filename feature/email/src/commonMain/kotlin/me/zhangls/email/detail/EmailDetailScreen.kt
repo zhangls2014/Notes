@@ -22,21 +22,26 @@ import org.koin.compose.viewmodel.koinViewModel
  * `Scaffold` 给出的 padding。
  *
  * 窗格位置由宿主的场景策略决定：宽窗口下它是分栏里的详情栏，窄窗口下它就是整页。
- * 两种情况下内容完全一样，只有"要不要给返回键"不同（见 [isDetailPaneShownAlone]）。
+ * 两种情况下内容完全一样，只有返回/关闭操作不同（见 [isDetailPaneShownAlone]）。
  */
 @Composable
-internal fun EmailDetailScreen(emailId: Long, onBack: () -> Unit = {}, viewModel: EmailViewModel = koinViewModel()) {
+internal fun EmailDetailScreen(
+  emailId: Long,
+  onBack: () -> Unit = {},
+  onClose: (() -> Unit)? = null,
+  viewModel: EmailViewModel = koinViewModel(),
+) {
   val emailFlow = remember(viewModel, emailId) { viewModel.getEmail(emailId) }
   val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
   val model by emailFlow.collectAsStateWithLifecycle(null)
   val threads = threadFlow.collectAsLazyPagingItems()
+  val shownAlone = isDetailPaneShownAlone()
   EmailDetail(
     model = model,
     threads = threads,
     onFavoriteClick = { viewModel.sendIntent(EmailIntent.UpdateFavorite(it)) },
-    // 只有详情独占窗口时才给返回键：宽窗口下列表与详情同屏，返回键没有意义
-    // （M3 的列表-详情在双栏态不给详情一侧返回键）
-    onBack = onBack.takeIf { isDetailPaneShownAlone() },
+    onBack = onBack.takeIf { shownAlone },
+    onClose = onClose.takeUnless { shownAlone },
   )
 }
 

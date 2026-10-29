@@ -1,14 +1,17 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>摘星 · iOS 许可证与版权声明</title>
+<title data-zh="摘星 · iOS 许可证与版权声明" data-en="Notes · iOS Licenses and copyright notices">Notes · iOS Licenses and copyright notices</title>
 <script>
 (() => {
+  const languageHint = new URLSearchParams(location.search).get('lang') || navigator.language || 'en';
+  const language = /^zh(?:-|$)/i.test(languageHint) ? 'zh-CN' : 'en';
+  document.documentElement.lang = language;
   const requested = Number(new URLSearchParams(location.search).get('fontScale') ?? '1');
-  const fontScale = Number.isFinite(requested) && requested >= 1 && requested <= 2 ? requested : 1;
+  const fontScale = Number.isFinite(requested) && requested > 0 ? requested : 1;
   const requestedTheme = new URLSearchParams(location.search).get('theme');
   const theme = requestedTheme === 'light' || requestedTheme === 'dark' ? requestedTheme : null;
   if (theme !== null) document.documentElement.dataset.theme = theme;
@@ -24,6 +27,12 @@
     }
   }
   document.addEventListener('DOMContentLoaded', () => {
+    for (const node of document.querySelectorAll('[data-en]')) {
+      node.textContent = node.getAttribute(language === 'zh-CN' ? 'data-zh' : 'data-en');
+    }
+    for (const node of document.querySelectorAll('nav[aria-label]')) {
+      node.setAttribute('aria-label', language === 'zh-CN' ? '页面目录' : 'Page navigation');
+    }
     for (const button of document.querySelectorAll('a.button')) {
       const release = () => { delete button.dataset.pressed; };
       button.addEventListener('pointerdown', event => {
@@ -39,6 +48,7 @@
     for (const link of document.querySelectorAll('a[data-font-scale]')) {
       const target = new URL(link.getAttribute('href'), location.href);
       target.searchParams.set('fontScale', String(fontScale));
+      target.searchParams.set('lang', language);
       if (theme !== null) target.searchParams.set('theme', theme);
       for (const [name, value] of colors) target.searchParams.set(name, value);
       link.href = target.href;
@@ -54,11 +64,13 @@
 :root { --corner-large:28px; --motion-duration:180ms; --motion-easing:cubic-bezier(.2,0,0,1); }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--fg); font:1rem/1.5 system-ui,-apple-system,sans-serif; }
-main { max-width:880px; margin:auto; padding:32px 24px 64px; }
+main { max-width:880px; margin:auto; padding:24px; }
+main > :first-child { margin-top:0; }
+main > :last-child { margin-bottom:0; }
 header { padding:28px; margin-bottom:32px; border-radius:var(--corner-large); background:var(--container); color:var(--on-container); }
 .eyebrow { margin-top:0; font-size:.875rem; line-height:1.428571; font-weight:600; letter-spacing:.04em; }
 h1 { font-size:2rem; line-height:1.25; font-weight:650; margin:12px 0 16px; overflow-wrap:anywhere; }
-h2 { font-size:1.5rem; line-height:1.333333; font-weight:600; margin:32px 0 16px; }
+h2 { overflow-wrap:anywhere; font-size:1.5rem; line-height:1.333333; font-weight:600; margin:32px 0 16px; }
 h3 { font-size:1.375rem; line-height:1.272727; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }
 h4 { font-size:1rem; line-height:1.5; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }
 .module { padding-top:16px; }
@@ -83,20 +95,15 @@ header .button { background:var(--card); color:var(--fg); }
 header a:focus-visible { outline-color:currentColor; }
 pre { white-space:pre-wrap; overflow-wrap:anywhere; font:1rem/1.5 ui-monospace,monospace; margin:16px 0 0; }
 nav { display:flex; align-items:center; flex-wrap:wrap; gap:8px 20px; margin-top:20px; }
-nav a:not(.button) { display:inline-flex; align-items:center; min-height:48px; font-weight:600; }
-footer { margin-top:32px; color:var(--muted); font-size:.875rem; line-height:1.428571; }
-@media(max-width:400px) { main { padding:16px 16px 48px; } header { padding:20px; } article,section { padding:16px; } }
+nav a:not(.button) { max-width:100%; display:inline-flex; align-items:center; min-height:48px; font-weight:600; }
+@media(max-width:400px) { main { padding:16px; } header { padding:20px; } article,section { padding:16px; } }
 @media(prefers-reduced-motion:reduce) { .button::before { transition:none; } }
 @media print { header,article,section { break-inside:avoid; } }
 </style>
 </head>
 <body><main>
-<header><p class="eyebrow">摘星 NOTES · iOS</p>
-<h1>许可证与版权声明</h1><p class="muted" lang="en">Open-source software notices</p>
-<p>摘星的 iOS 版本使用了以下开源软件。感谢这些项目的作者与贡献者。</p>
-<p class="muted">本页汇总 iOS 版本相关的开源组件与许可信息，不同版本或发行渠道包含的组件可能有所不同。许可证与附加声明保留上游原文。</p>
-<nav aria-label="页面目录"><a data-font-scale class="button" href="ios.html">返回组件列表</a></nav></header>
-<h2 id="licenses">许可证全文 / License texts</h2><section id="license-Apache-2.0"><h3>Apache-2.0</h3><pre>Apache License
+
+<h2 id="licenses"><span data-zh="许可证全文" data-en="License texts">License texts</span></h2><section id="license-Apache-2.0"><h3>Apache-2.0</h3><pre>Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
 
@@ -227,7 +234,7 @@ internet.  Every line of code can be traced back to its original
 author, and all of those authors have public domain dedications
 on file.  So the SQLite code base is clean and is
 uncontaminated with licensed code from other projects.
-</pre></section><h2>版权与附加声明 / Notices</h2><section id="notice-809fa1ed21450f59"><h3>版权与附加声明 1</h3><pre>
+</pre></section><h2><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span></h2><section id="notice-809fa1ed21450f59"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 1</h3><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -405,7 +412,7 @@ uncontaminated with licensed code from other projects.
 
    END OF TERMS AND CONDITIONS
 
-</pre></section><section id="notice-58d1e17ffe5109a7"><h3>版权与附加声明 2</h3><pre>
+</pre></section><section id="notice-58d1e17ffe5109a7"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 2</h3><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -606,7 +613,7 @@ uncontaminated with licensed code from other projects.
    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License.</pre></section><section id="notice-5f787c1dee3c5654"><h3>版权与附加声明 3</h3><pre>Copyright (c) 2011 Google Inc. All rights reserved.
+   limitations under the License.</pre></section><section id="notice-5f787c1dee3c5654"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 3</h3><pre>Copyright (c) 2011 Google Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -635,7 +642,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-</pre></section><section id="notice-bca126ff1eef0a41"><h3>版权与附加声明 4</h3><pre>include/third_party/vulkan/LICENSE
+</pre></section><section id="notice-bca126ff1eef0a41"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 4</h3><pre>include/third_party/vulkan/LICENSE
 
 // Copyright (c) 2018 Google Inc. All rights reserved.
 //
@@ -1149,9 +1156,8 @@ freely, subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
-</pre></section><section id="notice-35dd077c24768b53"><h3>版权与附加声明 5</h3><pre>This project contains code adapted from &quot;The Android Open Source Project&quot; licensed under the Apache License, Version 2.0 (the &quot;License&quot;):
+</pre></section><section id="notice-35dd077c24768b53"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 5</h3><pre>This project contains code adapted from &quot;The Android Open Source Project&quot; licensed under the Apache License, Version 2.0 (the &quot;License&quot;):
 
 https://android.googlesource.com/platform/frameworks/base
 </pre></section>
-<footer>本声明仅适用于摘星 iOS 版本。各开源项目的权利与使用条件以对应许可证及版权声明为准。</footer>
 </main></body></html>

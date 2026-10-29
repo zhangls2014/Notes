@@ -1,5 +1,6 @@
 package me.zhangls.entry.util
 
+import me.zhangls.framework.AppInfo
 import org.koin.core.annotation.Singleton
 import platform.Foundation.NSBundle
 

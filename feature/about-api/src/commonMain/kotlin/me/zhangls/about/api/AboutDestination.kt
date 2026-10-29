@@ -14,4 +14,5 @@ enum class OpenSourcePage { LIBRARIES, LICENSES }
 data class OpenSourceNoticesDestination(
   val page: OpenSourcePage = OpenSourcePage.LIBRARIES,
   val anchor: String? = null,
+  val projectUrl: String? = null,
 ) : Destination

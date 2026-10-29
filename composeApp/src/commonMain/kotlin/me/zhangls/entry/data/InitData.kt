@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.first
 import me.zhangls.data.repository.CommonRepository
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.entry.data.sample.LocalEmailsDataProvider
-import me.zhangls.entry.util.AppInfo
+import me.zhangls.framework.AppInfo
 import org.koin.core.annotation.Factory
 
 /** 启动时执行一次的数据初始化；由应用入口管理协程生命周期。 */

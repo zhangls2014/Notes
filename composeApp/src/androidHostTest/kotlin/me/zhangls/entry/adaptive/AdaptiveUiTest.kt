@@ -576,7 +576,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
   }
 
-  @Test fun noHingeKeepsThePreferredListWidthWithTheDetailPlaceholder() {
+  @Test fun homeListUsesAvailableWidthBeforeDetailOpens() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
     users.userFlow.value = UserModel("test", "Reviewer")
     launch()
@@ -585,8 +585,8 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     val before = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
     displayCutout(right = 62)
     val after = compose.onNodeWithText("Adaptive review").fetchSemanticsNode().boundsInRoot
-    org.junit.Assert.assertEquals(360f - 32f, before.width, 1f)
-    org.junit.Assert.assertEquals("The list keeps its preferred width inside the safe area", before, after)
+    org.junit.Assert.assertTrue("The initial list fills more than its split width", before.width > 360f)
+    org.junit.Assert.assertEquals("The list avoids the newly introduced cutout", before.width - 62f, after.width, 1f)
   }
 
   @Test fun noHingeUsesPreferredWidthsInsideTheSafeAreaForEitherCutoutSide() {

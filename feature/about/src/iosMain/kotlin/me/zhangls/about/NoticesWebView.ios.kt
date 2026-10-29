@@ -6,10 +6,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.useContents
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.OpenSourcePage
 import notes.feature.about.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -21,7 +22,9 @@ import platform.Foundation.NSURLComponents
 import platform.Foundation.NSURLErrorCancelled
 import platform.Foundation.NSURLQueryItem
 import platform.UIKit.UIColor
+import platform.UIKit.UIEdgeInsetsMake
 import platform.UIKit.UIScrollView
+import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
 import platform.UIKit.UIScrollViewDelegateProtocol
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
@@ -36,23 +39,23 @@ import platform.darwin.NSObject
 internal actual fun NoticesWebView(
   page: OpenSourcePage,
   anchor: String?,
-  appInfo: AboutAppInfo,
+  appearance: NoticesAppearance,
   onNavigate: (OpenSourcePage, String?) -> Unit,
   onExternalLink: (String) -> Unit,
   onError: () -> Unit,
   modifier: Modifier,
+  bottomInset: Dp,
 ) {
   val libraries = Res.getUri("files/open-source/ios.html")
-  val licenses = Res.getUri("files/open-source/ios-licenses.html")
-  val currentPage = rememberUpdatedState(page)
+  val currentSelection = rememberUpdatedState(LocalNoticesLink(page, anchor))
   val navigate = rememberUpdatedState(onNavigate)
   val external = rememberUpdatedState(onExternalLink)
   val failed = rememberUpdatedState(onError)
   val savedY = rememberSaveable { mutableDoubleStateOf(0.0) }
-  val browser = remember(libraries, licenses) {
+  val browser = remember(libraries) {
     IosNoticesBrowser(libraries, onScroll = { savedY.doubleValue = it }) { target ->
-      val local = localNoticesLink(target, libraries, licenses)
-      if (local != null && local.page == currentPage.value) {
+      val local = localNoticesLink(target, libraries)
+      if (local != null && local == currentSelection.value) {
         true
       } else {
         if (local != null) {
@@ -65,16 +68,18 @@ internal actual fun NoticesWebView(
     }
   }
   browser.onError = { failed.value() }
-  val components = NSURLComponents(string = if (page == OpenSourcePage.LIBRARIES) libraries else licenses)
-  components.queryItems = appInfo.noticesAppearanceParameters().map { (name, value) ->
+  val components = NSURLComponents(string = noticesPageUri(libraries, page, anchor))
+  components.queryItems = appearance.noticesAppearanceParameters().map { (name, value) ->
     NSURLQueryItem(name = name, value = value)
   }
-  components.fragment = anchor
   val url = requireNotNull(components.URL)
   UIKitView(
     factory = { browser.view },
     modifier = modifier,
-    update = { browser.load(url, savedY.doubleValue) },
+    update = {
+      browser.view.scrollView.contentInset = UIEdgeInsetsMake(0.0, 0.0, bottomInset.value.toDouble(), 0.0)
+      browser.load(url, savedY.doubleValue)
+    },
     onRelease = { browser.close() },
   )
 }
@@ -115,7 +120,13 @@ private class IosNoticesBrowser(
       )
     }
 
+    @ObjCSignatureOverride
     override fun webView(webView: WKWebView, didFailProvisionalNavigation: WKNavigation?, withError: NSError) {
+      if (withError.code != NSURLErrorCancelled) onError()
+    }
+
+    @ObjCSignatureOverride
+    override fun webView(webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError) {
       if (withError.code != NSURLErrorCancelled) onError()
     }
   }
@@ -126,6 +137,8 @@ private class IosNoticesBrowser(
   }
 
   init {
+    view.scrollView.contentInsetAdjustmentBehavior =
+      UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
     view.opaque = false
     view.backgroundColor = UIColor.clearColor
     view.navigationDelegate = delegate

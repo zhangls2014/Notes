@@ -1,22 +1,23 @@
 package me.zhangls.about
 
-import me.zhangls.about.api.AboutAppInfo
-import me.zhangls.about.api.NoticesColors
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class NoticesAppearanceTest {
+  @Test fun appLanguageIsPassedToBothPlatforms() {
+    assertEquals("zh-CN", NoticesAppearance(language = "zh-CN").noticesAppearanceParameters()["lang"])
+    assertEquals("en", NoticesAppearance(language = "en").noticesAppearanceParameters()["lang"])
+  }
+
   @Test fun standalonePagesKeepTheirFallbackPalette() {
     assertEquals(
       mapOf("fontScale" to "1.0", "theme" to "light"),
-      AboutAppInfo(null, null).noticesAppearanceParameters(),
+      NoticesAppearance().noticesAppearanceParameters(),
     )
   }
 
   @Test fun bothPlatformsReceiveAllResolvedAppearanceValues() {
-    val info = AboutAppInfo(
-      versionName = "1.0",
-      buildNumber = "1",
+    val info = NoticesAppearance(
       fontScale = 1.5f,
       darkTheme = true,
       pageColors = NoticesColors(
