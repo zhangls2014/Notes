@@ -4,6 +4,17 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Release notes use bold category headings and list additions, improvements, then fixes.",
+          "zh": "更新内容分类标题加粗，统一按新增、优化、修复的顺序展示。"
+        }
+      },
+      {
         "type": "fixed",
         "platforms": [
           "android",

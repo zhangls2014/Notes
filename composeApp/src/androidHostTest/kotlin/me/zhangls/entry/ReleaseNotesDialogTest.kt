@@ -3,6 +3,12 @@ package me.zhangls.entry
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -53,6 +59,33 @@ class ReleaseNotesDialogTest {
     compose.onNodeWithText("Got it").performClick()
     compose.onNodeWithText("What’s new in 1.1.0").assertDoesNotExist()
     compose.runOnIdle { assertEquals(1, dismissed) }
+  }
+
+  @Test fun categoriesFollowAddedImprovedFixedOrder() {
+    launchCurrentVersion()
+    val headings = compose.onAllNodes(hasText("Added") or hasText("Improved") or hasText("Fixed"))
+      .fetchSemanticsNodes().map { it.config[SemanticsProperties.Text].single().text }
+    assertEquals(listOf("Added", "Improved", "Fixed"), headings)
+  }
+
+  @Test fun categoryHeadingsAreBold() {
+    launchCurrentVersion()
+    for (label in listOf("Added", "Improved", "Fixed")) {
+      val layouts = mutableListOf<TextLayoutResult>()
+      compose.onNodeWithText(label).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+      assertEquals("Category heading: $label", FontWeight.Bold, layouts.single().layoutInput.style.fontWeight)
+    }
+  }
+
+  private fun launchCurrentVersion() {
+    compose.setContent {
+      ComposeAppTheme {
+        AboutEntryImpl().ReleaseNotesDialog(version = "1.1.0", onDismiss = {})
+      }
+    }
+    compose.waitUntil(10_000) {
+      compose.onAllNodes(hasText("Added")).fetchSemanticsNodes().isNotEmpty()
+    }
   }
 
   @Test fun missingCurrentVersionDoesNotUseNewestRecord() {
