@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import me.zhangls.about.AppRelease
 import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Icons
@@ -47,6 +48,7 @@ private const val COLLAPSED_VERSION_INFO_ROTATION = 270f
 @Composable
 internal fun AboutVersionGroup(
   appInfo: AboutAppInfo,
+  releases: Result<List<AppRelease>>?,
   expanded: Boolean,
   onToggleVersionInfo: () -> Unit,
   onOpenReleaseHistory: () -> Unit,
@@ -75,7 +77,7 @@ internal fun AboutVersionGroup(
       },
     )
     if (expanded) {
-      AboutReleaseSummary(appInfo.versionName, inner, onOpenReleaseHistory)
+      AboutReleaseSummary(appInfo.versionName, releases, inner, onOpenReleaseHistory)
     }
     // Update checks await release-channel and platform integration; see docs/testing/pending-acceptance.md.
     // The disabled button communicates availability without triggering an update check.

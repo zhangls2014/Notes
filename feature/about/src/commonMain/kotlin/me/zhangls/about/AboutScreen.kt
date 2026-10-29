@@ -3,6 +3,9 @@ package me.zhangls.about
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,15 +44,23 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenReleaseHistory: () -> Unit) {
   val viewModel = koinViewModel<AboutViewModel>()
   val state by viewModel.state.collectAsStateWithLifecycle()
+  val releases by viewModel.releases.collectAsStateWithLifecycle()
+  val layoutDirection = LocalLayoutDirection.current
   Scaffold(topBar = {
     CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBack)
   }) { padding ->
     AdaptiveContent(
-      modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()),
+      modifier = Modifier.fillMaxSize().padding(
+        PaddingValues(
+          start = padding.calculateStartPadding(layoutDirection),
+          top = padding.calculateTopPadding(),
+          end = padding.calculateEndPadding(layoutDirection),
+        ),
+      ).verticalScroll(rememberScrollState()),
       maxWidth = ContentWidth.Form,
     ) {
       Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = padding.calculateBottomPadding()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
         AboutBrandCard()
@@ -60,6 +72,7 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenRel
         )
         AboutVersionGroup(
           appInfo = state.appInfo,
+          releases = releases,
           expanded = state.isVersionInfoExpanded,
           onToggleVersionInfo = { viewModel.sendIntent(AboutIntent.ToggleVersionInfo) },
           onOpenReleaseHistory = onOpenReleaseHistory,

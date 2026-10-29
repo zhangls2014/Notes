@@ -13,6 +13,21 @@
 
 选择理由见 [重要决策记录](../decisions.md)，相关回归保留在本页；未解决问题与设备验收集中见 [待验收清单](pending-acceptance.md)。当前布局与输入策略以 [架构文档](../architecture.md) 为准。
 
+## 关于应用底部绘制与返回滚动（2026-10-30）
+
+页面默认遵循 [Edge-to-Edge 要求](../architecture.md)：滚动视口延伸至底部安全区域，安全距离放在内容末尾；本次仅修改关于页，保留卡片、内容宽度、16dp 留白、版本展开和导航交互。
+
+Android API 37 / Robolectric Native Graphics：注入 40px 底部 Insets 后，旧视口在 400px 窗口的 360px 处截止；修复后视口到达窗口底部，滚到底后末项文字仍位于手势区上方。导航测试使用与根导航一致的保存状态及 ViewModel 装饰器；展开当前版本、滚动至开源声明后往返，旧偏移从 652px 降至 180px。摘要重新加载时的临时短内容会裁掉恢复偏移，将加载结果保留在页面 ViewModel 后，普通返回和预测返回均保持偏移。
+
+最终执行：About 页面、宽屏空白区滚动及导航宿主测试 31 项通过，About 模块测试 19 项通过，无失败或跳过；About detekt、Android DevFull Debug 构建和 iOS 模拟器 Kotlin 编译通过。未更新正式截图基线，未执行视觉基线 verify、Android/iOS 设备手势及安全区验收；编译结果不代替平台行为验收，后续事项见 [待验收清单](pending-acceptance.md#关于应用底部绘制与返回滚动2026-10-30)。
+
+```bash
+./gradlew :composeApp:testAndroidHostTest --tests '*AboutNoticesNavigationTest*' \
+  --tests '*AboutWideScrollTest*' --tests '*AboutUiTest*' \
+  :feature:about:testAndroidHostTest :feature:about:detekt \
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+```
+
 ## 写信展开时窗口收窄（2026-10-29）
 
 `HomeDraftNavigationTest` 验证草稿展开时收窄会退出首页详情、无草稿时保留详情、收藏详情不受影响，以及宿主重建后仍保留草稿可见标记。宿主恢复用例在普通 `remember` 下失败，改为 `rememberSaveable` 后通过；只保存布尔标记，不保存草稿正文。

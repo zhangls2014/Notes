@@ -53,11 +53,13 @@ internal fun List<AppRelease>.forPlatform(platform: String): List<AppRelease> =
 @Composable
 internal fun rememberReleaseHistory(): State<Result<List<AppRelease>>?> =
   produceState<Result<List<AppRelease>>?>(null) {
-    value = try {
-      Result.success(parseReleases(Res.readBytes("files/releases.json").decodeToString()).forPlatform(releasePlatform))
-    } catch (exception: MissingResourceException) {
-      Result.failure(exception)
-    } catch (exception: IllegalArgumentException) {
-      Result.failure(exception)
-    }
+    value = loadReleaseHistory()
   }
+
+internal suspend fun loadReleaseHistory(): Result<List<AppRelease>> = try {
+  Result.success(parseReleases(Res.readBytes("files/releases.json").decodeToString()).forPlatform(releasePlatform))
+} catch (exception: MissingResourceException) {
+  Result.failure(exception)
+} catch (exception: IllegalArgumentException) {
+  Result.failure(exception)
+}

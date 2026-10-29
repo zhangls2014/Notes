@@ -4,12 +4,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,29 @@ class AboutWideScrollTest {
 
   @After fun stop() {
     stopKoin()
+  }
+
+  @Test fun scrollViewportExtendsIntoBottomSafeArea() {
+    lateinit var view: android.view.View
+    compose.setContent {
+      view = LocalView.current
+      ComposeAppTheme {
+        koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = {})
+      }
+    }
+    compose.runOnIdle {
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), androidx.core.graphics.Insets.of(0, 0, 0, 40))
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), true)
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(view, insets)
+    }
+    compose.waitForIdle()
+    val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
+    assertEquals("Scroll viewport reaches the window bottom", view.height.toFloat(), viewport.bottom, 0.5f)
+    compose.onNode(hasScrollAction()).performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, 10_000f) }
+    val lastText = compose.onNodeWithText("Third-party libraries and licenses").fetchSemanticsNode().boundsInRoot
+    assertTrue("Last item remains above the gesture area at rest", lastText.bottom <= view.height - 40f)
   }
 
   @Test fun leftMarginScrollsThePage() {
