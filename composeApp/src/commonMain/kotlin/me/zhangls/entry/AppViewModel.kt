@@ -20,7 +20,7 @@ class AppViewModel(
   savedStateHandle: SavedStateHandle,
   toastGlobalNotifier: ToastGlobalNotifier,
   userRepository: UserRepository,
-  settingsRepository: SettingsRepository,
+  private val settingsRepository: SettingsRepository,
 ) : MviViewModel<AppState, AppIntent>(
   initialState = AppState(null),
   stateSerializer = AppState.serializer(),
@@ -37,8 +37,13 @@ class AppViewModel(
   val toast = toastGlobalNotifier.toast
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-  // Root state comes from repository flows; AppIntent has no concrete intents.
-  override fun handleIntent(intent: AppIntent) = Unit
+  override fun handleIntent(intent: AppIntent) {
+    when (intent) {
+      is AppIntent.DismissReleaseNotes -> viewModelScope.launch {
+        settingsRepository.updateLastReadReleaseVersion(intent.version)
+      }
+    }
+  }
 
   init {
     viewModelScope.launch {
@@ -50,6 +55,8 @@ class AppViewModel(
       settingsRepository.settingsFlow.collectLatest {
         updateState {
           copy(
+            settingsLoaded = true,
+            lastReadReleaseVersion = it.lastReadReleaseVersion,
             dynamicColor = it.dynamicColor,
             darkTheme = it.darkTheme,
             fontSize = it.fontSize,

@@ -189,3 +189,13 @@
 - 图标旋转（2026-10-30）：切换时采用 200ms 半圈旋转，反向切换回转，仅作用图标，布局和无障碍描述立即更新。新增 3 项受控时钟测试覆盖双向中间帧/归位、动画中快速反向点击、`MotionDurationScale=0` 直接完成；使用图标语义边界的旋转变化作为动画断言，不等同于像素截图或设备帧率测量。About 宿主 19 项、组合根宿主 41 项、About Native 19 项、组合根 Native 43 项测试通过，无失败或跳过；About detekt、iOS 编译、Android DevFullDebug 构建通过。APK 内更新记录与正式 JSON 一致；设备动效与系统动画缩放仍待验收，正式基线未更新。
 
 - 预测返回期间的历史分列稳定性（2026-10-30）：先以 LTR/RTL 绘制变换回归复现失败，95% 缩放使左列从 336×560px 变为 306×608px。修复后使用内容相对全屏 Scaffold 的布局位置与 Compose 根节点窗口原点，避免将祖先绘制变换反馈到分列。新增 2 项布局回归检查缩放、不同平移锚点与恢复后的原始卡片尺寸及可见缩放；新增 1 项真实 Navigation 3／返回事件回归，从已滚动列表开始检查手势 0.2／0.8／0.4 进度和取消后的列宽、卡片高度、滚动位置与手动分列选择。最终命令执行 `:feature:about:detekt :feature:about:testAndroidHostTest :composeApp:testAndroidHostTest`（筛选 `*ReleaseHistoryPostureTest*`、`*ReleaseHistoryAdaptiveTest*`、`*AboutUiTest*`、`*AboutNoticesNavigationTest*`）、`:composeApp:compileKotlinIosSimulatorArm64 :feature:about:iosSimulatorArm64Test :composeApp:iosSimulatorArm64Test :androidApp:assembleDevFullDebug`，构建成功；Android 宿主 19+44 项、iOS Native 19+43 项测试通过，均无失败、错误或用例跳过。手势专项断言在 Android 宿主执行，Native 结果不替代 iOS 手势验收。APK 内 JSON 与正式唯一未发布记录一致。未采集新候选图，未更新正式基线；双端设备上实际手势进行／取消／提交及视觉连续性仍待验收。
+
+## 新版本首次启动更新提示（2026-10-30）
+
+- 合入前验证：rebase 到 `febb2308` 后，core:data 9 项、About 19 项、Settings 5 项、组合根相关 Android 宿主 44 项及 iOS 模拟器 44 项测试通过，无失败或跳过；iOS 编译、About detekt 与文档链接检查通过。此记录补充下方原实现阶段证据，设备与视觉验收状态不变。
+
+- 本次验证：core:data 9 项、About 14 项、Settings 5 项、组合根相关 Android 宿主 34 项、iOS 模拟器 44 项测试通过，测试用例无失败或跳过；iOS 编译及 About detekt 通过。覆盖旧设置兼容、已读版本持久化、启动等待设置、根重建、弹窗关闭、无匹配版本及 Native Entry 调用。Roborazzi finalize 任务跳过，不作为截图证据。
+- core:data 与 composeApp detekt 未通过，剩余为既有用户仓库、文件管理器、导航及旧测试的复杂度/格式等问题；本次新增代码无剩余报告，不扩大范围修复。
+
+- [ ] Android/iOS 设备验收：首次安装、升级后首次启动、关闭后重启均符合提示规则；检查中文/英文、窄屏、大字号、深浅主题下的内容滚动、确认按钮、系统返回和点击外部关闭。未关闭即退出应在下次启动继续提示。没有匹配当前版本的平台记录时不弹窗。
+- 未更新正式截图基线，尚未采集本功能的候选截图；宿主行为测试与 iOS 入口调用不替代设备视觉验收。

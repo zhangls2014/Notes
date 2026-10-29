@@ -1,5 +1,6 @@
 package me.zhangls.about
 
+import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.AboutNavigation
 import me.zhangls.framework.FrameworkModule
 import me.zhangls.framework.nav.NavigationContribution
@@ -11,6 +12,9 @@ import org.koin.core.annotation.Single
 @Module(includes = [FrameworkModule::class])
 @ComponentScan("me.zhangls.about")
 class AboutModule {
+  @Single
+  fun aboutEntry(): AboutEntry = AboutEntryImpl()
+
   @Single
   @Named("aboutNavigationContribution")
   fun aboutNavigationContribution(): NavigationContribution = AboutNavigation

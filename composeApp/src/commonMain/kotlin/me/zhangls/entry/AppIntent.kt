@@ -5,4 +5,6 @@ import me.zhangls.framework.mvi.MviIntent
 /**
  * @author zhangls
  */
-sealed interface AppIntent : MviIntent
+sealed interface AppIntent : MviIntent {
+  data class DismissReleaseNotes(val version: String) : AppIntent
+}

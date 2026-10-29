@@ -52,6 +52,9 @@ internal class AdaptiveUsers : UserRepository {
 
 internal class AdaptiveSettings : SettingsRepository {
   override val settingsFlow = MutableStateFlow(SettingsModel(appLanguage = AppLanguage.FOLLOW_SYSTEM))
+  override suspend fun updateLastReadReleaseVersion(version: String) {
+    settingsFlow.value = settingsFlow.value.copy(lastReadReleaseVersion = version)
+  }
   override suspend fun updateDarkTheme(darkThemeConfig: DarkThemeConfig) {
     settingsFlow.value = settingsFlow.value.copy(darkTheme = darkThemeConfig)
   }

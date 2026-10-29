@@ -31,4 +31,6 @@
   <string name="about_release_current_empty">No release notes for this version.</string>
   <string name="about_release_switch_columns">Switch to columns</string>
   <string name="about_release_switch_single">Switch to single column</string>
+  <string name="about_release_dialog_title">What’s new in %1$s</string>
+  <string name="about_release_dialog_dismiss">Got it</string>
 </resources>

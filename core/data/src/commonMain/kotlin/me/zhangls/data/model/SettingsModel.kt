@@ -11,4 +11,5 @@ data class SettingsModel(
   val darkTheme: DarkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
   val fontSize: FontSizeConfig = FontSizeConfig.STANDARD,
   val appLanguage: AppLanguage = AppLanguage.FOLLOW_SYSTEM,
+  val lastReadReleaseVersion: String? = null,
 )

@@ -55,6 +55,24 @@ class EmailEntryDispatchTest {
   }
 
   @Test
+  fun releaseNotesEntryDispatchesWithoutDefaultArguments() {
+    val about: AboutEntry = AboutEntryImpl()
+    val recomposer = Recomposer(EmptyCoroutineContext)
+    val composition = Composition(NoOpApplier(), recomposer)
+    var dispatched = false
+    try {
+      composition.setContent {
+        about.ReleaseNotesDialog(version = "1.1.0", onDismiss = {})
+        dispatched = true
+      }
+      assertTrue(dispatched)
+    } finally {
+      composition.dispose()
+      recomposer.cancel()
+    }
+  }
+
+  @Test
   fun loginSettingsProfileAndAboutEntriesDispatchIntoFeatureImplementations() {
     val login: LoginEntry = LoginEntryImpl()
     val settings: SettingsEntry = SettingsEntryImpl()
