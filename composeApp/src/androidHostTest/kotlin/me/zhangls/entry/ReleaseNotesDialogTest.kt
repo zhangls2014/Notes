@@ -98,4 +98,21 @@ class ReleaseNotesDialogTest {
     compose.waitForIdle()
     compose.onNodeWithText("Got it").assertDoesNotExist()
   }
+
+  @Test
+  @Config(qualifiers = "en-rUS-w970dp-h443dp-mdpi")
+  fun largeTextInShortWindowKeepsChangesScrollableAndDismissReachable() {
+    var dismissed = false
+    compose.setContent {
+      ComposeAppTheme(darkTheme = false, fontScale = 2F) {
+        AboutEntryImpl().ReleaseNotesDialog(version = "1.1.0", onDismiss = { dismissed = true })
+      }
+    }
+    compose.waitUntil(10_000) {
+      compose.onAllNodes(androidx.compose.ui.test.hasText("Got it")).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithText("Keep dialogs centered", substring = true).performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Got it").assertIsDisplayed().performClick()
+    compose.runOnIdle { org.junit.Assert.assertTrue(dismissed) }
+  }
 }
