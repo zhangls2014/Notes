@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composition
 import androidx.compose.runtime.Recomposer
 import me.zhangls.about.AboutEntryImpl
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.EmailEntryImpl
@@ -34,7 +33,7 @@ class EmailEntryDispatchTest {
       val screens: List<@Composable () -> Unit> = listOf(
         { entry.HomeScreen(openedEmailId = null, navigateToDetail = {}, onProfileClick = {}) },
         { entry.FavoritesScreen(openedEmailId = 42L, navigateToDetail = {}) },
-        { entry.DetailScreen(emailId = 42L, onBack = {}) },
+        { entry.DetailScreen(emailId = 42L, onBack = {}, onClose = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {
@@ -65,12 +64,13 @@ class EmailEntryDispatchTest {
           about.NoticesScreen(
             page = OpenSourcePage.LIBRARIES,
             anchor = null,
-            appInfo = AboutAppInfo("1.0", "1"),
             onBack = {},
             onNavigate = { _, _ -> },
+            onExternalLink = {},
           )
         },
-        { about.Screen(AboutAppInfo("2.3.1", "42.7.1"), onBack = {}, onOpenSource = {}) },
+        { about.ProjectScreen("https://example.com", onBack = {}) },
+        { about.Screen(onBack = {}, onOpenSource = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

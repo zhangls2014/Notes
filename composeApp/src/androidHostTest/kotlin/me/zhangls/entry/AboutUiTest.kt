@@ -55,6 +55,7 @@ class AboutUiTest(private val scenario: Scenario) {
 
   @Before fun start() {
     initKoin(null)
+    provideAboutAppInfo()
   }
 
   @After fun stop() {
@@ -62,10 +63,11 @@ class AboutUiTest(private val scenario: Scenario) {
   }
 
   private fun launch(info: AboutAppInfo) {
+    provideAboutAppInfo(info)
     compose.setContent {
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
         ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-          koinInject<AboutEntry>().Screen(info, onBack = {}, onOpenSource = {})
+          koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = {})
         }
       }
     }
@@ -75,7 +77,7 @@ class AboutUiTest(private val scenario: Scenario) {
     var opened = false
     compose.setContent {
       ComposeAppTheme {
-        koinInject<AboutEntry>().Screen(AboutAppInfo("1.0", "1"), onBack = {}, onOpenSource = { opened = true })
+        koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = { opened = true })
       }
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo().assertIsEnabled().performClick()

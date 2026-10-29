@@ -1,4 +1,4 @@
-package me.zhangls.entry.util
+package me.zhangls.framework
 
 /** 应用版本信息，由平台实现提供。 */
 interface AppInfo {

@@ -1,14 +1,19 @@
 package me.zhangls.entry
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntryDecorator
@@ -18,14 +23,15 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.email.api.EmailListScene
 import me.zhangls.email.emailNavEntry
-import me.zhangls.entry.util.AppInfo
-import me.zhangls.entry.util.toAboutAppInfo
-import me.zhangls.entry.util.toNoticesColors
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
@@ -35,12 +41,11 @@ import me.zhangls.login.loginNavEntry
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.navigation.PaneWindowInsets
-import me.zhangls.preference.DarkThemePreference
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.profileNavEntry
+import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.ProvideModalViewport
-import org.koin.compose.koinInject
 
 /**
  * @author zhangls
@@ -65,13 +70,6 @@ fun AppNavHost(
   // 各 feature 以唯一 qualifier 登记 key 的序列化注册表与 DeepLink 匹配器，Registry 统一收集。
   // 具体 Nav Entry、宿主回调与根导航策略仍由 composeApp 显式装配。
   val navigationRegistry = rememberNavigationRegistry()
-  val platformAppInfo = koinInject<AppInfo>()
-  val darkTheme = DarkThemePreference.isDark(state.darkTheme)
-  val pageColors = MaterialTheme.colorScheme.toNoticesColors()
-  val aboutAppInfo = remember(platformAppInfo, state.fontSize, darkTheme, pageColors) {
-    platformAppInfo.toAboutAppInfo(state.fontSize.value, darkTheme, pageColors)
-  }
-  val currentAboutAppInfo = rememberUpdatedState(aboutAppInfo)
 
   // 返回栈的序列化配置。remember 住：每次重组新建一个 SerializersModule 毫无意义，
   // 还会让 rememberNavBackStack 依赖的配置对象持续变化。
@@ -113,7 +111,36 @@ fun AppNavHost(
     onDeepLinkConsume()
   }
 
-  val sceneStrategies = rememberAppSceneStrategies<NavKey>()
+  val embedProject = rememberUpdatedState(
+    LocalPaneScaffoldDirective.current.maxHorizontalPartitions > 1,
+  )
+  val scope = rememberCoroutineScope()
+  var detailClosing by remember { mutableStateOf(false) }
+  var closingRoot by remember { mutableStateOf<NavKey?>(null) }
+  var closeJob by remember { mutableStateOf<Job?>(null) }
+  val paneNavigation = rememberUpdatedState<(NavEffect) -> Unit> { effect ->
+    val detail = backStack.lastOrNull()
+    if (shouldAnimateDetailClose(effect, detail, embedProject.value)) {
+      if (!detailClosing) {
+        detailClosing = true
+        closingRoot = navigationState.selectedRoot
+        val closingStack = backStack
+        closeJob = scope.launch {
+          withFrameNanos {}
+          Animatable(0f).animateTo(1f, tween(PANE_CLOSE_DURATION_MILLIS))
+          completePaneClose(closingStack, detail)
+          detailClosing = false
+        }
+      }
+    } else {
+      closeJob?.cancel()
+      detailClosing = false
+      navHandler(effect)
+    }
+  }
+  val sceneStrategies = rememberAppSceneStrategies<NavKey>(
+    detailClosing = detailClosing && closingRoot == navigationState.selectedRoot,
+  )
   val hasHinge = LocalWindowAdaptiveInfo.current.windowPosture.hingeList.isNotEmpty()
 
   // 所有栈的装饰器持续留在组合中，非活动 Entry 的保存状态及 ViewModel 因而不被清除。
@@ -139,20 +166,27 @@ fun AppNavHost(
       )
       val provider = entryProvider {
         mainNavEntries(
+          homeMetadata = homeEmailListMetadata,
           // 详情是返回栈里的一个真实条目，"哪封邮件正被打开"因此可以从返回栈派生。
           // 放在参数里而不是让列表自己去查：返回栈在宿主手里，列表不该知道导航结构。
           openedDetail = stack.lastOrNull() as? EmailDetailDestination,
           navigateToEmailDetail = { scene, emailId ->
-            navHandler(NavEffect.Navigate(EmailDetailDestination(emailId, scene)))
+            paneNavigation.value(NavEffect.Navigate(EmailDetailDestination(emailId, scene)))
           },
           navigateToProfile = { origin -> navHandler(NavEffect.Navigate(ProfileDestination(origin))) },
           navigateToAbout = { navHandler(NavEffect.Navigate(AboutDestination)) },
           onLogout = { navHandler(Restart(LoginDestination())) },
         )
 
-        emailNavEntry { effect -> navHandler(effect) }
+        emailNavEntry(
+          paneMetadata = ::homeEmailPaneMetadata,
+          closeDetail = { paneNavigation.value(emailDetailCloseEffect(it)) },
+        ) { effect -> paneNavigation.value(effect) }
         profileNavEntry { effect -> navHandler(effect) }
-        aboutNavEntry(appInfo = { currentAboutAppInfo.value }) { effect -> navHandler(effect) }
+        aboutNavEntry(
+          paneMetadata = ::noticesPaneMetadata,
+          embedProject = { embedProject.value },
+        ) { effect -> paneNavigation.value(effect) }
 
         loginNavEntry { result, destination ->
           if (result == LoginResult.Success) {
@@ -187,9 +221,18 @@ fun AppNavHost(
         contentAlpha = readAlpha,
         selected = selectedTab,
         onSelectTab = selectTab,
-        onBack = { navHandler(NavEffect.Popup) },
+        onBack = { paneNavigation.value(NavEffect.Popup) },
         sceneStrategies = sceneStrategies.toImmutableList(),
       )
     }
   }
+}
+
+private fun shouldAnimateDetailClose(effect: NavEffect, detail: NavKey?, expanded: Boolean): Boolean =
+  effect == NavEffect.Popup && expanded && detail.isAnimatedPaneDetail()
+
+private fun NavKey?.isAnimatedPaneDetail(): Boolean = when (this) {
+  is OpenSourceNoticesDestination -> projectUrl != null || page == OpenSourcePage.LICENSES
+  is EmailDetailDestination -> scene == EmailListScene.Home
+  else -> false
 }

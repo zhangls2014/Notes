@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.mvi.AboutIntent
 import me.zhangls.about.mvi.AboutViewModel
 import me.zhangls.about.ui.AboutBrandCard
@@ -36,11 +35,10 @@ import notes.feature.about.generated.resources.about_title
 import notes.feature.about.generated.resources.about_version_information
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
-internal fun AboutScreen(appInfo: AboutAppInfo, onBack: () -> Unit, onOpenSource: () -> Unit) {
-  val viewModel = koinViewModel<AboutViewModel> { parametersOf(appInfo) }
+internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit) {
+  val viewModel = koinViewModel<AboutViewModel>()
   val state by viewModel.state.collectAsStateWithLifecycle()
   Scaffold(topBar = {
     CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBack)

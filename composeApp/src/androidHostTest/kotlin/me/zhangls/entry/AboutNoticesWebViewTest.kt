@@ -8,18 +8,19 @@ import android.webkit.WebView
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import me.zhangls.about.aboutNavEntry
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.AboutEntry
-import me.zhangls.about.api.NoticesColors
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.theme.ComposeAppTheme
@@ -52,14 +53,30 @@ class AboutNoticesWebViewTest {
   }
 
   @Test fun bundledAndroidPageUsesLatestAppearanceInCachedEntry() {
-    val info = mutableStateOf(AboutAppInfo("1.0", "1"))
+    val changed = mutableStateOf(false)
     compose.setContent {
       rootView = LocalView.current.rootView
-      val current = rememberUpdatedState(info.value)
       val entry = remember {
-        entryProvider<NavKey> { aboutNavEntry(appInfo = { current.value }) {} }(OpenSourceNoticesDestination())
+        entryProvider<NavKey> {
+          aboutNavEntry(
+            paneMetadata = ::noticesPaneMetadata,
+            embedProject = { false },
+          ) {}
+        }(OpenSourceNoticesDestination())
       }
-      ComposeAppTheme { entry.Content() }
+      CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(1f, 1.5f),
+      ) {
+        ComposeAppTheme(
+          fontScale = if (changed.value) 2f else 1f,
+          darkTheme = changed.value,
+          dynamicScheme = if (changed.value) {
+            changedNoticesColors()
+          } else {
+            null
+          },
+        ) { entry.Content() }
+      }
     }
     compose.runOnIdle {
       val view = requireNotNull(findWebView(rootView))
@@ -67,31 +84,15 @@ class AboutNoticesWebViewTest {
       org.junit.Assert.assertEquals("file", uri.scheme)
       assertTrue(uri.path.orEmpty().endsWith("/android.html"))
       val path = requireNotNull(uri.path).removePrefix("/android_asset/")
-      org.junit.Assert.assertEquals(
-        setOf("android.html", "android-licenses.html"),
-        view.context.assets.list(path.substringBeforeLast('/'))?.toSet(),
-      )
+      assertPackagedNotices(view, path)
       assertTrue(view.context.assets.open(path).bufferedReader().use { it.readText() }.contains("开源软件声明"))
       org.junit.Assert.assertFalse(view.settings.allowFileAccess)
       assertTrue(view.settings.blockNetworkLoads)
-      info.value = info.value.copy(
-        fontScale = 2f,
-        darkTheme = true,
-        pageColors = NoticesColors(
-          background = "151713",
-          card = "1e211b",
-          foreground = "e4e7dd",
-          muted = "b4baaa",
-          outline = "373e31",
-          accent = "aad395",
-          primaryContainer = "354e16",
-          onPrimaryContainer = "cdeda3",
-        ),
-      )
+      changed.value = true
     }
     compose.runOnIdle {
       val uri = Uri.parse(shadowOf(requireNotNull(findWebView(rootView))).lastLoadedUrl)
-      org.junit.Assert.assertEquals("2.0", uri.getQueryParameter("fontScale"))
+      org.junit.Assert.assertEquals("3.0", uri.getQueryParameter("fontScale"))
       org.junit.Assert.assertEquals("dark", uri.getQueryParameter("theme"))
       org.junit.Assert.assertEquals("151713", uri.getQueryParameter("bg"))
       org.junit.Assert.assertEquals("1e211b", uri.getQueryParameter("card"))
@@ -119,9 +120,9 @@ class AboutNoticesWebViewTest {
           koinInject<AboutEntry>().NoticesScreen(
             page = OpenSourcePage.LIBRARIES,
             anchor = null,
-            appInfo = AboutAppInfo("1.0", "1"),
             onBack = {},
             onNavigate = { page, anchor -> local += page to anchor },
+            onExternalLink = { handler.openUri(it) },
           )
         }
       }
@@ -130,7 +131,7 @@ class AboutNoticesWebViewTest {
       val view = requireNotNull(findWebView(rootView))
       val shadow = shadowOf(view)
       val details = shadow.lastLoadedUrl.substringBefore('?')
-        .replace("android.html", "android-licenses.html") + "#license-MIT"
+        .replace("android.html", "android-license-MIT.html")
       assertTrue(shadow.webViewClient.shouldOverrideUrlLoading(view, webRequest(details)))
       org.junit.Assert.assertEquals(listOf(OpenSourcePage.LICENSES to "license-MIT"), local)
       assertTrue(shadow.webViewClient.shouldOverrideUrlLoading(view, webRequest("https://example.com/project")))
@@ -139,6 +140,45 @@ class AboutNoticesWebViewTest {
       org.junit.Assert.assertEquals(1, local.size)
       org.junit.Assert.assertEquals(1, external.size)
     }
+  }
+
+  @Test fun selectedLicensesKeepTheLicenseTitle() {
+    val selected = mutableStateOf("license-MIT")
+    compose.setContent {
+      rootView = LocalView.current.rootView
+      ComposeAppTheme {
+        koinInject<AboutEntry>().NoticesScreen(
+          page = OpenSourcePage.LICENSES,
+          anchor = selected.value,
+
+          onBack = {},
+          onNavigate = { _, _ -> },
+          onExternalLink = {},
+        )
+      }
+    }
+    compose.onNodeWithText("License").assertExists()
+    compose.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertDoesNotExist()
+    compose.runOnIdle {
+      val view = requireNotNull(findWebView(rootView))
+      shadowOf(view).webViewClient.onPageFinished(view, shadowOf(view).lastLoadedUrl)
+    }
+    compose.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertDoesNotExist()
+    compose.runOnIdle { selected.value = "license-Apache-2.0" }
+    compose.onNodeWithText("License").assertExists()
+    compose.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertDoesNotExist()
+  }
+
+  private fun assertPackagedNotices(view: WebView, path: String) {
+    val packaged = view.context.assets.list(path.substringBeforeLast('/')).orEmpty().toSet()
+    assertTrue("android.html" in packaged)
+    assertTrue("android-license-MIT.html" in packaged)
+    assertTrue(
+      packaged.all {
+        it == "android.html" || it.startsWith("android-license-") || it.startsWith("android-notice-")
+      },
+    )
+    org.junit.Assert.assertFalse("android-licenses.html" in packaged)
   }
 
   @Test fun embeddedListRestoresReadingPositionAfterReturning() {
@@ -152,9 +192,9 @@ class AboutNoticesWebViewTest {
             koinInject<AboutEntry>().NoticesScreen(
               page = OpenSourcePage.LIBRARIES,
               anchor = null,
-              appInfo = AboutAppInfo("1.0", "1"),
               onBack = {},
               onNavigate = { _, _ -> },
+              onExternalLink = {},
             )
           }
         }
@@ -173,6 +213,48 @@ class AboutNoticesWebViewTest {
       org.junit.Assert.assertEquals(250, view.scrollY)
     }
   }
+
+  @Test fun webpageViewportExtendsBehindGestureArea() {
+    lateinit var composeView: View
+    compose.setContent {
+      composeView = LocalView.current
+      rootView = composeView.rootView
+      ComposeAppTheme {
+        koinInject<AboutEntry>().NoticesScreen(
+          page = OpenSourcePage.LIBRARIES,
+          anchor = null,
+          onBack = {},
+          onNavigate = { _, _ -> },
+          onExternalLink = {},
+        )
+      }
+    }
+    compose.runOnIdle {
+      val insets = androidx.core.view.WindowInsetsCompat.Builder()
+        .setInsets(
+          androidx.core.view.WindowInsetsCompat.Type.navigationBars(),
+          androidx.core.graphics.Insets.of(0, 0, 0, 40),
+        )
+        .setVisible(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), true)
+        .build()
+      androidx.core.view.ViewCompat.dispatchApplyWindowInsets(composeView, insets)
+    }
+    val bounds = compose.onNodeWithTag("notices-webview").fetchSemanticsNode().boundsInRoot
+    compose.runOnIdle {
+      org.junit.Assert.assertEquals(composeView.height.toFloat(), bounds.bottom, 0.5f)
+    }
+  }
+
+  private fun changedNoticesColors() = androidx.compose.material3.darkColorScheme(
+    surface = androidx.compose.ui.graphics.Color(0xFF151713),
+    surfaceContainerLow = androidx.compose.ui.graphics.Color(0xFF1E211B),
+    onSurface = androidx.compose.ui.graphics.Color(0xFFE4E7DD),
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFB4BAAA),
+    outlineVariant = androidx.compose.ui.graphics.Color(0xFF373E31),
+    primary = androidx.compose.ui.graphics.Color(0xFFAAD395),
+    primaryContainer = androidx.compose.ui.graphics.Color(0xFF354E16),
+    onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFFCDEDA3),
+  )
 
   private fun findWebView(view: View): WebView? = when (view) {
     is WebView -> view

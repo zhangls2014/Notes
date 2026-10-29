@@ -50,5 +50,5 @@ interface EmailEntry {
    *   宽窗口下列表与详情同屏，详情一侧不该有返回键；只有详情独占窗口时才有意义
    */
   @Composable
-  fun DetailScreen(emailId: Long, onBack: () -> Unit)
+  fun DetailScreen(emailId: Long, onBack: () -> Unit, onClose: (() -> Unit)?)
 }

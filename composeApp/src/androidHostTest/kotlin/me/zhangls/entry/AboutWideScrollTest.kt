@@ -13,7 +13,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.dp
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.After
@@ -37,6 +36,7 @@ class AboutWideScrollTest {
 
   @Before fun start() {
     initKoin(null)
+    provideAboutAppInfo()
   }
 
   @After fun stop() {
@@ -55,7 +55,7 @@ class AboutWideScrollTest {
     compose.setContent {
       Box(Modifier.requiredSize(1000.dp, 400.dp).testTag("about-window")) {
         ComposeAppTheme {
-          koinInject<AboutEntry>().Screen(AboutAppInfo("1.0", "1"), onBack = {}, onOpenSource = {})
+          koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = {})
         }
       }
     }

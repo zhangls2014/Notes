@@ -1,12 +1,9 @@
-package me.zhangls.entry
+package me.zhangls.about
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import me.zhangls.about.api.NoticesColors
-import me.zhangls.entry.util.AppInfo
-import me.zhangls.entry.util.toAboutAppInfo
-import me.zhangls.entry.util.toNoticesColors
+import me.zhangls.framework.AppInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -40,14 +37,14 @@ class AboutAppInfoTest {
         ),
         colors,
       )
-      assertEquals(colors, appInfo("1.0", "1").toAboutAppInfo(pageColors = colors).pageColors)
+      assertEquals(colors, NoticesAppearance(pageColors = colors).pageColors)
     }
   }
 
   @Test fun noticesKeepCurrentAppearanceWithoutAHostedUrl() {
     for (scale in listOf(1f, 1.5f, 2f)) {
       for (dark in listOf(false, true)) {
-        val info = appInfo("1.0", "1").toAboutAppInfo(scale, dark)
+        val info = NoticesAppearance(fontScale = scale, darkTheme = dark)
         assertEquals(scale, info.fontScale)
         assertEquals(dark, info.darkTheme)
       }

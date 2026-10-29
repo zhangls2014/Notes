@@ -11,7 +11,7 @@ import me.zhangls.data.model.EmailDraft
 import me.zhangls.data.model.EmailModel
 import me.zhangls.data.repository.CommonRepository
 import me.zhangls.data.repository.EmailsRepository
-import me.zhangls.entry.util.AppInfo
+import me.zhangls.framework.AppInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

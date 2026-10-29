@@ -12,8 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.viewinterop.AndroidView
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.OpenSourcePage
 import notes.feature.about.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -27,23 +27,24 @@ private class ScrollRestoration(var loading: Boolean = true, var pendingY: Int =
 internal actual fun NoticesWebView(
   page: OpenSourcePage,
   anchor: String?,
-  appInfo: AboutAppInfo,
+  appearance: NoticesAppearance,
   onNavigate: (OpenSourcePage, String?) -> Unit,
   onExternalLink: (String) -> Unit,
   onError: () -> Unit,
   modifier: Modifier,
+  bottomInset: Dp,
 ) {
   val libraries = Res.getUri("files/open-source/android.html")
-  val licenses = Res.getUri("files/open-source/android-licenses.html")
-  val currentPage = rememberUpdatedState(page)
+  val currentSelection = rememberUpdatedState(LocalNoticesLink(page, anchor))
   val navigate = rememberUpdatedState(onNavigate)
   val external = rememberUpdatedState(onExternalLink)
   val failed = rememberUpdatedState(onError)
+  val inset = rememberUpdatedState(bottomInset.value)
   val savedY = rememberSaveable { mutableIntStateOf(0) }
   val restoration = remember { ScrollRestoration() }
-  val uri = Uri.parse(if (page == OpenSourcePage.LIBRARIES) libraries else licenses).buildUpon()
-    .apply { appInfo.noticesAppearanceParameters().forEach { (name, value) -> appendQueryParameter(name, value) } }
-    .fragment(anchor).build().toString()
+  val uri = Uri.parse(noticesPageUri(libraries, page, anchor)).buildUpon()
+    .apply { appearance.noticesAppearanceParameters().forEach { (name, value) -> appendQueryParameter(name, value) } }
+    .build().toString()
   AndroidView(
     modifier = modifier,
     factory = { context ->
@@ -59,14 +60,15 @@ internal actual fun NoticesWebView(
         }
         webViewClient = object : WebViewClient() {
           override fun onPageFinished(view: WebView, url: String) {
+            view.applyBottomContentInset(inset.value)
             if (restoration.loading && restoration.pendingY > 0) view.scrollTo(0, restoration.pendingY)
             restoration.loading = false
           }
 
           override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val target = request.url.toString()
-            val local = localNoticesLink(target, libraries, licenses)
-            if (local != null && local.page == currentPage.value) return false
+            val local = localNoticesLink(target, libraries)
+            if (local != null && local == currentSelection.value) return false
             if (local != null) {
               navigate.value(local.page, local.anchor)
             } else if (request.isForMainFrame && isExternalNoticesLink(target)) {
@@ -82,6 +84,7 @@ internal actual fun NoticesWebView(
       }
     },
     update = { view ->
+      view.applyBottomContentInset(inset.value)
       if (view.tag != uri) {
         restoration.pendingY = savedY.intValue
         restoration.loading = true

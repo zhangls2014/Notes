@@ -83,6 +83,10 @@ internal class NavHandler(private val state: AppNavigationState, private val isL
     // 显式导航到 Tab 根（如深链）回到根；点击导航栏则用 selectTab 恢复原栈。
     if (destination is TabDestination) {
       while (backStack.size > 1) backStack.removeLastOrNull()
+    } else if (destination.isHomeEmailDetail() && backStack.lastOrNull().isHomeEmailDetail()) {
+      backStack[backStack.lastIndex] = destination
+    } else if (destination.isNoticesDetail() && backStack.lastOrNull().isNoticesDetail()) {
+      backStack[backStack.lastIndex] = destination
     } else if (backStack.lastOrNull() != destination) {
       backStack.add(destination)
     }
@@ -114,3 +118,19 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
 
 private fun Destination.guardedByLogin(isLogin: Boolean): Destination =
   if (this is RequireLogin && !isLogin) LoginDestination(redirectTo = this) else this
+
+private fun NavKey?.isNoticesDetail(): Boolean = this is OpenSourceNoticesDestination &&
+  (page == me.zhangls.about.api.OpenSourcePage.LICENSES || projectUrl != null)
+
+private fun Any?.isHomeEmailDetail(): Boolean = this is EmailDetailDestination && scene == EmailListScene.Home
+
+/** Finish only the original close request, even if another Tab is now active. */
+internal fun completePaneClose(stack: MutableList<NavKey>, detail: NavKey?) {
+  if (stack.size > 1 && stack.lastOrNull() == detail) stack.removeLastOrNull()
+}
+
+/** Closing a Favorites pane dismisses its whole detail history; Back still pops one entry. */
+internal fun emailDetailCloseEffect(detail: EmailDetailDestination): NavEffect = when (detail.scene) {
+  EmailListScene.Home -> NavEffect.Popup
+  EmailListScene.Favorites -> NavEffect.Navigate(FavoritesDestination)
+}

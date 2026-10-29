@@ -101,8 +101,16 @@ def metadata(coordinate):
     }
 
 
-def render_page(platform, items, license_directory, *, details=False):
+def render_page(platform, items, license_directory, *, details=False, selected=None):
     title = {"android": "Android", "ios": "iOS"}[platform]
+
+    def localized(chinese, english):
+        return f'<span data-zh="{escape(chinese, quote=True)}" data-en="{escape(english, quote=True)}">{escape(english)}</span>'
+
+    source_label = localized("项目来源", "Project source")
+    notices_label = localized("版权与附加声明", "Copyright and notices")
+    licenses_label = localized("许可证全文", "License texts")
+    libraries_label = localized("开源组件", "Libraries")
     groups = {}
     used_licenses = set()
     notices_by_id = {}
@@ -113,42 +121,61 @@ def render_page(platform, items, license_directory, *, details=False):
         url = item["url"]
         if urlparse(url).scheme not in ("https", "http") or not urlparse(url).netloc:
             raise ValueError("Invalid upstream project URL: " + url)
-        links = " ".join(f'<a data-font-scale class="button" href="{platform}-licenses.html#license-{escape(value)}">{escape(value)}</a>' for value in item["licenses"])
+        links = " ".join(f'<a data-font-scale class="button" href="{platform}-license-{escape(value)}.html">{escape(value)}</a>' for value in item["licenses"])
         notice_links = []
         for text in item["notices"]:
             notice_id = sha256(text.encode("utf-8")).hexdigest()[:16]
             notices_by_id[notice_id] = text
-            notice_links.append(f'<a data-font-scale class="button" href="{platform}-licenses.html#notice-{notice_id}">版权与附加声明 / Notices</a>')
+            notice_links.append(f'<a data-font-scale class="button" href="{platform}-notice-{notice_id}.html">{notices_label}</a>')
         notices = " ".join(notice_links)
         group = item["coordinate"].split(":", 1)[0]
-        groups.setdefault(group, []).append(f'<div class="module"><h4>{escape(item["name"])}</h4><p class="coordinate">{escape(item["coordinate"])}</p><div class="actions">{links}<a class="button" href="{escape(url, quote=True)}">项目来源 / Source</a>{notices}</div></div>')
+        groups.setdefault(group, []).append(f'<div class="module"><h4>{escape(item["name"])}</h4><p class="coordinate">{escape(item["coordinate"])}</p><div class="actions">{links}<a class="button" href="{escape(url, quote=True)}">{source_label}</a>{notices}</div></div>')
     sections = [f'<article><h3>{escape(group)}</h3>{"".join(modules)}</article>' for group, modules in groups.items()]
     full_texts = "".join(
         f'<section id="license-{escape(value)}"><h3>{escape(value)}</h3><pre>{escape((license_directory / (value + ".txt")).read_text(encoding="utf-8"))}</pre></section>'
         for value in sorted(used_licenses)
     )
     full_notices = "".join(
-        f'<section id="notice-{key}"><h3>版权与附加声明 {index}</h3><pre>{escape(text)}</pre></section>'
+        f'<section id="notice-{key}"><h3>{notices_label} {index}</h3><pre>{escape(text)}</pre></section>'
         for index, (key, text) in enumerate(notices_by_id.items(), start=1)
     )
     heading = "许可证与版权声明" if details else "开源软件声明"
     if details:
-        navigation = f'<a data-font-scale class="button" href="{platform}.html">返回组件列表</a>'
-        content = f'<h2 id="licenses">许可证全文 / License texts</h2>{full_texts}<h2>版权与附加声明 / Notices</h2>{full_notices}'
+        content = f'<h2 id="licenses">{licenses_label}</h2>{full_texts}<h2>{notices_label}</h2>{full_notices}'
     else:
-        navigation = f'<a href="#libraries">开源软件 · {len(groups)}</a><a data-font-scale href="{platform}-licenses.html#licenses">查看许可证全文</a>'
-        content = f'<h2 id="libraries">开源组件 / Libraries</h2>{"".join(sections)}'
+        content = f'<h2 id="libraries">{libraries_label}</h2>{"".join(sections)}'
+    if selected is not None:
+        if selected.startswith("license-"):
+            identifier = selected.removeprefix("license-")
+            if identifier not in used_licenses:
+                raise ValueError("Unknown license: " + identifier)
+            text = (license_directory / (identifier + ".txt")).read_text(encoding="utf-8")
+            label = escape(identifier)
+        else:
+            identifier = selected.removeprefix("notice-")
+            text = notices_by_id[identifier]
+            label = notices_label
+        body_heading = f"<h1>{label}</h1>" if selected.startswith("license-") else ""
+        content = f'<section id="{escape(selected)}">{body_heading}<pre>{escape(text)}</pre></section>'
+    heading_en = "Licenses and copyright notices" if details else "Open-source software notices"
+    heading_label = localized(heading, heading_en)
+    intro = localized(f"摘星的 {title} 版本使用了以下开源软件。感谢这些项目的作者与贡献者。", f"Notes for {title} uses the following open-source software. Thank you to the authors and contributors.")
+    summary = localized(f"本页汇总 {title} 版本相关的开源组件与许可信息，不同版本或发行渠道包含的组件可能有所不同。许可证与附加声明保留上游原文。", f"This page lists open-source components and license information for {title}. Components may vary by version or distribution. License texts and notices are preserved in their original form.")
+    introduction = "" if details else f'<header><p class="eyebrow">NOTES · {title}</p><h1>{heading_label}</h1><p>{intro}</p><p class="muted">{summary}</p></header>'
     return f'''<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>摘星 · {title} {heading}</title>
+<title data-zh="摘星 · {title} {heading}" data-en="Notes · {title} {heading_en}">Notes · {title} {heading_en}</title>
 <script>
 (() => {{
+  const languageHint = new URLSearchParams(location.search).get('lang') || navigator.language || 'en';
+  const language = /^zh(?:-|$)/i.test(languageHint) ? 'zh-CN' : 'en';
+  document.documentElement.lang = language;
   const requested = Number(new URLSearchParams(location.search).get('fontScale') ?? '1');
-  const fontScale = Number.isFinite(requested) && requested >= 1 && requested <= 2 ? requested : 1;
+  const fontScale = Number.isFinite(requested) && requested > 0 ? requested : 1;
   const requestedTheme = new URLSearchParams(location.search).get('theme');
   const theme = requestedTheme === 'light' || requestedTheme === 'dark' ? requestedTheme : null;
   if (theme !== null) document.documentElement.dataset.theme = theme;
@@ -164,6 +191,12 @@ def render_page(platform, items, license_directory, *, details=False):
     }}
   }}
   document.addEventListener('DOMContentLoaded', () => {{
+    for (const node of document.querySelectorAll('[data-en]')) {{
+      node.textContent = node.getAttribute(language === 'zh-CN' ? 'data-zh' : 'data-en');
+    }}
+    for (const node of document.querySelectorAll('nav[aria-label]')) {{
+      node.setAttribute('aria-label', language === 'zh-CN' ? '页面目录' : 'Page navigation');
+    }}
     for (const button of document.querySelectorAll('a.button')) {{
       const release = () => {{ delete button.dataset.pressed; }};
       button.addEventListener('pointerdown', event => {{
@@ -179,6 +212,7 @@ def render_page(platform, items, license_directory, *, details=False):
     for (const link of document.querySelectorAll('a[data-font-scale]')) {{
       const target = new URL(link.getAttribute('href'), location.href);
       target.searchParams.set('fontScale', String(fontScale));
+      target.searchParams.set('lang', language);
       if (theme !== null) target.searchParams.set('theme', theme);
       for (const [name, value] of colors) target.searchParams.set(name, value);
       link.href = target.href;
@@ -194,11 +228,13 @@ def render_page(platform, items, license_directory, *, details=False):
 :root {{ --corner-large:28px; --motion-duration:180ms; --motion-easing:cubic-bezier(.2,0,0,1); }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0; background:var(--bg); color:var(--fg); font:1rem/1.5 system-ui,-apple-system,sans-serif; }}
-main {{ max-width:880px; margin:auto; padding:32px 24px 64px; }}
+main {{ max-width:880px; margin:auto; padding:24px; }}
+main > :first-child {{ margin-top:0; }}
+main > :last-child {{ margin-bottom:0; }}
 header {{ padding:28px; margin-bottom:32px; border-radius:var(--corner-large); background:var(--container); color:var(--on-container); }}
 .eyebrow {{ margin-top:0; font-size:.875rem; line-height:1.428571; font-weight:600; letter-spacing:.04em; }}
 h1 {{ font-size:2rem; line-height:1.25; font-weight:650; margin:12px 0 16px; overflow-wrap:anywhere; }}
-h2 {{ font-size:1.5rem; line-height:1.333333; font-weight:600; margin:32px 0 16px; }}
+h2 {{ overflow-wrap:anywhere; font-size:1.5rem; line-height:1.333333; font-weight:600; margin:32px 0 16px; }}
 h3 {{ font-size:1.375rem; line-height:1.272727; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }}
 h4 {{ font-size:1rem; line-height:1.5; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }}
 .module {{ padding-top:16px; }}
@@ -223,21 +259,15 @@ header .button {{ background:var(--card); color:var(--fg); }}
 header a:focus-visible {{ outline-color:currentColor; }}
 pre {{ white-space:pre-wrap; overflow-wrap:anywhere; font:1rem/1.5 ui-monospace,monospace; margin:16px 0 0; }}
 nav {{ display:flex; align-items:center; flex-wrap:wrap; gap:8px 20px; margin-top:20px; }}
-nav a:not(.button) {{ display:inline-flex; align-items:center; min-height:48px; font-weight:600; }}
-footer {{ margin-top:32px; color:var(--muted); font-size:.875rem; line-height:1.428571; }}
-@media(max-width:400px) {{ main {{ padding:16px 16px 48px; }} header {{ padding:20px; }} article,section {{ padding:16px; }} }}
+nav a:not(.button) {{ max-width:100%; display:inline-flex; align-items:center; min-height:48px; font-weight:600; }}
+@media(max-width:400px) {{ main {{ padding:16px; }} header {{ padding:20px; }} article,section {{ padding:16px; }} }}
 @media(prefers-reduced-motion:reduce) {{ .button::before {{ transition:none; }} }}
 @media print {{ header,article,section {{ break-inside:avoid; }} }}
 </style>
 </head>
 <body><main>
-<header><p class="eyebrow">摘星 NOTES · {title}</p>
-<h1>{heading}</h1><p class="muted" lang="en">Open-source software notices</p>
-<p>摘星的 {title} 版本使用了以下开源软件。感谢这些项目的作者与贡献者。</p>
-<p class="muted">本页汇总 {title} 版本相关的开源组件与许可信息，不同版本或发行渠道包含的组件可能有所不同。许可证与附加声明保留上游原文。</p>
-<nav aria-label="页面目录">{navigation}</nav></header>
+{introduction}
 {content}
-<footer>本声明仅适用于摘星 {title} 版本。各开源项目的权利与使用条件以对应许可证及版权声明为准。</footer>
 </main></body></html>
 '''
 
@@ -280,6 +310,14 @@ def main():
         for details in (False, True):
             filename = f"{platform}{'-licenses' if details else ''}.html"
             page = render_page(platform, items, OUTPUT / "licenses", details=details)
+            (OUTPUT / filename).write_text(page, encoding="utf-8")
+            print(filename)
+        selections = {"license-" + value for item in items for value in item["licenses"]}
+        selections.update("notice-" + sha256(text.encode("utf-8")).hexdigest()[:16]
+                          for item in items for text in item["notices"])
+        for selected in sorted(selections):
+            filename = f"{platform}-{selected}.html"
+            page = render_page(platform, items, OUTPUT / "licenses", details=True, selected=selected)
             (OUTPUT / filename).write_text(page, encoding="utf-8")
             print(filename)
 

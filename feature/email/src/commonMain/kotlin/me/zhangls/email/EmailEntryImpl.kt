@@ -35,10 +35,11 @@ class EmailEntryImpl : EmailEntry {
   }
 
   @Composable
-  override fun DetailScreen(emailId: Long, onBack: () -> Unit) {
+  override fun DetailScreen(emailId: Long, onBack: () -> Unit, onClose: (() -> Unit)?) {
     EmailDetailScreen(
       emailId = emailId,
       onBack = onBack,
+      onClose = onClose,
     )
   }
 }

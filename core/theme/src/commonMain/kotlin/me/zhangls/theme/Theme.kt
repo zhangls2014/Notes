@@ -6,8 +6,12 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+
+/** The resolved theme, including app overrides and system-following mode. */
+val LocalAppDarkTheme = staticCompositionLocalOf { false }
 
 @Composable
 fun ComposeAppTheme(
@@ -26,6 +30,7 @@ fun ComposeAppTheme(
   val density = LocalDensity.current
 
   CompositionLocalProvider(
+    LocalAppDarkTheme provides darkTheme,
     LocalDensity provides if (fontScale == 1F) {
       density
     } else {

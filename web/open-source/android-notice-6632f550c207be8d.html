@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title data-zh="摘星 · Android 许可证与版权声明" data-en="Notes · Android Licenses and copyright notices">Notes · Android Licenses and copyright notices</title>
+<script>
+(() => {
+  const languageHint = new URLSearchParams(location.search).get('lang') || navigator.language || 'en';
+  const language = /^zh(?:-|$)/i.test(languageHint) ? 'zh-CN' : 'en';
+  document.documentElement.lang = language;
+  const requested = Number(new URLSearchParams(location.search).get('fontScale') ?? '1');
+  const fontScale = Number.isFinite(requested) && requested > 0 ? requested : 1;
+  const requestedTheme = new URLSearchParams(location.search).get('theme');
+  const theme = requestedTheme === 'light' || requestedTheme === 'dark' ? requestedTheme : null;
+  if (theme !== null) document.documentElement.dataset.theme = theme;
+  document.documentElement.style.fontSize = `${fontScale * 100}%`;
+  document.documentElement.style.setProperty('--app-font-scale', String(fontScale));
+  const colors = new Map();
+  const params = new URLSearchParams(location.search);
+  for (const name of ['bg', 'card', 'fg', 'muted', 'line', 'accent', 'container', 'on-container']) {
+    const value = params.get(name);
+    if (value !== null && /^[0-9a-f]{6}$/i.test(value)) {
+      colors.set(name, value);
+      document.documentElement.style.setProperty(`--${name}`, `#${value}`);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    for (const node of document.querySelectorAll('[data-en]')) {
+      node.textContent = node.getAttribute(language === 'zh-CN' ? 'data-zh' : 'data-en');
+    }
+    for (const node of document.querySelectorAll('nav[aria-label]')) {
+      node.setAttribute('aria-label', language === 'zh-CN' ? '页面目录' : 'Page navigation');
+    }
+    for (const button of document.querySelectorAll('a.button')) {
+      const release = () => { delete button.dataset.pressed; };
+      button.addEventListener('pointerdown', event => {
+        if (event.isPrimary && event.button === 0) button.dataset.pressed = 'true';
+      }, { passive: true });
+      for (const event of ['pointerup', 'pointercancel', 'pointerleave', 'blur', 'keyup']) {
+        button.addEventListener(event, release, { passive: true });
+      }
+      button.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.repeat) button.dataset.pressed = 'true';
+      }, { passive: true });
+    }
+    for (const link of document.querySelectorAll('a[data-font-scale]')) {
+      const target = new URL(link.getAttribute('href'), location.href);
+      target.searchParams.set('fontScale', String(fontScale));
+      target.searchParams.set('lang', language);
+      if (theme !== null) target.searchParams.set('theme', theme);
+      for (const [name, value] of colors) target.searchParams.set(name, value);
+      link.href = target.href;
+    }
+  });
+})();
+</script>
+<style>
+:root { color-scheme:light dark; --bg:#f9faef; --card:#f3f4e9; --fg:#1a1c16; --muted:#44483d; --line:#c5c8ba; --accent:#4c662b; --container:#cdeda3; --on-container:#354e16; }
+@media(prefers-color-scheme:dark) { :root { --bg:#12140e; --card:#1a1c16; --fg:#e2e3d8; --muted:#c5c8ba; --line:#44483d; --accent:#b1d18a; --container:#354e16; --on-container:#cdeda3; } }
+:root[data-theme="light"] { color-scheme:light; --bg:#f9faef; --card:#f3f4e9; --fg:#1a1c16; --muted:#44483d; --line:#c5c8ba; --accent:#4c662b; --container:#cdeda3; --on-container:#354e16; }
+:root[data-theme="dark"] { color-scheme:dark; --bg:#12140e; --card:#1a1c16; --fg:#e2e3d8; --muted:#c5c8ba; --line:#44483d; --accent:#b1d18a; --container:#354e16; --on-container:#cdeda3; }
+:root { --corner-large:28px; --motion-duration:180ms; --motion-easing:cubic-bezier(.2,0,0,1); }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:1rem/1.5 system-ui,-apple-system,sans-serif; }
+main { max-width:880px; margin:auto; padding:24px; }
+main > :first-child { margin-top:0; }
+main > :last-child { margin-bottom:0; }
+header { padding:28px; margin-bottom:32px; border-radius:var(--corner-large); background:var(--container); color:var(--on-container); }
+.eyebrow { margin-top:0; font-size:.875rem; line-height:1.428571; font-weight:600; letter-spacing:.04em; }
+h1 { font-size:2rem; line-height:1.25; font-weight:650; margin:12px 0 16px; overflow-wrap:anywhere; }
+h2 { overflow-wrap:anywhere; font-size:1.5rem; line-height:1.333333; font-weight:600; margin:32px 0 16px; }
+h3 { font-size:1.375rem; line-height:1.272727; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }
+h4 { font-size:1rem; line-height:1.5; font-weight:600; margin:0 0 8px; overflow-wrap:anywhere; }
+.module { padding-top:16px; }
+.module + .module { margin-top:20px; border-top:1px solid var(--line); }
+p { margin:8px 0; }
+.muted,.coordinate { color:var(--muted); }
+.muted,.coordinate,.button { font-size:.875rem; line-height:1.428571; }
+header .muted { color:inherit; }
+.coordinate { font-family:ui-monospace,monospace; overflow-wrap:anywhere; }
+article,section { background:var(--card); border-radius:var(--corner-large); padding:24px; margin:16px 0; }
+a { color:var(--accent); text-underline-offset:3px; overflow-wrap:anywhere; }
+a:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+.actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:4px 0; }
+.button { position:relative; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; max-width:100%; min-height:48px; padding:12px 20px; border:0; border-radius:calc(1.428571em + 12px); background:var(--container); color:var(--on-container); font-weight:600; text-decoration:none; text-align:center; -webkit-tap-highlight-color:transparent; }
+.button::before { content:""; position:absolute; inset:0; border-radius:inherit; background:currentColor; opacity:0; pointer-events:none; transition:opacity var(--motion-duration) var(--motion-easing); }
+.actions .button { white-space:normal; overflow-wrap:anywhere; }
+@media(hover:hover) { .button:hover::before { opacity:.08; } }
+.button:focus-visible::before { opacity:.1; }
+.button[data-pressed]::before { opacity:.1; }
+header a { color:inherit; }
+header .button { background:var(--card); color:var(--fg); }
+header a:focus-visible { outline-color:currentColor; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; font:1rem/1.5 ui-monospace,monospace; margin:16px 0 0; }
+nav { display:flex; align-items:center; flex-wrap:wrap; gap:8px 20px; margin-top:20px; }
+nav a:not(.button) { max-width:100%; display:inline-flex; align-items:center; min-height:48px; font-weight:600; }
+@media(max-width:400px) { main { padding:16px; } header { padding:20px; } article,section { padding:16px; } }
+@media(prefers-reduced-motion:reduce) { .button::before { transition:none; } }
+@media print { header,article,section { break-inside:avoid; } }
+</style>
+</head>
+<body><main>
+
+<section id="notice-6632f550c207be8d"><pre>Copyright (c) 2004-2023 QOS.ch
+All rights reserved.
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+&quot;Software&quot;), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense, and/or sell  copies of  the Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following conditions:
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  &quot;AS  IS&quot;, WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+</pre></section>
+</main></body></html>

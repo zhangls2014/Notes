@@ -17,9 +17,7 @@ import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.SceneStrategy
-import androidx.navigation3.scene.SinglePaneSceneStrategy
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.main.AppShell
 import me.zhangls.main.api.TabDestination
@@ -83,7 +81,7 @@ internal fun LayeredNavDisplay(
       key(displayKey) {
         DeviceCornerNavDisplay(
           entries = overlays.toImmutableList(),
-          sceneStrategies = remember { persistentListOf(SinglePaneSceneStrategy<NavKey>()) },
+          sceneStrategies = sceneStrategies,
           onBack = { if (fullscreenEntries.isNotEmpty()) onBack() },
           // Consume repeated back presses until the outgoing page has finished fading.
           backEnabled = covered,

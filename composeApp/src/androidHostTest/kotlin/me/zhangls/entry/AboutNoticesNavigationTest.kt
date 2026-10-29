@@ -26,7 +26,6 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.aboutNavEntry
-import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.framework.nav.NavEffect
@@ -57,6 +56,7 @@ class AboutNoticesNavigationTest {
 
   @Before fun start() {
     initKoin(null)
+    provideAboutAppInfo()
   }
 
   @After fun stop() {
@@ -76,7 +76,10 @@ class AboutNoticesNavigationTest {
       rootView = LocalView.current.rootView
       val provider = entryProvider<NavKey> {
         entry<SettingsDestination> { Box(Modifier.fillMaxSize()) }
-        aboutNavEntry(appInfo = { AboutAppInfo("1.0", "1") }) { effect ->
+        aboutNavEntry(
+          paneMetadata = ::noticesPaneMetadata,
+          embedProject = { false },
+        ) { effect ->
           when (effect) {
             is NavEffect.Navigate -> stack.add(effect.dest)
             NavEffect.Popup -> stack.removeLast()

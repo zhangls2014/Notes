@@ -4,7 +4,7 @@ This directory contains dependency export and static notice generation tools onl
 Use English, lowercase hyphenated script names. Generated dependency inventories and
 HTML in `web/open-source/` are the only checked-in webpage source used for packaging.
 The generator updates this directory only. Do not copy generated pages into `src/`.
-Gradle Sync tasks prepare each platform's two pages under
+Gradle Sync tasks prepare each platform's list and individual detail pages under
 `feature/about/build/generated/open-source/<platform>Main/composeResources/files/open-source/`.
 Compose Resources consumes these task outputs through `customDirectory`; build outputs
 are ignored by Git. Temporary Gradle reports belong in `build/`.
@@ -54,14 +54,23 @@ For deterministic offline regeneration from the checked-in inventory:
 python3 tools/open-source/generate.py
 ```
 
-`dependencies.json` deduplicates preserved notice text by SHA-256. The two component
-lists link to their corresponding `-licenses.html` pages for full license and NOTICE
-text. The generator updates the four checked-in HTML files in `web/open-source/`.
-Android and iOS builds sync only their own two pages into generated Compose resources. They inline their own styles and a small script that applies
-the app-only font scale, resolved light/dark theme and eight Material colors across local navigation. The Node test
-executes the generated script in isolated DOM fixtures, including default, 1x,
-1.5x, 2x and invalid inputs combined with explicit/default/invalid themes and valid/invalid palettes (1,920 cases across four pages and three URL origins). It does not verify browser rendering or native font
-metrics. No Python or Node packages need installation.
+`dependencies.json` deduplicates preserved notice text by SHA-256. Component
+buttons link directly to `<platform>-license-<id>.html` or
+`<platform>-notice-<hash>.html`, each containing exactly one original text without
+intro card or webpage navigation. List intro cards contain no navigation links.
+The generator also retains the old aggregate `-licenses.html` files pending
+authorized cleanup; those files are neither linked nor packaged. Android and iOS
+builds sync only their own list and individual details into Compose resources.
+
+Each page inlines styling and a small script applying app language, font scale,
+resolved theme and eight Material colors across local navigation. UI text supports
+Simplified Chinese and English; app URL language takes priority over browser
+language, unsupported languages fall back to English, and upstream texts remain
+verbatim. The Node test discovers all generated HTML and executes isolated DOM
+fixtures: 10 font-scale inputs × 4 themes × 3 origins × 4 palettes per page, plus
+8 language selection and link-retention cases per page. At 20 current files this
+is 9,600 appearance/navigation and 160 language cases. These tests do not verify
+browser rendering or native font metrics. No Python or Node packages are required.
 
 Ordinary builds copy HTML without invoking Python or refreshing dependencies. Gradle
 tracks source HTML as inputs and reuses unchanged Sync outputs. Each Sync destination

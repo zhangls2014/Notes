@@ -4,6 +4,7 @@ import json
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
+from hashlib import sha256
 from unittest.mock import patch
 from html.parser import HTMLParser
 
@@ -19,7 +20,7 @@ class NoticePageTest(unittest.TestCase):
                     "licenses": ["MIT"], "notices": ["Original copyright notice"]}
             for platform in ("android", "ios"):
                 page = render_page(platform, [item], licenses)
-                self.assertIn(f'class="button" href="{platform}-licenses.html#license-MIT"', page)
+                self.assertIn(f'class="button" href="{platform}-license-MIT.html"', page)
                 self.assertIn('class="button" href="https://example.com"', page)
                 actions = page.split('<div class="actions">', 1)[1].split('</div>', 1)[0]
                 self.assertEqual(3, actions.count('class="button"'))
@@ -31,8 +32,28 @@ class NoticePageTest(unittest.TestCase):
                 self.assertIn('id="license-MIT"', details)
                 self.assertIn("Complete license text", details)
                 self.assertIn("Original copyright notice", details)
-                self.assertIn(f'href="{platform}.html"', details)
+                self.assertNotIn("<header>", details)
+                self.assertNotIn("<nav", page)
                 self.assertNotIn("<article>", details)
+
+    def test_selected_detail_contains_only_selected_original_text(self):
+        with tempfile.TemporaryDirectory() as directory:
+            licenses = Path(directory)
+            (licenses / "MIT.txt").write_text("MIT original text")
+            (licenses / "Apache-2.0.txt").write_text("Apache original text")
+            items = [{"coordinate": "example:core:1", "name": "Core", "url": "https://example.com",
+                      "licenses": ["MIT", "Apache-2.0"], "notices": ["First notice", "Second notice"]}]
+            for selected, expected in [("license-MIT", "MIT original text"),
+                                       ("notice-" + sha256(b"Second notice").hexdigest()[:16], "Second notice")]:
+                detail = render_page("android", items, licenses, details=True, selected=selected)
+                self.assertEqual(1, detail.count("<pre>"))
+                self.assertIn("<pre>" + expected + "</pre>", detail)
+                self.assertNotIn("<header>", detail)
+                self.assertNotIn("<nav", detail)
+                if selected.startswith("notice-"):
+                    self.assertNotIn("<h1>", detail)
+                self.assertNotIn("First notice", detail)
+                self.assertNotIn("Apache original text", detail)
 
     def test_same_package_modules_share_one_card_without_losing_declarations(self):
         class Cards(HTMLParser):
@@ -61,7 +82,7 @@ class NoticePageTest(unittest.TestCase):
             cards = Cards()
             cards.feed(page)
             self.assertEqual(2, cards.count)
-            self.assertIn("开源软件 · 2", page)
+            self.assertIn("Libraries</span>", page)
             for item in items:
                 self.assertIn(item["coordinate"], page)
                 self.assertIn(item["url"], page)
@@ -94,7 +115,9 @@ class NoticePageTest(unittest.TestCase):
                 main()
             inventory = json.loads((output / "dependencies.json").read_text())
             self.assertEqual(
-                {"android.html", "android-licenses.html", "ios.html", "ios-licenses.html"},
+                {"android.html", "android-licenses.html", "ios.html", "ios-licenses.html",
+                 "android-license-Apache-2.0.html", "ios-license-Apache-2.0.html",
+                 "android-notice-" + sha256(b"Android-specific notice").hexdigest()[:16] + ".html"},
                 {file.name for file in output.glob("*.html")},
             )
             self.assertFalse((root / "feature/about/src").exists())

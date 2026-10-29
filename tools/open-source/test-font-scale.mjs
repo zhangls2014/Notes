@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import vm from 'node:vm';
 
 const colorNames = ['bg', 'card', 'fg', 'muted', 'line', 'accent', 'container', 'on-container'];
@@ -11,26 +11,65 @@ const paletteCases = [
   [{ bg: '123456', card: '#ffffff', fg: 'red', muted: '12345', line: '1234567', accent: 'red;display:none', container: '#fff', 'on-container': '1; color:red' }, { bg: '123456' }],
 ];
 
-for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
+const pages = readdirSync(new URL('../../web/open-source/', import.meta.url)).filter(name => name.endsWith('.html')).map(name => name.slice(0, -5));
+for (const page of pages) {
   const html = readFileSync(new URL(`../../web/open-source/${page}.html`, import.meta.url), 'utf8');
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script, `${page} must include the font scale script`);
   assert.ok(script.includes("get('theme')"), 'Page must read the app theme');
   assert.ok(html.indexOf('<script>') < html.indexOf('<body>'), 'Apply the scale before body rendering');
   const scaleLinks = [...html.matchAll(/<a data-font-scale class="button" href="([^"]+)"|<a data-font-scale href="([^"]+)"/g)];
-  assert.ok(scaleLinks.length > 0, 'List and detail navigation must retain the font scale');
+  if (page === 'android' || page === 'ios') assert.ok(scaleLinks.length > 0, 'List links must retain appearance');
   const anchors = [...html.matchAll(/<a\b([^>]+)>/g)];
   for (const [, attributes] of anchors) {
     const href = attributes.match(/href="([^"]+)"/)?.[1];
     if (/^https?:/.test(href)) assert.ok(!attributes.includes('data-font-scale'), 'Do not modify external project links');
-    if (/^(android|ios)(-licenses)?\.html/.test(href)) assert.ok(attributes.includes('data-font-scale'), 'Every local page link retains the font scale');
+    if (/^(android|ios).*\.html/.test(href)) assert.ok(attributes.includes('data-font-scale'), 'Every local page link retains the font scale');
+  }
+
+  const translatedNodes = [...html.matchAll(/<(?:span|title) data-zh="([^"]*)" data-en="([^"]*)">/g)];
+  assert.ok(translatedNodes.length >= 1, 'Page title must provide both translations');
+  assert.ok(!html.includes('<footer>'), 'List and detail pages omit the footer disclaimer');
+  for (const [requested, browser, expected] of [
+    ['zh-CN', 'en', 'zh-CN'], ['en', 'zh-CN', 'en'],
+    [null, 'zh-CN', 'zh-CN'], [null, 'en-US', 'en'],
+    [null, 'fr-FR', 'en'], ['invalid', 'zh-CN', 'en'],
+    ['zh', 'en', 'zh-CN'], ['en-GB', 'zh-CN', 'en'],
+  ]) {
+    const location = new URL(`https://example.com/${page}.html`);
+    if (requested !== null) location.searchParams.set('lang', requested);
+    const root = { style: { setProperty() {} }, dataset: {} };
+    const nodes = translatedNodes.map(([, zh, en]) => ({
+      getAttribute: name => name === 'data-zh' ? zh : en,
+    }));
+    const nav = { setAttribute(name, value) { this[name] = value; } };
+    const local = { href: 'ios-licenses.html#license-MIT', getAttribute() { return this.href; } };
+    let ready;
+    const document = {
+      documentElement: root,
+      addEventListener: (_, callback) => { ready = callback; },
+      querySelectorAll(selector) {
+        if (selector === '[data-en]') return nodes;
+        if (selector === 'nav[aria-label]') return [nav];
+        if (selector === 'a[data-font-scale]') return [local];
+        if (selector === 'a.button') return [];
+        assert.fail(`Unexpected selector: ${selector}`);
+      },
+    };
+    vm.runInNewContext(script, { document, location, URL, URLSearchParams, navigator: { language: browser } });
+    ready();
+    assert.equal(root.lang, expected);
+    nodes.forEach((node, index) => assert.equal(node.textContent, translatedNodes[index][expected === 'zh-CN' ? 1 : 2]));
+    assert.equal(nav['aria-label'], expected === 'zh-CN' ? '页面目录' : 'Page navigation');
+    assert.equal(new URL(local.href).searchParams.get('lang'), expected);
+    assert.equal(new URL(local.href).hash, '#license-MIT');
   }
   for (const base of ['https://example.com/notices/', 'file:///android_asset/notices/', 'file:///app/resources/']) {
     for (const theme of [null, 'light', 'dark', 'invalid']) {
       for (const [query, expectedScale] of [
         ['', 1], ['?fontScale=1', 1], ['?fontScale=1.5', 1.5], ['?fontScale=2', 2],
         ['?fontScale=', 1], ['?fontScale=NaN', 1], ['?fontScale=Infinity', 1],
-        ['?fontScale=-1', 1], ['?fontScale=0.5', 1], ['?fontScale=3', 1],
+        ['?fontScale=-1', 1], ['?fontScale=0.5', 0.5], ['?fontScale=3', 3],
       ]) {
         for (const [palette, expected = palette] of paletteCases) {
           const location = new URL(`${base}${page}.html${query}`);
@@ -57,12 +96,13 @@ for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
             documentElement: root,
             addEventListener(event, callback) { assert.equal(event, 'DOMContentLoaded'); onReady = callback; },
             querySelectorAll(selector) {
+              if (selector === '[data-en]' || selector === 'nav[aria-label]') return [];
               if (selector === 'a.button') return [actionButton];
               assert.equal(selector, 'a[data-font-scale]');
               return [...links, extra];
             },
           };
-          vm.runInNewContext(script, { document, location, URL, URLSearchParams });
+          vm.runInNewContext(script, { document, location, URL, URLSearchParams, navigator: { language: 'en' } });
           assert.equal(root.style.fontSize, `${expectedScale * 100}%`);
           assert.equal(root.style['--app-font-scale'], String(expectedScale));
           const expectedTheme = theme === 'light' || theme === 'dark' ? theme : undefined;
@@ -100,7 +140,7 @@ for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
               assert.equal(target.searchParams.get(name), expected[name] ?? null);
             }
           }
-          assert.equal(new URL(extra.href).searchParams.get('lang'), 'zh');
+          assert.equal(new URL(extra.href).searchParams.get('lang'), 'en');
           assert.equal(new URL(extra.href).hash, '#license-MIT');
           assert.equal(external.href, 'https://external.example/project');
         }
@@ -108,4 +148,6 @@ for (const page of ['android', 'ios', 'android-licenses', 'ios-licenses']) {
     }
   }
 }
-console.log('Appearance and navigation: 4 pages × 10 scales × 4 themes × 3 origins × 4 palettes passed');
+console.log(`Appearance and navigation: ${pages.length} pages × 10 scales × 4 themes × 3 origins × 4 palettes passed`);
+
+console.log(`Localization: ${pages.length} pages × 8 language cases passed`);
