@@ -114,6 +114,12 @@ fun AppNavHost(
   val embedProject = rememberUpdatedState(
     LocalPaneScaffoldDirective.current.maxHorizontalPartitions > 1,
   )
+  var homeDraftVisible by rememberHomeDraftVisibility()
+  KeepHomeDraftVisible(
+    backStack = backStack,
+    singlePane = LocalPaneScaffoldDirective.current.maxHorizontalPartitions == 1,
+    draftVisible = homeDraftVisible,
+  )
   val scope = rememberCoroutineScope()
   var detailClosing by remember { mutableStateOf(false) }
   var closingRoot by remember { mutableStateOf<NavKey?>(null) }
@@ -167,6 +173,7 @@ fun AppNavHost(
       val provider = entryProvider {
         mainNavEntries(
           homeMetadata = homeEmailListMetadata,
+          onDraftVisibilityChange = { homeDraftVisible = it },
           // 详情是返回栈里的一个真实条目，"哪封邮件正被打开"因此可以从返回栈派生。
           // 放在参数里而不是让列表自己去查：返回栈在宿主手里，列表不该知道导航结构。
           openedDetail = stack.lastOrNull() as? EmailDetailDestination,

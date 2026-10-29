@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -32,8 +33,12 @@ internal fun EmailList(
   navigateToDetail: (Long) -> Unit,
   openedEmailId: Long? = null,
   onProfileClick: () -> Unit = {},
+  onDraftVisibilityChange: (Boolean) -> Unit = {},
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
+  if (!isFavorite) {
+    SideEffect { onDraftVisibilityChange(state.isEmailDraftVisible) }
+  }
   val emailListState = rememberLazyListState()
   val emailItems = if (isFavorite) {
     viewModel.emailFavoritePaging.collectAsLazyPagingItems()

@@ -23,7 +23,12 @@ import org.koin.compose.viewmodel.koinViewModel
  * @param navigateToDetail 点击邮件后的回调
  */
 @Composable
-fun HomeScreen(openedEmailId: Long? = null, navigateToDetail: (Long) -> Unit = {}, onProfileClick: () -> Unit = {}) {
+fun HomeScreen(
+  openedEmailId: Long? = null,
+  navigateToDetail: (Long) -> Unit = {},
+  onProfileClick: () -> Unit = {},
+  onDraftVisibilityChange: (Boolean) -> Unit = {},
+) {
   // key 与收藏页区分。两个 Tab 现在各自是独立目的地、各有 ViewModelStore，所以
   // "一屏一实例"本就成立；显式 key 让它不依赖装饰器的实现细节。
   val viewModel: EmailViewModel = koinViewModel(key = EmailViewModel.KEY_HOME)
@@ -34,5 +39,6 @@ fun HomeScreen(openedEmailId: Long? = null, navigateToDetail: (Long) -> Unit = {
     openedEmailId = openedEmailId,
     navigateToDetail = navigateToDetail,
     onProfileClick = onProfileClick,
+    onDraftVisibilityChange = onDraftVisibilityChange,
   )
 }

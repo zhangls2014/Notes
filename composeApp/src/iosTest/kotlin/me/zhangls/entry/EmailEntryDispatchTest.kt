@@ -31,7 +31,14 @@ class EmailEntryDispatchTest {
       // A headless composition has no platform host. Reaching that boundary proves that
       // Native dispatched into the real feature instead of an IrLinkageError stub.
       val screens: List<@Composable () -> Unit> = listOf(
-        { entry.HomeScreen(openedEmailId = null, navigateToDetail = {}, onProfileClick = {}) },
+        {
+          entry.HomeScreen(
+            openedEmailId = null,
+            navigateToDetail = {},
+            onProfileClick = {},
+            onDraftVisibilityChange = {},
+          )
+        },
         { entry.FavoritesScreen(openedEmailId = 42L, navigateToDetail = {}) },
         { entry.DetailScreen(emailId = 42L, onBack = {}, onClose = {}) },
       )

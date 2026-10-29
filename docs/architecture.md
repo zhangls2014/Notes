@@ -212,6 +212,8 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 `AppNavigationState` 使用 `rememberNavBackStack` 分别保存各 Tab 栈和当前根选择。各栈的 `rememberDecoratedNavEntries`、SaveableStateHolder 和 ViewModelStore 装饰器在内容切换区域外持续存在；非活动 Tab 不绘制，但保留 Entry 的可保存状态及 ViewModel。邮件首次加载指示在列表外绘制，避免单个占位条目把待恢复滚动索引重置为 0。滚动位置可随保存状态恢复；邮件多选等 ViewModel 状态仅在当前进程保留，不启用敏感/大型 MVI 状态的跨进程保存。退出登录清空全部栈并释放对应 Entry；登录成功释放登录 Entry。
 
+写信弹层仍由首页邮件列表及其 ViewModel 持有。Email Entry 通过 `onDraftVisibilityChange` 将可见状态通知组合根，组合根仅将这个布尔标记纳入可保存状态，以跨越折叠触发的 Activity 重建；窗口收窄到 directive 仅允许一个水平窗格且草稿展开时，组合根移除首页栈顶的邮件详情，使首页与写信弹层保持可见。草稿内容不搬到导航层，未打开草稿及其他场景的详情保持原导航行为。
+
 `AppShell` 包裹邮件与设置的内容区；个人信息和关于应用由组合根放到外壳上方的全屏转场层，底层 Entry 保持组合，转场层不消费外壳的 Insets。页面自身负责预测返回时的轮廓裁剪。邮件导航期间侧栏和底部导航保持固定；当前 Tab 的装饰后 Entry 按底层内容与全屏页分配给两个 `NavDisplay`，两者以当前栈根作为组合 key；全屏层的透明根只作绘制锚点，不写入应用返回栈。切换 Tab 使用 300ms 的 Fade through：选中指示立即更新，旧内容先淡出 90ms，在不可见的中点切换活动返回栈、释放旧显示及其在途转场，再将新内容淡入 210ms。内容区仅调整透明度，侧栏和底部导航保持固定；同一时刻只有活动层处理输入与返回，外层保存的 Entry 状态继续保留。连续选择取消前一次动画，以最后目标为准；重选当前 Tab 不播放动画，登录页不参与 Tab 过渡。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
 
 `core:framework` 定义：
