@@ -16,6 +16,8 @@ kotlin {
   }
   sourceSets {
     androidHostTest.dependencies {
+      implementation(kmp.compose.preference)
+      implementation(projects.feature.settingsApi)
       implementation(kmp.junit)
       implementation(kmp.androidx.test.espresso)
       implementation(kmp.androidx.test.ext.junit)

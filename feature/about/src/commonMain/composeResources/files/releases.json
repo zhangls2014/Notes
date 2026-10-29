@@ -1,8 +1,19 @@
 [
   {
     "version": "1.1.0",
-    "date": null,
+    "date": "2026-10-30",
     "changes": [
+      {
+        "type": "fixed",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Settings selection dialogs remain visible after rotating to a shorter window without needing to scroll.",
+          "zh": "修复设置选择弹窗在旋转到较矮窗口后需要滚动才能恢复显示的问题。"
+        }
+      },
       {
         "type": "improved",
         "platforms": [

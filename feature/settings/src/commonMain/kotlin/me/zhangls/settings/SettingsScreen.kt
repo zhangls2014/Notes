@@ -1,9 +1,11 @@
 package me.zhangls.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +22,7 @@ import me.zhangls.preference.ui.ProvidePreferenceLocals
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.settings.mvi.SettingsViewModel
+import me.zhangls.settings.ui.DialogUiModel
 import me.zhangls.settings.ui.toDialogUiModel
 import me.zhangls.settings.ui.toPreferenceUiModels
 import me.zhangls.theme.component.AdaptiveContent
@@ -62,18 +65,13 @@ internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onRe
       // 既难读也难扫；上限之外居中留白。设置页不做分栏，所以它确实是全仓内容最容易被
       // 拉满整幅宽度的页面。
       AdaptiveContent {
-        LazyColumn(
-          modifier = Modifier.fillMaxSize(),
+        // 固定少量设置项全部参与组合，避免行内选择弹窗在旋转后等待滚动才恢复。
+        Column(
+          // padding 位于滚动内容内，保留原列表的内容留白和底部安全距离。
+          modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding),
           verticalArrangement = Arrangement.spacedBy(2.dp),
-          // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
-          contentPadding = padding,
         ) {
-          items(
-            count = preferences.size,
-            key = { index -> preferences[index].spec.key },
-            contentType = { index -> preferences[index]::class },
-          ) { index ->
-            val model = preferences[index]
+          preferences.forEachIndexed { index, model ->
             val standalone = model is PreferenceUiModel.Action
             PreferenceRow(
               model = model,
@@ -98,21 +96,26 @@ internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onRe
   }
 
   state.dialog?.let { dialog ->
-    // 领域对话框在 UI 层映射为表现层模型
-    val dialogState = dialog.toDialogUiModel()
-    SimpleDialog(
-      title = stringResource(dialogState.title),
-      content = stringResource(dialogState.message),
-      confirmText = stringResource(dialogState.confirm),
-      confirm = {
-        val result = DialogResult.Confirm(dialogState.dialogId)
-        viewModel.sendIntent(SettingsIntent.DialogCallback(result))
-      },
-      dismissText = dialogState.dismiss?.let { stringResource(it) },
-      dismiss = {
-        val result = DialogResult.Dismiss(dialogState.dialogId)
-        viewModel.sendIntent(SettingsIntent.DialogCallback(result))
-      },
-    )
+    SettingsDialog(dialogState = dialog.toDialogUiModel(), onResult = {
+      viewModel.sendIntent(SettingsIntent.DialogCallback(it))
+    })
   }
+}
+
+@Composable
+private fun SettingsDialog(dialogState: DialogUiModel, onResult: (DialogResult) -> Unit) {
+  SimpleDialog(
+    title = stringResource(dialogState.title),
+    content = stringResource(dialogState.message),
+    confirmText = stringResource(dialogState.confirm),
+    confirm = {
+      val result = DialogResult.Confirm(dialogState.dialogId)
+      onResult(result)
+    },
+    dismissText = dialogState.dismiss?.let { stringResource(it) },
+    dismiss = {
+      val result = DialogResult.Dismiss(dialogState.dialogId)
+      onResult(result)
+    },
+  )
 }
