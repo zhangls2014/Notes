@@ -32,8 +32,8 @@
           "ios"
         ],
         "text": {
-          "en": "Current-version notes and release history now show the same categories and content.",
-          "zh": "统一关于应用与历史更新的分类和内容展示。"
+          "en": "Current-version notes, the startup dialog and release history now show the same categories and content.",
+          "zh": "统一关于应用、启动弹窗与历史更新的分类和内容展示。"
         }
       },
       {

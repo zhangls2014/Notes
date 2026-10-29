@@ -123,7 +123,7 @@ class AboutUiTest(private val scenario: Scenario) {
       "Improved",
       "• Release history adapts to wide windows with a multi-column waterfall layout.",
       "Fixed",
-      "• Current-version notes and release history now show the same categories and content.",
+      "• Current-version notes, the startup dialog and release history now show the same categories and content.",
     )
     for (text in expected) {
       compose.onNodeWithText(text).performScrollTo().assertIsDisplayed()

@@ -192,6 +192,8 @@
 
 ## 新版本首次启动更新提示（2026-10-30）
 
+- 内容一致性修正：弹窗补齐发布日期/未发布状态，并复用历史页 `ReleaseChanges` 的分类、正文及间距。先通过测试复现缺少日期，再验证日期、三类标题和关闭行为；About 19 项、相关 Android 宿主 44 项及 iOS 模拟器 44 项通过，无失败或跳过；About detekt 和 iOS 编译通过。未采集新候选图，设备视觉验收仍待完成。
+
 - 合入前验证：rebase 到 `febb2308` 后，core:data 9 项、About 19 项、Settings 5 项、组合根相关 Android 宿主 44 项及 iOS 模拟器 44 项测试通过，无失败或跳过；iOS 编译、About detekt 与文档链接检查通过。此记录补充下方原实现阶段证据，设备与视觉验收状态不变。
 
 - 本次验证：core:data 9 项、About 14 项、Settings 5 项、组合根相关 Android 宿主 34 项、iOS 模拟器 44 项测试通过，测试用例无失败或跳过；iOS 编译及 About detekt 通过。覆盖旧设置兼容、已读版本持久化、启动等待设置、根重建、弹窗关闭、无匹配版本及 Native Entry 调用。Roborazzi finalize 任务跳过，不作为截图证据。
