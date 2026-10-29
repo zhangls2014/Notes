@@ -101,21 +101,33 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.waitUntil(timeoutMillis = 10_000) {
       compose.onAllNodes(hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
     }
-    compose.onNodeWithText("View release notes offline from About app.", substring = true)
-      .performScrollTo().assertIsDisplayed()
+    assertReleaseChanges()
     compose.onNodeWithText("View update history").performScrollTo().performClick()
     compose.onNodeWithText("Release notes").assertIsDisplayed()
     compose.onNodeWithText("About app").assertDoesNotExist()
     compose.waitUntil(timeoutMillis = 10_000) {
       compose.onAllNodes(hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
     }
-    compose.onNodeWithText("View release notes offline from About app.", substring = true)
-      .performScrollTo().assertIsDisplayed()
+    assertReleaseChanges()
     compose.onNodeWithContentDescription("Back").performClick()
     compose.onNodeWithText("Release notes").assertDoesNotExist()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.onNodeWithText("View update history").assertDoesNotExist()
     compose.onNodeWithText("Update contents").assertDoesNotExist()
+  }
+
+  private fun assertReleaseChanges() {
+    val expected = listOf(
+      "Added",
+      "• View release notes offline from About app.",
+      "Improved",
+      "• Release history adapts to wide windows with a multi-column waterfall layout.",
+      "Fixed",
+      "• Current-version notes and release history now show the same categories and content.",
+    )
+    for (text in expected) {
+      compose.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+    }
   }
 
   @Test fun missingCurrentVersionDoesNotShowAnotherVersionsNotes() {

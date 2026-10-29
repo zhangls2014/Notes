@@ -27,6 +27,8 @@
     "Settings": "settings",
     "Star": "star",
     "StarFill": "star",
+    "ViewAgenda": "view_agenda",
+    "ViewColumn": "view_column",
     "Visibility": "visibility",
     "VisibilityOff": "visibility_off"
   },
@@ -55,6 +57,8 @@
     "settings": "6cd47de90647ece6b00922f497f8c4ea9c1649548cf15828d1df9d78d5bdf30d",
     "star": "c0bfa8bb656fa17290b2292100b07e1d9ff12fe7a6dbee8bac4b8e84ed08384c",
     "star_fill1": "513a0f450ac62c6bdc6c6cb8701896ea4ac7a82121b9e19cc52596fd7ce3b5fc",
+    "view_agenda": "33bd7f002a3e33803c460acffd53528994301c21df5060e4a7eecb53337269be",
+    "view_column": "20f03db348fa6277f57b42c96e4535175dedd82019b307b13c2be051e39e4225",
     "visibility": "024cf2e18ddffaed7d0f9e6872f7a09a76cc81349414a3869ae47a1f412b30ce",
     "visibility_off": "ab88d1ce3372969907d0294f8b7596e5f635797a87fce1ee2e372f866088fee6"
   },

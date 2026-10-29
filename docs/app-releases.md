@@ -34,7 +34,7 @@
 
 ## 展示与验收
 
-关于应用保留品牌卡与检查更新入口。点击版本号展开当前安装版本的更新内容和“查看历史更新”入口；构建号只用于平台发布管理，不在关于应用展示。页面不另设顶层更新日志栏目。摘要只匹配当前安装版本，没有对应记录时显示暂无记录，不借用最新版本内容。历史更新使用独立导航页面，以可滚动的瀑布流展示：复用窗口分级，小于 Expanded 时单列、Expanded/Large 双列、ExtraLarge 三列；数据仍按版本倒序提供；首批卡片从左到右放置，后续卡片填入当前较短的列，不要求每行对齐。每列内容宽度基于 `ContentWidth.Form`，卡片内外边距与列间距均保持 16dp，支持返回、主题及字体缩放。读取失败显示错误提示，不伪造空历史；再次进入可重新读取。
+关于应用保留品牌卡与检查更新入口。点击版本号展开当前安装版本的更新内容和“查看历史更新”入口；构建号只用于平台发布管理，不在关于应用展示。页面不另设顶层更新日志栏目。摘要与历史版本卡片共用分类、正文和条目排列组件，不分别维护展示逻辑。摘要只匹配当前安装版本，没有对应记录时显示暂无记录，不借用最新版本内容。历史更新使用独立导航页面，以可滚动的瀑布流展示：折叠设备全开（存在铰链且全部 `isFlat`）默认单列；仅有纵向铰链时在右上角提供手动单列/多列切换图标按钮，按钮不显示文字，使用本地化无障碍描述说明点击后的操作；切换时图标以 200ms 半圈旋转过渡，反向切换回转，快速点击直接转向最新状态，遵循 Compose 的系统动画缩放设置，多列按实际铰链分区避让，各列卡片铺满所属物理窗格的可用宽度。历史更新作为全屏 Scaffold 展示，分列使用内容相对 Scaffold 的布局位置与 Compose 根节点的窗口原点；预测性返回只改变页面绘制，不能将缩放、平移后的边界用于列宽计算。离开全开状态即清除手动选择，不写入全局偏好。横向铰链全开时不提供左右分列按钮。半开、关闭及无铰链的普通窗口不提供按钮，继续复用窗口分级，小于 Expanded 时单列、Expanded/Large 双列、ExtraLarge 三列；数据仍按版本倒序提供；首批卡片从左到右放置，后续卡片填入当前较短的列，不要求每行对齐。列表填满当前窗格，单列、多列均不设 480dp 内容上限；卡片填满各列可用宽度，卡片内外边距与列间距均保持 16dp，支持返回、主题及字体缩放。读取失败显示错误提示，不伪造空历史；再次进入可重新读取。
 
 实施顺序与验证：先定义规则与索引，再实现 JSON 解析和数据校验（版本唯一、排序、平台与语言），随后接入列表页面并测试进入/返回，最后执行 `:feature:about:testAndroidHostTest`、相关 About 宿主测试和 iOS 编译。正式截图基线不在本次更新范围内。
 
@@ -42,7 +42,7 @@
 ./gradlew :feature:about:testAndroidHostTest :feature:about:detekt
 ./gradlew :composeApp:testAndroidHostTest --tests '*AboutUiTest*' \
   --tests '*AboutNoticesNavigationTest*' --tests '*OpenSourceNavigationTest*' \
-  --tests '*NavBackStackSerializationTest*' --tests '*ReleaseHistoryAdaptiveTest*'
+  --tests '*NavBackStackSerializationTest*' --tests '*ReleaseHistoryAdaptiveTest*' --tests '*ReleaseHistoryPostureTest*'
 ./gradlew :composeApp:compileKotlinIosSimulatorArm64
 # 修改 AboutEntry 时必须执行真实入口调用回归
 ./gradlew :composeApp:iosSimulatorArm64Test

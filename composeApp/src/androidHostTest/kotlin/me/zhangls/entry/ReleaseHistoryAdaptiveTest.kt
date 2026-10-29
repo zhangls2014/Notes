@@ -77,10 +77,9 @@ class ReleaseHistoryAdaptiveTest(private val width: Int, private val columns: In
   private fun assertCardWidth(windowWidth: Int, columnCount: Int) {
     val grid = compose.onNodeWithTag("release-history-grid").getUnclippedBoundsInRoot()
     val card = compose.onNodeWithTag("release-1.1.0").getUnclippedBoundsInRoot()
-    val maxWidth = 480f * columnCount + 16f * (columnCount - 1)
     val gridWidth = grid.right.value - grid.left.value
     val cardWidth = card.right.value - card.left.value
-    assertEquals(minOf(windowWidth.toFloat(), maxWidth), gridWidth, 1f)
+    assertEquals(windowWidth.toFloat(), gridWidth, 1f)
     assertEquals((gridWidth - 32f - 16f * (columnCount - 1)) / columnCount, cardWidth, 1f)
     assertTrue(card.left >= grid.left && card.right <= grid.right)
   }

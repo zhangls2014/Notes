@@ -107,7 +107,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 
 共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，版本更新摘要展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
 
-更新日志由 About 实现模块拥有，使用共享 JSON 资源随包分发，当前版本摘要位于版本号展开区，历史更新通过展开区入口进入独立的 Navigation 3 页面；版本瀑布流消费 `LocalWindowAdaptiveInfo`，按 Compact/Medium 单列、Expanded/Large 双列、ExtraLarge 三列展示，卡片按自然高度填入较短列、不强制行对齐，沿用 `ContentWidth.Form` 计算整体宽度，不读取铰链或引入第二套窗口断点；纳入设置返回栈并注册目的地序列化；解析、版本排序、平台过滤与展示均留在模块内部；不依赖数据库或网络。维护规则见 [应用版本与更新记录](app-releases.md)。
+更新日志由 About 实现模块拥有，使用共享 JSON 资源随包分发，当前版本摘要位于版本号展开区，摘要与历史卡片共用 `ReleaseChanges` 渲染分类和正文，历史更新通过展开区入口进入独立的 Navigation 3 页面；版本瀑布流消费 `LocalWindowAdaptiveInfo`：折叠设备全开默认单列，有纵向铰链时提供右上角图标按钮启用物理分列，图标表达目标布局并提供本地化无障碍描述，不显示文字；仅实际分列时消费 `LocalPaneScaffoldDirective` 的窗口坐标排除区并转换到内容坐标，按真实铰链位置计算列宽。全屏历史页使用内容相对 Scaffold 的布局位置加 Compose 根节点窗口原点进行坐标转换，排除导航绘制层的缩放和平移；预测性返回不触发卡片重排。历史列表填满当前窗格，卡片填满所属列的可用宽度，不使用 `ContentWidth.Form` 限制整体或卡片宽度；保留内容留白与铰链避让。手动状态仅在当前全开期间保留。半开、关闭和普通无铰链窗口沿用 Compact/Medium 单列、Expanded/Large 双列、ExtraLarge 三列，不提供手动切换。卡片按自然高度填入较短列、不强制行对齐，不另建窗口断点；纳入设置返回栈并注册目的地序列化；解析、版本排序、平台过滤与展示均留在模块内部；不依赖数据库或网络。维护规则见 [应用版本与更新记录](app-releases.md)。
 
 ## 3. 依赖规则
 
@@ -239,7 +239,7 @@ Feature API 定义具体目的地和 Entry 契约。`composeApp/AppNavHost.kt` �
 
 窗格之间的普通水平、垂直间距统一为 `0.dp`；真实铰链的排除区域仍然保留，不因取消间距而压缩。页面内容（例如邮件卡片）自身的内外边距独立保留。
 
-`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold`、邮件及开源声明列表—详情 SceneStrategy 消费铰链指令。有邮件详情时，邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。Material directive 的排除区域仅包含竖向铰链；按用户审阅截图后的决定，登录页不在窗格内避让横向铰链，品牌与表单使用完整可用高度，保持原有居中与滚动行为。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
+`core:theme/layout` 的 `HingeGeometry` 只负责为窗格脚手架生成稳定的排除区域。登录页的 `SupportingPaneScaffold`、邮件及开源声明列表—详情 SceneStrategy，以及历史更新全开时手动启用的物理分列消费铰链指令。历史页关闭手动分列时不读取排除区，其他页面的铰链策略不受该交互影响。有邮件详情时，邮件场景可以根据窗口能力形成两栏或上下窗格；登录页只支持左右分栏，始终把竖向分区数限制为 1。Material directive 的排除区域仅包含竖向铰链；按用户审阅截图后的决定，登录页不在窗格内避让横向铰链，品牌与表单使用完整可用高度，保持原有居中与滚动行为。旋转、小窗和内外屏切换改变真实几何时正常重排，只改变折叠状态而几何不变时保持窗格稳定。
 
 登录页设置入口位于表单区域右上角。Logo、输入框与按钮组成的表单主体在高度足够时居中；高度不足时保持原有尺寸和间距，由纵向滚动与 IME 留白处理。
 

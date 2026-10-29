@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import me.zhangls.about.rememberReleaseHistory
 import notes.feature.about.generated.resources.Res
@@ -44,9 +43,7 @@ internal fun AboutReleaseSummary(version: String?, shape: Shape, onOpenHistory: 
 
         else -> {
           Text(release.date ?: stringResource(Res.string.about_release_unreleased))
-          for (change in release.changes) {
-            Text("• ${change.localizedText(Locale.current.language)}")
-          }
+          ReleaseChanges(release)
         }
       }
       TextButton(onClick = onOpenHistory) { Text(stringResource(Res.string.about_release_view_history)) }
