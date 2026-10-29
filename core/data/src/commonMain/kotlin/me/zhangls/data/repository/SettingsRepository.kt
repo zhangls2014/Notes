@@ -9,6 +9,8 @@ import me.zhangls.model.FontSizeConfig
 interface SettingsRepository {
   val settingsFlow: Flow<SettingsModel>
 
+  suspend fun updateLastReadReleaseVersion(version: String)
+
   suspend fun updateDarkTheme(darkThemeConfig: DarkThemeConfig)
 
   suspend fun updateDynamicColor(useDynamicColor: Boolean)

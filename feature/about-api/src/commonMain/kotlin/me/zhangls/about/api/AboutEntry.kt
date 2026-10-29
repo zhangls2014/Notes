@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 
 interface AboutEntry {
   @Composable
+  fun ReleaseNotesDialog(version: String, onDismiss: () -> Unit)
+
+  @Composable
   fun ProjectScreen(url: String, onBack: () -> Unit)
 
   @Composable

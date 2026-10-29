@@ -31,4 +31,6 @@
   <string name="about_release_current_empty">暂无当前版本的更新记录。</string>
   <string name="about_release_switch_columns">切换为多列</string>
   <string name="about_release_switch_single">切换为单列</string>
+  <string name="about_release_dialog_title">%1$s 版本更新</string>
+  <string name="about_release_dialog_dismiss">知道了</string>
 </resources>

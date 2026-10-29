@@ -68,6 +68,17 @@
           "en": "Keep hinge-aligned release cards stable during predictive back gestures.",
           "zh": "修复预测性返回手势导致铰链分列卡片宽度与文字换行变化。"
         }
+      },
+      {
+        "type": "added",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "See what’s new on the first launch of each app version.",
+          "zh": "每个版本首次启动时弹窗展示本次更新内容。"
+        }
       }
     ]
   }

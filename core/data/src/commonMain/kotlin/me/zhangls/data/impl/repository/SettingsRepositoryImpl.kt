@@ -23,6 +23,10 @@ internal class SettingsRepositoryImpl(prefsDataStore: DataStore<Preferences>) : 
 
   override val settingsFlow: Flow<SettingsModel> = dataStore.read().map { it ?: SettingsModel() }
 
+  override suspend fun updateLastReadReleaseVersion(version: String) {
+    dataStore.updateData { it?.copy(lastReadReleaseVersion = version) }
+  }
+
   override suspend fun updateDarkTheme(darkThemeConfig: DarkThemeConfig) {
     dataStore.updateData {
       it?.copy(darkTheme = darkThemeConfig)

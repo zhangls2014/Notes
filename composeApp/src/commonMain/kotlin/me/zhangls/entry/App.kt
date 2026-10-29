@@ -9,6 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.zhangls.about.api.AboutEntry
+import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.SystemToast
 import me.zhangls.model.AppLanguage
 import me.zhangls.preference.DarkThemePreference
@@ -18,6 +20,7 @@ import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.rememberPaneScaffoldDirective
 import me.zhangls.theme.layout.rememberWindowAdaptiveInfo
 import org.jetbrains.compose.resources.getString
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -32,6 +35,9 @@ fun App(
   onDeepLinkConsume: () -> Unit = {},
 ) {
   val viewModel: AppViewModel = koinViewModel()
+  val aboutEntry: AboutEntry = koinInject()
+  val appInfo: AppInfo = koinInject()
+  val version = remember(appInfo) { appInfo.getVersionName() }
   val systemToast = rememberSystemToast()
   val browserUriHandler = rememberBrowserUriHandler()
   val state by viewModel.state.collectAsStateWithLifecycle()
@@ -80,6 +86,13 @@ fun App(
         deepLinkDestination = deepLinkDestination,
         onDeepLinkConsume = onDeepLinkConsume,
       )
+
+      if (state.isLogin != null && state.settingsLoaded && state.lastReadReleaseVersion != version) {
+        aboutEntry.ReleaseNotesDialog(
+          version = version,
+          onDismiss = { viewModel.sendIntent(AppIntent.DismissReleaseNotes(version)) },
+        )
+      }
 
       LaunchedEffect(viewModel, systemToast) {
         viewModel.toast.collect { effect ->
