@@ -10,3 +10,5 @@
 - 保持 85% 缩放、220ms 缩放与 120ms 淡出、48dp/48pt 默认圆角及既有手势锚点，不变更组件尺寸、留白、交互与正式截图基线。
 - 验证：`./gradlew :core:navigation:testAndroidHostTest`；Native 像素用例的分批命令见 [自适应 UI 回归](../../docs/testing/adaptive-ui.md)。编译：`./gradlew :core:navigation:compileKotlinIosSimulatorArm64`。
 - 不存放生成截图或一次性报告；临时产物使用系统临时目录，正式基线变更和文件清理须遵守根授权规则。
+
+- `src/androidDeviceTest/kotlin/me/zhangls/navigation/` 放真实 Android 渲染与 PixelCopy 回归，文件按被测职责命名；不使用 Robolectric、强制子图层重绘或正式截图基线。设备对照版本通过临时解析脚本指定，不改生产动效。

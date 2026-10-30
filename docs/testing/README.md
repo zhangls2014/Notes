@@ -12,7 +12,7 @@
 | `core:data` | `commonTest`、`iosTest` | 用户资料/登录凭据协调、明文迁移与真实 Keychain 集成边界 |
 | `core:database` | `commonTest`、`iosTest` | 收件人编码与历史 schema 迁移 |
 | `core:theme` | `commonTest` | 铰链几何 |
-| `core:navigation` | `androidHostTest` | 页面几何、设备圆角、预测返回与遮罩逐帧回归 |
+| `core:navigation` | `androidHostTest`、`androidDeviceTest` | 页面几何、设备圆角、预测返回与遮罩逐帧回归 |
 | `core:framework` | `commonTest`、`iosTest` | Deep Link 字符串解析；原生 Toast 布局、Dynamic Type 与播报调度 |
 | `feature:main` | `commonTest` | 导航套件尺寸策略 |
 | `feature:login` | `commonTest` | 登录输入校验、窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
@@ -123,7 +123,7 @@ KMP 的普通 `:<module>:detekt` 延迟读取全部已注册源集，扫描各�
 
 规则使用现有默认配置，并显式启用 `GlobalCoroutineUsage`、`CoroutineLaunchedInTestWithoutRunTest`、`SuspendFunSwallowedCancellation`。空安全和类型检查中要求类型解析的规则只有在上述 compilation 任务中才会运行，普通扫描零告警不能替代语义分析验收。
 
-用户确认的框架入口和测试源集适配：`UnusedPrivateFunction` 只忽略 `@Preview` 入口，其他私有函数继续检查；`MagicNumber` 保留内置测试目录排除列表并补入 AGP 9 的 `androidHostTest`，生产代码的数值检查不变。测试代码的其他格式、空安全、类型和协程规则仍执行。
+用户确认的框架入口和测试源集适配：`UnusedPrivateFunction` 只忽略 `@Preview` 入口，其他私有函数继续检查；`MagicNumber` 保留内置测试目录排除列表并补入 AGP 9 的 `androidHostTest` 与 `androidDeviceTest`，生产代码的数值检查不变。测试代码的其他格式、空安全、类型和协程规则仍执行。
 
 Compose Rules 使用 `io.nlopez.compose.rules:detekt:0.6.8`。其[发布说明](https://github.com/mrmans0n/compose-rules/releases/tag/v0.6.8)和 Maven POM 均依赖 detekt `2.0.0-alpha.6`，与项目分析引擎一致。按用户要求，当前版本全部 43 条规则启用；默认启用项不重复配置，仅显式启用默认关闭的 `ComposableNestingDepth`、`Material2`、`PreviewNaming`、`UnstableCollections`，覆盖命名、参数、状态、Effect、内容插槽、Modifier、CompositionLocal 和 ViewModel 等检查；规则选项保持库默认值，含类型解析要求的规则随 compilation 任务运行。规则清单以 `config/detekt/detekt.yml` 为准；升级时重新评审，不自动修复 UI 或更新 baseline。
 
@@ -155,3 +155,7 @@ Android Studio 没有自动识别新 profile 时，在 Inspections 的齿轮菜�
 - [iOS Toast 无障碍验证](ios-toast-accessibility.md)：Dynamic Type、VoiceOver 与多窗口场景。
 
 个人信息还需设备上的系统图片选择器、保存失败/取消与读屏验收；关于页面需检查实际安装包的版本名称、原始构建号、返回归属与导航套件恢复。选择理由见 [决策记录](../decisions.md)，未完成事项见 [待验收与已知限制](pending-acceptance.md)。
+
+## Navigation3 原生渲染对照
+
+`core:navigation` 的 `androidDeviceTest` 用真实 AndroidJUnit4/Compose 测试承载预测返回回归；目录按导航模块 AGENTS.md 约定，不与 Robolectric 源集混用。用 `:core:navigation:connectedAndroidDeviceTest` 在单一已选择设备执行；版本对照通过临时 init script 覆盖 Navigation3 解析。保持事件、动效参数和断言一致，不强制子图层重绘或换软件截图，不改正式基线。`DeviceCornerDeviceTest` 包含四场景各五轮：三种圆角的稳定页面反向/取消/提交，以及前进动画两帧后开始预测返回；400×800dp 夹具的采样点按实际 PixelCopy 尺寸映射，不能直接使用 mdpi 像素索引。实际运行记录归入当次升级审计；这不替代应用真实入口、手动手势和 iOS 验收。

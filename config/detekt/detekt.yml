@@ -114,6 +114,7 @@ style:
       - '**/androidUnitTest/**'
       - '**/androidInstrumentedTest/**'
       - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
       - '**/jsTest/**'
       - '**/iosTest/**'
       - '**/*.kts'

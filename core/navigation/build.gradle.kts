@@ -6,6 +6,10 @@ plugins {
 
 kotlin {
   android {
+    withDeviceTest {
+      instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+      execution = "HOST"
+    }
     compilations.withType<com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation>().configureEach {
       isIncludeAndroidResources = true
     }
@@ -20,6 +24,14 @@ kotlin {
     }
     androidMain.dependencies {
       implementation(kmp.androidx.core)
+    }
+    getByName("androidDeviceTest").dependencies {
+      implementation(kmp.junit)
+      implementation(kmp.androidx.activity.compose)
+      implementation(kmp.androidx.test.ext.junit)
+      implementation(kmp.androidx.test.espresso)
+      implementation(kmp.jetbrains.compose.ui.test.junit4)
+      implementation(kmp.androidx.compose.ui.test.manifest)
     }
     androidHostTest.dependencies {
       implementation(kmp.junit)

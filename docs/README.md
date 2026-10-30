@@ -74,6 +74,8 @@ docs/
 
 ## 决策与调查证据
 
+- [2026-10-30 依赖升级方案](audits/2026-10-30-dependency-upgrade.md)：7 组升级、Navigation3 宿主截图调查与 Android 原生对照、共同失败及 iOS 环境缺口。
+
 以下调查记录特定日期的代码、环境与测量结果，不能直接外推为当前状态。
 
 - [2026-10-30 设置选择弹窗旋转恢复](audits/2026-10-30-preference-dialog-restoration.md)：第三方 ListPreference 的三组隔离对照、当前源码包的小窗口复现与设置页最小修复回归。

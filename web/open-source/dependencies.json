@@ -137,20 +137,20 @@
       ]
     },
     {
-      "coordinate": "androidx.collection:collection:1.5.0",
+      "coordinate": "androidx.collection:collection:1.6.0",
       "name": "collections",
-      "url": "https://developer.android.com/jetpack/androidx/releases/collection#1.5.0",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/collection/collection/1.5.0/collection-1.5.0.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/collection#1.6.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/collection/collection/1.6.0/collection-1.6.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.collection:collection-jvm:1.5.0",
+      "coordinate": "androidx.collection:collection-jvm:1.6.0",
       "name": "collections",
-      "url": "https://developer.android.com/jetpack/androidx/releases/collection#1.5.0",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-jvm/1.5.0/collection-jvm-1.5.0.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/collection#1.6.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-jvm/1.6.0/collection-jvm-1.6.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -159,10 +159,10 @@
       ]
     },
     {
-      "coordinate": "androidx.collection:collection-ktx:1.5.0",
+      "coordinate": "androidx.collection:collection-ktx:1.6.0",
       "name": "Collections Kotlin Extensions",
-      "url": "https://developer.android.com/jetpack/androidx/releases/collection#1.5.0",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-ktx/1.5.0/collection-ktx-1.5.0.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/collection#1.6.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/collection/collection-ktx/1.6.0/collection-ktx-1.6.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -753,20 +753,20 @@
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore:1.2.1",
+      "coordinate": "androidx.datastore:datastore:1.3.0",
       "name": "DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore/1.2.1/datastore-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore/1.3.0/datastore-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-android:1.2.1",
+      "coordinate": "androidx.datastore:datastore-android:1.3.0",
       "name": "DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-android/1.2.1/datastore-android-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-android/1.3.0/datastore-android-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -775,20 +775,20 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-core:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core:1.3.0",
       "name": "DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core/1.2.1/datastore-core-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core/1.3.0/datastore-core-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-core-android:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core-android:1.3.0",
       "name": "DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-android/1.2.1/datastore-core-android-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-android/1.3.0/datastore-core-android-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -797,20 +797,20 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-core-okio:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core-okio:1.3.0",
       "name": "DataStore Core Okio",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio/1.2.1/datastore-core-okio-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio/1.3.0/datastore-core-okio-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-core-okio-jvm:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core-okio-jvm:1.3.0",
       "name": "DataStore Core Okio",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio-jvm/1.2.1/datastore-core-okio-jvm-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio-jvm/1.3.0/datastore-core-okio-jvm-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -819,20 +819,20 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences:1.3.0",
       "name": "Preferences DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences/1.2.1/datastore-preferences-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences/1.3.0/datastore-preferences-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-android:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-android:1.3.0",
       "name": "Preferences DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-android/1.2.1/datastore-preferences-android-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-android/1.3.0/datastore-preferences-android-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -841,20 +841,20 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-core:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-core:1.3.0",
       "name": "Preferences DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core/1.2.1/datastore-preferences-core-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core/1.3.0/datastore-preferences-core-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-core-android:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-core-android:1.3.0",
       "name": "Preferences DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core-android/1.2.1/datastore-preferences-core-android-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core-android/1.3.0/datastore-preferences-core-android-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -863,10 +863,10 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-external-protobuf:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-external-protobuf:1.3.0",
       "name": "Preferences External Protobuf",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-external-protobuf/1.2.1/datastore-preferences-external-protobuf-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-external-protobuf/1.3.0/datastore-preferences-external-protobuf-1.3.0.pom",
       "licenses": [
         "BSD-3-Clause"
       ],
@@ -875,10 +875,10 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-proto:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-proto:1.3.0",
       "name": "Preferences DataStore Proto",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-proto/1.2.1/datastore-preferences-proto-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-proto/1.3.0/datastore-preferences-proto-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -1263,20 +1263,20 @@
       "notices": []
     },
     {
-      "coordinate": "androidx.navigation3:navigation3-runtime:1.1.7",
+      "coordinate": "androidx.navigation3:navigation3-runtime:1.2.0",
       "name": "Androidx Navigation 3 Runtime",
-      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.1.7",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime/1.1.7/navigation3-runtime-1.1.7.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.2.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime/1.2.0/navigation3-runtime-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.navigation3:navigation3-runtime-android:1.1.7",
+      "coordinate": "androidx.navigation3:navigation3-runtime-android:1.2.0",
       "name": "Androidx Navigation 3 Runtime",
-      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.1.7",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime-android/1.1.7/navigation3-runtime-android-1.1.7.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.2.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime-android/1.2.0/navigation3-runtime-android-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -1285,20 +1285,20 @@
       ]
     },
     {
-      "coordinate": "androidx.navigation3:navigation3-ui:1.1.7",
+      "coordinate": "androidx.navigation3:navigation3-ui:1.2.0",
       "name": "Androidx Navigation 3 UI",
-      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.1.7",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-ui/1.1.7/navigation3-ui-1.1.7.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.2.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-ui/1.2.0/navigation3-ui-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.navigation3:navigation3-ui-android:1.1.7",
+      "coordinate": "androidx.navigation3:navigation3-ui-android:1.2.0",
       "name": "Androidx Navigation 3 UI",
-      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.1.7",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-ui-android/1.1.7/navigation3-ui-android-1.1.7.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.2.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-ui-android/1.2.0/navigation3-ui-android-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -1351,20 +1351,20 @@
       ]
     },
     {
-      "coordinate": "androidx.paging:paging-common:3.5.2",
+      "coordinate": "androidx.paging:paging-common:3.5.3",
       "name": "Paging-Common",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common/3.5.2/paging-common-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common/3.5.3/paging-common-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.paging:paging-common-android:3.5.2",
+      "coordinate": "androidx.paging:paging-common-android:3.5.3",
       "name": "Paging-Common",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common-android/3.5.2/paging-common-android-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common-android/3.5.3/paging-common-android-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -1373,20 +1373,20 @@
       ]
     },
     {
-      "coordinate": "androidx.paging:paging-compose:3.5.2",
+      "coordinate": "androidx.paging:paging-compose:3.5.3",
       "name": "Paging-Compose",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose/3.5.2/paging-compose-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose/3.5.3/paging-compose-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.paging:paging-compose-android:3.5.2",
+      "coordinate": "androidx.paging:paging-compose-android:3.5.3",
       "name": "Paging-Compose",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose-android/3.5.2/paging-compose-android-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose-android/3.5.3/paging-compose-android-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -1639,14 +1639,26 @@
       ]
     },
     {
-      "coordinate": "androidx.tracing:tracing:1.2.0",
-      "name": "Android Tracing",
-      "url": "https://developer.android.com/jetpack/androidx/releases/tracing#1.2.0",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/tracing/tracing/1.2.0/tracing-1.2.0.pom",
+      "coordinate": "androidx.tracing:tracing:2.0.1",
+      "name": "Tracing",
+      "url": "https://developer.android.com/jetpack/androidx/releases/tracing#2.0.1",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/tracing/tracing/2.0.1/tracing-2.0.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
+    },
+    {
+      "coordinate": "androidx.tracing:tracing-android:2.0.1",
+      "name": "Tracing",
+      "url": "https://developer.android.com/jetpack/androidx/releases/tracing#2.0.1",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/tracing/tracing-android/2.0.1/tracing-android-2.0.1.pom",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "notices": [
+        "809fa1ed21450f59827d1e9aec720bbc4b687434fa22283c6cb5dd82a47ab9c0"
+      ]
     },
     {
       "coordinate": "androidx.vectordrawable:vectordrawable:1.1.0",
@@ -1883,20 +1895,20 @@
       "notices": []
     },
     {
-      "coordinate": "com.squareup.okhttp3:okhttp:5.5.0",
+      "coordinate": "com.squareup.okhttp3:okhttp:5.5.1",
       "name": "okhttp",
       "url": "https://lysine.dev/okhttp/",
-      "pom": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/5.5.0/okhttp-5.5.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/5.5.1/okhttp-5.5.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "com.squareup.okhttp3:okhttp-android:5.5.0",
+      "coordinate": "com.squareup.okhttp3:okhttp-android:5.5.1",
       "name": "okhttp",
       "url": "https://lysine.dev/okhttp/",
-      "pom": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-android/5.5.0/okhttp-android-5.5.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-android/5.5.1/okhttp-android-5.5.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2183,410 +2195,410 @@
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-bom:3.6.0",
+      "coordinate": "io.ktor:ktor-bom:3.6.1",
       "name": "ktor-bom",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-bom/3.6.0/ktor-bom-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-bom/3.6.1/ktor-bom-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-auth:3.6.0",
+      "coordinate": "io.ktor:ktor-client-auth:3.6.1",
       "name": "ktor-client-auth",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth/3.6.0/ktor-client-auth-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth/3.6.1/ktor-client-auth-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-auth-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-client-auth-jvm:3.6.1",
       "name": "ktor-client-auth",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth-jvm/3.6.0/ktor-client-auth-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth-jvm/3.6.1/ktor-client-auth-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-cio:3.6.0",
+      "coordinate": "io.ktor:ktor-client-cio:3.6.1",
       "name": "ktor-client-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio/3.6.0/ktor-client-cio-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio/3.6.1/ktor-client-cio-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-cio-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-client-cio-jvm:3.6.1",
       "name": "ktor-client-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio-jvm/3.6.0/ktor-client-cio-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio-jvm/3.6.1/ktor-client-cio-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-content-negotiation:3.6.0",
+      "coordinate": "io.ktor:ktor-client-content-negotiation:3.6.1",
       "name": "ktor-client-content-negotiation",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation/3.6.0/ktor-client-content-negotiation-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation/3.6.1/ktor-client-content-negotiation-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-content-negotiation-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-client-content-negotiation-jvm:3.6.1",
       "name": "ktor-client-content-negotiation",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation-jvm/3.6.0/ktor-client-content-negotiation-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation-jvm/3.6.1/ktor-client-content-negotiation-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-core:3.6.0",
+      "coordinate": "io.ktor:ktor-client-core:3.6.1",
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core/3.6.0/ktor-client-core-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core/3.6.1/ktor-client-core-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-core-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-client-core-jvm:3.6.1",
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core-jvm/3.6.0/ktor-client-core-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core-jvm/3.6.1/ktor-client-core-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-logging:3.6.0",
+      "coordinate": "io.ktor:ktor-client-logging:3.6.1",
       "name": "ktor-client-logging",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging/3.6.0/ktor-client-logging-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging/3.6.1/ktor-client-logging-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-logging-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-client-logging-jvm:3.6.1",
       "name": "ktor-client-logging",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging-jvm/3.6.0/ktor-client-logging-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging-jvm/3.6.1/ktor-client-logging-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-okhttp:3.6.0",
+      "coordinate": "io.ktor:ktor-client-okhttp:3.6.1",
       "name": "ktor-client-okhttp",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-okhttp/3.6.0/ktor-client-okhttp-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-okhttp/3.6.1/ktor-client-okhttp-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-okhttp-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-client-okhttp-jvm:3.6.1",
       "name": "ktor-client-okhttp",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-okhttp-jvm/3.6.0/ktor-client-okhttp-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-okhttp-jvm/3.6.1/ktor-client-okhttp-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-events:3.6.0",
+      "coordinate": "io.ktor:ktor-events:3.6.1",
       "name": "ktor-events",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events/3.6.0/ktor-events-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events/3.6.1/ktor-events-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-events-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-events-jvm:3.6.1",
       "name": "ktor-events",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events-jvm/3.6.0/ktor-events-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events-jvm/3.6.1/ktor-events-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http:3.6.0",
+      "coordinate": "io.ktor:ktor-http:3.6.1",
       "name": "ktor-http",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http/3.6.0/ktor-http-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http/3.6.1/ktor-http-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http-cio:3.6.0",
+      "coordinate": "io.ktor:ktor-http-cio:3.6.1",
       "name": "ktor-http-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio/3.6.0/ktor-http-cio-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio/3.6.1/ktor-http-cio-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http-cio-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-http-cio-jvm:3.6.1",
       "name": "ktor-http-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio-jvm/3.6.0/ktor-http-cio-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio-jvm/3.6.1/ktor-http-cio-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-http-jvm:3.6.1",
       "name": "ktor-http",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-jvm/3.6.0/ktor-http-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-jvm/3.6.1/ktor-http-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-io:3.6.0",
+      "coordinate": "io.ktor:ktor-io:3.6.1",
       "name": "ktor-io",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io/3.6.0/ktor-io-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io/3.6.1/ktor-io-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-io-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-io-jvm:3.6.1",
       "name": "ktor-io",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io-jvm/3.6.0/ktor-io-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io-jvm/3.6.1/ktor-io-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network:3.6.0",
+      "coordinate": "io.ktor:ktor-network:3.6.1",
       "name": "ktor-network",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network/3.6.0/ktor-network-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network/3.6.1/ktor-network-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-network-jvm:3.6.1",
       "name": "ktor-network",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-jvm/3.6.0/ktor-network-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-jvm/3.6.1/ktor-network-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-tls:3.6.0",
+      "coordinate": "io.ktor:ktor-network-tls:3.6.1",
       "name": "ktor-network-tls",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls/3.6.0/ktor-network-tls-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls/3.6.1/ktor-network-tls-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-tls-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-network-tls-jvm:3.6.1",
       "name": "ktor-network-tls",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls-jvm/3.6.0/ktor-network-tls-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls-jvm/3.6.1/ktor-network-tls-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-openapi-schema:3.6.0",
+      "coordinate": "io.ktor:ktor-openapi-schema:3.6.1",
       "name": "ktor-openapi-schema",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema/3.6.0/ktor-openapi-schema-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema/3.6.1/ktor-openapi-schema-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-openapi-schema-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-openapi-schema-jvm:3.6.1",
       "name": "ktor-openapi-schema",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema-jvm/3.6.0/ktor-openapi-schema-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema-jvm/3.6.1/ktor-openapi-schema-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization:3.6.1",
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization/3.6.0/ktor-serialization-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization/3.6.1/ktor-serialization-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-jvm:3.6.1",
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-jvm/3.6.0/ktor-serialization-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-jvm/3.6.1/ktor-serialization-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx:3.6.1",
       "name": "ktor-serialization-kotlinx",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx/3.6.0/ktor-serialization-kotlinx-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx/3.6.1/ktor-serialization-kotlinx-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx-json:3.6.1",
       "name": "ktor-serialization-kotlinx-json",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json/3.6.0/ktor-serialization-kotlinx-json-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json/3.6.1/ktor-serialization-kotlinx-json-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.1",
       "name": "ktor-serialization-kotlinx-json",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json-jvm/3.6.0/ktor-serialization-kotlinx-json-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json-jvm/3.6.1/ktor-serialization-kotlinx-json-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx-jvm:3.6.1",
       "name": "ktor-serialization-kotlinx",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-jvm/3.6.0/ktor-serialization-kotlinx-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-jvm/3.6.1/ktor-serialization-kotlinx-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-sse:3.6.0",
+      "coordinate": "io.ktor:ktor-sse:3.6.1",
       "name": "ktor-sse",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse/3.6.0/ktor-sse-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse/3.6.1/ktor-sse-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-sse-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-sse-jvm:3.6.1",
       "name": "ktor-sse",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse-jvm/3.6.0/ktor-sse-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse-jvm/3.6.1/ktor-sse-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-utils:3.6.0",
+      "coordinate": "io.ktor:ktor-utils:3.6.1",
       "name": "ktor-utils",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils/3.6.0/ktor-utils-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils/3.6.1/ktor-utils-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-utils-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-utils-jvm:3.6.1",
       "name": "ktor-utils",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils-jvm/3.6.0/ktor-utils-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils-jvm/3.6.1/ktor-utils-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websocket-serialization:3.6.0",
+      "coordinate": "io.ktor:ktor-websocket-serialization:3.6.1",
       "name": "ktor-websocket-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization/3.6.0/ktor-websocket-serialization-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization/3.6.1/ktor-websocket-serialization-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websocket-serialization-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-websocket-serialization-jvm:3.6.1",
       "name": "ktor-websocket-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization-jvm/3.6.0/ktor-websocket-serialization-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization-jvm/3.6.1/ktor-websocket-serialization-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websockets:3.6.0",
+      "coordinate": "io.ktor:ktor-websockets:3.6.1",
       "name": "ktor-websockets",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets/3.6.0/ktor-websockets-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets/3.6.1/ktor-websockets-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websockets-jvm:3.6.0",
+      "coordinate": "io.ktor:ktor-websockets-jvm:3.6.1",
       "name": "ktor-websockets",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets-jvm/3.6.0/ktor-websockets-jvm-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets-jvm/3.6.1/ktor-websockets-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2807,20 +2819,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui:1.1.2",
+      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0",
       "name": "Androidx Navigation 3 UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui/1.1.2/navigation3-ui-1.1.2.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui/1.2.0/navigation3-ui-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui-android:1.1.2",
+      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui-android:1.2.0",
       "name": "Androidx Navigation 3 UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui-android/1.1.2/navigation3-ui-android-1.1.2.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui-android/1.2.0/navigation3-ui-android-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2869,20 +2881,20 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation:1.12.2",
       "name": "Compose Animation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation/1.12.1/animation-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation/1.12.2/animation-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation-android:1.12.2",
       "name": "Compose Animation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-android/1.12.1/animation-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-android/1.12.2/animation-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2891,20 +2903,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation-core:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation-core:1.12.2",
       "name": "Compose Animation Core",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core/1.12.1/animation-core-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core/1.12.2/animation-core-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation-core-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation-core-android:1.12.2",
       "name": "Compose Animation Core",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core-android/1.12.1/animation-core-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core-android/1.12.2/animation-core-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2913,40 +2925,40 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.components:components-resources:1.12.1",
+      "coordinate": "org.jetbrains.compose.components:components-resources:1.12.2",
       "name": "Resources for Compose JB",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources/1.12.1/components-resources-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources/1.12.2/components-resources-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.components:components-resources-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.components:components-resources-android:1.12.2",
       "name": "Resources for Compose JB",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources-android/1.12.1/components-resources-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources-android/1.12.2/components-resources-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation:1.12.2",
       "name": "Compose Foundation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation/1.12.1/foundation-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation/1.12.2/foundation-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation-android:1.12.2",
       "name": "Compose Foundation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-android/1.12.1/foundation-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-android/1.12.2/foundation-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2955,20 +2967,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation-layout:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation-layout:1.12.2",
       "name": "Compose Layouts",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout/1.12.1/foundation-layout-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout/1.12.2/foundation-layout-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation-layout-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation-layout-android:1.12.2",
       "name": "Compose Layouts",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout-android/1.12.1/foundation-layout-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout-android/1.12.2/foundation-layout-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3153,20 +3165,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime:1.12.2",
       "name": "Compose Runtime",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime/1.12.1/runtime-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime/1.12.2/runtime-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime-android:1.12.2",
       "name": "Compose Runtime",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-android/1.12.1/runtime-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-android/1.12.2/runtime-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3175,20 +3187,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable:1.12.2",
       "name": "Compose Saveable",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable/1.12.1/runtime-saveable-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable/1.12.2/runtime-saveable-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable-android:1.12.2",
       "name": "Compose Saveable",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable-android/1.12.1/runtime-saveable-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable-android/1.12.2/runtime-saveable-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3197,20 +3209,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui:1.12.2",
       "name": "Compose UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui/1.12.1/ui-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui/1.12.2/ui-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-android:1.12.2",
       "name": "Compose UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-android/1.12.1/ui-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-android/1.12.2/ui-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3219,20 +3231,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-geometry:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-geometry:1.12.2",
       "name": "Compose Geometry",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry/1.12.1/ui-geometry-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry/1.12.2/ui-geometry-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-geometry-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-geometry-android:1.12.2",
       "name": "Compose Geometry",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry-android/1.12.1/ui-geometry-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry-android/1.12.2/ui-geometry-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3241,20 +3253,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-graphics:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-graphics:1.12.2",
       "name": "Compose Graphics",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics/1.12.1/ui-graphics-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics/1.12.2/ui-graphics-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-graphics-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-graphics-android:1.12.2",
       "name": "Compose Graphics",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics-android/1.12.1/ui-graphics-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics-android/1.12.2/ui-graphics-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3263,20 +3275,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-text:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-text:1.12.2",
       "name": "Compose UI Text",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text/1.12.1/ui-text-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text/1.12.2/ui-text-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-text-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-text-android:1.12.2",
       "name": "Compose UI Text",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text-android/1.12.1/ui-text-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text-android/1.12.2/ui-text-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3285,20 +3297,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview:1.12.2",
       "name": "Compose UI Preview Tooling",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview/1.12.1/ui-tooling-preview-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview/1.12.2/ui-tooling-preview-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview-android:1.12.2",
       "name": "Compose UI Preview Tooling",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview-android/1.12.1/ui-tooling-preview-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview-android/1.12.2/ui-tooling-preview-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3307,20 +3319,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-unit:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-unit:1.12.2",
       "name": "Compose Unit",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit/1.12.1/ui-unit-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit/1.12.2/ui-unit-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-unit-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-unit-android:1.12.2",
       "name": "Compose Unit",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit-android/1.12.1/ui-unit-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit-android/1.12.2/ui-unit-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3329,20 +3341,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-util:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-util:1.12.2",
       "name": "Compose Util",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util/1.12.1/ui-util-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util/1.12.2/ui-util-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-util-android:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-util-android:1.12.2",
       "name": "Compose Util",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util-android/1.12.1/ui-util-android-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util-android/1.12.2/ui-util-android-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3355,6 +3367,26 @@
       "name": "Kotlin Stdlib",
       "url": "https://kotlinlang.org/",
       "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.20/kotlin-stdlib-2.4.20.pom",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "notices": []
+    },
+    {
+      "coordinate": "org.jetbrains.kotlinx:atomicfu:0.28.0",
+      "name": "atomicfu",
+      "url": "https://github.com/Kotlin/kotlinx.atomicfu",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu/0.28.0/atomicfu-0.28.0.pom",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "notices": []
+    },
+    {
+      "coordinate": "org.jetbrains.kotlinx:atomicfu-jvm:0.28.0",
+      "name": "atomicfu",
+      "url": "https://github.com/Kotlin/kotlinx.atomicfu",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/atomicfu-jvm/0.28.0/atomicfu-jvm-0.28.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3491,70 +3523,70 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-bom:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0",
       "name": "kotlinx-serialization-bom",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-bom/1.11.0/kotlinx-serialization-bom-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-bom/1.12.0/kotlinx-serialization-bom-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.11.0/kotlinx-serialization-core-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.12.0/kotlinx-serialization-core-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.12.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.11.0/kotlinx-serialization-core-jvm-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.12.0/kotlinx-serialization-core-jvm-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.11.0/kotlinx-serialization-json-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.12.0/kotlinx-serialization-json-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.12.0",
       "name": "kotlinx-serialization-json-io",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io/1.11.0/kotlinx-serialization-json-io-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io/1.12.0/kotlinx-serialization-json-io-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.12.0",
       "name": "kotlinx-serialization-json-io",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io-jvm/1.11.0/kotlinx-serialization-json-io-jvm-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io-jvm/1.12.0/kotlinx-serialization-json-io-jvm-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.12.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.11.0/kotlinx-serialization-json-jvm-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.12.0/kotlinx-serialization-json-jvm-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3747,30 +3779,30 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore:1.2.1",
+      "coordinate": "androidx.datastore:datastore:1.3.0",
       "name": "DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore/1.2.1/datastore-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore/1.3.0/datastore-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-core:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core:1.3.0",
       "name": "DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core/1.2.1/datastore-core-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core/1.3.0/datastore-core-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-core-iosarm64:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core-iosarm64:1.3.0",
       "name": "DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-iosarm64/1.2.1/datastore-core-iosarm64-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-iosarm64/1.3.0/datastore-core-iosarm64-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3779,20 +3811,20 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-core-okio:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core-okio:1.3.0",
       "name": "DataStore Core Okio",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio/1.2.1/datastore-core-okio-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio/1.3.0/datastore-core-okio-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-core-okio-iosarm64:1.2.1",
+      "coordinate": "androidx.datastore:datastore-core-okio-iosarm64:1.3.0",
       "name": "DataStore Core Okio",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio-iosarm64/1.2.1/datastore-core-okio-iosarm64-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-core-okio-iosarm64/1.3.0/datastore-core-okio-iosarm64-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3801,10 +3833,10 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-iosarm64:1.2.1",
+      "coordinate": "androidx.datastore:datastore-iosarm64:1.3.0",
       "name": "DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-iosarm64/1.2.1/datastore-iosarm64-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-iosarm64/1.3.0/datastore-iosarm64-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3813,30 +3845,30 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences:1.3.0",
       "name": "Preferences DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences/1.2.1/datastore-preferences-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences/1.3.0/datastore-preferences-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-core:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-core:1.3.0",
       "name": "Preferences DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core/1.2.1/datastore-preferences-core-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core/1.3.0/datastore-preferences-core-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-core-iosarm64:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-core-iosarm64:1.3.0",
       "name": "Preferences DataStore Core",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core-iosarm64/1.2.1/datastore-preferences-core-iosarm64-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-core-iosarm64/1.3.0/datastore-preferences-core-iosarm64-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3845,10 +3877,10 @@
       ]
     },
     {
-      "coordinate": "androidx.datastore:datastore-preferences-iosarm64:1.2.1",
+      "coordinate": "androidx.datastore:datastore-preferences-iosarm64:1.3.0",
       "name": "Preferences DataStore",
-      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-iosarm64/1.2.1/datastore-preferences-iosarm64-1.2.1.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/datastore#1.3.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/datastore/datastore-preferences-iosarm64/1.3.0/datastore-preferences-iosarm64-1.3.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -4033,20 +4065,20 @@
       ]
     },
     {
-      "coordinate": "androidx.navigation3:navigation3-runtime:1.1.7",
+      "coordinate": "androidx.navigation3:navigation3-runtime:1.2.0",
       "name": "Androidx Navigation 3 Runtime",
-      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.1.7",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime/1.1.7/navigation3-runtime-1.1.7.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.2.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime/1.2.0/navigation3-runtime-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.navigation3:navigation3-runtime-iosarm64:1.1.7",
+      "coordinate": "androidx.navigation3:navigation3-runtime-iosarm64:1.2.0",
       "name": "Androidx Navigation 3 Runtime",
-      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.1.7",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime-iosarm64/1.1.7/navigation3-runtime-iosarm64-1.1.7.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/navigation3#1.2.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-runtime-iosarm64/1.2.0/navigation3-runtime-iosarm64-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -4099,20 +4131,20 @@
       ]
     },
     {
-      "coordinate": "androidx.paging:paging-common:3.5.2",
+      "coordinate": "androidx.paging:paging-common:3.5.3",
       "name": "Paging-Common",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common/3.5.2/paging-common-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common/3.5.3/paging-common-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.paging:paging-common-iosarm64:3.5.2",
+      "coordinate": "androidx.paging:paging-common-iosarm64:3.5.3",
       "name": "Paging-Common",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common-iosarm64/3.5.2/paging-common-iosarm64-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-common-iosarm64/3.5.3/paging-common-iosarm64-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -4121,20 +4153,20 @@
       ]
     },
     {
-      "coordinate": "androidx.paging:paging-compose:3.5.2",
+      "coordinate": "androidx.paging:paging-compose:3.5.3",
       "name": "Paging-Compose",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose/3.5.2/paging-compose-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose/3.5.3/paging-compose-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "androidx.paging:paging-compose-iosarm64:3.5.2",
+      "coordinate": "androidx.paging:paging-compose-iosarm64:3.5.3",
       "name": "Paging-Compose",
-      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.2",
-      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose-iosarm64/3.5.2/paging-compose-iosarm64-3.5.2.pom",
+      "url": "https://developer.android.com/jetpack/androidx/releases/paging#3.5.3",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/paging/paging-compose-iosarm64/3.5.3/paging-compose-iosarm64-3.5.3.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -4753,410 +4785,410 @@
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-bom:3.6.0",
+      "coordinate": "io.ktor:ktor-bom:3.6.1",
       "name": "ktor-bom",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-bom/3.6.0/ktor-bom-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-bom/3.6.1/ktor-bom-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-auth:3.6.0",
+      "coordinate": "io.ktor:ktor-client-auth:3.6.1",
       "name": "ktor-client-auth",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth/3.6.0/ktor-client-auth-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth/3.6.1/ktor-client-auth-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-auth-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-client-auth-iosarm64:3.6.1",
       "name": "ktor-client-auth",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth-iosarm64/3.6.0/ktor-client-auth-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth-iosarm64/3.6.1/ktor-client-auth-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-cio:3.6.0",
+      "coordinate": "io.ktor:ktor-client-cio:3.6.1",
       "name": "ktor-client-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio/3.6.0/ktor-client-cio-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio/3.6.1/ktor-client-cio-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-cio-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-client-cio-iosarm64:3.6.1",
       "name": "ktor-client-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio-iosarm64/3.6.0/ktor-client-cio-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio-iosarm64/3.6.1/ktor-client-cio-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-content-negotiation:3.6.0",
+      "coordinate": "io.ktor:ktor-client-content-negotiation:3.6.1",
       "name": "ktor-client-content-negotiation",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation/3.6.0/ktor-client-content-negotiation-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation/3.6.1/ktor-client-content-negotiation-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-content-negotiation-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-client-content-negotiation-iosarm64:3.6.1",
       "name": "ktor-client-content-negotiation",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation-iosarm64/3.6.0/ktor-client-content-negotiation-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation-iosarm64/3.6.1/ktor-client-content-negotiation-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-core:3.6.0",
+      "coordinate": "io.ktor:ktor-client-core:3.6.1",
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core/3.6.0/ktor-client-core-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core/3.6.1/ktor-client-core-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-core-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-client-core-iosarm64:3.6.1",
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core-iosarm64/3.6.0/ktor-client-core-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core-iosarm64/3.6.1/ktor-client-core-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-darwin:3.6.0",
+      "coordinate": "io.ktor:ktor-client-darwin:3.6.1",
       "name": "ktor-client-darwin",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-darwin/3.6.0/ktor-client-darwin-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-darwin/3.6.1/ktor-client-darwin-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-darwin-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-client-darwin-iosarm64:3.6.1",
       "name": "ktor-client-darwin",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-darwin-iosarm64/3.6.0/ktor-client-darwin-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-darwin-iosarm64/3.6.1/ktor-client-darwin-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-logging:3.6.0",
+      "coordinate": "io.ktor:ktor-client-logging:3.6.1",
       "name": "ktor-client-logging",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging/3.6.0/ktor-client-logging-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging/3.6.1/ktor-client-logging-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-logging-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-client-logging-iosarm64:3.6.1",
       "name": "ktor-client-logging",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging-iosarm64/3.6.0/ktor-client-logging-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging-iosarm64/3.6.1/ktor-client-logging-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-events:3.6.0",
+      "coordinate": "io.ktor:ktor-events:3.6.1",
       "name": "ktor-events",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events/3.6.0/ktor-events-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events/3.6.1/ktor-events-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-events-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-events-iosarm64:3.6.1",
       "name": "ktor-events",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events-iosarm64/3.6.0/ktor-events-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-events-iosarm64/3.6.1/ktor-events-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http:3.6.0",
+      "coordinate": "io.ktor:ktor-http:3.6.1",
       "name": "ktor-http",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http/3.6.0/ktor-http-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http/3.6.1/ktor-http-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http-cio:3.6.0",
+      "coordinate": "io.ktor:ktor-http-cio:3.6.1",
       "name": "ktor-http-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio/3.6.0/ktor-http-cio-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio/3.6.1/ktor-http-cio-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http-cio-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-http-cio-iosarm64:3.6.1",
       "name": "ktor-http-cio",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio-iosarm64/3.6.0/ktor-http-cio-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-cio-iosarm64/3.6.1/ktor-http-cio-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-http-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-http-iosarm64:3.6.1",
       "name": "ktor-http",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-iosarm64/3.6.0/ktor-http-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-iosarm64/3.6.1/ktor-http-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-io:3.6.0",
+      "coordinate": "io.ktor:ktor-io:3.6.1",
       "name": "ktor-io",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io/3.6.0/ktor-io-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io/3.6.1/ktor-io-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-io-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-io-iosarm64:3.6.1",
       "name": "ktor-io",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io-iosarm64/3.6.0/ktor-io-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io-iosarm64/3.6.1/ktor-io-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network:3.6.0",
+      "coordinate": "io.ktor:ktor-network:3.6.1",
       "name": "ktor-network",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network/3.6.0/ktor-network-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network/3.6.1/ktor-network-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-network-iosarm64:3.6.1",
       "name": "ktor-network",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-iosarm64/3.6.0/ktor-network-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-iosarm64/3.6.1/ktor-network-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-tls:3.6.0",
+      "coordinate": "io.ktor:ktor-network-tls:3.6.1",
       "name": "ktor-network-tls",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls/3.6.0/ktor-network-tls-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls/3.6.1/ktor-network-tls-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-tls-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-network-tls-iosarm64:3.6.1",
       "name": "ktor-network-tls",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls-iosarm64/3.6.0/ktor-network-tls-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls-iosarm64/3.6.1/ktor-network-tls-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-openapi-schema:3.6.0",
+      "coordinate": "io.ktor:ktor-openapi-schema:3.6.1",
       "name": "ktor-openapi-schema",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema/3.6.0/ktor-openapi-schema-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema/3.6.1/ktor-openapi-schema-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-openapi-schema-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-openapi-schema-iosarm64:3.6.1",
       "name": "ktor-openapi-schema",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema-iosarm64/3.6.0/ktor-openapi-schema-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema-iosarm64/3.6.1/ktor-openapi-schema-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization:3.6.1",
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization/3.6.0/ktor-serialization-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization/3.6.1/ktor-serialization-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-iosarm64:3.6.1",
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-iosarm64/3.6.0/ktor-serialization-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-iosarm64/3.6.1/ktor-serialization-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx:3.6.1",
       "name": "ktor-serialization-kotlinx",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx/3.6.0/ktor-serialization-kotlinx-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx/3.6.1/ktor-serialization-kotlinx-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx-iosarm64:3.6.1",
       "name": "ktor-serialization-kotlinx",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-iosarm64/3.6.0/ktor-serialization-kotlinx-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-iosarm64/3.6.1/ktor-serialization-kotlinx-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx-json:3.6.1",
       "name": "ktor-serialization-kotlinx-json",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json/3.6.0/ktor-serialization-kotlinx-json-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json/3.6.1/ktor-serialization-kotlinx-json-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-serialization-kotlinx-json-iosarm64:3.6.1",
       "name": "ktor-serialization-kotlinx-json",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json-iosarm64/3.6.0/ktor-serialization-kotlinx-json-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json-iosarm64/3.6.1/ktor-serialization-kotlinx-json-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-sse:3.6.0",
+      "coordinate": "io.ktor:ktor-sse:3.6.1",
       "name": "ktor-sse",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse/3.6.0/ktor-sse-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse/3.6.1/ktor-sse-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-sse-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-sse-iosarm64:3.6.1",
       "name": "ktor-sse",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse-iosarm64/3.6.0/ktor-sse-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-sse-iosarm64/3.6.1/ktor-sse-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-utils:3.6.0",
+      "coordinate": "io.ktor:ktor-utils:3.6.1",
       "name": "ktor-utils",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils/3.6.0/ktor-utils-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils/3.6.1/ktor-utils-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-utils-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-utils-iosarm64:3.6.1",
       "name": "ktor-utils",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils-iosarm64/3.6.0/ktor-utils-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils-iosarm64/3.6.1/ktor-utils-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websocket-serialization:3.6.0",
+      "coordinate": "io.ktor:ktor-websocket-serialization:3.6.1",
       "name": "ktor-websocket-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization/3.6.0/ktor-websocket-serialization-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization/3.6.1/ktor-websocket-serialization-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websocket-serialization-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-websocket-serialization-iosarm64:3.6.1",
       "name": "ktor-websocket-serialization",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization-iosarm64/3.6.0/ktor-websocket-serialization-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websocket-serialization-iosarm64/3.6.1/ktor-websocket-serialization-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websockets:3.6.0",
+      "coordinate": "io.ktor:ktor-websockets:3.6.1",
       "name": "ktor-websockets",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets/3.6.0/ktor-websockets-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets/3.6.1/ktor-websockets-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-websockets-iosarm64:3.6.0",
+      "coordinate": "io.ktor:ktor-websockets-iosarm64:3.6.1",
       "name": "ktor-websockets",
       "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets-iosarm64/3.6.0/ktor-websockets-iosarm64-3.6.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-websockets-iosarm64/3.6.1/ktor-websockets-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5337,20 +5369,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui:1.1.2",
+      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0",
       "name": "Androidx Navigation 3 UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui/1.1.2/navigation3-ui-1.1.2.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui/1.2.0/navigation3-ui-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui-iosarm64:1.1.2",
+      "coordinate": "org.jetbrains.androidx.navigation3:navigation3-ui-iosarm64:1.2.0",
       "name": "Androidx Navigation 3 UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui-iosarm64/1.1.2/navigation3-ui-iosarm64-1.1.2.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/androidx/navigation3/navigation3-ui-iosarm64/1.2.0/navigation3-ui-iosarm64-1.2.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5431,30 +5463,30 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation:1.12.2",
       "name": "Compose Animation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation/1.12.1/animation-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation/1.12.2/animation-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation-core:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation-core:1.12.2",
       "name": "Compose Animation Core",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core/1.12.1/animation-core-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core/1.12.2/animation-core-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation-core-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation-core-iosarm64:1.12.2",
       "name": "Compose Animation Core",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core-iosarm64/1.12.1/animation-core-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-core-iosarm64/1.12.2/animation-core-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5463,10 +5495,10 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.animation:animation-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.animation:animation-iosarm64:1.12.2",
       "name": "Compose Animation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-iosarm64/1.12.1/animation-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/animation/animation-iosarm64/1.12.2/animation-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5495,40 +5527,40 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.components:components-resources:1.12.1",
+      "coordinate": "org.jetbrains.compose.components:components-resources:1.12.2",
       "name": "Resources for Compose JB",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources/1.12.1/components-resources-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources/1.12.2/components-resources-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.components:components-resources-iosArm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.components:components-resources-iosArm64:1.12.2",
       "name": "Resources for Compose JB",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources-iosArm64/1.12.1/components-resources-iosArm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/components/components-resources-iosArm64/1.12.2/components-resources-iosArm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation:1.12.2",
       "name": "Compose Foundation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation/1.12.1/foundation-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation/1.12.2/foundation-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation-iosarm64:1.12.2",
       "name": "Compose Foundation",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-iosarm64/1.12.1/foundation-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-iosarm64/1.12.2/foundation-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5537,20 +5569,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation-layout:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation-layout:1.12.2",
       "name": "Compose Layouts",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout/1.12.1/foundation-layout-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout/1.12.2/foundation-layout-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.foundation:foundation-layout-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.foundation:foundation-layout-iosarm64:1.12.2",
       "name": "Compose Layouts",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout-iosarm64/1.12.1/foundation-layout-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/foundation/foundation-layout-iosarm64/1.12.2/foundation-layout-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5735,20 +5767,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime:1.12.2",
       "name": "Compose Runtime",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime/1.12.1/runtime-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime/1.12.2/runtime-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime-iosarm64:1.12.2",
       "name": "Compose Runtime",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-iosarm64/1.12.1/runtime-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-iosarm64/1.12.2/runtime-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5757,20 +5789,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable:1.12.2",
       "name": "Compose Saveable",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable/1.12.1/runtime-saveable-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable/1.12.2/runtime-saveable-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.runtime:runtime-saveable-iosarm64:1.12.2",
       "name": "Compose Saveable",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable-iosarm64/1.12.1/runtime-saveable-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/runtime/runtime-saveable-iosarm64/1.12.2/runtime-saveable-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5779,30 +5811,30 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui:1.12.2",
       "name": "Compose UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui/1.12.1/ui-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui/1.12.2/ui-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-backhandler:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-backhandler:1.12.2",
       "name": "Compose BackHandler",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-backhandler/1.12.1/ui-backhandler-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-backhandler/1.12.2/ui-backhandler-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-backhandler-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-backhandler-iosarm64:1.12.2",
       "name": "Compose BackHandler",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-backhandler-iosarm64/1.12.1/ui-backhandler-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-backhandler-iosarm64/1.12.2/ui-backhandler-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5811,20 +5843,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-geometry:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-geometry:1.12.2",
       "name": "Compose Geometry",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry/1.12.1/ui-geometry-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry/1.12.2/ui-geometry-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-geometry-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-geometry-iosarm64:1.12.2",
       "name": "Compose Geometry",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry-iosarm64/1.12.1/ui-geometry-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-geometry-iosarm64/1.12.2/ui-geometry-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5833,20 +5865,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-graphics:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-graphics:1.12.2",
       "name": "Compose Graphics",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics/1.12.1/ui-graphics-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics/1.12.2/ui-graphics-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-graphics-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-graphics-iosarm64:1.12.2",
       "name": "Compose Graphics",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics-iosarm64/1.12.1/ui-graphics-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-graphics-iosarm64/1.12.2/ui-graphics-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5855,10 +5887,10 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-iosarm64:1.12.2",
       "name": "Compose UI",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-iosarm64/1.12.1/ui-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-iosarm64/1.12.2/ui-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5867,20 +5899,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-text:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-text:1.12.2",
       "name": "Compose UI Text",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text/1.12.1/ui-text-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text/1.12.2/ui-text-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-text-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-text-iosarm64:1.12.2",
       "name": "Compose UI Text",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text-iosarm64/1.12.1/ui-text-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-text-iosarm64/1.12.2/ui-text-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5889,20 +5921,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview:1.12.2",
       "name": "Compose UI Preview Tooling",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview/1.12.1/ui-tooling-preview-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview/1.12.2/ui-tooling-preview-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-tooling-preview-iosarm64:1.12.2",
       "name": "Compose UI Preview Tooling",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview-iosarm64/1.12.1/ui-tooling-preview-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview-iosarm64/1.12.2/ui-tooling-preview-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5911,40 +5943,40 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-uikit:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-uikit:1.12.2",
       "name": "Compose UIKit",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-uikit/1.12.1/ui-uikit-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-uikit/1.12.2/ui-uikit-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-uikit-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-uikit-iosarm64:1.12.2",
       "name": "Compose UIKit",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-uikit-iosarm64/1.12.1/ui-uikit-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-uikit-iosarm64/1.12.2/ui-uikit-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-unit:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-unit:1.12.2",
       "name": "Compose Unit",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit/1.12.1/ui-unit-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit/1.12.2/ui-unit-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-unit-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-unit-iosarm64:1.12.2",
       "name": "Compose Unit",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit-iosarm64/1.12.1/ui-unit-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-unit-iosarm64/1.12.2/ui-unit-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5953,20 +5985,20 @@
       ]
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-util:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-util:1.12.2",
       "name": "Compose Util",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util/1.12.1/ui-util-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util/1.12.2/ui-util-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.compose.ui:ui-util-iosarm64:1.12.1",
+      "coordinate": "org.jetbrains.compose.ui:ui-util-iosarm64:1.12.2",
       "name": "Compose Util",
       "url": "https://github.com/JetBrains/compose-multiplatform",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util-iosarm64/1.12.1/ui-util-iosarm64-1.12.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/compose/ui/ui-util-iosarm64/1.12.2/ui-util-iosarm64-1.12.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6125,30 +6157,30 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.11.0/kotlinx-serialization-core-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.12.0/kotlinx-serialization-core-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-iosarm64:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-iosarm64:1.12.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-iosarm64/1.11.0/kotlinx-serialization-core-iosarm64-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-iosarm64/1.12.0/kotlinx-serialization-core-iosarm64-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.11.0/kotlinx-serialization-json-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.12.0/kotlinx-serialization-json-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6175,10 +6207,10 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-iosarm64:1.11.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-iosarm64:1.12.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-iosarm64/1.11.0/kotlinx-serialization-json-iosarm64-1.11.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-iosarm64/1.12.0/kotlinx-serialization-json-iosarm64-1.12.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6205,20 +6237,20 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.skiko:skiko:0.150.1",
+      "coordinate": "org.jetbrains.skiko:skiko:0.150.2",
       "name": "Skiko KMP",
       "url": "https://www.github.com/JetBrains/skiko",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/skiko/skiko/0.150.1/skiko-0.150.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/skiko/skiko/0.150.2/skiko-0.150.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.skiko:skiko-iosarm64:0.150.1",
+      "coordinate": "org.jetbrains.skiko:skiko-iosarm64:0.150.2",
       "name": "Skiko IosArm64",
       "url": "https://www.github.com/JetBrains/skiko",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/skiko/skiko-iosarm64/0.150.1/skiko-iosarm64-0.150.1.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/skiko/skiko-iosarm64/0.150.2/skiko-iosarm64-0.150.2.pom",
       "licenses": [
         "Apache-2.0"
       ],
