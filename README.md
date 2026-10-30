@@ -215,6 +215,8 @@ adb shell am start \
 ./gradlew :android:output:login:assemble
 ```
 
+本地 Maven 发布与独立消费验证见 [Android 输出说明](android/output/README.md)。单独复制 AAR 不会自动传递第三方依赖。
+
 ## 当前实现边界
 
 - 登录仍是本地模拟，尚未接入真实认证和 token 刷新端点。安全凭据存储不等同于完整的服务端会话管理。
