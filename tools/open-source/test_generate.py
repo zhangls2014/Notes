@@ -12,6 +12,57 @@ from generate import main, metadata, render_page
 
 
 class NoticePageTest(unittest.TestCase):
+    def test_source_categories_keep_every_component_once_on_both_platforms(self):
+        platform_groups = ["androidx.activity", "com.google.guava", "org.jetbrains.kotlin",
+                           "io.ktor", "io.ktor.client", "google", "jetbrains", "org.jetbrains"]
+        other_groups = ["io.insert-koin", "sqlite", "androidxother", "com.googlefake",
+                        "org.jetbrainsfake", "io.ktorfake"]
+        with tempfile.TemporaryDirectory() as directory:
+            licenses = Path(directory)
+            (licenses / "MIT.txt").write_text("Original MIT text")
+            items = [{"coordinate": group + ":core:1", "name": group,
+                      "url": "https://example.com", "licenses": ["MIT"], "notices": []}
+                     for group in other_groups + platform_groups]
+            for platform in ("android", "ios"):
+                page = render_page(platform, items, licenses)
+                self.assertIn('data-zh="Google / JetBrains 组件"', page)
+                self.assertIn('data-zh="其他第三方组件"', page)
+                official, other = page.split('<h2 id="third-party-components">')
+                self.assertIn('id="google-jetbrains-components"', official)
+                for group in platform_groups:
+                    self.assertIn(group + ":core:1", official)
+                    self.assertNotIn(group + ":core:1", other)
+                for group in other_groups:
+                    self.assertIn(group + ":core:1", other)
+                    self.assertNotIn(group + ":core:1", official)
+                for item in items:
+                    self.assertEqual(1, page.count('>' + item["coordinate"] + '</p>'))
+                empty = render_page(platform, [], licenses)
+                self.assertNotIn('id="google-jetbrains-components"', empty)
+                self.assertNotIn('id="third-party-components"', empty)
+
+    def test_category_shortcuts_target_visible_headings_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            licenses = Path(directory)
+            (licenses / "MIT.txt").write_text("Original MIT text")
+            items = [{"coordinate": group + ":core:1", "name": group,
+                      "url": "https://example.com", "licenses": ["MIT"], "notices": []}
+                     for group in ("androidx.activity", "io.insert-koin")]
+            for platform in ("android", "ios"):
+                page = render_page(platform, items, licenses)
+                navigation = page.split('<nav class="actions">')[1].split('</nav>')[0]
+                self.assertLess(page.index('</header>'), page.index('<nav'))
+                self.assertLess(page.index('</nav>'), page.index('<h2'))
+                for category in ("google-jetbrains-components", "third-party-components"):
+                    self.assertIn(f'class="button" href="#{category}"', navigation)
+                    self.assertIn(f'<h2 id="{category}">', page)
+                self.assertIn('data-zh="Google / JetBrains 组件"', navigation)
+                self.assertIn('data-en="Other third-party components"', navigation)
+                single = render_page(platform, items[:1], licenses)
+                self.assertNotIn('href="#third-party-components"', single)
+                self.assertNotIn('<nav', render_page(platform, [], licenses))
+                self.assertNotIn('<nav', render_page(platform, items, licenses, details=True))
+
     def test_buttons_navigate_to_fixed_platform_detail_page(self):
         with tempfile.TemporaryDirectory() as directory:
             licenses = Path(directory)
@@ -33,7 +84,7 @@ class NoticePageTest(unittest.TestCase):
                 self.assertIn("Complete license text", details)
                 self.assertIn("Original copyright notice", details)
                 self.assertNotIn("<header>", details)
-                self.assertNotIn("<nav", page)
+                self.assertIn("<nav", page)
                 self.assertNotIn("<article>", details)
                 self.assertEqual(2, details.count("<template data-detail="))
 
@@ -64,7 +115,7 @@ class NoticePageTest(unittest.TestCase):
             cards = Cards()
             cards.feed(page)
             self.assertEqual(2, cards.count)
-            self.assertIn("Libraries</span>", page)
+            self.assertIn("Other third-party components</span>", page)
             for item in items:
                 self.assertIn(item["coordinate"], page)
                 self.assertIn(item["url"], page)

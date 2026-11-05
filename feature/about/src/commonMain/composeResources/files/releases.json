@@ -23,6 +23,17 @@
           "en": "Open-source notices use fixed detail pages and display only the selected declaration.",
           "zh": "开源软件声明使用固定详情页，每次仅显示所选声明。"
         }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Group open-source notices into Google / JetBrains components and other third-party components, with shortcut buttons at the top.",
+          "zh": "开源软件声明按 Google / JetBrains 组件和其他第三方组件分类展示，顶部增加分类定位按钮。"
+        }
       }
     ]
   },

@@ -80,3 +80,21 @@ The inline CSS shares the app's Expressive shape/type hierarchy. Component actio
 links use primary-container colors, unchanged capsule corners in resting/pressed states and
 state layers; reduced-motion preferences disable these transitions. Passive pointer/keyboard
 listeners maintain press state without cancelling native scrolling or link navigation.
+
+## Component source categories
+
+List pages show “Google / JetBrains 组件” (“Google / JetBrains components”) first,
+then “其他第三方组件” (“Other third-party components”). Within each category,
+retain Maven group cards and component order, coordinates and declaration links.
+Match the exact namespaces `androidx`, `com.google`, `org.jetbrains`, `io.ktor`
+and their dot-separated children, plus resource groups `google` and `jetbrains`.
+All other groups belong to the third-party category, including SQLite even when
+bundled by AndroidX. This is a presentation classification, not a license change.
+Empty categories are omitted; declaration detail pages remain unchanged.
+Below the list page introduction, native fragment links styled as existing buttons
+jump to each nonempty category. Reuse the wrapping actions layout and localized
+category labels; keep navigation off declaration detail pages.
+
+For category changes, add regression coverage for namespace boundaries, both
+platforms, complete/unique component placement and empty categories, then run
+the Python and Node commands above and both platform notice resource Sync tasks.

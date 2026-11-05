@@ -110,7 +110,6 @@ def render_page(platform, items, license_directory, *, details=False):
     source_label = localized("项目来源", "Project source")
     notices_label = localized("版权与附加声明", "Copyright and notices")
     licenses_label = localized("许可证全文", "License texts")
-    libraries_label = localized("开源组件", "Libraries")
     groups = {}
     used_licenses = set()
     notices_by_id = {}
@@ -130,7 +129,23 @@ def render_page(platform, items, license_directory, *, details=False):
         notices = " ".join(notice_links)
         group = item["coordinate"].split(":", 1)[0]
         groups.setdefault(group, []).append(f'<div class="module"><h4>{escape(item["name"])}</h4><p class="coordinate">{escape(item["coordinate"])}</p><div class="actions">{links}<a class="button" href="{escape(url, quote=True)}">{source_label}</a>{notices}</div></div>')
-    sections = [f'<article><h3>{escape(group)}</h3>{"".join(modules)}</article>' for group, modules in groups.items()]
+    categories = {"google-jetbrains-components": [], "third-party-components": []}
+    for group, modules in groups.items():
+        platform_component = group in ("google", "jetbrains") or any(
+            group == namespace or group.startswith(namespace + ".")
+            for namespace in ("androidx", "com.google", "org.jetbrains", "io.ktor")
+        )
+        category = "google-jetbrains-components" if platform_component else "third-party-components"
+        categories[category].append(f'<article><h3>{escape(group)}</h3>{"".join(modules)}</article>')
+    labels = {
+        "google-jetbrains-components": localized("Google / JetBrains 组件", "Google / JetBrains components"),
+        "third-party-components": localized("其他第三方组件", "Other third-party components"),
+    }
+    sections = [f'<h2 id="{category}">{labels[category]}</h2>{"".join(cards)}'
+                for category, cards in categories.items() if cards]
+    shortcuts = "".join(f'<a class="button" href="#{category}">{labels[category]}</a>'
+                        for category, cards in categories.items() if cards)
+    navigation = f'<nav class="actions">{shortcuts}</nav>' if shortcuts else ""
     templates = []
     for value in sorted(used_licenses):
         text = (license_directory / (value + ".txt")).read_text(encoding="utf-8")
@@ -139,7 +154,7 @@ def render_page(platform, items, license_directory, *, details=False):
         templates.append(f'<template data-detail="notice-{key}"><section><pre>{escape(text)}</pre></section></template>')
     heading = "许可证与版权声明" if details else "开源软件声明"
     content = ("".join(templates) if details else
-               f'<h2 id="libraries">{libraries_label}</h2>{"".join(sections)}')
+               f'{navigation}{"".join(sections)}')
     heading_en = "Licenses and copyright notices" if details else "Open-source software notices"
     heading_label = localized(heading, heading_en)
     intro = localized(f"摘星的 {title} 版本使用了以下开源软件。感谢这些项目的作者与贡献者。", f"Notes for {title} uses the following open-source software. Thank you to the authors and contributors.")
