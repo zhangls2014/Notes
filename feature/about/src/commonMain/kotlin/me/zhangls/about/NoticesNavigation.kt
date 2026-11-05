@@ -6,22 +6,22 @@ internal data class LocalNoticesLink(val page: OpenSourcePage, val anchor: Strin
 
 private val noticeDetailId = Regex("(?:license-[A-Za-z0-9][A-Za-z0-9.+-]*|notice-[a-f0-9]{16})")
 
-/** Detail identifiers select a single generated file, never a path or a fragment. */
+/** Detail identifiers select one declaration in the fixed platform detail page. */
 internal fun noticesPageUri(librariesUri: String, page: OpenSourcePage, detailId: String?): String {
   if (page == OpenSourcePage.LIBRARIES) return librariesUri
   require(detailId != null && noticeDetailId.matches(detailId) && !detailId.contains(".."))
-  return librariesUri.removeSuffix(".html") + "-$detailId.html"
+  return librariesUri.removeSuffix(".html") + "-licenses.html#$detailId"
 }
 
-/** Accept only the exact list URI or safe generated detail names in its directory. */
+/** Accept only the exact list URI or fixed detail page with a safe declaration identifier in its directory. */
 internal fun localNoticesLink(url: String, librariesUri: String): LocalNoticesLink? {
   val path = url.substringBefore('?').substringBefore('#')
-  val prefix = librariesUri.removeSuffix(".html") + "-"
-  val detailId = path.removePrefix(prefix).removeSuffix(".html")
+  val details = librariesUri.removeSuffix(".html") + "-licenses.html"
+  val detailId = url.substringAfter('#', "")
   return when {
     path == librariesUri -> LocalNoticesLink(OpenSourcePage.LIBRARIES, null)
 
-    path.startsWith(prefix) && path.endsWith(".html") &&
+    path == details &&
       noticeDetailId.matches(detailId) && !detailId.contains("..") -> LocalNoticesLink(
       OpenSourcePage.LICENSES,
       detailId,

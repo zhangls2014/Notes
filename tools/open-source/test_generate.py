@@ -12,7 +12,7 @@ from generate import main, metadata, render_page
 
 
 class NoticePageTest(unittest.TestCase):
-    def test_license_buttons_navigate_to_separate_platform_detail_pages(self):
+    def test_buttons_navigate_to_fixed_platform_detail_page(self):
         with tempfile.TemporaryDirectory() as directory:
             licenses = Path(directory)
             (licenses / "MIT.txt").write_text("Complete license text")
@@ -20,7 +20,7 @@ class NoticePageTest(unittest.TestCase):
                     "licenses": ["MIT"], "notices": ["Original copyright notice"]}
             for platform in ("android", "ios"):
                 page = render_page(platform, [item], licenses)
-                self.assertIn(f'class="button" href="{platform}-license-MIT.html"', page)
+                self.assertIn(f'class="button" href="{platform}-licenses.html#license-MIT"', page)
                 self.assertIn('class="button" href="https://example.com"', page)
                 actions = page.split('<div class="actions">', 1)[1].split('</div>', 1)[0]
                 self.assertEqual(3, actions.count('class="button"'))
@@ -29,31 +29,13 @@ class NoticePageTest(unittest.TestCase):
                 self.assertNotIn("Complete license text", page)
                 self.assertNotIn("Original copyright notice", page)
                 details = render_page(platform, [item], licenses, details=True)
-                self.assertIn('id="license-MIT"', details)
+                self.assertIn('data-detail="license-MIT"', details)
                 self.assertIn("Complete license text", details)
                 self.assertIn("Original copyright notice", details)
                 self.assertNotIn("<header>", details)
                 self.assertNotIn("<nav", page)
                 self.assertNotIn("<article>", details)
-
-    def test_selected_detail_contains_only_selected_original_text(self):
-        with tempfile.TemporaryDirectory() as directory:
-            licenses = Path(directory)
-            (licenses / "MIT.txt").write_text("MIT original text")
-            (licenses / "Apache-2.0.txt").write_text("Apache original text")
-            items = [{"coordinate": "example:core:1", "name": "Core", "url": "https://example.com",
-                      "licenses": ["MIT", "Apache-2.0"], "notices": ["First notice", "Second notice"]}]
-            for selected, expected in [("license-MIT", "MIT original text"),
-                                       ("notice-" + sha256(b"Second notice").hexdigest()[:16], "Second notice")]:
-                detail = render_page("android", items, licenses, details=True, selected=selected)
-                self.assertEqual(1, detail.count("<pre>"))
-                self.assertIn("<pre>" + expected + "</pre>", detail)
-                self.assertNotIn("<header>", detail)
-                self.assertNotIn("<nav", detail)
-                if selected.startswith("notice-"):
-                    self.assertNotIn("<h1>", detail)
-                self.assertNotIn("First notice", detail)
-                self.assertNotIn("Apache original text", detail)
+                self.assertEqual(2, details.count("<template data-detail="))
 
     def test_same_package_modules_share_one_card_without_losing_declarations(self):
         class Cards(HTMLParser):
@@ -115,9 +97,7 @@ class NoticePageTest(unittest.TestCase):
                 main()
             inventory = json.loads((output / "dependencies.json").read_text())
             self.assertEqual(
-                {"android.html", "android-licenses.html", "ios.html", "ios-licenses.html",
-                 "android-license-Apache-2.0.html", "ios-license-Apache-2.0.html",
-                 "android-notice-" + sha256(b"Android-specific notice").hexdigest()[:16] + ".html"},
+                {"android.html", "android-licenses.html", "ios.html", "ios-licenses.html"},
                 {file.name for file in output.glob("*.html")},
             )
             self.assertFalse((root / "feature/about/src").exists())
@@ -125,6 +105,19 @@ class NoticePageTest(unittest.TestCase):
             self.assertEqual([], inventory["ios"][0]["notices"])
             self.assertIn("Android-specific notice", (output / "android-licenses.html").read_text())
             self.assertNotIn("Android-specific notice", (output / "ios-licenses.html").read_text())
+            stale = output / "android-notice-0000000000000000.html"
+            stale.write_text("obsolete")
+            unrelated = output / "custom.html"
+            unrelated.write_text("keep")
+            inventory["noticeTexts"] = {key: text + " updated" for key, text in inventory["noticeTexts"].items()}
+            (output / "dependencies.json").write_text(json.dumps(inventory))
+            with patch("generate.OUTPUT", output), patch("sys.argv", ["generate.py"]):
+                main()
+            self.assertFalse(stale.exists())
+            self.assertTrue(unrelated.exists())
+            self.assertIn("Android-specific notice updated", (output / "android-licenses.html").read_text())
+            self.assertEqual(5, len(list(output.glob("*.html"))))
+
 
     def test_missing_resolved_artifact_stops_refresh_before_metadata_lookup(self):
         with tempfile.TemporaryDirectory() as directory:

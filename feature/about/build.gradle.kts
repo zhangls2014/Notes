@@ -25,7 +25,7 @@ compose.resources {
     val outputDirectory = layout.buildDirectory.dir("generated/open-source/${platform}Main/composeResources")
     val syncNotices = tasks.register<Sync>("sync${platform.replaceFirstChar { it.uppercaseChar() }}NoticesResources") {
       from(rootProject.layout.projectDirectory.dir("web/open-source")) {
-        include("$platform.html", "$platform-license-*.html", "$platform-notice-*.html")
+        include("$platform.html", "$platform-licenses.html")
         into("files/open-source")
       }
       into(outputDirectory)

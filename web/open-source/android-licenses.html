@@ -27,6 +27,20 @@
     }
   }
   document.addEventListener('DOMContentLoaded', () => {
+    const templates = new Map([...document.querySelectorAll('template[data-detail]')].map(node => [node.getAttribute('data-detail'), node]));
+    if (templates.size > 0) {
+      const renderDetail = () => {
+        const selected = templates.get(location.hash.slice(1));
+        const main = document.querySelector('main');
+        if (selected) {
+          main.replaceChildren(selected.content.cloneNode(true));
+        } else {
+          main.textContent = language === 'zh-CN' ? '未找到该声明。' : 'Notice not found.';
+        }
+      };
+      renderDetail();
+      globalThis.addEventListener?.('hashchange', renderDetail);
+    }
     for (const node of document.querySelectorAll('[data-en]')) {
       node.textContent = node.getAttribute(language === 'zh-CN' ? 'data-zh' : 'data-en');
     }
@@ -103,7 +117,7 @@ nav a:not(.button) { max-width:100%; display:inline-flex; align-items:center; mi
 </head>
 <body><main>
 
-<h2 id="licenses"><span data-zh="许可证全文" data-en="License texts">License texts</span></h2><section id="license-Apache-2.0"><h3>Apache-2.0</h3><pre>Apache License
+<template data-detail="license-Apache-2.0"><section><h1>Apache-2.0</h1><pre>Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
 
@@ -176,7 +190,7 @@ distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-</pre></section><section id="license-BSD-3-Clause"><h3>BSD-3-Clause</h3><pre>Copyright (c) 2011 Google Inc. All rights reserved.
+</pre></section></template><template data-detail="license-BSD-3-Clause"><section><h1>BSD-3-Clause</h1><pre>Copyright (c) 2011 Google Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -205,7 +219,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-</pre></section><section id="license-MIT"><h3>MIT</h3><pre>Copyright (c) 2004-2023 QOS.ch
+</pre></section></template><template data-detail="license-MIT"><section><h1>MIT</h1><pre>Copyright (c) 2004-2023 QOS.ch
 All rights reserved.
 
 Permission is hereby granted, free  of charge, to any person obtaining
@@ -229,7 +243,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-</pre></section><section id="license-Public-Domain"><h3>Public-Domain</h3><pre>All of the code and documentation in SQLite has been dedicated to the
+</pre></section></template><template data-detail="license-Public-Domain"><section><h1>Public-Domain</h1><pre>All of the code and documentation in SQLite has been dedicated to the
 public domain
 by the authors.
 All code authors, and representatives of the companies they work for,
@@ -258,7 +272,7 @@ internet.  Every line of code can be traced back to its original
 author, and all of those authors have public domain dedications
 on file.  So the SQLite code base is clean and is
 uncontaminated with licensed code from other projects.
-</pre></section><h2><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span></h2><section id="notice-809fa1ed21450f59"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 1</h3><pre>
+</pre></section></template><template data-detail="notice-809fa1ed21450f59"><section><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -436,7 +450,7 @@ uncontaminated with licensed code from other projects.
 
    END OF TERMS AND CONDITIONS
 
-</pre></section><section id="notice-a01b712fbb30f80b"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 2</h3><pre>Redistribution and use in source and binary forms, with or without
+</pre></section></template><template data-detail="notice-a01b712fbb30f80b"><section><pre>Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
@@ -460,7 +474,7 @@ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre></section><section id="notice-e662e6c2fc7ba7bc"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 3</h3><pre>
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre></section></template><template data-detail="notice-e662e6c2fc7ba7bc"><section><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -651,7 +665,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</pre></sect
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-</pre></section><section id="notice-3a67e69687ccd8cf"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 4</h3><pre>MIT License
+</pre></section></template><template data-detail="notice-3a67e69687ccd8cf"><section><pre>MIT License
 
 Copyright (c) 2026 Jordon de Hoog
 
@@ -672,7 +686,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-</pre></section><section id="notice-6632f550c207be8d"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 5</h3><pre>Copyright (c) 2004-2023 QOS.ch
+</pre></section></template><template data-detail="notice-6632f550c207be8d"><section><pre>Copyright (c) 2004-2023 QOS.ch
 All rights reserved.
 
 Permission is hereby granted, free  of charge, to any person obtaining
@@ -696,7 +710,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-</pre></section><section id="notice-58d1e17ffe5109a7"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 6</h3><pre>
+</pre></section></template><template data-detail="notice-58d1e17ffe5109a7"><section><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -897,5 +911,5 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License.</pre></section>
+   limitations under the License.</pre></section></template>
 </main></body></html>

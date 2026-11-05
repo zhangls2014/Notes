@@ -101,7 +101,7 @@ def metadata(coordinate):
     }
 
 
-def render_page(platform, items, license_directory, *, details=False, selected=None):
+def render_page(platform, items, license_directory, *, details=False):
     title = {"android": "Android", "ios": "iOS"}[platform]
 
     def localized(chinese, english):
@@ -121,42 +121,25 @@ def render_page(platform, items, license_directory, *, details=False, selected=N
         url = item["url"]
         if urlparse(url).scheme not in ("https", "http") or not urlparse(url).netloc:
             raise ValueError("Invalid upstream project URL: " + url)
-        links = " ".join(f'<a data-font-scale class="button" href="{platform}-license-{escape(value)}.html">{escape(value)}</a>' for value in item["licenses"])
+        links = " ".join(f'<a data-font-scale class="button" href="{platform}-licenses.html#license-{escape(value)}">{escape(value)}</a>' for value in item["licenses"])
         notice_links = []
         for text in item["notices"]:
             notice_id = sha256(text.encode("utf-8")).hexdigest()[:16]
             notices_by_id[notice_id] = text
-            notice_links.append(f'<a data-font-scale class="button" href="{platform}-notice-{notice_id}.html">{notices_label}</a>')
+            notice_links.append(f'<a data-font-scale class="button" href="{platform}-licenses.html#notice-{notice_id}">{notices_label}</a>')
         notices = " ".join(notice_links)
         group = item["coordinate"].split(":", 1)[0]
         groups.setdefault(group, []).append(f'<div class="module"><h4>{escape(item["name"])}</h4><p class="coordinate">{escape(item["coordinate"])}</p><div class="actions">{links}<a class="button" href="{escape(url, quote=True)}">{source_label}</a>{notices}</div></div>')
     sections = [f'<article><h3>{escape(group)}</h3>{"".join(modules)}</article>' for group, modules in groups.items()]
-    full_texts = "".join(
-        f'<section id="license-{escape(value)}"><h3>{escape(value)}</h3><pre>{escape((license_directory / (value + ".txt")).read_text(encoding="utf-8"))}</pre></section>'
-        for value in sorted(used_licenses)
-    )
-    full_notices = "".join(
-        f'<section id="notice-{key}"><h3>{notices_label} {index}</h3><pre>{escape(text)}</pre></section>'
-        for index, (key, text) in enumerate(notices_by_id.items(), start=1)
-    )
+    templates = []
+    for value in sorted(used_licenses):
+        text = (license_directory / (value + ".txt")).read_text(encoding="utf-8")
+        templates.append(f'<template data-detail="license-{escape(value)}"><section><h1>{escape(value)}</h1><pre>{escape(text)}</pre></section></template>')
+    for key, text in notices_by_id.items():
+        templates.append(f'<template data-detail="notice-{key}"><section><pre>{escape(text)}</pre></section></template>')
     heading = "许可证与版权声明" if details else "开源软件声明"
-    if details:
-        content = f'<h2 id="licenses">{licenses_label}</h2>{full_texts}<h2>{notices_label}</h2>{full_notices}'
-    else:
-        content = f'<h2 id="libraries">{libraries_label}</h2>{"".join(sections)}'
-    if selected is not None:
-        if selected.startswith("license-"):
-            identifier = selected.removeprefix("license-")
-            if identifier not in used_licenses:
-                raise ValueError("Unknown license: " + identifier)
-            text = (license_directory / (identifier + ".txt")).read_text(encoding="utf-8")
-            label = escape(identifier)
-        else:
-            identifier = selected.removeprefix("notice-")
-            text = notices_by_id[identifier]
-            label = notices_label
-        body_heading = f"<h1>{label}</h1>" if selected.startswith("license-") else ""
-        content = f'<section id="{escape(selected)}">{body_heading}<pre>{escape(text)}</pre></section>'
+    content = ("".join(templates) if details else
+               f'<h2 id="libraries">{libraries_label}</h2>{"".join(sections)}')
     heading_en = "Licenses and copyright notices" if details else "Open-source software notices"
     heading_label = localized(heading, heading_en)
     intro = localized(f"摘星的 {title} 版本使用了以下开源软件。感谢这些项目的作者与贡献者。", f"Notes for {title} uses the following open-source software. Thank you to the authors and contributors.")
@@ -191,6 +174,20 @@ def render_page(platform, items, license_directory, *, details=False, selected=N
     }}
   }}
   document.addEventListener('DOMContentLoaded', () => {{
+    const templates = new Map([...document.querySelectorAll('template[data-detail]')].map(node => [node.getAttribute('data-detail'), node]));
+    if (templates.size > 0) {{
+      const renderDetail = () => {{
+        const selected = templates.get(location.hash.slice(1));
+        const main = document.querySelector('main');
+        if (selected) {{
+          main.replaceChildren(selected.content.cloneNode(true));
+        }} else {{
+          main.textContent = language === 'zh-CN' ? '未找到该声明。' : 'Notice not found.';
+        }}
+      }};
+      renderDetail();
+      globalThis.addEventListener?.('hashchange', renderDetail);
+    }}
     for (const node of document.querySelectorAll('[data-en]')) {{
       node.textContent = node.getAttribute(language === 'zh-CN' ? 'data-zh' : 'data-en');
     }}
@@ -312,14 +309,13 @@ def main():
             page = render_page(platform, items, OUTPUT / "licenses", details=details)
             (OUTPUT / filename).write_text(page, encoding="utf-8")
             print(filename)
-        selections = {"license-" + value for item in items for value in item["licenses"]}
-        selections.update("notice-" + sha256(text.encode("utf-8")).hexdigest()[:16]
-                          for item in items for text in item["notices"])
-        for selected in sorted(selections):
-            filename = f"{platform}-{selected}.html"
-            page = render_page(platform, items, OUTPUT / "licenses", details=True, selected=selected)
-            (OUTPUT / filename).write_text(page, encoding="utf-8")
-            print(filename)
+
+    # Remove only the superseded detail files owned by this generator.
+    for platform in inventories:
+        for pattern in (f"{platform}-license-*.html", f"{platform}-notice-*.html"):
+            for obsolete in OUTPUT.glob(pattern):
+                obsolete.unlink()
+
 
 
 if __name__ == "__main__":

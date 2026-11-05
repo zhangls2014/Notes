@@ -9,13 +9,13 @@ import kotlin.test.assertNull
 class NoticesNavigationTest {
   private val libraries = "file:///app/resources/android.html"
 
-  @Test fun individualDetailsKeepIdentityWithoutFragment() {
+  @Test fun fixedDetailsKeepDeclarationIdentity() {
     for (id in listOf("license-MIT", "license-Apache-2.0", "license-BSD-3-Clause", "notice-809fa1ed21450f59")) {
-      val uri = "file:///app/resources/android-$id.html"
+      val uri = "file:///app/resources/android-licenses.html#$id"
       assertEquals(uri, noticesPageUri(libraries, OpenSourcePage.LICENSES, id))
       assertEquals(
         LocalNoticesLink(OpenSourcePage.LICENSES, id),
-        localNoticesLink("$uri?fontScale=2&theme=dark&lang=zh-CN#ignored", libraries),
+        localNoticesLink("file:///app/resources/android-licenses.html?fontScale=2&theme=dark&lang=zh-CN#$id", libraries),
       )
     }
     assertEquals(LocalNoticesLink(OpenSourcePage.LIBRARIES, null), localNoticesLink(libraries, libraries))
@@ -28,7 +28,8 @@ class NoticesNavigationTest {
       "$libraries.evil",
       "https://example.com/android-license-MIT.html",
       "file:///app/resources/ios-license-MIT.html",
-      "file:///app/resources/android-licenses.html#license-MIT",
+      "file:///app/resources/android-licenses.html",
+      "file:///app/resources/android-licenses.html#license-../secret",
       "file:///app/resources/android-license-../secret.html",
       "file:///app/resources/android-license-%2e%2e.html",
       "file:///app/resources/android-license-..html",

@@ -10,11 +10,11 @@ Display one card per exact Maven `groupId` (the first coordinate segment), with
 each module and version listed inside that card. Do not merge parent/child package
 names or discard module-specific source links, licenses or NOTICE references.
 The inventory retains every module. List pages must not embed license or NOTICE
-bodies. Buttons link to `<platform>-license-<id>.html` or
-`<platform>-notice-<hash>.html`; each detail contains exactly one preserved text,
-without intro card or webpage navigation. The list intro contains no navigation
-links. The old aggregate `android-licenses.html` and `ios-licenses.html` files are
-retained pending authorized cleanup, but are neither linked nor packaged.
+bodies. Buttons link to the fixed <platform>-licenses.html page with a
+license or NOTICE fragment ID. Its inert templates preserve all upstream texts,
+and the script renders only the selected declaration. Unknown IDs show an error.
+Generate exactly two HTML files per platform. The generator removes obsolete
+per-declaration pages; no content-hash filenames are generated.
 License, project source and NOTICE links share the same button style in a wrapping
 flex row. Keep each button's text on one line and move whole buttons to the next
 line when space is insufficient.
@@ -56,12 +56,12 @@ upstream whitespace in license/NOTICE text instead of applying code formatting.
 Regenerate both platforms whenever distributed dependencies change. Preserve license
 text and attribution; update the generator instead of manually editing its HTML output.
 Commit generated HTML files in this directory. Do not keep packaged copies under `src/`.
-Gradle automatically syncs the Android list and individual detail files into
+Gradle automatically syncs the Android list and fixed detail file into
 `feature/about/build/generated/open-source/androidMain/composeResources/files/open-source/`
 and the corresponding iOS files into
 `feature/about/build/generated/open-source/iosMain/composeResources/files/open-source/`.
 These ignored outputs are Compose Resources inputs, with their Sync task dependencies
-provided through `customDirectory`. Each app contains only its own platform's list and individual details.
+provided through `customDirectory`. Each app contains only its own platform's two pages.
 No hosting is required.
 
 ## Preview and package

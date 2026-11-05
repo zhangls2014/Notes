@@ -49,6 +49,7 @@ for (const page of pages) {
       documentElement: root,
       addEventListener: (_, callback) => { ready = callback; },
       querySelectorAll(selector) {
+        if (selector === 'template[data-detail]') return [];
         if (selector === '[data-en]') return nodes;
         if (selector === 'nav[aria-label]') return [nav];
         if (selector === 'a[data-font-scale]') return [local];
@@ -96,6 +97,7 @@ for (const page of pages) {
             documentElement: root,
             addEventListener(event, callback) { assert.equal(event, 'DOMContentLoaded'); onReady = callback; },
             querySelectorAll(selector) {
+              if (selector === 'template[data-detail]') return [];
               if (selector === '[data-en]' || selector === 'nav[aria-label]') return [];
               if (selector === 'a.button') return [actionButton];
               assert.equal(selector, 'a[data-font-scale]');
@@ -151,3 +153,41 @@ for (const page of pages) {
 console.log(`Appearance and navigation: ${pages.length} pages × 10 scales × 4 themes × 3 origins × 4 palettes passed`);
 
 console.log(`Localization: ${pages.length} pages × 8 language cases passed`);
+
+// Exercise the actual detail script, including fragment-only navigation.
+for (const platform of ['android', 'ios']) {
+  const html = readFileSync(new URL(`../../web/open-source/${platform}-licenses.html`, import.meta.url), 'utf8');
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  const templates = [...html.matchAll(/<template data-detail="([^"]+)">([\s\S]*?)<\/template>/g)];
+  assert.ok(templates.length > 0);
+  const nodes = templates.map(([, id, body]) => ({
+    getAttribute: () => id,
+    content: { cloneNode: () => body },
+  }));
+  const main = { replaceChildren(body) { this.body = body; this.textContent = ''; } };
+  const location = new URL(`file:///resources/${platform}-licenses.html#${templates[0][1]}`);
+  let ready, changed;
+  const document = {
+    documentElement: { dataset: {}, style: { setProperty() {} } },
+    addEventListener: (_, callback) => { ready = callback; },
+    querySelector: selector => { assert.equal(selector, 'main'); return main; },
+    querySelectorAll: selector => selector === 'template[data-detail]' ? nodes : [],
+  };
+  vm.runInNewContext(script, {
+    document, location, URL, URLSearchParams, navigator: { language: 'en' },
+    addEventListener(event, callback) { assert.equal(event, 'hashchange'); changed = callback; },
+  });
+  ready();
+  for (const [, id, body] of templates) {
+    location.hash = id;
+    changed();
+    assert.equal(main.body, body);
+    assert.equal((main.body.match(/<pre>/g) ?? []).length, 1);
+  }
+  for (const id of ['', 'unknown', 'license-../secret', '%3Cscript%3E']) {
+    location.hash = id;
+    changed();
+    assert.equal(main.textContent, 'Notice not found.');
+  }
+}
+console.log('Fixed detail selection, fragment changes, and unknown IDs passed');

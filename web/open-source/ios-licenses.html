@@ -27,6 +27,20 @@
     }
   }
   document.addEventListener('DOMContentLoaded', () => {
+    const templates = new Map([...document.querySelectorAll('template[data-detail]')].map(node => [node.getAttribute('data-detail'), node]));
+    if (templates.size > 0) {
+      const renderDetail = () => {
+        const selected = templates.get(location.hash.slice(1));
+        const main = document.querySelector('main');
+        if (selected) {
+          main.replaceChildren(selected.content.cloneNode(true));
+        } else {
+          main.textContent = language === 'zh-CN' ? '未找到该声明。' : 'Notice not found.';
+        }
+      };
+      renderDetail();
+      globalThis.addEventListener?.('hashchange', renderDetail);
+    }
     for (const node of document.querySelectorAll('[data-en]')) {
       node.textContent = node.getAttribute(language === 'zh-CN' ? 'data-zh' : 'data-en');
     }
@@ -103,7 +117,7 @@ nav a:not(.button) { max-width:100%; display:inline-flex; align-items:center; mi
 </head>
 <body><main>
 
-<h2 id="licenses"><span data-zh="许可证全文" data-en="License texts">License texts</span></h2><section id="license-Apache-2.0"><h3>Apache-2.0</h3><pre>Apache License
+<template data-detail="license-Apache-2.0"><section><h1>Apache-2.0</h1><pre>Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
 
@@ -176,7 +190,7 @@ distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-</pre></section><section id="license-BSD-3-Clause"><h3>BSD-3-Clause</h3><pre>Copyright (c) 2011 Google Inc. All rights reserved.
+</pre></section></template><template data-detail="license-BSD-3-Clause"><section><h1>BSD-3-Clause</h1><pre>Copyright (c) 2011 Google Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -205,7 +219,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-</pre></section><section id="license-Public-Domain"><h3>Public-Domain</h3><pre>All of the code and documentation in SQLite has been dedicated to the
+</pre></section></template><template data-detail="license-Public-Domain"><section><h1>Public-Domain</h1><pre>All of the code and documentation in SQLite has been dedicated to the
 public domain
 by the authors.
 All code authors, and representatives of the companies they work for,
@@ -234,7 +248,7 @@ internet.  Every line of code can be traced back to its original
 author, and all of those authors have public domain dedications
 on file.  So the SQLite code base is clean and is
 uncontaminated with licensed code from other projects.
-</pre></section><h2><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span></h2><section id="notice-809fa1ed21450f59"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 1</h3><pre>
+</pre></section></template><template data-detail="notice-809fa1ed21450f59"><section><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -412,7 +426,7 @@ uncontaminated with licensed code from other projects.
 
    END OF TERMS AND CONDITIONS
 
-</pre></section><section id="notice-58d1e17ffe5109a7"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 2</h3><pre>
+</pre></section></template><template data-detail="notice-58d1e17ffe5109a7"><section><pre>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -613,7 +627,7 @@ uncontaminated with licensed code from other projects.
    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License.</pre></section><section id="notice-5f787c1dee3c5654"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 3</h3><pre>Copyright (c) 2011 Google Inc. All rights reserved.
+   limitations under the License.</pre></section></template><template data-detail="notice-5f787c1dee3c5654"><section><pre>Copyright (c) 2011 Google Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -642,7 +656,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-</pre></section><section id="notice-bca126ff1eef0a41"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 4</h3><pre>include/third_party/vulkan/LICENSE
+</pre></section></template><template data-detail="notice-bca126ff1eef0a41"><section><pre>include/third_party/vulkan/LICENSE
 
 // Copyright (c) 2018 Google Inc. All rights reserved.
 //
@@ -1156,8 +1170,8 @@ freely, subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
-</pre></section><section id="notice-35dd077c24768b53"><h3><span data-zh="版权与附加声明" data-en="Copyright and notices">Copyright and notices</span> 5</h3><pre>This project contains code adapted from &quot;The Android Open Source Project&quot; licensed under the Apache License, Version 2.0 (the &quot;License&quot;):
+</pre></section></template><template data-detail="notice-35dd077c24768b53"><section><pre>This project contains code adapted from &quot;The Android Open Source Project&quot; licensed under the Apache License, Version 2.0 (the &quot;License&quot;):
 
 https://android.googlesource.com/platform/frameworks/base
-</pre></section>
+</pre></section></template>
 </main></body></html>

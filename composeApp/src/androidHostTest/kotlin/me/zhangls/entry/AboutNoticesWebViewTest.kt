@@ -131,7 +131,7 @@ class AboutNoticesWebViewTest {
       val view = requireNotNull(findWebView(rootView))
       val shadow = shadowOf(view)
       val details = shadow.lastLoadedUrl.substringBefore('?')
-        .replace("android.html", "android-license-MIT.html")
+        .replace("android.html", "android-licenses.html#license-MIT")
       assertTrue(shadow.webViewClient.shouldOverrideUrlLoading(view, webRequest(details)))
       org.junit.Assert.assertEquals(listOf(OpenSourcePage.LICENSES to "license-MIT"), local)
       assertTrue(shadow.webViewClient.shouldOverrideUrlLoading(view, webRequest("https://example.com/project")))
@@ -172,13 +172,7 @@ class AboutNoticesWebViewTest {
   private fun assertPackagedNotices(view: WebView, path: String) {
     val packaged = view.context.assets.list(path.substringBeforeLast('/')).orEmpty().toSet()
     assertTrue("android.html" in packaged)
-    assertTrue("android-license-MIT.html" in packaged)
-    assertTrue(
-      packaged.all {
-        it == "android.html" || it.startsWith("android-license-") || it.startsWith("android-notice-")
-      },
-    )
-    org.junit.Assert.assertFalse("android-licenses.html" in packaged)
+    assertTrue(packaged == setOf("android.html", "android-licenses.html"))
   }
 
   @Test fun embeddedListRestoresReadingPositionAfterReturning() {

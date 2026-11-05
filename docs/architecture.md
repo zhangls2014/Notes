@@ -173,9 +173,9 @@ HTTP/HTTPS 网页使用 Android Custom Tabs 与 iOS `SFSafariViewController`；�
 
 Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏览器回退。iOS 仅从当前 Compose 宿主呈现 Safari 控制器；宿主未附着窗口或已有模态控制器时拒绝打开，避免跨窗口展示和重复弹出，组合销毁时关闭本能力持有的控制器。本能力不用于 OAuth 登录或 JS 交互。
 
-关于应用的「开源软件声明」使用本地嵌入页面，入口始终可用并采用 Material Symbols Rounded `Code` 图标。`web/open-source/` 的列表与独立详情 HTML 是唯一入库的网页源文件。About 模块通过 Gradle `Sync` 在构建时将各平台的列表与独立详情同步到 `build/generated/open-source/<platform>Main/composeResources/files/open-source/`，并通过 Compose Resources `customDirectory` 接入对应源集；任务 Provider 关联生成依赖，支持增量构建。源集 `src/` 不保留 HTML 副本，普通构建不执行 Python 或联网刷新依赖，每端安装包只携带自己的列表及独立详情页面，见[维护规则](../web/open-source/README.md)和[生成工具](../tools/open-source/README.md)。Android WebView 加载 Android 文件，关闭通用文件访问、Content URI 访问和网络加载；iOS WKWebView 加载 iOS 文件，只授予声明资源目录的读取范围。无托管地址、远程配置或部署步骤。
+关于应用的「开源软件声明」使用本地嵌入页面，入口始终可用并采用 Material Symbols Rounded `Code` 图标。`web/open-source/` 的列表与固定详情 HTML 是唯一入库的网页源文件。About 模块通过 Gradle `Sync` 在构建时将各平台的列表与固定详情同步到 `build/generated/open-source/<platform>Main/composeResources/files/open-source/`，并通过 Compose Resources `customDirectory` 接入对应源集；任务 Provider 关联生成依赖，支持增量构建。源集 `src/` 不保留 HTML 副本，普通构建不执行 Python 或联网刷新依赖，每端安装包只携带自己的列表和固定详情两个页面，见[维护规则](../web/open-source/README.md)和[生成工具](../tools/open-source/README.md)。Android WebView 加载 Android 文件，关闭通用文件访问、Content URI 访问和网络加载；iOS WKWebView 加载 iOS 文件，只授予声明资源目录的读取范围。无托管地址、远程配置或部署步骤。
 
-`OpenSourceNoticesDestination` 属于 About API，与 `AboutDestination` 一同归属设置 Tab，并纳入组合根的全屏转场层。列表与许可证详情由 Navigation 3 管理，返回顺序为许可证详情 → 声明列表 → 关于应用 → 设置；原生返回回到应用导航栈。内部导航仅接受本平台列表 URI 及同目录合法命名的许可证／NOTICE 详情文件；其他本地文件和非 HTTP(S) 协议不接受，外部项目来源通过现有 `LocalUriHandler` 打开。WebView 随组合释放，iOS 导航 delegate 保持强引用，主动取消加载不提示错误。
+`OpenSourceNoticesDestination` 属于 About API，与 `AboutDestination` 一同归属设置 Tab，并纳入组合根的全屏转场层。列表与许可证详情由 Navigation 3 管理，返回顺序为许可证详情 → 声明列表 → 关于应用 → 设置；原生返回回到应用导航栈。内部导航仅接受本平台列表 URI 及同目录固定详情 URI 及合法的声明片段 ID；其他本地文件和非 HTTP(S) 协议不接受，外部项目来源通过现有 `LocalUriHandler` 打开。WebView 随组合释放，iOS 导航 delegate 保持强引用，主动取消加载不提示错误。
 
 关于模块在组合中读取 `LocalDensity.current.fontScale`、主题提供的 `LocalAppDarkTheme` 与 `MaterialTheme.colorScheme`，构成内部 `NoticesAppearance`；字号包含系统与应用倍率的叠加，不再经过 `AppNavHost` 或 `AboutAppInfo`。网页背景、卡片、正文、辅助文字、边框和强调色依次对应 Material 的 `surface`、`surfaceContainerLow`、`onSurface`、`onSurfaceVariant`、`outlineVariant` 和 `primary`，另传递 `primaryContainer`／`onPrimaryContainer` 供 Expressive 标题容器与 Filled Tonal 操作使用；Android 动态取色直接复用解析后的配色，不根据开关重算。缓存 Entry 中的网页组合直接消费当前显示环境；两端共用外观参数映射，本地文件 URL 附带 `fontScale`、`theme=light|dark` 及 `bg/card/fg/muted/line/accent/container/on-container` 六位 RGB 参数，全部 HTML 在首次正文绘制前应用。颜色仅接受六位十六进制字符串，无效或缺失值保留独立预览的回退配色。站内链接保留外观参数，外部来源不携带；独立预览无有效主题参数时跟随 `prefers-color-scheme`。网页正文与许可证原文基准为 16px/24px，辅助文字和按钮为 14px/20px，组件名称为 16px/24px。每个安装版本自带对应声明，不依赖网络更新。 声明页面共用 Expressive 样式：标题容器和分组卡片为 28px 圆角，组件操作为 Filled Tonal 链接，最小触控高度 48px；胶囊圆角按行高计算，正常与按压状态保持同一圆角，不做形变；用 8% 悬停／10% 按压状态层反馈，释放或取消后清除状态层。按钮通过被动指针／键盘事件维护按压状态，在抬起、取消、移出、失焦及按键释放时清除；仅主指针左键与 Enter 激活，Space 保留链接原生滚动语义。样式不依赖 WebKit 的 `:active` 触摸差异，CSS 遵循 `prefers-reduced-motion`，不拦截滚动或导航；正文 16/24、按钮 14/20 基准保持不变。
 
@@ -370,9 +370,9 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 声明列表在全开/普通宽窗时初始占满内容区域，存在所选详情时参与双窗格；半开例外见下文。
 全开时的单窗格声明列表清空分栏指令中的 `excludedBounds`；打开详情后才按原始
 指令避让铰链，避免单页被限制在物理分区而露出下层设置页。
-许可证和 NOTICE 使用独立静态 HTML（平台前缀与原始声明 ID）；
-客户端根据白名单 ID 解析到对应文件，每个详情只加载一个上游正文，
-不再使用合集锚点。详情无介绍卡片，列表无顶部目录链接。
+每个平台固定生成列表与详情两个 HTML 文件。许可证和 NOTICE 通过固定详情页的
+白名单片段 ID 选择；正文存放在惰性 template 中，页面只将所选上游正文加入可见 DOM，
+切换片段时同步替换正文，未知 ID 显示未找到提示。详情无介绍卡片，列表无顶部目录链接。
 
 声明本地网页无加载进度条，项目来源网络网页保留进度指示。列表与详情
 HTML 的上下外边距一致（普通 24px，窄窗格 16px），首尾元素不追加外边距。
