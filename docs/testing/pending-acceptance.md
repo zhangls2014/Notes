@@ -245,3 +245,11 @@
 - Python 生成器 7 项通过；Node 验证 4 页面外观、语言、逐项详情选择、片段切换及非法 ID；重复生成内容和文件数一致。
 - About 宿主测试 19 项、原生 WebView 宿主测试 5 项通过，Android DevFullDebug 构建及 iOS 模拟器编译通过。
 - APK 已核对仅包含两个 Android 声明页面，内容与源文件逐字节一致。未更新截图基线；Android/iOS 真机页面阅读和布局仍待验收，编译与宿主回归不代替设备验收。
+
+## 本地版本 1.1.1 准备（2026-11-05）
+
+- 范围：Android/iOS 本地版本均为 `1.1.1`、构建号 `4`，更新记录日期为 `2026-11-05`；未生成发布安装包，未上传渠道或推送远端。
+- 已验证：JBR 25.0.4；开源声明生成器 10 项 Python 测试、Node 外观/语言/详情选择测试通过；两端 603 个模块坐标、声明原文及详情链接完整性检查通过。About 宿主测试 19 项结果复用（`UP-TO-DATE`），iOS 模拟器 Kotlin 编译同样复用。
+- 本轮执行的应用宿主回归：60 项、50 通过、10 失败、0 跳过。失败为 `AboutNoticesNavigationTest` 的 `returningFromNoticesPreservesScroll`、`clickingNoticesMountsWebViewAndPredictiveReturnRevealsAbout`（测试传入 `1.1.0` 却等待 `Unreleased`）；`AboutUiTest.releaseHistoryPageOpensOfflineAndReturns` 四组窗口；`ReleaseHistoryAdaptiveTest.columnWidthTracksWindowAndReflowsWithoutLosingCurrentVersion` 的 width=840/fontScale=2；`ReleaseHistoryPostureTest` 的 `disabledMotionSwitchesImmediatelyWithoutIntermediateRotation`、`rtlKeepsThePhysicalHingeInPlace`、`fullOpenDefaultsToSingleAndManualSplitAvoidsOffCenterHinge`。其余失败原因尚未完成本次归因，不能视为发布回归通过。
+- 静态检查失败：`:feature:about:detekt` 报 `NoticesNavigationTest.kt:18` 原有长行的 `MaxLineLength`、`MaximumLineLength`、`ArgumentListWrapping`，本次未改该测试或放宽规则。
+- 待验收与关闭条件：修复并重新通过上述宿主断言和静态检查；Android/iOS 设备确认同系列单组按钮、模块位于按钮上方且始终可见、分类定位与聚合声明详情，以及返回滚动。未执行设备视觉验收或更新正式截图基线。

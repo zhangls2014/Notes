@@ -182,7 +182,10 @@ for (const platform of ['android', 'ios']) {
     location.hash = id;
     changed();
     assert.equal(main.body, body);
-    assert.equal((main.body.match(/<pre>/g) ?? []).length, 1);
+    const textBlocks = (main.body.match(/<pre>/g) ?? []).length;
+    assert.ok(textBlocks > 0);
+    assert.equal(textBlocks, (main.body.match(/<section>/g) ?? []).length);
+    if (id.startsWith('license-')) assert.equal(textBlocks, 1);
   }
   for (const id of ['', 'unknown', 'license-../secret', '%3Cscript%3E']) {
     location.hash = id;

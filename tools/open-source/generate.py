@@ -110,33 +110,56 @@ def render_page(platform, items, license_directory, *, details=False):
     source_label = localized("项目来源", "Project source")
     notices_label = localized("版权与附加声明", "Copyright and notices")
     licenses_label = localized("许可证全文", "License texts")
-    groups = {}
+    series = {}
     used_licenses = set()
     notices_by_id = {}
+    categories = {"google-jetbrains-components": [], "third-party-components": []}
     for item in items:
         if not item["licenses"]:
             raise ValueError("Every dependency must declare a reviewed license")
-        used_licenses.update(item["licenses"])
-        url = item["url"]
-        if urlparse(url).scheme not in ("https", "http") or not urlparse(url).netloc:
-            raise ValueError("Invalid upstream project URL: " + url)
-        links = " ".join(f'<a data-font-scale class="button" href="{platform}-licenses.html#license-{escape(value)}">{escape(value)}</a>' for value in item["licenses"])
-        notice_links = []
-        for text in item["notices"]:
-            notice_id = sha256(text.encode("utf-8")).hexdigest()[:16]
-            notices_by_id[notice_id] = text
-            notice_links.append(f'<a data-font-scale class="button" href="{platform}-licenses.html#notice-{notice_id}">{notices_label}</a>')
-        notices = " ".join(notice_links)
+        url = urlparse(item["url"])
+        if url.scheme not in ("https", "http") or not url.netloc:
+            raise ValueError("Invalid upstream project URL: " + item["url"])
         group = item["coordinate"].split(":", 1)[0]
-        groups.setdefault(group, []).append(f'<div class="module"><h4>{escape(item["name"])}</h4><p class="coordinate">{escape(item["coordinate"])}</p><div class="actions">{links}<a class="button" href="{escape(url, quote=True)}">{source_label}</a>{notices}</div></div>')
-    categories = {"google-jetbrains-components": [], "third-party-components": []}
-    for group, modules in groups.items():
         platform_component = group in ("google", "jetbrains") or any(
             group == namespace or group.startswith(namespace + ".")
             for namespace in ("androidx", "com.google", "org.jetbrains", "io.ktor")
         )
         category = "google-jetbrains-components" if platform_component else "third-party-components"
-        categories[category].append(f'<article><h3>{escape(group)}</h3>{"".join(modules)}</article>')
+        source = url._replace(fragment="").geturl().rstrip("/")
+        name = group
+        key = (category, group, source)
+        path = url.path.strip("/").split("/")
+        if url.hostname in ("github.com", "www.github.com") and len(path) >= 2:
+            name = "/".join(path[:2]).removesuffix(".git")
+            source = "https://github.com/" + name
+            key = (category, source.lower())
+        project = series.setdefault(key, {"category": category, "name": name,
+                                          "source": source, "items": []})
+        project["items"].append(item)
+
+    for project in series.values():
+        modules = []
+        licenses = set()
+        notices = set()
+        for item in project["items"]:
+            licenses.update(item["licenses"])
+            for text in item["notices"]:
+                notices.add(text)
+            modules.append(f'<div class="module"><h4>{escape(item["name"])}</h4><p class="coordinate">{escape(item["coordinate"])}</p></div>')
+        used_licenses.update(licenses)
+        links = " ".join(f'<a data-font-scale class="button" href="{platform}-licenses.html#license-{escape(value)}">{escape(value)}</a>' for value in sorted(licenses))
+        notice_link = ""
+        if notices:
+            texts = sorted(notices)
+            identity = texts[0] if len(texts) == 1 else json.dumps(texts, ensure_ascii=False)
+            notice_id = sha256(identity.encode("utf-8")).hexdigest()[:16]
+            notices_by_id[notice_id] = texts
+            notice_link = f'<a data-font-scale class="button" href="{platform}-licenses.html#notice-{notice_id}">{notices_label}</a>'
+        categories[project["category"]].append(
+            f'<article><h3>{escape(project["name"])}</h3>{"".join(modules)}'
+            f'<div class="actions">{links}<a class="button" href="{escape(project["source"], quote=True)}">{source_label}</a>{notice_link}</div></article>'
+        )
     labels = {
         "google-jetbrains-components": localized("Google / JetBrains 组件", "Google / JetBrains components"),
         "third-party-components": localized("其他第三方组件", "Other third-party components"),
@@ -150,8 +173,9 @@ def render_page(platform, items, license_directory, *, details=False):
     for value in sorted(used_licenses):
         text = (license_directory / (value + ".txt")).read_text(encoding="utf-8")
         templates.append(f'<template data-detail="license-{escape(value)}"><section><h1>{escape(value)}</h1><pre>{escape(text)}</pre></section></template>')
-    for key, text in notices_by_id.items():
-        templates.append(f'<template data-detail="notice-{key}"><section><pre>{escape(text)}</pre></section></template>')
+    for key, texts in notices_by_id.items():
+        blocks = "".join(f'<section><pre>{escape(text)}</pre></section>' for text in texts)
+        templates.append(f'<template data-detail="notice-{key}">{blocks}</template>')
     heading = "许可证与版权声明" if details else "开源软件声明"
     content = ("".join(templates) if details else
                f'{navigation}{"".join(sections)}')

@@ -12,6 +12,43 @@ from generate import main, metadata, render_page
 
 
 class NoticePageTest(unittest.TestCase):
+    def test_repository_series_shares_actions_and_preserves_all_notices(self):
+        with tempfile.TemporaryDirectory() as directory:
+            licenses = Path(directory)
+            for name in ("MIT", "Apache-2.0"):
+                (licenses / (name + ".txt")).write_text(name + " original license")
+            items = [
+                {"coordinate": "org.jetbrains.kotlinx:core:1", "name": "Core",
+                 "url": "https://github.com/Kotlin/kotlinx.coroutines/",
+                 "licenses": ["MIT"], "notices": ["Shared copyright", "Core <notice>"]},
+                {"coordinate": "org.jetbrains.kotlinx.platform:core-iosarm64:2", "name": "iOS Core",
+                 "url": "https://github.com/kotlin/kotlinx.coroutines/tree/main#readme",
+                 "licenses": ["MIT", "Apache-2.0"], "notices": ["Shared copyright", "iOS notice"]},
+                {"coordinate": "org.jetbrains.kotlinx:serialization:1", "name": "Serialization",
+                 "url": "https://github.com/Kotlin/kotlinx.serialization",
+                 "licenses": ["Apache-2.0"], "notices": []},
+            ]
+            for platform in ("android", "ios"):
+                page = render_page(platform, items, licenses)
+                self.assertEqual(2, page.count('<article>'))
+                card = page.split('<article>')[1].split('</article>')[0]
+                self.assertEqual(4, card.count('class="button"'))
+                self.assertEqual(1, card.count('data-en="Project source"'))
+                self.assertEqual(1, card.count('data-en="Copyright and notices"'))
+                self.assertNotIn('<details', page)
+                self.assertNotIn('<summary', page)
+                for item in items[:2]:
+                    self.assertLess(card.index(item['coordinate']), card.index('<div class="actions">'))
+                self.assertNotIn("包含的模块", page)
+                self.assertNotIn("Included modules", page)
+                for item in items:
+                    self.assertEqual(1, page.count('>' + item['coordinate'] + '</p>'))
+                notice_link = card.split(f'{platform}-licenses.html#notice-')[1].split('"')[0]
+                details = render_page(platform, items, licenses, details=True)
+                declaration = details.split(f'data-detail="notice-{notice_link}">')[1].split('</template>')[0]
+                for text in ("Shared copyright", "Core &lt;notice&gt;", "iOS notice"):
+                    self.assertEqual(1, declaration.count(text))
+
     def test_source_categories_keep_every_component_once_on_both_platforms(self):
         platform_groups = ["androidx.activity", "com.google.guava", "org.jetbrains.kotlin",
                            "io.ktor", "io.ktor.client", "google", "jetbrains", "org.jetbrains"]
@@ -88,7 +125,7 @@ class NoticePageTest(unittest.TestCase):
                 self.assertNotIn("<article>", details)
                 self.assertEqual(2, details.count("<template data-detail="))
 
-    def test_same_package_modules_share_one_card_without_losing_declarations(self):
+    def test_distinct_project_urls_keep_separate_cards_without_losing_declarations(self):
         class Cards(HTMLParser):
             def __init__(self):
                 super().__init__()
@@ -114,7 +151,7 @@ class NoticePageTest(unittest.TestCase):
             details = render_page("android", items, licenses, details=True)
             cards = Cards()
             cards.feed(page)
-            self.assertEqual(2, cards.count)
+            self.assertEqual(3, cards.count)
             self.assertIn("Other third-party components</span>", page)
             for item in items:
                 self.assertIn(item["coordinate"], page)

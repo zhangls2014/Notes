@@ -1,7 +1,7 @@
 [
   {
     "version": "1.1.1",
-    "date": null,
+    "date": "2026-11-05",
     "changes": [
       {
         "type": "improved",
@@ -33,6 +33,17 @@
         "text": {
           "en": "Group open-source notices into Google / JetBrains components and other third-party components, with shortcut buttons at the top.",
           "zh": "开源软件声明按 Google / JetBrains 组件和其他第三方组件分类展示，顶部增加分类定位按钮。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Open-source notices share one set of actions per project series, with all included modules displayed above the actions.",
+          "zh": "开源软件声明同系列库共用一组按钮，包含的模块完整显示在按钮上方。"
         }
       }
     ]

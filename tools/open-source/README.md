@@ -56,8 +56,8 @@ python3 tools/open-source/generate.py
 
 `dependencies.json` deduplicates preserved notice text by SHA-256. Component
 buttons link to the fixed <platform>-licenses.html page with a declaration
-fragment ID. Inert templates retain original text; only the selected declaration
-is rendered. Missing or unknown IDs show an error. Exactly four HTML files are
+fragment ID. Inert templates retain original text; only the selected license or series
+notice bundle is rendered. Missing or unknown IDs show an error. Exactly four HTML files are
 generated. Obsolete per-declaration pages are removed during regeneration.
 Android and iOS builds sync only their own two pages.
 
@@ -85,7 +85,7 @@ listeners maintain press state without cancelling native scrolling or link navig
 
 List pages show “Google / JetBrains 组件” (“Google / JetBrains components”) first,
 then “其他第三方组件” (“Other third-party components”). Within each category,
-retain Maven group cards and component order, coordinates and declaration links.
+retain component order, coordinates and declaration access.
 Match the exact namespaces `androidx`, `com.google`, `org.jetbrains`, `io.ktor`
 and their dot-separated children, plus resource groups `google` and `jetbrains`.
 All other groups belong to the third-party category, including SQLite even when
@@ -98,3 +98,20 @@ category labels; keep navigation off declaration detail pages.
 For category changes, add regression coverage for namespace boundaries, both
 platforms, complete/unique component placement and empty categories, then run
 the Python and Node commands above and both platform notice resource Sync tasks.
+
+## Project series and shared actions
+
+Group GitHub components by repository (case-insensitive owner/repository, ignoring
+trailing slash, `.git`, fragments and repository subpaths). For other project URLs,
+group by Maven group and URL without a fragment or trailing slash, so generic
+landing pages do not merge unrelated projects. Categories remain separate.
+Each series has one project-source action, one action per distinct license and
+at most one copyright/notices action. That action opens all distinct upstream
+texts for the series, each preserved verbatim in a separate text block.
+Names and full coordinates, including platform and version, are always visible
+above the shared actions without an additional module-list label.
+Do not change inventories or infer licenses while grouping presentation data.
+
+Validate shared repository actions, distinct repositories in one Maven group,
+notice deduplication and full text retention, module disclosure, category links,
+and platform isolation using the Python/Node tests and platform resource Sync.

@@ -81,8 +81,8 @@ android {
     applicationId = "me.zhangls.notes"
     minSdk = kmp.versions.android.minSdk.get().toInt()
     targetSdk = kmp.versions.android.targetSdk.get().toInt()
-    versionCode = 3
-    versionName = "1.1.0"
+    versionCode = 4
+    versionName = "1.1.1"
 
     ndk {
       abiFilters.add("arm64-v8a")
