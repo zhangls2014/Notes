@@ -103,6 +103,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 每个独立需求合入 `master` 前，必须把设计、计划、实现、测试和文档等过程提交整理为一个最终提交。若 `master` 已前进，先将该最终提交 rebase 到最新 `master`，再仅以 fast-forward 方式合入；不得在 `master` 保留需求分支的多个过程提交或 merge commit，主线历史必须保持线性、干净。
 - Compose Resources 格式化占位符必须带位置，例如 `%1$s`；不要使用 `%s`。
 - 依赖版本只在 `gradle/kmp.versions.toml` 维护。
+- 新增、移除或升级随应用分发的第三方依赖时，必须在同一需求及提交中同步开源软件声明。按 `tools/open-source/README.md` 导出 Android/iOS 实际依赖、刷新 `web/open-source/` 清单与生成页面，保留上游 LICENSE/NOTICE 并运行生成器测试及资源打包验证；不得只改依赖配置，或手工修改生成 HTML。测试工具及构建插件是否纳入以该指南的分发范围为准。
 - 依赖和工具链升级遵循 [升级规范](docs/dependency-upgrades.md)：以官方支持范围和最高测试版本为上限，范围内最新兼容正式版优先，必要预览版注明原因；项目实测不得扩大升级上限。
 - 同一仓库目录下不要并发执行两个 Gradle 构建，避免守护进程地址注册表锁冲突。
 - 修改架构时同步更新 [docs/architecture.md](docs/architecture.md)；一次性调查报告放入 `docs/audits/` 并注明日期和状态。文档保留与清理遵循 [文档规则](docs/README.md#保留与清理规则)；需求结束后提炼有效约束、决策理由与未验收事项，再按授权清理过程记录。
