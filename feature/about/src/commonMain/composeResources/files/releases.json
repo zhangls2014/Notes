@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.1.1",
+    "date": null,
+    "changes": [
+      {
+        "type": "improved",
+        "platforms": [
+          "android"
+        ],
+        "text": {
+          "en": "Generate theme colors from the desktop wallpaper, including on Android 9–11.",
+          "zh": "主题色直接跟随桌面壁纸变化，并支持 Android 9–11。"
+        }
+      }
+    ]
+  },
+  {
     "version": "1.1.0",
     "date": "2026-10-30",
     "changes": [

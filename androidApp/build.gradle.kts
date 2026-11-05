@@ -33,6 +33,7 @@ kotlin {
     implementation(kmp.androidx.activity.compose)
     implementation(kmp.jetbrains.compose.ui.tooling.preview)
     implementation(kmp.jetbrains.compose.material3)
+    implementation(kmp.materialkolor.material3)
 
     // BaselineProfile
     //baselineProfile(projects.android.baselineprofile)
