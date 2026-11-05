@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.1.2",
+    "date": null,
+    "changes": [
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Let dialogs fit their content up to 80% of the app window width, preserving minimum margins and keeping long content clear of system bars.",
+          "zh": "弹窗按内容需要展开，最大宽度为应用窗口的 80%，保留默认最小边距，长内容避开状态栏和底部系统区域。"
+        }
+      }
+    ]
+  },
+  {
     "version": "1.1.1",
     "date": "2026-11-05",
     "changes": [

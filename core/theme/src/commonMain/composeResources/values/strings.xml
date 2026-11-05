@@ -2,4 +2,5 @@
 <resources>
   <string name="theme_action_navigate_before">Back</string>
   <string name="theme_app_name">Notes</string>
+  <string name="theme_dialog_pane_title">Dialog</string>
 </resources>

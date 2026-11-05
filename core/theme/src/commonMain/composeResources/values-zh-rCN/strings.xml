@@ -2,4 +2,5 @@
 <resources>
   <string name="theme_action_navigate_before">返回</string>
   <string name="theme_app_name">摘星</string>
+  <string name="theme_dialog_pane_title">对话框</string>
 </resources>

@@ -277,7 +277,7 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 
 共享 UI 的主题入口是 `core:theme/ComposeAppTheme`，使用 `MaterialExpressiveTheme` 和 `MotionScheme.expressive()`。字体与形状分别由同模块的 `AppTypography`、`AppShapes` 提供；标题与操作标签使用强调字重，正文保留 Material 原有尺寸。Typography 显式使用带 fontFamily 的构造器，避免兼容无参构造器把强调样式映射回普通样式。
 
-Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog 窗口，以整个应用窗口为居中参照，避免隐藏手势提示线后上下系统栏占用不对称造成偏移；通过 `LocalBasicAlertDialogOverride` 复用默认 Material 布局，保留宽度、语义与关闭行为，覆盖更新内容、通用提示和 Preference 选择框。iOS 保持默认实现；不对弹窗添加铰链避让或固定位置补偿。
+Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog 窗口，以整个应用窗口为居中参照，避免隐藏手势提示线后上下系统栏占用不对称造成偏移；通过 `LocalBasicAlertDialogOverride` 控制容器测量，复用 Material 内容版式，保留本地化窗格语义与关闭行为，覆盖更新内容、通用提示和 Preference 选择框。Android/iOS 在主题入口以当前应用窗口宽度的 80% 设置最大宽度，内容按需展开；保留 Material 的 280dp 最小宽度（空间不足时缩小），替代默认 560dp 上限；关闭 `usePlatformDefaultWidth`，避免平台固定/首选宽度截断 80% 上限；Android 默认最小边距单独取自默认弹窗主题背景的左右 padding，取较大侧保持居中，iOS 默认无额外水平边距。两端叠加左右系统安全区的较大值，最大宽度为窗口 80% 与扣除两侧边距后可用宽度的较小值，短提示不得强制填满该上限。垂直方向以上下 `safeDrawing` 安全区的较大值作为对称边界，最大高度不超过窗口高度减去两倍边界；保留全窗口居中，长内容在弹窗内部滚动，不侵入状态栏或底部系统区域。窗口尺寸在弹窗外读取并随窗口变化更新，避免用弹窗自身宽度反复计算；不对弹窗添加铰链避让或固定位置补偿。
 
 主题保留内置品牌配色、动态色、深浅色和用户字号设置。应用字号是相对系统字号的倍率：标准字号复用系统 Density，中／大字号将系统 fontScale 与应用倍率相乘，保留 density；窗口事实仍在主题之外读取。Feature 从 `MaterialTheme` 读取颜色、字体与形状；关键按钮和共享图标按钮显式采用形变重载，自定义头像空间动画使用主题 MotionScheme。邮件列表与详情卡片使用主题 large 圆角和容器色，打开、多选、收藏状态各有语义颜色。确认对话框使用标准 AlertDialog，保留字符串与 AnnotatedString 重载，以及显式按钮回调关闭语义。
 
