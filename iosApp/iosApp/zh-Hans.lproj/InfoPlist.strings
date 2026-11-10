@@ -1,3 +1,5 @@
 /* App Display Name */
 "CFBundleDisplayName" = "摘星";
 "CFBundleName" = "摘星";
+
+"NSFaceIDUsageDescription" = "使用面容 ID 解锁此设备上的摘星。";

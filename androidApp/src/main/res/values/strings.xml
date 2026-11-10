@@ -1,3 +1,5 @@
 <resources>
   <string name="app_name">Notes</string>
+  <string name="device_authentication_title">Verify your identity for Notes</string>
+  <string name="device_authentication_use_screen_lock">Use screen lock</string>
 </resources>

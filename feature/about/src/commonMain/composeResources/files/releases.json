@@ -4,6 +4,17 @@
     "date": null,
     "changes": [
       {
+        "type": "added",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Enable biometric unlock in Settings to protect Notes when the app starts. If the device has no secure screen lock, the unlock screen explains how to restore access.",
+          "zh": "可在设置中开启生物识别解锁，在应用启动时保护 Notes。设备未设置安全锁屏时，解锁页会提示如何恢复访问。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": [
           "android",

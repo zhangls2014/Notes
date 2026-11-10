@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -24,6 +25,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
@@ -40,6 +43,7 @@ import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.main.api.HomeDestination
+import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.navigation.PaneWindowInsets
 import me.zhangls.profile.api.ProfileDestination
@@ -57,14 +61,14 @@ fun AppNavHost(
   viewModel: AppViewModel,
   deepLinkDestination: DeepLinkDestination? = null,
   onDeepLinkConsume: () -> Unit = {},
+  deviceAuthenticator: DeviceAuthenticator = UnavailableDeviceAuthenticator,
 ) {
   // 登录状态
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 是否登录（从 state 派生，避免组合期写状态）
   val isLogin = state.isLogin ?: false
 
-  // 登录状态未知，不显示 UI
-  if (state.isLogin == null) {
+  if (state.access == AppAccess.Loading || state.access == AppAccess.Locked) {
     return
   }
 
@@ -106,7 +110,8 @@ fun AppNavHost(
   // 因此不会被误判成新导航而重复压栈。
   SideEffect(deepLinkDestination) {
     val destination = deepLinkDestination ?: return@SideEffect
-    if (destination !== initialDeepLink) {
+    // A restored back stack can override the initial stack, including after a locked startup.
+    if (destination !== initialDeepLink || backStack.toList() != initialBackStack(destination, isLogin)) {
       navHandler(NavEffect.Navigate(destination))
     }
     onDeepLinkConsume()
@@ -183,7 +188,28 @@ fun AppNavHost(
           },
           navigateToProfile = { origin -> navHandler(NavEffect.Navigate(ProfileDestination(origin))) },
           navigateToAbout = { navHandler(NavEffect.Navigate(AboutDestination)) },
-          onLogout = { navHandler(Restart(LoginDestination())) },
+          onLogout = {
+            viewModel.onLogout()
+            navHandler(Restart(LoginDestination()))
+          },
+          onBiometricUnlockChange = { enabled ->
+            coroutineScope {
+              val request = launch {
+                viewModel.verifyDevice(deviceAuthenticator, enabled) {
+                  navigationState.backStack.lastOrNull() == SettingsDestination
+                }
+              }
+              val watcher = launch {
+                snapshotFlow { navigationState.backStack.lastOrNull() }.first { it != SettingsDestination }
+                request.cancel()
+              }
+              try {
+                request.join()
+              } finally {
+                watcher.cancel()
+              }
+            }
+          },
         )
 
         emailNavEntry(

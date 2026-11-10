@@ -1,3 +1,5 @@
 <resources>
   <string name="app_name">摘星</string>
+  <string name="device_authentication_title">验证身份以继续使用摘星</string>
+  <string name="device_authentication_use_screen_lock">使用锁屏密码</string>
 </resources>

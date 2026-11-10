@@ -72,7 +72,7 @@ internal class UserRepositoryImpl(
   override suspend fun login(user: UserModel, tokens: AuthTokens): Unit = mutex.withLock {
     require(tokens.accessToken.isNotBlank())
     secureStore.write(StoredCredentials(user.id, tokens))
-    prefsDataStore.edit { it[userKey] = json.encodeToString(user) }
+    prefsDataStore.edit { it[userKey] = json.encodeToString(user.copy(biometricUnlockEnabled = false)) }
   }
 
   override suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean = mutex.withLock {
@@ -84,6 +84,14 @@ internal class UserRepositoryImpl(
       return@withLock false
     }
     prefsDataStore.edit { it[userKey] = json.encodeToString(current.copy(avatar = avatar)) }
+    true
+  }
+
+  override suspend fun updateBiometricUnlock(enabled: Boolean): Boolean = mutex.withLock {
+    migrate()
+    val current = readProfile() ?: return@withLock false
+    if (matchingCredentials(current) == null) return@withLock false
+    prefsDataStore.edit { it[userKey] = json.encodeToString(current.copy(biometricUnlockEnabled = enabled)) }
     true
   }
 

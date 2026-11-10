@@ -6,5 +6,6 @@ import me.zhangls.framework.mvi.MviEffect
 sealed interface SettingsResult : MviEffect {
   data object OpenProfile : SettingsResult
   data object OpenAbout : SettingsResult
+  data class ChangeBiometricUnlock(val enabled: Boolean) : SettingsResult
   data object Logout : SettingsResult
 }

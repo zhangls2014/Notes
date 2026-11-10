@@ -1,0 +1,7 @@
+<resources>
+  <string name="unlock_title">Notes 已锁定</string>
+  <string name="unlock_action">解锁 Notes</string>
+  <string name="unlock_error_device_credential">请在系统设置中配置安全锁屏后重试。</string>
+  <string name="unlock_error_unavailable">设备验证暂时不可用，请重试。</string>
+  <string name="unlock_error_storage">无法保存解锁设置，请重试。</string>
+</resources>

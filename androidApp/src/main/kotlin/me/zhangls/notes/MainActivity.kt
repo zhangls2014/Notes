@@ -3,6 +3,7 @@ package me.zhangls.notes
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
@@ -13,6 +14,7 @@ import com.materialkolor.material3.dynamicColorScheme
 import me.zhangls.entry.App
 
 class MainActivity : AppCompatActivity() {
+  private val authenticationState: AndroidDeviceAuthenticationState by viewModels()
   private var deepLinkUrl by mutableStateOf<String?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,11 +22,13 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
 
     deepLinkUrl = intent?.dataString
+    val deviceAuthenticator = AndroidDeviceAuthenticator(this, authenticationState)
 
     setContent {
       val wallpaperColor by rememberWallpaperColor()
 
       App(
+        deviceAuthenticator = deviceAuthenticator,
         onDarkThemeChange = {
           val lightBars = it.not()
           WindowInsetsControllerCompat(window, window.decorView).run {

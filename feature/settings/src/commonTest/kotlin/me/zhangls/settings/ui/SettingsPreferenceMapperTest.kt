@@ -39,6 +39,16 @@ class SettingsPreferenceMapperTest {
   }
 
   @Test
+  fun biometricUnlockToggleUsesSessionValueAndEmitsRequest() {
+    val sent = mutableListOf<SettingsIntent>()
+    val models = SettingsModel().toPreferenceUiModels({ sent.add(it) }, biometricUnlockEnabled = true)
+    val toggle = assertIs<PreferenceUiModel.Toggle>(models.single { it.spec.key == "biometricUnlock" })
+    assertEquals(true, toggle.value)
+    toggle.onValueChange(false)
+    assertEquals(listOf<SettingsIntent>(SettingsIntent.ChangeBiometricUnlock(false)), sent)
+  }
+
+  @Test
   fun currentSettingsValuesAreMapped() {
     for (darkTheme in DarkThemeConfig.entries) {
       for (fontSize in FontSizeConfig.entries) {

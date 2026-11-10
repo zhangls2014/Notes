@@ -11,4 +11,5 @@ data class UserModel(
   val nickname: String,
   val avatar: String? = null,
   val emailSearchHistory: List<String> = emptyList(),
+  val biometricUnlockEnabled: Boolean = false,
 )

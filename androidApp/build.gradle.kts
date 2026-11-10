@@ -31,6 +31,7 @@ kotlin {
 
     // libraries
     implementation(kmp.androidx.activity.compose)
+    implementation(kmp.androidx.biometric)
     implementation(kmp.jetbrains.compose.ui.tooling.preview)
     implementation(kmp.jetbrains.compose.material3)
     implementation(kmp.materialkolor.material3)

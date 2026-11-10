@@ -1,0 +1,7 @@
+<resources>
+  <string name="unlock_title">Notes is locked</string>
+  <string name="unlock_action">Unlock Notes</string>
+  <string name="unlock_error_device_credential">Set up a secure screen lock in system settings, then try again.</string>
+  <string name="unlock_error_unavailable">Device verification is unavailable. Try again.</string>
+  <string name="unlock_error_storage">Could not save the unlock setting. Try again.</string>
+</resources>

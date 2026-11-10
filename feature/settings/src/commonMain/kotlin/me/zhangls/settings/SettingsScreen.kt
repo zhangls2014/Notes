@@ -40,9 +40,8 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onResult: (SettingsResult) -> Unit = {}) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 领域模型在 UI 层映射为表现层模型（回调在此绑到 viewModel）。
-  // 以 settings 与 viewModel 为 key：只在取值变化时重建，且不会捕获过期的 sendIntent
-  val preferences = remember(state.settings, viewModel) {
-    state.settings.toPreferenceUiModels(viewModel::sendIntent)
+  val preferences = remember(state.settings, state.biometricUnlockEnabled, viewModel) {
+    state.settings.toPreferenceUiModels(viewModel::sendIntent, biometricUnlockEnabled = state.biometricUnlockEnabled)
   }
 
   val currentOnResult by rememberUpdatedState(onResult)

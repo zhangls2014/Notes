@@ -89,9 +89,10 @@ class ReleaseHistoryPostureTest {
     assertEquals(1168f, cardWidth(), 1f)
     compose.onNodeWithText("Switch to columns").assertDoesNotExist()
     compose.onNodeWithContentDescription("Switch to columns").performClick()
-    val card = compose.onNodeWithTag("release-1.1.0").getUnclippedBoundsInRoot()
+    // The first card has a fixed pane; older cards can move as changelog content grows.
+    val card = compose.onNodeWithTag("release-1.1.2").getUnclippedBoundsInRoot()
     assertTrue("Card must end before the off-center hinge", card.right.value <= 360f)
-    assertEquals(336f, cardWidth(), 1f)
+    assertEquals(336f, card.right.value - card.left.value, 1f)
     compose.onNodeWithContentDescription("Switch to single column").performClick()
     assertEquals(1168f, cardWidth(), 1f)
   }
@@ -190,7 +191,7 @@ class ReleaseHistoryPostureTest {
     compose.mainClock.advanceTimeByFrame()
     compose.mainClock.advanceTimeByFrame()
     assertEquals(initial, iconWidth("Switch to single column"), 0.5f)
-    assertEquals(336f, cardWidth(), 1f)
+    assertEquals(336f, cardWidth("1.1.2"), 1f)
   }
 
   @Test fun pageTransformPreservesColumnWidthAndWrappingThroughCancellation() {
@@ -220,8 +221,8 @@ class ReleaseHistoryPostureTest {
   private fun iconWidth(description: String): Float =
     compose.onNodeWithContentDescription(description, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.width
 
-  private fun cardWidth(): Float {
-    val bounds = compose.onNodeWithTag("release-1.1.0").getUnclippedBoundsInRoot()
+  private fun cardWidth(version: String = "1.1.0"): Float {
+    val bounds = compose.onNodeWithTag("release-$version").getUnclippedBoundsInRoot()
     return bounds.right.value - bounds.left.value
   }
 }

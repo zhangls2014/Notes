@@ -24,6 +24,11 @@ internal class AdaptiveUsers : UserRepository {
   override suspend fun login(user: UserModel, tokens: AuthTokens) {
     userFlow.value = user
   }
+  override suspend fun updateBiometricUnlock(enabled: Boolean): Boolean {
+    val user = userFlow.value ?: return false
+    userFlow.value = user.copy(biometricUnlockEnabled = enabled)
+    return true
+  }
   override suspend fun getTokens(): AuthTokens? = null
   override suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean {
     val current = userFlow.value ?: return false

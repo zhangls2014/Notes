@@ -1,1 +1,3 @@
 /* Localizable strings file */
+
+"DeviceAuthenticationReason" = "验证身份以使用应用解锁。";

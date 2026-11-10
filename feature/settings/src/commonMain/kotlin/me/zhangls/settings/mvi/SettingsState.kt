@@ -9,4 +9,8 @@ import me.zhangls.settings.domain.SettingsDialog
  * @author zhangls
  */
 @Serializable
-data class SettingsState(val settings: SettingsModel = SettingsModel(), val dialog: SettingsDialog? = null) : MviState
+data class SettingsState(
+  val settings: SettingsModel = SettingsModel(),
+  val dialog: SettingsDialog? = null,
+  val biometricUnlockEnabled: Boolean? = null,
+) : MviState

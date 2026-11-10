@@ -13,15 +13,25 @@ import androidx.compose.ui.window.ComposeUIViewController
 import me.zhangls.framework.toast.IosSystemToast
 import me.zhangls.framework.toast.SystemToast
 import platform.Foundation.NSNotificationCenter
+import platform.UIKit.UIViewController
 
 private val LocalIosComposeRebuildToken = staticCompositionLocalOf { false }
 
-fun mainViewController() = ComposeUIViewController {
-  AppEntry()
-}
+class IosAppHost {
+  private val pendingDeepLink = mutableStateOf<String?>(null)
 
-fun mainViewController(deepLinkUrl: String?) = ComposeUIViewController {
-  AppEntry(deepLinkUrl = deepLinkUrl)
+  val viewController: UIViewController = pendingDeepLink.let { link ->
+    ComposeUIViewController {
+      AppEntry(
+        deepLinkUrl = link.value,
+        onDeepLinkConsume = { link.value = null },
+      )
+    }
+  }
+
+  fun updateDeepLink(url: String?) {
+    pendingDeepLink.value = url
+  }
 }
 
 @Composable
@@ -35,7 +45,7 @@ internal actual fun rememberSystemToast(): SystemToast {
 }
 
 @Composable
-private fun AppEntry(deepLinkUrl: String? = null) {
+private fun AppEntry(deepLinkUrl: String?, onDeepLinkConsume: () -> Unit) {
   var rebuildToken by remember { mutableStateOf(false) }
 
   DisposableEffect(Unit) {
@@ -55,6 +65,8 @@ private fun AppEntry(deepLinkUrl: String? = null) {
   CompositionLocalProvider(LocalIosComposeRebuildToken provides rebuildToken) {
     App(
       deepLinkUrl = deepLinkUrl,
+      onDeepLinkConsume = onDeepLinkConsume,
+      deviceAuthenticator = IosDeviceAuthenticator,
       onLanguageChange = { language ->
         LanguageManager.updateLanguage(language)
       },

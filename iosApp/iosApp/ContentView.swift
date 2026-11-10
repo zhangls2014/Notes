@@ -5,12 +5,30 @@ import UIKit
 
 struct ComposeView: UIViewControllerRepresentable {
     let deepLinkUrl: String?
+    let deepLinkEventId: Int
+
+    final class Coordinator {
+        let host = IosAppHost()
+        var deliveredEventId: Int?
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.mainViewController(deepLinkUrl: deepLinkUrl)
+        deliverDeepLink(to: context.coordinator)
+        return context.coordinator.host.viewController
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        deliverDeepLink(to: context.coordinator)
+    }
+
+    private func deliverDeepLink(to coordinator: Coordinator) {
+        guard coordinator.deliveredEventId != deepLinkEventId else { return }
+        coordinator.deliveredEventId = deepLinkEventId
+        coordinator.host.updateDeepLink(url: deepLinkUrl)
     }
 }
 
@@ -19,8 +37,7 @@ struct ContentView: View {
     let deepLinkEventId: Int
 
     var body: some View {
-        ComposeView(deepLinkUrl: deepLinkUrl)
-            .id(deepLinkEventId)
+        ComposeView(deepLinkUrl: deepLinkUrl, deepLinkEventId: deepLinkEventId)
             .ignoresSafeArea()
     }
 }

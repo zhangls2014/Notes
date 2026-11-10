@@ -11,6 +11,11 @@ import me.zhangls.preference.PreferenceSpec
 import me.zhangls.preference.ProfilePreference
 import me.zhangls.preference.ui.PreferenceUiModel
 import me.zhangls.settings.mvi.SettingsIntent
+import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.icon.Lock
+import notes.feature.settings.generated.resources.Res
+import notes.feature.settings.generated.resources.settings_label_biometric_unlock
+import notes.feature.settings.generated.resources.settings_msg_biometric_unlock
 
 /**
  * 把领域模型 [SettingsModel] 映射为 `core:preference` 的表现层模型（`spec` + 取值 + 回调）。
@@ -37,6 +42,7 @@ internal expect val supportsDynamicColor: Boolean
 internal fun SettingsModel.toPreferenceUiModels(
   sendIntent: (SettingsIntent) -> Unit,
   dynamicColorSupported: Boolean = supportsDynamicColor,
+  biometricUnlockEnabled: Boolean? = null,
 ): List<PreferenceUiModel> = buildList {
   add(actionPreference(ProfilePreference.spec, SettingsIntent.OpenProfile, sendIntent))
   if (dynamicColorSupported) {
@@ -51,9 +57,25 @@ internal fun SettingsModel.toPreferenceUiModels(
   add(selectPreference(DarkThemePreference.spec, darkTheme, SettingsIntent::UpdateDarkTheme, sendIntent))
   add(selectPreference(FontSizePreference.spec, fontSize, SettingsIntent::UpdateFontSize, sendIntent))
   add(selectPreference(LanguagePreference.spec, appLanguage, SettingsIntent::UpdateAppLanguage, sendIntent))
+  if (biometricUnlockEnabled != null) {
+    add(
+      PreferenceUiModel.Toggle(
+        spec = biometricUnlockPreference,
+        value = biometricUnlockEnabled,
+        onValueChange = { sendIntent(SettingsIntent.ChangeBiometricUnlock(it)) },
+      ),
+    )
+  }
   add(actionPreference(AboutPreference.spec, SettingsIntent.OpenAbout, sendIntent))
   add(actionPreference(LogoutPreference.spec, SettingsIntent.ClickLogout, sendIntent))
 }
+
+private val biometricUnlockPreference = PreferenceSpec.Toggle(
+  key = "biometricUnlock",
+  title = Res.string.settings_label_biometric_unlock,
+  icon = Icons.Rounded.Lock,
+  summary = { Res.string.settings_msg_biometric_unlock },
+)
 
 private fun actionPreference(
   spec: PreferenceSpec.Action,

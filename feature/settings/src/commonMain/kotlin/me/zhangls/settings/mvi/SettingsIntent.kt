@@ -10,6 +10,8 @@ import me.zhangls.model.FontSizeConfig
  * @author zhangls
  */
 sealed interface SettingsIntent : MviIntent {
+  data class ChangeBiometricUnlock(val enabled: Boolean) : SettingsIntent
+
   data class UpdateDynamicColor(val value: Boolean) : SettingsIntent
 
   data class UpdateDarkTheme(val value: DarkThemeConfig) : SettingsIntent

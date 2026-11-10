@@ -35,7 +35,9 @@ class UserRepositorySecurityTest {
           ),
         ] = """{"id":"one","nickname":"User","accessToken":"old-secret","refreshToken":"refresh-secret"}"""
       }
-      assertEquals("one", repository.userFlow.first()?.id)
+      val migratedUser = repository.userFlow.first()!!
+      assertEquals("one", migratedUser.id)
+      assertFalse(migratedUser.biometricUnlockEnabled)
       assertEquals("old-secret", repository.getTokens()?.accessToken)
       val raw = prefs.data.first()[stringPreferencesKey("user")]!!
       assertFalse(raw.contains("Token"))
@@ -71,6 +73,64 @@ class UserRepositorySecurityTest {
       repository.clear()
       assertFalse(repository.updateAvatar("signed-out", user))
       assertNull(repository.getUser())
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
+  }
+
+  @Test
+  fun biometricUnlockPersistsOnlyForTheCurrentSession() = runTest {
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
+    val store = FakeStore()
+    val repository = UserRepositoryImpl(prefs, store)
+    val user = UserModel("local", "User")
+    try {
+      assertFalse(repository.updateBiometricUnlock(true))
+      repository.login(user, AuthTokens("secret"))
+      assertFalse(repository.getUser()!!.biometricUnlockEnabled)
+
+      assertTrue(repository.updateBiometricUnlock(true))
+      assertTrue(UserRepositoryImpl(prefs, store).getUser()!!.biometricUnlockEnabled)
+      assertTrue(repository.updateAvatar("new", user))
+      repository.updateEmailSearchHistory("query")
+      assertTrue(repository.userFlow.first()!!.biometricUnlockEnabled)
+
+      assertTrue(repository.updateBiometricUnlock(false))
+      assertFalse(repository.userFlow.first()!!.biometricUnlockEnabled)
+      assertTrue(repository.updateBiometricUnlock(true))
+      repository.clear()
+      assertNull(repository.userFlow.first())
+      assertFalse(repository.updateBiometricUnlock(true))
+
+      repository.login(user.copy(biometricUnlockEnabled = true), AuthTokens("secret"))
+      assertFalse(repository.getUser()!!.biometricUnlockEnabled)
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
+  }
+
+  @Test
+  fun failedBiometricUnlockWriteKeepsPreviousValue() = runTest {
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
+    var failWrites = false
+    val guarded = object : DataStore<Preferences> by prefs {
+      override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences =
+        prefs.updateData { old ->
+          val next = transform(old)
+          check(!failWrites) { "Write failed" }
+          next
+        }
+    }
+    val repository = UserRepositoryImpl(guarded, FakeStore())
+    try {
+      repository.login(UserModel("local", "User"), AuthTokens("secret"))
+      failWrites = true
+      assertFailsWith<IllegalStateException> { repository.updateBiometricUnlock(true) }
+      assertFalse(repository.userFlow.first()!!.biometricUnlockEnabled)
     } finally {
       FileSystem.SYSTEM.delete(path, mustExist = false)
     }

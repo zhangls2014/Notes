@@ -1,3 +1,5 @@
 /* App Display Name */
 "CFBundleDisplayName" = "Notes";
 "CFBundleName" = "Notes";
+
+"NSFaceIDUsageDescription" = "Use Face ID to unlock Notes on this device.";

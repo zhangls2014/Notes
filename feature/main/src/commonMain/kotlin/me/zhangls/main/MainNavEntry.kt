@@ -7,10 +7,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import kotlinx.coroutines.launch
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.email.api.EmailListScene
@@ -64,6 +68,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   onLogout: () -> Unit,
   homeMetadata: Map<String, Any> = homePaneMetadata,
   onDraftVisibilityChange: (Boolean) -> Unit = {},
+  onBiometricUnlockChange: suspend (Boolean) -> Unit = {},
 ) {
   entry<HomeDestination>(
     metadata = homeMetadata,
@@ -88,9 +93,14 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
 
   // 设置页不带窗格标注：场景策略遇到它会返回 null，由单栏策略接管
   entry<SettingsDestination> {
+    val scope = rememberCoroutineScope()
+    val changeBiometricUnlock by rememberUpdatedState(onBiometricUnlockChange)
     koinInject<SettingsEntry>().Screen { result ->
       when (result) {
         SettingsResult.Logout -> onLogout()
+        is SettingsResult.ChangeBiometricUnlock -> {
+          scope.launch { changeBiometricUnlock(result.enabled) }
+        }
         SettingsResult.OpenProfile -> navigateToProfile(ProfileOrigin.Settings)
         SettingsResult.OpenAbout -> navigateToAbout()
       }

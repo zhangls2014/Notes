@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.SettingsRepository
+import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.domain.SettingsHandler
@@ -19,6 +20,7 @@ class SettingsViewModel(
   savedStateHandle: SavedStateHandle,
   private val settingsRepository: SettingsRepository,
   private val handler: SettingsHandler,
+  userRepository: UserRepository,
 ) : MviViewModel<SettingsState, SettingsIntent>(
   initialState = SettingsState(),
   stateSerializer = SettingsState.serializer(),
@@ -26,6 +28,11 @@ class SettingsViewModel(
 ) {
 
   init {
+    viewModelScope.launch {
+      userRepository.userFlow.collectLatest { user ->
+        updateState { copy(biometricUnlockEnabled = user?.biometricUnlockEnabled) }
+      }
+    }
     // 订阅设置数据源，同步到 State
     viewModelScope.launch {
       settingsRepository.settingsFlow
@@ -38,6 +45,8 @@ class SettingsViewModel(
 
   override fun handleIntent(intent: SettingsIntent) {
     when (intent) {
+      is SettingsIntent.ChangeBiometricUnlock -> sendEffect(SettingsResult.ChangeBiometricUnlock(intent.enabled))
+
       SettingsIntent.OpenProfile -> sendEffect(SettingsResult.OpenProfile)
 
       SettingsIntent.OpenAbout -> sendEffect(SettingsResult.OpenAbout)

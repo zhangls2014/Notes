@@ -6,9 +6,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.SystemToast
@@ -33,6 +37,7 @@ fun App(
   onDynamicColorChange: (darkTheme: Boolean) -> ColorScheme? = { null },
   deepLinkUrl: String? = null,
   onDeepLinkConsume: () -> Unit = {},
+  deviceAuthenticator: DeviceAuthenticator = UnavailableDeviceAuthenticator,
 ) {
   val viewModel: AppViewModel = koinViewModel()
   val aboutEntry: AboutEntry = koinInject()
@@ -41,6 +46,7 @@ fun App(
   val systemToast = rememberSystemToast()
   val browserUriHandler = rememberBrowserUriHandler()
   val state by viewModel.state.collectAsStateWithLifecycle()
+  val scope = rememberCoroutineScope()
   // 各 feature 对导航的贡献由它们自己的 Koin 模块以多绑定登记，这里一处收集
   val navigationRegistry = rememberNavigationRegistry()
   // remember 住解析结果：parseDeepLink 每次调用都会新建对象，不记住的话这个参数会随每次
@@ -81,13 +87,28 @@ fun App(
       dynamicScheme = if (state.dynamicColor) onDynamicColorChange(darkTheme) else null,
       fontScale = fontScale,
     ) {
-      AppNavHost(
-        viewModel = viewModel,
-        deepLinkDestination = deepLinkDestination,
-        onDeepLinkConsume = onDeepLinkConsume,
-      )
+      when (state.access) {
+        AppAccess.Loading -> Unit
+        AppAccess.Locked -> {
+          var missingCredential by remember(deviceAuthenticator) {
+            mutableStateOf(deviceAuthenticator.isDeviceCredentialMissing())
+          }
+          UnlockScreen(verifying = state.verifyingDevice, missingCredential = missingCredential) {
+            missingCredential = deviceAuthenticator.isDeviceCredentialMissing()
+            if (!missingCredential) scope.launch { viewModel.verifyDevice(deviceAuthenticator) }
+          }
+        }
+        AppAccess.SignedOut, AppAccess.Ready -> AppNavHost(
+          viewModel = viewModel,
+          deepLinkDestination = deepLinkDestination,
+          onDeepLinkConsume = onDeepLinkConsume,
+          deviceAuthenticator = deviceAuthenticator,
+        )
+      }
 
-      if (state.isLogin != null && state.settingsLoaded && state.lastReadReleaseVersion != version) {
+      if ((state.access == AppAccess.SignedOut || state.access == AppAccess.Ready) &&
+        state.settingsLoaded && state.lastReadReleaseVersion != version
+      ) {
         aboutEntry.ReleaseNotesDialog(
           version = version,
           onDismiss = { viewModel.sendIntent(AppIntent.DismissReleaseNotes(version)) },

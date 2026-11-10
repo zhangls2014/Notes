@@ -113,6 +113,7 @@ class ProfileViewModelTest {
       userFlow.value = userFlow.value?.copy(avatar = avatar)
       return true
     }
+    override suspend fun updateBiometricUnlock(enabled: Boolean) = false
     override suspend fun updateEmailSearchHistory(keyword: String) = Unit
     override suspend fun deleteEmailSearchHistory(keyword: String) = Unit
     override suspend fun clear() {
