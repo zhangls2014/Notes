@@ -6,6 +6,16 @@
       {
         "type": "added",
         "platforms": [
+          "android"
+        ],
+        "text": {
+          "en": "Save and fill your Notes account name and password with your Android password manager.",
+          "zh": "支持通过 Android 系统密码管理器保存并自动填充 Notes 账号和密码。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": [
           "android",
           "ios"
         ],

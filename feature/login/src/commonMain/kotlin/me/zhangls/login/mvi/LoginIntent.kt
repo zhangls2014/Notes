@@ -11,7 +11,7 @@ import me.zhangls.model.DarkThemeConfig
  */
 sealed interface LoginIntent : MviIntent {
   object Login : LoginIntent
-  class PasswordLogin(val auth: PasswordlessAuth) : LoginIntent
+  class PasswordLogin(val auth: PasswordlessAuth, val onPasswordVerified: (() -> Unit)? = null) : LoginIntent
   class SignInWithPasskey(val auth: PasswordlessAuth, val provider: PasskeyProvider) : LoginIntent
   data class UpdateAccount(val account: String) : LoginIntent
   object ClearAccount : LoginIntent

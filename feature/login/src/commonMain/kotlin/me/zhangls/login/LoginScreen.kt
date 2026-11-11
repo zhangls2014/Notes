@@ -37,18 +37,24 @@ import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
 import androidx.compose.material3.adaptive.layout.calculateThreePaneScaffoldValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalAutofillManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -135,10 +141,13 @@ fun LoginScreen(
     }
   }
   val auth = LocalPasswordlessAuth.current
-  val loginClick = remember(keyboardController, viewModel, auth) {
+  val commitAutofill = rememberPasswordAutofillCommit(auth != null)
+  val loginClick = remember(keyboardController, viewModel, auth, commitAutofill) {
     {
       keyboardController?.hide()
-      viewModel.sendIntent(if (auth == null) LoginIntent.Login else LoginIntent.PasswordLogin(auth))
+      viewModel.sendIntent(
+        if (auth == null) LoginIntent.Login else LoginIntent.PasswordLogin(auth, commitAutofill),
+      )
     }
   }
 
@@ -180,6 +189,24 @@ fun LoginScreen(
 }
 
 @Composable
+private fun rememberPasswordAutofillCommit(usesServerAuth: Boolean): (() -> Unit)? {
+  val autofill = LocalAutofillManager.current?.takeIf { usesServerAuth } ?: return null
+  val committed = remember(autofill) { mutableStateOf(false) }
+  DisposableEffect(autofill) {
+    onDispose {
+      // Compose commits when the fields disappear, including after a Passkey login.
+      if (!committed.value) autofill.cancel()
+    }
+  }
+  return remember(autofill) {
+    {
+      autofill.commit()
+      committed.value = true
+    }
+  }
+}
+
+@Composable
 private fun rememberLoginPanePlan(): LoginPanePlan {
   val directive = LocalPaneScaffoldDirective.current
   return remember(directive) { loginPanePlan(directive) }
@@ -195,6 +222,7 @@ private fun rememberLoginPanePlan(): LoginPanePlan {
 private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginIntent) -> Unit, onLoginClick: () -> Unit) {
   val inputFocus = remember { ImeHandoffFocusState() }
   val usesServerAuth = LocalPasswordlessAuth.current != null
+  val supportsAutofill = usesServerAuth && LocalAutofillManager.current != null
   val canSubmit = if (usesServerAuth) state.account.isNotBlank() && state.password.isNotEmpty() else state.isInputValid
   BoxWithConstraints(
     modifier = Modifier.fillMaxSize().windowInsetsPadding(rememberImeHandoffInsets(inputFocus)),
@@ -239,6 +267,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
 
             AccountInput(
               modifier = Modifier.padding(top = 40.dp)
+                .loginAutofill(supportsAutofill, ContentType.Username)
                 .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
               account = state.account,
               enabled = !state.isLoading,
@@ -249,6 +278,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
 
             PasswordInput(
               modifier = Modifier.padding(top = 16.dp)
+                .loginAutofill(supportsAutofill, ContentType.Password)
                 .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
               password = state.password,
               enabled = !state.isLoading,
@@ -327,6 +357,9 @@ private fun BrandPane(modifier: Modifier = Modifier) {
     )
   }
 }
+
+private fun Modifier.loginAutofill(enabled: Boolean, type: ContentType): Modifier =
+  if (enabled) semantics { contentType = type } else this
 
 @Composable
 private fun AccountInput(

@@ -12,6 +12,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.autofill.FillableData
+import androidx.compose.ui.autofill.createFromText
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.input.InputMode
@@ -19,8 +22,10 @@ import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotSelected
@@ -256,13 +261,28 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
     }
     val auth = object : PasswordlessAuth {
-      override suspend fun signInWithPassword(account: String, password: String) = Unit
+      override suspend fun signInWithPassword(account: String, password: String, onPasswordVerified: (() -> Unit)?) = Unit
       override suspend fun signInWithPasskey(provider: PasskeyProvider) = false
     }
     launch(auth = auth, passkeyProvider = provider)
     waitFor("Log in")
-    compose.onNodeWithText("Account").assertExists()
-    compose.onNodeWithText("Password").assertExists()
+    val account = compose.onNodeWithText("Account")
+    val password = compose.onNodeWithText("Password")
+    org.junit.Assert.assertEquals(
+      ContentType.Username,
+      account.fetchSemanticsNode().config[SemanticsProperties.ContentType],
+    )
+    org.junit.Assert.assertEquals(
+      ContentType.Password,
+      password.fetchSemanticsNode().config[SemanticsProperties.ContentType],
+    )
+    account.performSemanticsAction(SemanticsActions.OnFillData) {
+      it(checkNotNull(FillableData.createFromText("notes_tester")))
+    }
+    password.performSemanticsAction(SemanticsActions.OnFillData) {
+      it(checkNotNull(FillableData.createFromText("Test1234")))
+    }
+    compose.onNodeWithText("Log in").assertIsEnabled()
     compose.onNodeWithText("Verification code").assertDoesNotExist()
     val passkeyButton = compose.onNodeWithText("Sign in with a passkey")
     passkeyButton.assertDoesNotExist()

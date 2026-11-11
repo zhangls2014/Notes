@@ -54,7 +54,7 @@ class LoginViewModel(
         val (account, password) = state.value
         if (account.isBlank() || password.isEmpty()) return
         authenticate {
-          intent.auth.signInWithPassword(account, password)
+          intent.auth.signInWithPassword(account, password, intent.onPasswordVerified)
           true
         }
       }

@@ -52,9 +52,13 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     install(HttpTimeout) { requestTimeoutMillis = 15_000 }
   }
 
-  override suspend fun signInWithPassword(account: String, password: String) = sessionMutex.withLock {
+  override suspend fun signInWithPassword(
+    account: String,
+    password: String,
+    onPasswordVerified: (() -> Unit)?,
+  ) = sessionMutex.withLock {
     val reply = post("password/login", fields("account" to account, "password" to password))
-    installSession(json.decodeFromString(reply))
+    installSession(json.decodeFromString(reply), onPasswordVerified)
   }
 
   override suspend fun signInWithPasskey(provider: PasskeyProvider): Boolean {
@@ -114,9 +118,12 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     }
   }
 
-  private suspend fun installSession(reply: SessionResponse) {
+  private suspend fun installSession(reply: SessionResponse, onPasswordVerified: (() -> Unit)? = null) {
     require(accountIdPattern.matches(reply.user.id) && reply.user.account.isNotBlank())
-    users.login(UserModel(id = reply.user.id, nickname = reply.user.account, authOrigin = endpoint), reply.tokens())
+    val tokens = reply.tokens()
+    // Publishing the session removes the login form, so commit Autofill while its fields still exist.
+    onPasswordVerified?.invoke()
+    users.login(UserModel(id = reply.user.id, nickname = reply.user.account, authOrigin = endpoint), tokens)
   }
 
   private suspend fun post(path: String, body: JsonObject, accessToken: String? = null): String =

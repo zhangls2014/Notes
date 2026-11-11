@@ -72,14 +72,16 @@ class LoginSubmissionTest {
       val users = AdaptiveUsers()
       val viewModel = LoginViewModel(SavedStateHandle(), users, AdaptiveSettings(), ToastGlobalNotifier())
       val effects = mutableListOf<LoginResult>()
+      var autofillCommits = 0
       backgroundScope.launch { viewModel.effect.collect { if (it is LoginResult) effects.add(it) } }
       val provider = object : PasskeyProvider {
         override suspend fun create(optionsJson: String) = PasskeyResult.Cancelled
         override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
       }
       val auth = object : PasswordlessAuth {
-        override suspend fun signInWithPassword(account: String, password: String) {
+        override suspend fun signInWithPassword(account: String, password: String, onPasswordVerified: (() -> Unit)?) {
           check(account == "notes_tester" && password == "an all letters passphrase")
+          onPasswordVerified?.invoke()
         }
         override suspend fun signInWithPasskey(provider: PasskeyProvider): Boolean =
           provider.get("{}") is PasskeyResult.Success
@@ -92,14 +94,16 @@ class LoginSubmissionTest {
       assertFalse(viewModel.state.value.isLoading)
       viewModel.sendIntent(LoginIntent.UpdateAccount("notes_tester"))
       viewModel.sendIntent(LoginIntent.UpdatePassword("wrong"))
-      viewModel.sendIntent(LoginIntent.PasswordLogin(auth))
+      viewModel.sendIntent(LoginIntent.PasswordLogin(auth) { autofillCommits++ })
       runCurrent()
       assertTrue(effects.isEmpty())
+      assertEquals(0, autofillCommits)
       assertFalse(viewModel.state.value.isLoading)
       viewModel.sendIntent(LoginIntent.UpdatePassword("an all letters passphrase"))
-      viewModel.sendIntent(LoginIntent.PasswordLogin(auth))
+      viewModel.sendIntent(LoginIntent.PasswordLogin(auth) { autofillCommits++ })
       runCurrent()
       assertEquals(listOf<LoginResult>(LoginResult.Success), effects)
+      assertEquals(1, autofillCommits)
     } finally {
       store.clear()
       Dispatchers.resetMain()

@@ -4,6 +4,11 @@
 
 本页维护事项状态及关闭条件，具体命令与操作步骤留在对应指南。完成后补充日期、版本、环境、实际执行结果和证据，再更新状态；编译、行为断言、截图候选、视觉基线和设备验收分别记录。
 
+## 系统密码管理器（2026-11-11）
+
+- [ ] Android 设备验收：使用接入真实 Notes 认证服务的构建，在启用系统自动填充服务的设备验证首次登录保存、退出后选择凭据、两字段回填后提交、拒绝保存和密码错误。覆盖 API 28–33 与 API 34+，记录设备和密码管理器。
+- [ ] iOS 实现待办：待仓库升级到支持原生密码保存提示和表单自动填充的 Compose Multiplatform 正式版后接入。为签名测试 App 和认证域名验证 `webcredentials` 关联，再用真机验证保存、回填和取消保存。[JetBrains 版本说明](https://kotlinlang.org/docs/multiplatform/whats-new-compose-113.html#saving-and-autofilling-passwords)
+
 ## 弹窗窗口比例宽度（2026-11-05）
 
 - 当前宽度与安全高度规则见[主题架构](../architecture.md#material-3-expressive-主题)。本节仅记录验证证据及剩余验收。
