@@ -4,4 +4,15 @@
   <string name="unlock_error_device_credential">请在系统设置中配置安全锁屏后重试。</string>
   <string name="unlock_error_unavailable">设备验证暂时不可用，请重试。</string>
   <string name="unlock_error_storage">无法保存解锁设置，请重试。</string>
+  <string name="auth_retry_local_data">无法打开本地数据。重试</string>
+  <string name="auth_passkey_manage">管理通行密钥</string>
+  <string name="auth_passkey_add">添加通行密钥</string>
+  <string name="auth_passkey_remove">撤销</string>
+  <string name="auth_passkey_close">关闭</string>
+  <string name="auth_passkey_empty">尚未添加通行密钥。</string>
+  <string name="auth_passkey_error">无法管理通行密钥，请重试。</string>
+  <string name="auth_passkey_recent">请重新使用账号密码或通行密钥登录，再重试此操作。</string>
+  <string name="auth_passkey_retry">重试</string>
+  <string name="auth_logout_error">退出登录失败，请重试。</string>
+  <string name="auth_logout_local">已退出本机登录，暂时无法连接服务器撤销会话。</string>
 </resources>

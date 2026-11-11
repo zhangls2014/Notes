@@ -6,4 +6,9 @@
   <string name="settings_dialog_content_logout">确定要退出登录吗？</string>
   <string name="settings_label_biometric_unlock">生物识别解锁</string>
   <string name="settings_msg_biometric_unlock">启动 Notes 时使用生物识别或设备锁屏凭据验证。</string>
+  <string name="settings_label_passkeys">通行密钥</string>
+  <string name="settings_label_security">安全</string>
+  <string name="settings_group_account">账户</string>
+  <string name="settings_group_general">通用</string>
+  <string name="settings_group_app">应用</string>
 </resources>

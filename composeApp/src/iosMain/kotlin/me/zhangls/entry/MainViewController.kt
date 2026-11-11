@@ -47,6 +47,8 @@ internal actual fun rememberSystemToast(): SystemToast {
 @Composable
 private fun AppEntry(deepLinkUrl: String?, onDeepLinkConsume: () -> Unit) {
   var rebuildToken by remember { mutableStateOf(false) }
+  val host = LocalUIViewController.current
+  val passkeyProvider = remember(host) { IosPasskeyProvider(host) }
 
   DisposableEffect(Unit) {
     val observer = NSNotificationCenter.defaultCenter.addObserverForName(
@@ -67,6 +69,7 @@ private fun AppEntry(deepLinkUrl: String?, onDeepLinkConsume: () -> Unit) {
       deepLinkUrl = deepLinkUrl,
       onDeepLinkConsume = onDeepLinkConsume,
       deviceAuthenticator = IosDeviceAuthenticator,
+      passkeyProvider = passkeyProvider,
       onLanguageChange = { language ->
         LanguageManager.updateLanguage(language)
       },

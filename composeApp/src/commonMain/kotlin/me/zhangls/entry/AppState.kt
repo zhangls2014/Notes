@@ -13,6 +13,7 @@ import me.zhangls.model.FontSizeConfig
 @Serializable
 data class AppState(
   val isLogin: Boolean?,
+  @Transient val accountId: String? = null,
   @Transient val sessionLoaded: Boolean = false,
   @Transient val biometricUnlockEnabled: Boolean = false,
   @Transient val deviceVerified: Boolean = false,

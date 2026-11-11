@@ -1,0 +1,5 @@
+{
+  "webcredentials": {
+    "apps": ["REPLACE_WITH_APP_ID_PREFIX.REPLACE_WITH_DEBUG_BUNDLE_IDENTIFIER"]
+  }
+}

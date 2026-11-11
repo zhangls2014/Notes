@@ -1,6 +1,8 @@
 package me.zhangls.login.mvi
 
 import me.zhangls.framework.mvi.MviIntent
+import me.zhangls.login.api.PasskeyProvider
+import me.zhangls.login.api.PasswordlessAuth
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
 
@@ -9,6 +11,8 @@ import me.zhangls.model.DarkThemeConfig
  */
 sealed interface LoginIntent : MviIntent {
   object Login : LoginIntent
+  class PasswordLogin(val auth: PasswordlessAuth) : LoginIntent
+  class SignInWithPasskey(val auth: PasswordlessAuth, val provider: PasskeyProvider) : LoginIntent
   data class UpdateAccount(val account: String) : LoginIntent
   object ClearAccount : LoginIntent
   data class UpdatePassword(val password: String) : LoginIntent

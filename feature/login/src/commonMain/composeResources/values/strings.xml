@@ -15,4 +15,7 @@
   <string name="login_action_show_password">Show password</string>
   <string name="login_action_hide_password">Hide password</string>
   <string name="login_msg_storage_failed">Unable to save login securely. Please try again.</string>
+  <string name="login_passkey">Sign in with a passkey</string>
+  <string name="login_passkey_unavailable">No passkey is available. Try signing in with your account and password.</string>
+  <string name="login_passwordless_error">Could not complete the request. Check your details and try again.</string>
 </resources>

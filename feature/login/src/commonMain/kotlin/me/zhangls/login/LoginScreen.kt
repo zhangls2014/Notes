@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.domain.AccountError
 import me.zhangls.login.domain.PasswordError
@@ -133,10 +134,11 @@ fun LoginScreen(
       keyboardController?.hide()
     }
   }
-  val loginClick = remember(keyboardController, viewModel) {
+  val auth = LocalPasswordlessAuth.current
+  val loginClick = remember(keyboardController, viewModel, auth) {
     {
       keyboardController?.hide()
-      viewModel.sendIntent(LoginIntent.Login)
+      viewModel.sendIntent(if (auth == null) LoginIntent.Login else LoginIntent.PasswordLogin(auth))
     }
   }
 
@@ -192,6 +194,8 @@ private fun rememberLoginPanePlan(): LoginPanePlan {
 @Composable
 private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginIntent) -> Unit, onLoginClick: () -> Unit) {
   val inputFocus = remember { ImeHandoffFocusState() }
+  val usesServerAuth = LocalPasswordlessAuth.current != null
+  val canSubmit = if (usesServerAuth) state.account.isNotBlank() && state.password.isNotEmpty() else state.isInputValid
   BoxWithConstraints(
     modifier = Modifier.fillMaxSize().windowInsetsPadding(rememberImeHandoffInsets(inputFocus)),
   ) {
@@ -248,7 +252,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
                 .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
               password = state.password,
               enabled = !state.isLoading,
-              passwordError = state.passwordError,
+              passwordError = state.passwordError.takeUnless { usesServerAuth },
               passwordVisible = state.passwordVisible,
               onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
               onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
@@ -257,7 +261,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
 
             Button(
               onClick = onLoginClick,
-              enabled = state.isInputValid && !state.isLoading,
+              enabled = canSubmit && !state.isLoading,
               shapes = ButtonDefaults.shapes(),
               modifier = Modifier
                 .fillMaxWidth()
@@ -265,6 +269,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
             ) {
               Text(text = stringResource(Res.string.login_action_login))
             }
+            PasswordlessForm(state, onIntent)
           }
         },
       ) { measurables, layoutConstraints ->

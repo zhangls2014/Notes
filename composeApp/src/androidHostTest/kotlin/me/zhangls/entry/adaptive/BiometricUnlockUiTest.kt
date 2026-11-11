@@ -6,7 +6,9 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import me.zhangls.about.api.AboutAppInfo
+import me.zhangls.data.model.EmailModel
 import me.zhangls.data.model.UserModel
+import me.zhangls.data.repository.AccountDataRepository
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
@@ -48,6 +50,13 @@ class BiometricUnlockUiTest {
           single<UserRepository> { users }
           single<SettingsRepository> { AdaptiveSettings() }
           single<EmailsRepository> { AdaptiveEmails() }
+          single<AccountDataRepository> {
+            object : AccountDataRepository {
+              override suspend fun open(accountId: String, initialEmails: List<EmailModel>) = Unit
+
+              override suspend fun close() = Unit
+            }
+          }
         },
       )
     }

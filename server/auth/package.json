@@ -1,0 +1,22 @@
+{
+  "name": "notes-auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "start": "node src/main.ts",
+    "provision-account": "node src/provision-account.ts"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^14.1.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "typescript": "^5.9.0"
+  }
+}

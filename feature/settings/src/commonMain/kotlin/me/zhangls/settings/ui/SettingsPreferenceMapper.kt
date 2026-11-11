@@ -11,10 +11,12 @@ import me.zhangls.preference.PreferenceSpec
 import me.zhangls.preference.ProfilePreference
 import me.zhangls.preference.ui.PreferenceUiModel
 import me.zhangls.settings.mvi.SettingsIntent
+import me.zhangls.theme.icon.Fingerprint
 import me.zhangls.theme.icon.Icons
-import me.zhangls.theme.icon.Lock
+import me.zhangls.theme.icon.Passkey
 import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_label_biometric_unlock
+import notes.feature.settings.generated.resources.settings_label_passkeys
 import notes.feature.settings.generated.resources.settings_msg_biometric_unlock
 
 /**
@@ -43,6 +45,7 @@ internal fun SettingsModel.toPreferenceUiModels(
   sendIntent: (SettingsIntent) -> Unit,
   dynamicColorSupported: Boolean = supportsDynamicColor,
   biometricUnlockEnabled: Boolean? = null,
+  showPasskeys: Boolean = false,
 ): List<PreferenceUiModel> = buildList {
   add(actionPreference(ProfilePreference.spec, SettingsIntent.OpenProfile, sendIntent))
   if (dynamicColorSupported) {
@@ -66,14 +69,21 @@ internal fun SettingsModel.toPreferenceUiModels(
       ),
     )
   }
+  if (showPasskeys) add(actionPreference(passkeysPreference, SettingsIntent.ManagePasskeys, sendIntent))
   add(actionPreference(AboutPreference.spec, SettingsIntent.OpenAbout, sendIntent))
   add(actionPreference(LogoutPreference.spec, SettingsIntent.ClickLogout, sendIntent))
 }
 
+private val passkeysPreference = PreferenceSpec.Action(
+  key = "passkeys",
+  title = Res.string.settings_label_passkeys,
+  icon = Icons.Rounded.Passkey,
+)
+
 private val biometricUnlockPreference = PreferenceSpec.Toggle(
   key = "biometricUnlock",
   title = Res.string.settings_label_biometric_unlock,
-  icon = Icons.Rounded.Lock,
+  icon = Icons.Rounded.Fingerprint,
   summary = { Res.string.settings_msg_biometric_unlock },
 )
 

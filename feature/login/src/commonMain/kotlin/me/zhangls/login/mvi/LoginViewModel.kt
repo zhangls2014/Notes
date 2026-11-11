@@ -12,10 +12,13 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import me.zhangls.login.api.LoginResult
+import me.zhangls.login.api.PasskeyUnavailableException
 import me.zhangls.login.domain.LoginValidator
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_msg_login_success
 import notes.feature.login.generated.resources.login_msg_storage_failed
+import notes.feature.login.generated.resources.login_passwordless_error
+import notes.feature.login.generated.resources.login_passkey_unavailable
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -47,6 +50,17 @@ class LoginViewModel(
       return
     }
     when (intent) {
+      is LoginIntent.PasswordLogin -> {
+        val (account, password) = state.value
+        if (account.isBlank() || password.isEmpty()) return
+        authenticate {
+          intent.auth.signInWithPassword(account, password)
+          true
+        }
+      }
+
+      is LoginIntent.SignInWithPasskey -> authenticate { intent.auth.signInWithPasskey(intent.provider) }
+
       LoginIntent.Login -> {
         if (LoginValidator.validateAll(state.value.account, state.value.password).not()) {
           dispatch(LoginAction.ValidationResult)
@@ -85,6 +99,23 @@ class LoginViewModel(
         viewModelScope.launch {
           settingsRepository.updateDarkTheme(intent.config)
         }
+      }
+    }
+  }
+
+  private fun authenticate(operation: suspend () -> Boolean) {
+    dispatch(LoginAction.Loading(true))
+    viewModelScope.launch {
+      try {
+        if (operation()) sendEffect(LoginResult.Success)
+      } catch (cancelled: CancellationException) {
+        throw cancelled
+      } catch (_: PasskeyUnavailableException) {
+        toastGlobalNotifier.showToast(Res.string.login_passkey_unavailable)
+      } catch (_: Exception) {
+        toastGlobalNotifier.showToast(Res.string.login_passwordless_error)
+      } finally {
+        dispatch(LoginAction.Loading(false))
       }
     }
   }

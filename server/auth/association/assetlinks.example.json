@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.get_login_creds"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "REPLACE_WITH_DEBUG_APPLICATION_ID",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_DEBUG_CERTIFICATE_SHA256"]
+    }
+  }
+]

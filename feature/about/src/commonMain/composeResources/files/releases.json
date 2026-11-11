@@ -10,6 +10,17 @@
           "ios"
         ],
         "text": {
+          "en": "On builds connected to Notes authentication, sign in with an account name and password without providing an email address, or with a passkey on supported devices. Find account, general, security, and app settings under clear section headings.",
+          "zh": "接入 Notes 认证服务的版本支持使用账户名和密码登录，无需提供邮箱。符合条件的设备也可以使用通行密钥登录。设置页用标题区分账户、通用、安全和应用。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
           "en": "Enable biometric unlock in Settings to protect Notes when the app starts. If the device has no secure screen lock, the unlock screen explains how to restore access.",
           "zh": "可在设置中开启生物识别解锁，在应用启动时保护 Notes。设备未设置安全锁屏时，解锁页会提示如何恢复访问。"
         }

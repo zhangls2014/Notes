@@ -111,6 +111,7 @@ class AvatarUpdaterTest {
     override val userFlow = MutableStateFlow<UserModel?>(UserModel("local", "Ada", "old"))
     var failCommit = false
     override suspend fun getUser() = userFlow.value
+    override suspend fun replaceTokens(userId: String, expectedRefreshToken: String, tokens: AuthTokens) = false
     override suspend fun getTokens(): AuthTokens? = null
     override suspend fun login(user: UserModel, tokens: AuthTokens) {
       userFlow.value = user

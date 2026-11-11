@@ -39,6 +39,7 @@ import me.zhangls.email.emailNavEntry
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
+import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
@@ -62,11 +63,14 @@ fun AppNavHost(
   deepLinkDestination: DeepLinkDestination? = null,
   onDeepLinkConsume: () -> Unit = {},
   deviceAuthenticator: DeviceAuthenticator = UnavailableDeviceAuthenticator,
+  onManagePasskeys: () -> Unit = {},
+  accountNavigationManagedByApp: Boolean = false,
 ) {
   // 登录状态
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 是否登录（从 state 派生，避免组合期写状态）
   val isLogin = state.isLogin ?: false
+  val auth = LocalPasswordlessAuth.current as? PasswordlessAuthClient
 
   if (state.access == AppAccess.Loading || state.access == AppAccess.Locked) {
     return
@@ -189,9 +193,11 @@ fun AppNavHost(
           navigateToProfile = { origin -> navHandler(NavEffect.Navigate(ProfileDestination(origin))) },
           navigateToAbout = { navHandler(NavEffect.Navigate(AboutDestination)) },
           onLogout = {
-            viewModel.onLogout()
-            navHandler(Restart(LoginDestination()))
+            viewModel.logout(auth) {
+              if (!accountNavigationManagedByApp) navHandler(Restart(LoginDestination()))
+            }
           },
+          onManagePasskeys = onManagePasskeys,
           onBiometricUnlockChange = { enabled ->
             coroutineScope {
               val request = launch {
@@ -223,7 +229,7 @@ fun AppNavHost(
         ) { effect -> paneNavigation.value(effect) }
 
         loginNavEntry { result, destination ->
-          if (result == LoginResult.Success) {
+          if (result == LoginResult.Success && !accountNavigationManagedByApp) {
             // 去向取自登录页 key 自身携带的 redirectTo：它随返回栈一起被序列化恢复，
             // 因此 Activity 重建后依然成立；为空则进主页。
             // isLogin 显式传 true —— 此刻 AppViewModel 里的登录态可能还没回调到位。

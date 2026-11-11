@@ -49,6 +49,8 @@ class SettingsViewModel(
 
       SettingsIntent.OpenProfile -> sendEffect(SettingsResult.OpenProfile)
 
+      SettingsIntent.ManagePasskeys -> sendEffect(SettingsResult.ManagePasskeys)
+
       SettingsIntent.OpenAbout -> sendEffect(SettingsResult.OpenAbout)
 
       is SettingsIntent.UpdateDynamicColor -> {

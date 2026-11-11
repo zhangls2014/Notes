@@ -733,6 +733,18 @@
       ]
     },
     {
+      "coordinate": "androidx.credentials:credentials:1.6.0",
+      "name": "Credentials",
+      "url": "https://developer.android.com/jetpack/androidx/releases/credentials#1.6.0",
+      "pom": "https://dl.google.com/dl/android/maven2/androidx/credentials/credentials/1.6.0/credentials-1.6.0.pom",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "notices": [
+        "809fa1ed21450f59827d1e9aec720bbc4b687434fa22283c6cb5dd82a47ab9c0"
+      ]
+    },
+    {
       "coordinate": "androidx.cursoradapter:cursoradapter:1.0.0",
       "name": "Android Support Library Cursor Adapter",
       "url": "http://developer.android.com/tools/extras/support-library.html",

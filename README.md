@@ -185,7 +185,9 @@ KMP 约定插件通过 `withHostTest {}` 为共享模块启用 `testAndroidHostT
 
 ## Deep Link 调试
 
-应用支持 `https://notes.zhangls.me/email?id=<id>`。未登录打开受保护目标时会先进入登录页，成功后恢复目标：
+演示构建支持 `https://notes.zhangls.me/email?id=<id>`。未登录时先进入登录页，成功后恢复目标。启用 [Notes 认证服务](server/auth/README.md) 的构建还要求链接携带 `accountId=<账号 UUID>`，并在目标账号的本地数据就绪后打开详情。
+
+演示构建调试命令如下。
 
 ```bash
 adb shell am start \

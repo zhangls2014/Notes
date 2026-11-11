@@ -1,3 +1,4 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 plugins {
@@ -34,6 +35,7 @@ kotlin {
         implementation(projects.core.theme)
         implementation(projects.core.preference)
         implementation(projects.core.network)
+        implementation(kmp.jetbrains.kotlinx.serialization.json)
         implementation(projects.core.framework)
         implementation(projects.core.navigation)
         // 依赖 email 契约(api)；AppNavHost 引用 EmailDetailDestination
@@ -47,6 +49,7 @@ kotlin {
         implementation(projects.feature.loginApi)
         implementation(projects.feature.login)
         implementation(projects.feature.settings)
+        implementation(projects.feature.settingsApi)
         implementation(projects.feature.profileApi)
         implementation(projects.feature.profile)
         implementation(projects.feature.aboutApi)
@@ -95,6 +98,19 @@ buildkonfig {
   packageName = "me.zhangls.entry"
   defaultConfigs {
     buildConfigField(STRING, "BASE_URL", "https://www.mxnzp.com/")
+    val authBaseUrl = providers.gradleProperty("notes.authBaseUrl")
+      .orElse(providers.environmentVariable("NOTES_AUTH_BASE_URL"))
+      .orElse("")
+      .get()
+    require(authBaseUrl.all { it.isLetterOrDigit() || it in ":/.-" }) { "Invalid Notes authentication URL" }
+    buildConfigField(STRING, "AUTH_BASE_URL", authBaseUrl)
+    val passkeysEnabled = providers.gradleProperty("notes.authPasskeysEnabled")
+      .orElse(providers.environmentVariable("NOTES_AUTH_PASSKEYS_ENABLED"))
+      .orElse("false")
+      .get()
+      .toBooleanStrict()
+    require(!passkeysEnabled || authBaseUrl.isNotBlank()) { "Passkeys require a Notes authentication URL" }
+    buildConfigField(BOOLEAN, "AUTH_PASSKEYS_ENABLED", passkeysEnabled.toString())
   }
 }
 

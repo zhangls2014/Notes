@@ -3,6 +3,7 @@ package me.zhangls.entry
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,6 +15,8 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.composeapp.generated.resources.Res
+import notes.composeapp.generated.resources.auth_logout_error
+import notes.composeapp.generated.resources.auth_logout_local
 import notes.composeapp.generated.resources.unlock_error_device_credential
 import notes.composeapp.generated.resources.unlock_error_storage
 import notes.composeapp.generated.resources.unlock_error_unavailable
@@ -47,7 +50,28 @@ class AppViewModel(
   internal fun onLogout() {
     sessionGeneration++
     sessionUserId = null
-    updateState { copy(isLogin = false, biometricUnlockEnabled = false, deviceVerified = false) }
+    updateState { copy(isLogin = false, accountId = null, biometricUnlockEnabled = false, deviceVerified = false) }
+  }
+
+  private var logoutJob: Job? = null
+
+  internal fun logout(auth: PasswordlessAuthClient?, onComplete: () -> Unit) {
+    if (logoutJob?.isActive == true) return
+    logoutJob = viewModelScope.launch {
+      try {
+        if (auth == null) {
+          userRepository.clear()
+        } else if (!auth.logout()) {
+          toastGlobalNotifier.showToast(Res.string.auth_logout_local)
+        }
+        onLogout()
+        onComplete()
+      } catch (cancelled: CancellationException) {
+        throw cancelled
+      } catch (_: Exception) {
+        toastGlobalNotifier.showToast(Res.string.auth_logout_error)
+      }
+    }
   }
 
   internal suspend fun verifyDevice(
@@ -101,13 +125,15 @@ class AppViewModel(
 
   init {
     viewModelScope.launch {
-      userRepository.userFlow.collectLatest { user ->
+      userRepository.userFlow.collectLatest { storedUser ->
+        val user = storedUser?.takeIf { sessionMatchesAuthOrigin(it, configuredAuthEndpoint) }
         val sessionChanged = sessionUserId != user?.id
         if (sessionChanged) sessionGeneration++
         sessionUserId = user?.id
         updateState {
           copy(
             isLogin = user != null,
+            accountId = user?.id,
             sessionLoaded = true,
             biometricUnlockEnabled = user?.biometricUnlockEnabled == true,
             deviceVerified = deviceVerified && !sessionChanged,

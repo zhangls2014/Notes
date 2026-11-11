@@ -105,6 +105,7 @@ class ProfileViewModelTest {
   private class Users : UserRepository {
     override val userFlow = MutableStateFlow<UserModel?>(UserModel("local", "Ada", "old"))
     override suspend fun getUser() = userFlow.value
+    override suspend fun replaceTokens(userId: String, expectedRefreshToken: String, tokens: AuthTokens) = false
     override suspend fun getTokens(): AuthTokens? = null
     override suspend fun login(user: UserModel, tokens: AuthTokens) {
       userFlow.value = user

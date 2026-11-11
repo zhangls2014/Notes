@@ -311,8 +311,10 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 - 数据库文件路径由 `core:data` 的 `AppFileManager` 提供，平台建库差异由 `AppDatabaseFactory` 的 expect/actual 承担。
 - `AppDataStore` 只负责普通资料/设置的 JSON 序列化，不存储登录凭据。`UserModel` 不含 Token；`UserRepository.login(user, tokens)` 串行协调资料与凭据，`getTokens()` 仅供组合根网络适配使用，Token 不进入 UI State。
 - `core:data/impl/security/SecureTokenStore` 是内部契约：Android 用 Keystore AES/GCM 和随机 IV 加密整组账号凭据，经 `AtomicFile` 写入 `noBackupFilesDir`；iOS 用 Generic Password Keychain，`WhenUnlockedThisDeviceOnly`，不启用同步。永久密钥失效或损坏密文会清除凭据；临时访问失败不回退明文。登录态 Flow 保留最近状态并执行可取消重试；请求级 getTokens 仍抛出失败，不使用旧凭据兜底。
-- 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。Ktor 禁用鉴权 Token 缓存，每次整组读取当前凭据。当前仍为模拟登录，无真实刷新端点。
+- 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。Ktor 禁用鉴权 Token 缓存，每次整组读取当前凭据。认证端点未配置时，演示构建继续使用本地模拟会话。启用认证端点的构建使用 Notes 认证服务；第三方 Ktor 客户端不读取真实会话令牌。
 - 生物识别解锁设置随本机会话资料保存，旧资料和新登录默认关闭。设置入口通过 `SettingsResult` 请求根层验证；Android 与 iOS 宿主发起系统设备验证，支持设备锁屏凭据回退。启动时组合根等待本进程首次确认会话；有锁定会话时仅显示解锁页，导航、待处理深链和更新提示等验证成功再恢复。授权只保留在进程内，退出会话时清除。保护范围是应用内访问，Room 和 Token 存储沿用现有机制。
+- 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。Passkey 入口要求构建启用认证域名关联，且平台支持 Passkey。账户名支持普通名称与已有邮箱格式，通行密钥和本地数据绑定稳定的服务端账户 UUID，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
+- 真实账号在 `notes-<uuid>.db` 使用独立 Room 文件，表结构沿用现有 schema。组合根在账号数据库就绪后才挂载受保护导航；切换账号时退役旧数据库和查询。原 `notes.db` 保留给本地演示会话。真实会话的邮件深链须同时携带匹配的 `accountId`，避免数字邮件 ID 在不同数据库间碰撞。
 - Android 排除旧 `notes.preferences_pb` 的云备份及设备迁移，iOS 排除 DataStore 目录备份，避免未完成迁移的旧明文被备份。这也意味着普通设置不会随该文件备份迁移；旧有备份中的数据无法由本次升级追溯删除。
 - Compose Resources 的格式化占位符必须带位置，例如 `%1$s`；无位置的 `%s` 不会被正确替换。
 - 同一段通用 Compose 渲染在两个或更多位置出现时，评估下沉到 `core:theme` 或 `core:preference`，但单一 Feature 的业务组件仍留在 Feature。

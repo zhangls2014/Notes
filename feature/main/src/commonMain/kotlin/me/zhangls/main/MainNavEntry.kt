@@ -69,6 +69,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   homeMetadata: Map<String, Any> = homePaneMetadata,
   onDraftVisibilityChange: (Boolean) -> Unit = {},
   onBiometricUnlockChange: suspend (Boolean) -> Unit = {},
+  onManagePasskeys: () -> Unit = {},
 ) {
   entry<HomeDestination>(
     metadata = homeMetadata,
@@ -103,6 +104,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
         }
         SettingsResult.OpenProfile -> navigateToProfile(ProfileOrigin.Settings)
         SettingsResult.OpenAbout -> navigateToAbout()
+        SettingsResult.ManagePasskeys -> onManagePasskeys()
       }
     }
   }

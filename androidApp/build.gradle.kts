@@ -28,10 +28,12 @@ kotlin {
     // LocaleUtils 直接用 AppLanguage，显式声明而不是依赖 core:data 的 api 传递
     implementation(projects.core.model)
     implementation(projects.composeApp)
+    implementation(projects.feature.loginApi)
 
     // libraries
     implementation(kmp.androidx.activity.compose)
     implementation(kmp.androidx.biometric)
+    implementation(kmp.androidx.credentials)
     implementation(kmp.jetbrains.compose.ui.tooling.preview)
     implementation(kmp.jetbrains.compose.material3)
     implementation(kmp.materialkolor.material3)

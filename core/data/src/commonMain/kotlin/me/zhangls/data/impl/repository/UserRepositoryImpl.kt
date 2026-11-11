@@ -69,6 +69,17 @@ internal class UserRepositoryImpl(
     matchingCredentials(user)?.tokens
   }
 
+  override suspend fun replaceTokens(userId: String, expectedRefreshToken: String, tokens: AuthTokens): Boolean =
+    mutex.withLock {
+      migrate()
+      val user = readProfile() ?: return@withLock false
+      if (user.id != userId || matchingCredentials(user)?.tokens?.refreshToken != expectedRefreshToken) {
+        return@withLock false
+      }
+      secureStore.write(StoredCredentials(userId, tokens))
+      true
+    }
+
   override suspend fun login(user: UserModel, tokens: AuthTokens): Unit = mutex.withLock {
     require(tokens.accessToken.isNotBlank())
     secureStore.write(StoredCredentials(user.id, tokens))

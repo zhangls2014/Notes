@@ -1,0 +1,200 @@
+openapi: 3.1.0
+info:
+  title: Notes authentication
+  version: 1.0.0
+paths:
+  /v1/auth/password/login:
+    post:
+      operationId: signInWithPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [account, password]
+              properties:
+                account: { type: string, minLength: 3, maxLength: 254, description: "Account name or existing email-style account" }
+                password: { type: string, minLength: 1, maxLength: 1024, format: password, writeOnly: true }
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '401':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/passkeys/registration/options:
+    post:
+      operationId: registrationOptions
+      security:
+        - bearer: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Options'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/passkeys/registration/verify:
+    post:
+      operationId: registerPasskey
+      security:
+        - bearer: []
+      requestBody:
+        $ref: '#/components/requestBodies/PasskeyResponse'
+      responses:
+        '204':
+          description: Passkey added
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/passkeys/authentication/options:
+    post:
+      operationId: authenticationOptions
+      responses:
+        '200':
+          $ref: '#/components/responses/Options'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/passkeys/authentication/verify:
+    post:
+      operationId: authenticatePasskey
+      requestBody:
+        $ref: '#/components/requestBodies/PasskeyResponse'
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/passkeys:
+    get:
+      operationId: listPasskeys
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: Passkeys registered to the current account
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [passkeys]
+                properties:
+                  passkeys:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, createdAt]
+                      properties:
+                        id: { type: string }
+                        createdAt: { type: string, format: date-time }
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/passkeys/{id}:
+    delete:
+      operationId: revokePasskey
+      security:
+        - bearer: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: No current credential remains with the given identifier
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/session/refresh:
+    post:
+      operationId: refreshSession
+      requestBody:
+        $ref: '#/components/requestBodies/RefreshToken'
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '401':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/session/logout:
+    post:
+      operationId: logout
+      requestBody:
+        $ref: '#/components/requestBodies/RefreshToken'
+      responses:
+        '204':
+          description: Session revoked or already absent
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  requestBodies:
+    RefreshToken:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [refreshToken]
+            properties:
+              refreshToken: { type: string }
+    PasskeyResponse:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [requestId, credential]
+            properties:
+              requestId: { type: string, format: uuid }
+              credential:
+                type: object
+                description: WebAuthn JSON representation of the public-key credential returned by the platform
+                required: [id, rawId, type, response, clientExtensionResults]
+                properties:
+                  id: { type: string }
+                  rawId: { type: string }
+                  type: { const: public-key }
+                  response: { type: object }
+                  clientExtensionResults: { type: object }
+  responses:
+    Session:
+      description: Signed-in account and credentials
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [user, accessToken, refreshToken]
+            properties:
+              user:
+                type: object
+                required: [id, account]
+                properties:
+                  id: { type: string, format: uuid }
+                  account: { type: string }
+              accessToken: { type: string }
+              refreshToken: { type: string }
+    Options:
+      description: Single-use request and WebAuthn options
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [requestId, publicKey]
+            properties:
+              requestId: { type: string, format: uuid }
+              publicKey:
+                type: object
+                description: WebAuthn PublicKeyCredentialCreationOptionsJSON or PublicKeyCredentialRequestOptionsJSON
+    Error:
+      description: Request could not be completed
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error: { type: string }

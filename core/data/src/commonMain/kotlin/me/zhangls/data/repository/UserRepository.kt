@@ -13,6 +13,9 @@ interface UserRepository {
 
   suspend fun getTokens(): AuthTokens?
 
+  /** Rotate credentials without rewriting the profile or resetting its device lock. */
+  suspend fun replaceTokens(userId: String, expectedRefreshToken: String, tokens: AuthTokens): Boolean
+
   /** 返回 false 表示登录用户或头像已变化；不覆盖其他账户或较新的头像。 */
   suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean
 

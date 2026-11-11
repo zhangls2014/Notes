@@ -23,12 +23,14 @@ class MainActivity : AppCompatActivity() {
 
     deepLinkUrl = intent?.dataString
     val deviceAuthenticator = AndroidDeviceAuthenticator(this, authenticationState)
+    val passkeyProvider = AndroidPasskeyProvider(this)
 
     setContent {
       val wallpaperColor by rememberWallpaperColor()
 
       App(
         deviceAuthenticator = deviceAuthenticator,
+        passkeyProvider = passkeyProvider,
         onDarkThemeChange = {
           val lightBars = it.not()
           WindowInsetsControllerCompat(window, window.decorView).run {

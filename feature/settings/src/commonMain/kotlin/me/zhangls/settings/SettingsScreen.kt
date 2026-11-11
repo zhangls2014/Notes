@@ -6,19 +6,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.framework.mvi.DialogResult
 import me.zhangls.preference.ui.PreferenceRow
 import me.zhangls.preference.ui.PreferenceUiModel
 import me.zhangls.preference.ui.ProvidePreferenceLocals
+import me.zhangls.settings.api.LocalPasskeyManagementAvailable
 import me.zhangls.settings.api.SettingsResult
 import me.zhangls.settings.mvi.SettingsIntent
 import me.zhangls.settings.mvi.SettingsViewModel
@@ -29,7 +34,12 @@ import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.SimpleDialog
 import notes.feature.settings.generated.resources.Res
+import notes.feature.settings.generated.resources.settings_group_account
+import notes.feature.settings.generated.resources.settings_group_app
+import notes.feature.settings.generated.resources.settings_group_general
+import notes.feature.settings.generated.resources.settings_label_security
 import notes.feature.settings.generated.resources.settings_label_settings
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -40,8 +50,13 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onResult: (SettingsResult) -> Unit = {}) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   // 领域模型在 UI 层映射为表现层模型（回调在此绑到 viewModel）。
-  val preferences = remember(state.settings, state.biometricUnlockEnabled, viewModel) {
-    state.settings.toPreferenceUiModels(viewModel::sendIntent, biometricUnlockEnabled = state.biometricUnlockEnabled)
+  val showPasskeys = LocalPasskeyManagementAvailable.current
+  val preferences = remember(state.settings, state.biometricUnlockEnabled, showPasskeys, viewModel) {
+    state.settings.toPreferenceUiModels(
+      viewModel::sendIntent,
+      biometricUnlockEnabled = state.biometricUnlockEnabled,
+      showPasskeys = showPasskeys,
+    )
   }
 
   val currentOnResult by rememberUpdatedState(onResult)
@@ -71,20 +86,25 @@ internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onRe
           verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
           preferences.forEachIndexed { index, model ->
-            val standalone = model is PreferenceUiModel.Action
+            val group = model.settingsGroup
+            val groupStart = index == 0 || preferences[index - 1].settingsGroup != group
+            val groupEnd = index == preferences.lastIndex || preferences[index + 1].settingsGroup != group
+            if (groupStart && group != null) {
+              Text(
+                text = stringResource(group),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 32.dp, top = 16.dp, bottom = 4.dp).semantics { heading() },
+              )
+            }
             PreferenceRow(
               model = model,
-              isGroupStart = index == 0 || standalone || preferences[index - 1] is PreferenceUiModel.Action,
-              isGroupEnd =
-              index == preferences.lastIndex || standalone || preferences[index + 1] is PreferenceUiModel.Action,
+              isGroupStart = groupStart,
+              isGroupEnd = groupEnd,
               modifier = Modifier.padding(
                 start = 16.dp,
                 end = 16.dp,
-                top = if (index == 0 || standalone || preferences[index - 1] is PreferenceUiModel.Action) {
-                  16.dp
-                } else {
-                  0.dp
-                },
+                top = if (groupStart && group == null) 16.dp else 0.dp,
                 bottom = if (index == preferences.lastIndex) 16.dp else 0.dp,
               ),
             )
@@ -100,6 +120,15 @@ internal fun SettingsScreen(viewModel: SettingsViewModel = koinViewModel(), onRe
     })
   }
 }
+
+private val PreferenceUiModel.settingsGroup: StringResource?
+  get() = when (spec.key) {
+    "profile" -> Res.string.settings_group_account
+    "passkeys", "biometricUnlock" -> Res.string.settings_label_security
+    "about" -> Res.string.settings_group_app
+    "logout" -> null
+    else -> Res.string.settings_group_general
+  }
 
 @Composable
 private fun SettingsDialog(dialogState: DialogUiModel, onResult: (DialogResult) -> Unit) {

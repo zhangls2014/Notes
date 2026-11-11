@@ -25,3 +25,6 @@ internal fun parseDeepLink(url: String?, matchers: List<DeepLinkMatcher>): DeepL
 
   return matchers.firstNotNullOfOrNull { it.match(request) }
 }
+
+internal fun isDeepLinkForAccount(url: String?, accountId: String): Boolean =
+  parseDeepLinkUrl(url)?.queries?.get("accountId") == accountId

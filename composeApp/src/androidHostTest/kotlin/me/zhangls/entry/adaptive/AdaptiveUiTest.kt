@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.adaptive.HingeInfo
 import androidx.compose.material3.adaptive.Posture
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -66,6 +67,11 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
 import me.zhangls.entry.initKoin
+import me.zhangls.login.api.LocalPasskeyProvider
+import me.zhangls.login.api.LocalPasswordlessAuth
+import me.zhangls.login.api.PasskeyProvider
+import me.zhangls.login.api.PasskeyResult
+import me.zhangls.login.api.PasswordlessAuth
 import me.zhangls.navigation.PREDICTIVE_MOTION_DURATION
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -159,7 +165,11 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     stopKoin()
   }
 
-  private fun launch(restoration: StateRestorationTester? = null) {
+  private fun launch(
+    restoration: StateRestorationTester? = null,
+    auth: PasswordlessAuth? = null,
+    passkeyProvider: PasskeyProvider? = null,
+  ) {
     val content: @androidx.compose.runtime.Composable () -> Unit = {
       composeView = androidx.compose.ui.platform.LocalView.current
       inputModeManager = androidx.compose.ui.platform.LocalInputModeManager.current
@@ -171,7 +181,9 @@ class AdaptiveUiTest(private val scenario: Scenario) {
             posture(),
           ) {
             ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-              AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
+              CompositionLocalProvider(LocalPasswordlessAuth provides auth, LocalPasskeyProvider provides passkeyProvider) {
+                AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
+              }
             }
           }
         }
@@ -233,6 +245,31 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onAllNodes(isRoot()).fetchSemanticsNodes().indices.forEach { index ->
       compose.onAllNodes(isRoot())[index].captureRoboImage(imagePath("$screen-$index"))
     }
+  }
+
+  @Test fun passkeyLoginAppearsBelowPasswordLoginOnlyWhenSupported() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x500")
+    var supported by mutableStateOf(false)
+    val provider = object : PasskeyProvider {
+      override val isSupported: Boolean get() = supported
+      override suspend fun create(optionsJson: String) = PasskeyResult.Cancelled
+      override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
+    }
+    val auth = object : PasswordlessAuth {
+      override suspend fun signInWithPassword(account: String, password: String) = Unit
+      override suspend fun signInWithPasskey(provider: PasskeyProvider) = false
+    }
+    launch(auth = auth, passkeyProvider = provider)
+    waitFor("Log in")
+    compose.onNodeWithText("Account").assertExists()
+    compose.onNodeWithText("Password").assertExists()
+    compose.onNodeWithText("Verification code").assertDoesNotExist()
+    val passkeyButton = compose.onNodeWithText("Sign in with a passkey")
+    passkeyButton.assertDoesNotExist()
+    compose.runOnIdle { supported = true }
+    passkeyButton.performScrollTo().assertIsDisplayed().assertHasClickAction()
+    val passwordButtonBounds = compose.onNodeWithText("Log in").fetchSemanticsNode().boundsInRoot
+    org.junit.Assert.assertTrue(passkeyButton.fetchSemanticsNode().boundsInRoot.top >= passwordButtonBounds.bottom)
   }
 
   @Test fun loginInputActionsAreAccessible() {

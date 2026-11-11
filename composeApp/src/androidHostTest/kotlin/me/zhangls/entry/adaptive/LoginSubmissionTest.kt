@@ -3,6 +3,7 @@ package me.zhangls.entry.adaptive
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -14,6 +15,10 @@ import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.toast.ToastGlobalNotifier
+import me.zhangls.login.api.LoginResult
+import me.zhangls.login.api.PasskeyProvider
+import me.zhangls.login.api.PasskeyResult
+import me.zhangls.login.api.PasswordlessAuth
 import me.zhangls.login.mvi.LoginIntent
 import me.zhangls.login.mvi.LoginViewModel
 import org.junit.Assert.assertEquals
@@ -54,6 +59,47 @@ class LoginSubmissionTest {
       users.result.complete(Unit)
       runCurrent()
       assertFalse(viewModel.state.value.isLoading)
+    } finally {
+      store.clear()
+      Dispatchers.resetMain()
+    }
+  }
+
+  @Test fun passkeyCancellationAndRejectedPasswordDoNotAuthenticate() = runTest {
+    Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+    val store = ViewModelStore()
+    try {
+      val users = AdaptiveUsers()
+      val viewModel = LoginViewModel(SavedStateHandle(), users, AdaptiveSettings(), ToastGlobalNotifier())
+      val effects = mutableListOf<LoginResult>()
+      backgroundScope.launch { viewModel.effect.collect { if (it is LoginResult) effects.add(it) } }
+      val provider = object : PasskeyProvider {
+        override suspend fun create(optionsJson: String) = PasskeyResult.Cancelled
+        override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
+      }
+      val auth = object : PasswordlessAuth {
+        override suspend fun signInWithPassword(account: String, password: String) {
+          check(account == "notes_tester" && password == "an all letters passphrase")
+        }
+        override suspend fun signInWithPasskey(provider: PasskeyProvider): Boolean =
+          provider.get("{}") is PasskeyResult.Success
+      }
+      store.put("login", viewModel)
+      runCurrent()
+      viewModel.sendIntent(LoginIntent.SignInWithPasskey(auth, provider))
+      runCurrent()
+      assertTrue(effects.isEmpty())
+      assertFalse(viewModel.state.value.isLoading)
+      viewModel.sendIntent(LoginIntent.UpdateAccount("notes_tester"))
+      viewModel.sendIntent(LoginIntent.UpdatePassword("wrong"))
+      viewModel.sendIntent(LoginIntent.PasswordLogin(auth))
+      runCurrent()
+      assertTrue(effects.isEmpty())
+      assertFalse(viewModel.state.value.isLoading)
+      viewModel.sendIntent(LoginIntent.UpdatePassword("an all letters passphrase"))
+      viewModel.sendIntent(LoginIntent.PasswordLogin(auth))
+      runCurrent()
+      assertEquals(listOf<LoginResult>(LoginResult.Success), effects)
     } finally {
       store.clear()
       Dispatchers.resetMain()
