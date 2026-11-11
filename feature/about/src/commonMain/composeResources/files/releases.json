@@ -31,8 +31,8 @@
           "ios"
         ],
         "text": {
-          "en": "Enable biometric unlock in Settings to protect Notes when the app starts. If the device has no secure screen lock, the unlock screen explains how to restore access.",
-          "zh": "可在设置中开启生物识别解锁，在应用启动时保护 Notes。设备未设置安全锁屏时，解锁页会提示如何恢复访问。"
+          "en": "Enable biometric unlock in Settings to verify with biometrics or your device screen lock when the app starts. If the device has no secure screen lock, the unlock screen explains how to restore access.",
+          "zh": "可在设置中开启生物识别解锁，启动应用时使用生物识别或设备锁屏凭据验证。设备未设置安全锁屏时，解锁页会提示如何恢复访问。"
         }
       },
       {
