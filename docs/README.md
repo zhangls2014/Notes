@@ -23,15 +23,19 @@
 - [依赖与工具链升级规范](dependency-upgrades.md)：官方范围上限、正式版优先、版本兼容选择、验证和授权边界。
 
 - [应用版本与更新记录](app-releases.md)：版本递增、离线更新日志数据格式与发布维护流程。
+- [Android 启动图标与应用名称](android-app-identity.md)：构建类型的图标、独立包命名及资源生成。
+- [iOS 启动图标与应用名称](ios-app-identity.md)：Xcode 构建配置、独立 Bundle ID 命名及资源生成。
 
 ## 文档目录
 
 ```text
 docs/
 ├── README.md              # 文档入口与保留规则
+├── android-app-identity.md # Android 启动图标、应用名称及资源生成
 ├── app-releases.md        # 应用版本与离线更新记录规则
 ├── architecture.md        # 当前模块职责、依赖边界与运行时架构
 ├── dependency-upgrades.md # 长期依赖与工具链升级规范
+├── ios-app-identity.md     # iOS 启动图标、应用名称及资源生成
 ├── decisions.md           # 重要决策的理由与历史追溯
 ├── testing/               # 测试入口与平台/专项操作指南
 │   ├── README.md          # 源集、模块与回归命令索引

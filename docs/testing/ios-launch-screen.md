@@ -5,7 +5,9 @@
 - `UIColorName = LaunchBackground`：资产目录颜色为 `#0F2A44`，来源于 Android `androidApp/src/main/res/values/colors.xml` 的 `app_launcher_background`。
 - `UIImageName = LaunchLogo`：透明 PDF 矢量图，来源于 Android `androidApp/src/main/res/drawable/app_ic_launcher_foreground.xml`。保留三条路径、颜色及 `scale=0.7 / translate=16` 变换，以 240 × 240 pt 画布导出；asset catalog 开启矢量保留。
 
-浅色和深色使用相同品牌背景和图形。Xcode Debug/Release 均使用显式 plist 配置，不再自动生成空 UILaunchScreen。Android 图标后续变化时，应同步更新 iOS 的 PDF 和品牌色。
+浅色和深色使用相同品牌背景和图形。Xcode Debug/Release 均使用显式 plist 配置，不再自动生成空 UILaunchScreen。Android 正式品牌图标变化时同步核对 iOS 的 PDF 和品牌色。Android Debug 专用图标按 [Android 启动图标与应用名称](../android-app-identity.md) 单独维护。
+
+iOS 桌面图标与这里的系统启动画面分别配置。桌面图标与应用名称见 [iOS 启动图标与应用名称](../ios-app-identity.md)。
 
 启动页由 iOS 系统显示，不执行 Compose、业务逻辑或动画，也不增加固定展示时间。应用开始呈现自己的界面后由系统移除；登录状态未知时的应用内等待 UI 不属于本次实现。
 

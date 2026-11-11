@@ -78,6 +78,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 页面默认要求内容延伸至底部安全区域，实现 Edge-to-Edge；滚动视口不得因底部安全区提前截断。底部安全距离放入可滚动内容内部，保证末项滚到底后完整可见、可操作；固定底部控件仍须避让手势区域，已消费的 Insets 不重复计算。
 
 - 应用内功能图标必须来自 Google Fonts 的 Material Symbols，统一使用 Rounded，默认未填充（`FILL=0`）；明确的填充变体（如 `StarFill`，`FILL=1`）允许保留并用于状态表达。共享图标由 `core:theme` 提供。转换去掉原始注释，使用原有缓存属性和 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。品牌图标（登录页、关于应用页及桌面启动图标）保留现有设计，不受此功能图标约束限制。
+- Android 和 iOS 的 Release 使用蓝底黄星启动图标，Debug 使用无文字的紫底黄星图标。导出 PNG 或 WebP 时，逐档保留原图标的画布尺寸、留白、内容尺寸和位置。每个显式新增的 `applicationId` 或 Bundle ID 必须同时配置能与现有安装区分的中英文应用名称。命名、共享 SVG 和生成方案见 [Android 启动图标与应用名称](docs/android-app-identity.md) 与 [iOS 启动图标与应用名称](docs/ios-app-identity.md)。
 - 窗口事实只在 `composeApp` 调用 `rememberWindowAdaptiveInfo()` 读取，通过 `LocalWindowAdaptiveInfo` 下发。
 - `PaneScaffoldDirective` 只在组合根从同一窗口事实计算，通过 `LocalPaneScaffoldDirective` 下发，并统一使用 `HingePolicy.AlwaysAvoid`。Feature 不直接调用 `currentWindowAdaptiveInfo*()`，不维护第二套断点。
 - 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold`、开源声明与邮件列表—详情 SceneStrategy，以及历史更新在全开状态下手动启用的铰链分列，消费 `LocalPaneScaffoldDirective`。历史更新允许读取统一姿态判断全开切换入口，未启用分列时不读取排除区。其他单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。已有详情时，同一铰链几何在半开和全开之间必须保持窗格稳定。首页与开源声明在未选详情时，半开姿态优先保持物理分栏，全开姿态按需展开。

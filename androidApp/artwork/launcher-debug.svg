@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108" role="img" aria-labelledby="title">
+  <title id="title">Notes Debug launcher icon</title>
+  <rect id="background" width="108" height="108" fill="#3C205F" />
+  <g id="foreground" transform="translate(16 16) scale(0.7)">
+    <path fill="#8058BD" d="M28,26H76Q82,26 82,32V72H68V40H28Z" />
+    <path fill="#A783D4" d="M28,72L42,72L28,86Z" />
+    <path fill="#FFD54A" d="M54,30L61,48L80,48L65,60L71,78L54,67L37,78L43,60L28,48L47,48Z" />
+  </g>
+</svg>

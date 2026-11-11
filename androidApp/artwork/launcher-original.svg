@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="108" height="108" viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+
+  <rect x="0" y="0" width="108" height="108" rx="24" fill="#0F2A44" />
+
+  <path d="M28 26 H76
+           Q82 26 82 32
+           V72
+           H68
+           V40
+           H28
+           Z" fill="#1E4F7A" />
+
+  <path d="M28 72
+           L42 72
+           L28 86
+           Z" fill="#3A7DBA" />
+
+  <path d="M54 30
+           L61 48
+           L80 48
+           L65 60
+           L71 78
+           L54 67
+           L37 78
+           L43 60
+           L28 48
+           L47 48
+           Z" fill="#FFD54A" />
+</svg>
