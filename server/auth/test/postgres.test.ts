@@ -19,6 +19,7 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     const testId = randomUUID();
     const account = "notes-" + testId;
     const email = account + "@example.com";
+    const newEmail = "new-" + email;
     const password = randomBytes(32).toString("base64url");
     const codeKey = randomBytes(32).toString("hex");
     const issuedChallenges: string[] = [];
@@ -27,7 +28,7 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
       try {
         await database.query("DELETE FROM auth_challenges WHERE id = ANY($1::uuid[])", [issuedChallenges]);
         for (const [kind, key] of [
-          ["password-ip", testId], ["password-account", account], ["registration", userId], ["authentication", testId], ["avatar-account", userId],
+          ["password-ip", testId], ["password-account", account], ["password-account", email], ["password-account", newEmail], ["registration", userId], ["authentication", testId], ["avatar-account", userId],
         ] as const) {
           if (!key) continue;
           const bucket = kind + ":" + rateLimitDigest(codeKey, kind, key).toString("base64url");
@@ -45,9 +46,10 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     });
     await database.query("INSERT INTO auth_users (id, account, email, password_hash) VALUES ($1, $2, $3, $4)",
       [userId, account, email, await hashPassword(password)]);
-    await assert.rejects(service.signInWithPassword(account, "wrong-password", testId),
+    await assert.rejects(service.signInWithPassword(email, "wrong-password", testId),
       { message: "invalid_credentials" });
-    const session = await service.signInWithPassword(account, password, testId);
+    await assert.rejects(service.signInWithPassword(account, password, testId), { message: "invalid_credentials" });
+    const session = await service.signInWithPassword(email, password, testId);
     assert.deepEqual(session.user, { id: userId, account });
     assert.deepEqual(await service.getProfile(session.accessToken), { id: userId, account, email, avatarRevision: null });
     await assert.rejects(service.getAvatar(session.accessToken), { message: "avatar_not_found" });
@@ -98,8 +100,8 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
         },
       };
     }
-    async function authenticationOptions() {
-      const options = await service.authenticationOptions(testId);
+    async function authenticationOptions(address = email) {
+      const options = await service.authenticationOptions(address, testId);
       issuedChallenges.push(options.requestId);
       return options;
     }
@@ -112,6 +114,7 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
       assertion(incorrectSignature.publicKey.challenge, origin, false)), { message: "invalid_passkey" });
 
     const auth = await authenticationOptions();
+    assert.deepEqual(auth.publicKey.allowCredentials?.map(credential => credential.id), [id]);
     const response = assertion(auth.publicKey.challenge, origin);
     const verified = await service.authenticatePasskey(auth.requestId, response);
     assert.equal(verified.user.id, session.user.id);
@@ -124,12 +127,25 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     await service.logout(renewed.refreshToken);
     await assert.rejects(service.refreshSession(renewed.refreshToken), { message: "invalid_session" });
 
+    const stale = await authenticationOptions();
+    await database.query("UPDATE auth_users SET email = $1 WHERE id = $2", [newEmail, userId]);
+    await assert.rejects(service.authenticatePasskey(stale.requestId,
+      assertion(stale.publicKey.challenge, origin)), { message: "invalid_passkey" });
+    await assert.rejects(service.authenticationOptions(email, testId), { message: "invalid_passkey" });
+    await assert.rejects(service.signInWithPassword(email, password, testId), { message: "invalid_credentials" });
+    assert.equal((await service.signInWithPassword(newEmail, password, testId)).user.id, userId);
+
+    const current = await authenticationOptions(newEmail);
+    assert.equal((await service.authenticatePasskey(current.requestId,
+      assertion(current.publicKey.challenge, origin))).user.id, userId);
+
+    const revoked = await authenticationOptions(newEmail);
+    const expired = await authenticationOptions(newEmail);
     await service.deletePasskey(session.accessToken, id);
-    const revoked = await authenticationOptions();
+    await assert.rejects(service.authenticationOptions(newEmail, testId), { message: "invalid_passkey" });
     await assert.rejects(service.authenticatePasskey(revoked.requestId,
       assertion(revoked.publicKey.challenge, origin)), { message: "invalid_passkey" });
 
-    const expired = await authenticationOptions();
     await database.query("UPDATE auth_challenges SET expires_at = now() WHERE id = $1", [expired.requestId]);
     await assert.rejects(service.authenticatePasskey(expired.requestId,
       assertion(expired.publicKey.challenge, origin)), { message: "invalid_challenge" });
@@ -186,6 +202,9 @@ test("PostgreSQL consumes signup proof once and verifies email changes for the c
     const { user, accessToken } = registered[0].value;
     userId = user.id;
     assert.equal((await service.getProfile(accessToken)).email, email);
+    delivered.delete(email);
+    await assert.rejects(service.sendSignupCode(email, testId), { message: "email_already_registered" });
+    assert.equal(delivered.has(email), false);
     await service.updateUsername(accessToken, username + "-renamed");
     assert.equal((await service.getProfile(accessToken)).account, username + "-renamed");
     await assert.rejects(service.sendEmailChangeCode(accessToken, newEmail, "wrong"),

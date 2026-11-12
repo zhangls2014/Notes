@@ -1,6 +1,6 @@
 # Notes authentication service
 
-Notes supports password sign-in and Passkeys for the same account. Users register with a verified email. PostgreSQL stores usernames, emails, password hashes, avatars, public keys, challenges, rate limits and session token digests. The [OpenAPI contract](openapi.yaml) documents the endpoints.
+Notes users register with a verified email and enter their current email for password and passkey sign-in. PostgreSQL stores usernames, emails, password hashes, avatars, public keys, challenges, rate limits and session token digests. The [OpenAPI contract](openapi.yaml) documents the endpoints.
 
 ## Local testing
 
@@ -49,11 +49,14 @@ downloads the account's JPEG. `PUT /v1/auth/me/avatar` accepts up to 256 KiB and
 and its revision as an ETag. Avatar uploads are limited to ten attempts per account
 per ten minutes. Avatar responses use `Cache-Control: no-store`.
 
+Signup code requests for a registered email return `409 email_already_registered` before sending a code.
 Registration uses a six-digit code and then a single-use proof. Both expire
 after ten minutes. Code attempts are limited to five and the resend interval is
 one minute. Changing email requires the current password before sending a code
 to the new address. Codes for email changes are bound to the authenticated session.
-Email comparison preserves the local part and lowercases the domain.
+Email comparison preserves the local part and lowercases the domain. Password login accepts the email in
+the existing `account` field. Passkey authentication options require an `email` and only list credentials for
+that account. Verification binds the single-use challenge to the current email and account UUID.
 
 Use `npm ci` with optional dependencies enabled so sharp loads the binary for
 the server platform.

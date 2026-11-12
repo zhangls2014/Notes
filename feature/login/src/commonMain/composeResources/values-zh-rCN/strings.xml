@@ -11,8 +11,10 @@
   <string name="login_brand_name">摘星</string>
   <string name="login_brand_tagline">邮件，各归其位。</string>
   <string name="login_label_account">账户</string>
+  <string name="login_label_email">邮箱</string>
   <string name="login_label_password">密码</string>
   <string name="login_action_clear_account">清空账户</string>
+  <string name="login_action_clear_email">清除邮箱</string>
   <string name="login_action_show_password">显示密码</string>
   <string name="login_action_hide_password">隐藏密码</string>
   <string name="login_msg_storage_failed">无法安全保存登录凭据，请重试。</string>
@@ -33,6 +35,7 @@
   <string name="signup_create">创建账号</string>
   <string name="signup_back_to_email">返回验证邮箱</string>
   <string name="signup_send_failed">验证码发送失败，请稍后重试。</string>
+  <string name="signup_email_already_registered">该邮箱已注册，请直接登录。</string>
   <string name="signup_verify_failed">无法验证验证码，请检查或重新发送。</string>
   <string name="signup_create_failed">账号创建失败，请检查用户名或重新验证邮箱。</string>
   <string name="signup_working">请稍候…</string>

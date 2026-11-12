@@ -69,6 +69,7 @@ import me.zhangls.login.api.LocalAccountRegistration
 import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.domain.AccountError
+import me.zhangls.login.domain.LoginValidator
 import me.zhangls.login.domain.PasswordError
 import me.zhangls.login.domain.text
 import me.zhangls.login.icon.AppLogo
@@ -93,12 +94,14 @@ import me.zhangls.theme.layout.imeGestureControl
 import me.zhangls.theme.layout.rememberImeHandoffInsets
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_action_clear_account
+import notes.feature.login.generated.resources.login_action_clear_email
 import notes.feature.login.generated.resources.login_action_hide_password
 import notes.feature.login.generated.resources.login_action_login
 import notes.feature.login.generated.resources.login_action_show_password
 import notes.feature.login.generated.resources.login_brand_name
 import notes.feature.login.generated.resources.login_brand_tagline
 import notes.feature.login.generated.resources.login_label_account
+import notes.feature.login.generated.resources.login_label_email
 import notes.feature.login.generated.resources.login_label_password
 import notes.feature.login.generated.resources.login_state_loading
 import notes.feature.login.generated.resources.signup_title
@@ -227,7 +230,8 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
   val inputFocus = remember { ImeHandoffFocusState() }
   val usesServerAuth = LocalPasswordlessAuth.current != null
   val supportsAutofill = usesServerAuth && LocalAutofillManager.current != null
-  val canSubmit = if (usesServerAuth) state.account.isNotBlank() && state.password.isNotEmpty() else state.isInputValid
+  val validEmail = usesServerAuth && LoginValidator.isValidEmail(state.account)
+  val canSubmit = if (usesServerAuth) validEmail && state.password.isNotEmpty() else state.isInputValid
   BoxWithConstraints(
     modifier = Modifier.fillMaxSize().windowInsetsPadding(rememberImeHandoffInsets(inputFocus)),
   ) {
@@ -274,6 +278,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
                 .loginAutofill(supportsAutofill, ContentType.Username)
                 .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
               account = state.account,
+              usesEmail = usesServerAuth,
               enabled = !state.isLoading,
               accountError = state.accountError,
               onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
@@ -303,7 +308,7 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
             ) {
               Text(text = stringResource(Res.string.login_action_login))
             }
-            PasswordlessForm(state, onIntent)
+            PasswordlessForm(enabled = validEmail && !state.isLoading, onIntent = onIntent)
             if (LocalAccountRegistration.current != null) {
               LocalOpenRegistration.current?.let { open ->
                 TextButton(
@@ -384,6 +389,7 @@ private fun Modifier.loginAutofill(enabled: Boolean, type: ContentType): Modifie
 @Composable
 private fun AccountInput(
   account: String,
+  usesEmail: Boolean,
   enabled: Boolean,
   accountError: AccountError?,
   onAccountChange: (String) -> Unit,
@@ -401,7 +407,9 @@ private fun AccountInput(
     isError = inputError.isNotEmpty(),
     textStyle = MaterialTheme.typography.bodyLarge,
     shape = MaterialTheme.shapes.large,
-    label = { Text(text = stringResource(Res.string.login_label_account)) },
+    label = {
+      Text(stringResource(if (usesEmail) Res.string.login_label_email else Res.string.login_label_account))
+    },
     colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
     modifier = modifier
       .padding(horizontal = 32.dp)
@@ -412,7 +420,7 @@ private fun AccountInput(
         IconButton(onClick = onClearAccount, enabled = enabled) {
           Icon(
             imageVector = Icons.Rounded.Clear,
-            contentDescription = stringResource(Res.string.login_action_clear_account),
+            contentDescription = stringResource(if (usesEmail) Res.string.login_action_clear_email else Res.string.login_action_clear_account),
           )
         }
       }
@@ -422,7 +430,10 @@ private fun AccountInput(
     } else {
       null
     },
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    keyboardOptions = KeyboardOptions(
+      keyboardType = if (usesEmail) KeyboardType.Email else KeyboardType.Text,
+      imeAction = ImeAction.Next,
+    ),
     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
   )
 }

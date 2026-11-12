@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import me.zhangls.login.api.LocalPasskeyProvider
 import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.mvi.LoginIntent
-import me.zhangls.login.mvi.LoginState
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Passkey
 import notes.feature.login.generated.resources.Res
@@ -24,12 +23,12 @@ import notes.feature.login.generated.resources.login_passkey
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun PasswordlessForm(state: LoginState, onIntent: (LoginIntent) -> Unit) {
+internal fun PasswordlessForm(enabled: Boolean, onIntent: (LoginIntent) -> Unit) {
   val auth = LocalPasswordlessAuth.current ?: return
   val passkey = LocalPasskeyProvider.current?.takeIf { it.isSupported } ?: return
   TextButton(
     modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp),
-    enabled = !state.isLoading,
+    enabled = enabled,
     onClick = { onIntent(LoginIntent.SignInWithPasskey(auth, passkey)) },
     contentPadding = PaddingValues(
       start = 32.dp,

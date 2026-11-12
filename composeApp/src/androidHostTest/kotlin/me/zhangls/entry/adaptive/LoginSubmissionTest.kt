@@ -73,18 +73,21 @@ class LoginSubmissionTest {
       val viewModel = LoginViewModel(SavedStateHandle(), users, AdaptiveSettings(), ToastGlobalNotifier())
       val effects = mutableListOf<LoginResult>()
       var autofillCommits = 0
+      val passkeyEmails = mutableListOf<String>()
       backgroundScope.launch { viewModel.effect.collect { if (it is LoginResult) effects.add(it) } }
       val provider = object : PasskeyProvider {
         override suspend fun create(optionsJson: String) = PasskeyResult.Cancelled
         override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
       }
       val auth = object : PasswordlessAuth {
-        override suspend fun signInWithPassword(account: String, password: String, onPasswordVerified: (() -> Unit)?) {
-          check(account == "notes_tester" && password == "an all letters passphrase")
+        override suspend fun signInWithPassword(email: String, password: String, onPasswordVerified: (() -> Unit)?) {
+          check(email == "Notes@example.com" && password == "an all letters passphrase")
           onPasswordVerified?.invoke()
         }
-        override suspend fun signInWithPasskey(provider: PasskeyProvider): Boolean =
-          provider.get("{}") is PasskeyResult.Success
+        override suspend fun signInWithPasskey(email: String, provider: PasskeyProvider): Boolean {
+          passkeyEmails += email
+          return provider.get("{}") is PasskeyResult.Success
+        }
       }
       store.put("login", viewModel)
       runCurrent()
@@ -92,7 +95,12 @@ class LoginSubmissionTest {
       runCurrent()
       assertTrue(effects.isEmpty())
       assertFalse(viewModel.state.value.isLoading)
-      viewModel.sendIntent(LoginIntent.UpdateAccount("notes_tester"))
+      assertTrue(passkeyEmails.isEmpty())
+      viewModel.sendIntent(LoginIntent.UpdateAccount(" Notes@example.com "))
+      viewModel.sendIntent(LoginIntent.SignInWithPasskey(auth, provider))
+      runCurrent()
+      assertEquals(listOf("Notes@example.com"), passkeyEmails)
+      assertTrue(effects.isEmpty())
       viewModel.sendIntent(LoginIntent.UpdatePassword("wrong"))
       viewModel.sendIntent(LoginIntent.PasswordLogin(auth) { autofillCommits++ })
       runCurrent()

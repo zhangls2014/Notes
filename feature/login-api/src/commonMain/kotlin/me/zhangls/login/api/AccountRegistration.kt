@@ -8,4 +8,6 @@ interface AccountRegistration {
   suspend fun registerAccount(email: String, proof: String, username: String, password: String)
 }
 
+class EmailAlreadyRegisteredException : Exception()
+
 val LocalAccountRegistration = staticCompositionLocalOf<AccountRegistration?> { null }

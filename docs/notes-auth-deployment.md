@@ -1,10 +1,10 @@
 # Notes 认证服务部署与配置清单
 
-本清单用于首次发布。部署示例采用 **Linux + systemd + Nginx + PostgreSQL + SMTP**，认证源站为 `auth.notes.zhangls.me`。命令按同机 PostgreSQL 编写，路径、数据库名、系统账户名和 SMTP 参数可按实际环境替换。
+本清单用于首次发布。客户端和服务端应配套验收。切换后，旧客户端提交用户名的密码请求和未提交邮箱的 Passkey 登录请求会被拒绝。部署示例采用 **Linux + systemd + Nginx + PostgreSQL + SMTP**，认证源站为 `auth.notes.zhangls.me`。命令按同机 PostgreSQL 编写，路径、数据库名、系统账户名和 SMTP 参数可按实际环境替换。
 
 | 地址或组件 | 职责 |
 | --- | --- |
-| `https://auth.notes.zhangls.me` | 注册发码、用户名密码登录、Passkey、会话、个人资料与头像 |
+| `https://auth.notes.zhangls.me` | 注册发码、邮箱密码登录、Passkey、会话、个人资料与头像 |
 | `127.0.0.1:8080` | Node.js 认证进程，由同机 Nginx 转发 |
 | `127.0.0.1:5432` | 本示例的 PostgreSQL，仅本机可达 |
 | `https://notes.zhangls.me` | Cloudflare Pages 官网、版本清单、历史更新、开源声明与应用导航深链 |
@@ -231,8 +231,8 @@ curl -i https://auth.notes.zhangls.me/v1/auth/me
 
 - [ ] **默认构建**：Android 和 iOS 的 Debug、Release 与各渠道默认使用 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey。使用实际签名核对域名关联，覆盖开发包和分发包。见 [共享构建配置](../composeApp/build.gradle.kts) 与 [iOS 默认 entitlement](../iosApp/iosApp/iosApp.entitlements)。
 - [ ] **测试服务构建**：显式设置 `NOTES_AUTH_BASE_URL=https://auth-staging.zhangls.me`。仅验证密码登录时设置 `NOTES_AUTH_PASSKEYS_ENABLED=false`。在 iOS 验证测试域名的 Passkey 时使用 `CODE_SIGN_ENTITLEMENTS=PasskeyTesting.entitlements` 与对应的 `NOTES_PASSKEY_RP_ID`。测试服务端 Origin 和关联文件登记测试包的实际签名。
-- [ ] **真实邮箱注册**：用测试邮箱从独立注册页收信并完成两步注册。验证错误、过期和重复使用的验证码，以及邮箱或用户名重复的情况。再次登录时使用已设置的用户名。
-- [ ] **资料编辑**：核对个人信息页显示已验证邮箱。改用户名后退出并以新用户名登录。更换邮箱时先试错密码，再用正确密码收取新邮箱验证码，核对验证前后显示。上传头像后用另一台设备登录，确认资料同步。断网和上传失败时核对本地旧头像。
+- [ ] **真实邮箱注册**：用测试邮箱从独立注册页收信并完成两步注册。验证错误、过期和重复使用的验证码。使用已注册邮箱请求发码时，确认页面提示并阻止继续验证。用已验证邮箱重新登录，并确认用户名无法登录。
+- [ ] **资料编辑**：核对个人信息页显示已验证邮箱。更换邮箱时先试错密码，再用正确密码收取新邮箱验证码。换绑后验证旧邮箱无法登录，新邮箱可使用密码和原有 Passkey 登录。上传头像后用另一台设备登录，确认资料同步。断网和上传失败时核对本地旧头像。
 - [ ] **Passkey 与会话**：Android、iOS 分别用正式签名等效包完成密码登录、Passkey 注册与登录、刷新及退出。管理 Passkey 时需在最近五分钟内完成登录验证。测试退出后旧凭据访问受保护接口的结果。
 - [ ] **部署记录**：记录实际提交、环境、验证的设备及签名、数据库测试结果、真实发信和关联文件结果。只记录测试结果或请求 ID。完成认证服务验收后，再进行官网与应用版本发布。 [认证接口契约](../server/auth/openapi.yaml) · [官网及版本发布顺序](notes-web-deployment.md)
 
@@ -243,7 +243,7 @@ curl -i https://auth.notes.zhangls.me/v1/auth/me
 | Nginx 返回 502 | 看 `systemctl status notes-auth`、进程监听端口、Node.js 24 的路径，以及环境变量是否缺失。 |
 | API 返回 `invalid_client_ip` | 检查可信回环代理模式和 Nginx 的请求头覆盖设置。若在本机直连 Node 测试，给出有效的 `X-Notes-Client-IP`。 |
 | 资料、注册或发码返回 500 | 按 `X-Request-Id` 查日志，核对数据库地址、角色与七张表是否存在。匿名 `/me` 的 401 只能验证 HTTP 与认证入口。 |
-| 注册提示已提交但收不到邮件，或返回 `email_unavailable` | 检查 SMTP 投递记录、垃圾邮件、沙箱白名单、发送域验证、凭据 URI 编码和出站连通性。已注册邮箱的发码接口也可能返回 204，最终验收以实际收到测试邮件为准。 |
+| 注册提示已提交但收不到邮件，或返回 `email_unavailable` | 检查 SMTP 投递记录、垃圾邮件、沙箱白名单、发送域验证、凭据 URI 编码和出站连通性。已注册邮箱的发码请求返回 `409 email_already_registered`。 |
 | 密码可登录，Passkey 不可用 | 对照构建渠道、RP ID、客户端 Origin、APK 签名指纹、iOS entitlement 和两个关联文件。 |
 | 添加 Passkey 的验证请求返回 401 | 按响应的 `X-Request-Id` 在 `notes-auth` 日志查找 `auth_passkey_registration_failed`。该事件仅记录请求 ID 和固定失败类别。 |
 | 更换头像返回 413 或 415 | 检查请求大小限制与 `Content-Type: image/jpeg`。服务限制 256 KiB，且 JPEG 每边最多 512 像素。 |

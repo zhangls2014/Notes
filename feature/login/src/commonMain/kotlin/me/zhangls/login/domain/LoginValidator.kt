@@ -12,6 +12,7 @@ package me.zhangls.login.domain
  *   这一条是客户端附加要求，注册与登录共用，避免注册通过后登录被判弱密码。
  */
 object LoginValidator {
+  private const val MAX_EMAIL_LENGTH = 254
   private const val MIN_PASSWORD_LENGTH = 8
   private val accountNamePattern = Regex("[a-z0-9][a-z0-9._-]{2,63}")
 
@@ -28,6 +29,17 @@ object LoginValidator {
     0x20E3..0x20E3, // 键帽组合符
     0xE0020..0xE007F, // 标签字符，用于旗帜序列
   )
+
+  private val emailPattern = Regex(
+    "[a-zA-Z0-9.!#\$%&'*+/=?^_`{|}~-]{1,64}@" +
+      "[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+",
+  )
+
+  fun isValidEmail(input: String): Boolean {
+    val email = input.trim()
+    return email.length <= MAX_EMAIL_LENGTH && emailPattern.matches(email) &&
+      email.substringBefore('@').split('.').none(String::isEmpty)
+  }
 
   /** 与服务端相同的规范化：去掉首尾空白并统一小写。 */
   fun normalizeAccount(account: String): String = account.trim().lowercase()

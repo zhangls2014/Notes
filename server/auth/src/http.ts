@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { isIP } from "node:net";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
 import {
-  normalizeAccount, normalizeEmail, normalizeUsername, readNewPassword, readPassword, RequestError,
+  normalizeEmail, normalizeUsername, readNewPassword, readPassword, RequestError,
 } from "./security.ts";
 import { maxAvatarBytes } from "./avatar.ts";
 import { PasskeyRegistrationError, type createAuthService } from "./service.ts";
@@ -150,7 +150,7 @@ export function createAuthHttpServer(
         case "POST " + api + "/password/login": {
           const input = await body(request);
           send(response, 200, await service.signInWithPassword(
-            normalizeAccount(input.account), readPassword(input.password), ip,
+            normalizeEmail(input.account), readPassword(input.password), ip,
           ));
           return;
         }
@@ -165,9 +165,11 @@ export function createAuthHttpServer(
           send(response, 204);
           return;
         }
-        case "POST " + api + "/passkeys/authentication/options":
-          send(response, 200, await service.authenticationOptions(ip));
+        case "POST " + api + "/passkeys/authentication/options": {
+          const input = await body(request);
+          send(response, 200, await service.authenticationOptions(normalizeEmail(input.email), ip));
           return;
+        }
         case "POST " + api + "/passkeys/authentication/verify": {
           const input = await body(request);
           const credential = object(input.credential);

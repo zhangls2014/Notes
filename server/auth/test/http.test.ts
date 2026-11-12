@@ -52,7 +52,10 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
       assert.deepEqual(uploaded, jpeg);
       return { revision, jpeg };
     },
-    async sendSignupCode(email) { assert.equal(email, "notes@example.com"); },
+    async sendSignupCode(email) {
+      if (email === "registered@example.com") throw new RequestError(409, "email_already_registered");
+      assert.equal(email, "notes@example.com");
+    },
     async verifySignupCode(email, code) {
       assert.equal(email, "notes@example.com");
       assert.equal(code, "123456");
@@ -80,7 +83,10 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
     },
     registrationOptions: unsupported,
     registerPasskey: registrationService.registerPasskey,
-    authenticationOptions: unsupported,
+    async authenticationOptions(email) {
+      assert.equal(email, "notes@example.com");
+      throw new RequestError(401, "invalid_passkey");
+    },
     authenticatePasskey: unsupported,
     listPasskeys: unsupported,
     deletePasskey: unsupported,
@@ -103,18 +109,18 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
     body: JSON.stringify(body),
   });
 
-  assert.equal((await post("/password/login", { account: "invalid account", password: "Example passphrase 42" })).status, 400);
+  assert.equal((await post("/password/login", { account: "notes_tester", password: "Example passphrase 42" })).status, 400);
   assert.equal((await post("/password/login", { account: "user@example.com", password: "" })).status, 400);
   const wrong = await post("/password/login", { account: "user@example.com", password: "wrong" });
   assert.equal(wrong.status, 401);
   assert.deepEqual(await wrong.json(), { error: "invalid_credentials" });
   assert.deepEqual(await (await post("/password/login", {
-    account: " Notes_Tester ", password: "Example passphrase 42",
+    account: " Notes@EXAMPLE.COM ", password: "Example passphrase 42",
   }, "2001:db8::2")).json(), successfulSession);
-  assert.deepEqual(accounts, ["user@example.com", "notes_tester"]);
+  assert.deepEqual(accounts, ["user@example.com", "Notes@example.com"]);
   assert.deepEqual(clientIps, ["192.0.2.1", "2001:db8::2"]);
   assert.equal((await post("/password/login", {
-    account: "notes_tester", password: "wrong",
+    account: "notes@example.com", password: "wrong",
   }, "192.0.2.1, 192.0.2.2")).status, 400);
   assert.equal((await post("/email/verify", { email: "user@example.com", code: "012345" })).status, 404);
   assert.equal((await fetch(base + "/passkeys")).status, 400);
@@ -126,6 +132,11 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
   assert.equal((await post("/signup/code", { email: "notes@EXAMPLE.COM" })).status, 204);
   assert.deepEqual(await (await post("/signup/verify", { email: "notes@example.com", code: "123456" })).json(),
     { proof: expired });
+  const duplicate = await post("/signup/code", { email: "registered@EXAMPLE.COM" });
+  assert.equal(duplicate.status, 409);
+  assert.deepEqual(await duplicate.json(), { error: "email_already_registered" });
+  assert.equal((await post("/passkeys/authentication/options", {})).status, 400);
+  assert.equal((await post("/passkeys/authentication/options", { email: "notes@EXAMPLE.COM" })).status, 401);
   const signup = { email: "notes@example.com", proof: expired, account: "Notes_Tester", password: "long enough password" };
   assert.equal((await post("/signup", { ...signup, password: "short" })).status, 400);
   assert.equal((await post("/signup", signup)).status, 201);

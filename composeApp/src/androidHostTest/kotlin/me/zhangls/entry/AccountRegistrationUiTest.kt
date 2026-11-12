@@ -13,6 +13,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntryDecorator
@@ -23,6 +24,7 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.CompletableDeferred
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.login.api.AccountRegistration
+import me.zhangls.login.api.EmailAlreadyRegisteredException
 import me.zhangls.login.api.LocalAccountRegistration
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
@@ -50,6 +52,7 @@ class AccountRegistrationUiTest {
     val auth = object : AccountRegistration {
       override suspend fun sendSignupCode(email: String) {
         actions += "send:$email"
+        if (email == "registered@example.com") throw EmailAlreadyRegisteredException()
         sendFinished.await()
       }
 
@@ -98,7 +101,12 @@ class AccountRegistrationUiTest {
     val outlineCenter = (emailBounds.top.value + 8f + emailBounds.bottom.value) / 2
     val buttonCenter = (buttonBounds.top.value + buttonBounds.bottom.value) / 2
     assertEquals(outlineCenter, buttonCenter, 1f)
-    enter("Email", "notes@example.com")
+    enter("Email", "registered@example.com")
+    compose.onNodeWithText("Send code").performClick()
+    compose.onNodeWithText("This email is already registered. Please log in.").assertIsDisplayed()
+    enter("Email verification code", "123456")
+    compose.onNodeWithText("Continue").assertIsNotEnabled()
+    compose.onNode(hasSetTextAction() and hasText("Email")).performTextReplacement("notes@example.com")
     compose.onNodeWithText("Send code").performClick()
     compose.runOnIdle { screenGeneration.intValue++ }
     compose.onNodeWithText("notes@example.com").assertIsDisplayed()
@@ -114,7 +122,12 @@ class AccountRegistrationUiTest {
     compose.onNodeWithText("Create account").performClick()
     compose.runOnIdle {
       assertEquals(
-        listOf("send:notes@example.com", "verify:notes@example.com:123456", "create:notes@example.com:proof:notes_tester"),
+        listOf(
+          "send:registered@example.com",
+          "send:notes@example.com",
+          "verify:notes@example.com:123456",
+          "create:notes@example.com:proof:notes_tester",
+        ),
         actions,
       )
       assertEquals(LoginDestination(redirect), completed)

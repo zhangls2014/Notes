@@ -261,12 +261,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
     }
     val auth = object : PasswordlessAuth {
-      override suspend fun signInWithPassword(account: String, password: String, onPasswordVerified: (() -> Unit)?) = Unit
-      override suspend fun signInWithPasskey(provider: PasskeyProvider) = false
+      override suspend fun signInWithPassword(email: String, password: String, onPasswordVerified: (() -> Unit)?) = Unit
+      override suspend fun signInWithPasskey(email: String, provider: PasskeyProvider) = false
     }
     launch(auth = auth, passkeyProvider = provider)
     waitFor("Log in")
-    val account = compose.onNodeWithText("Account")
+    val account = compose.onNodeWithText("Email")
     val password = compose.onNodeWithText("Password")
     org.junit.Assert.assertEquals(
       ContentType.Username,
@@ -282,11 +282,17 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     password.performSemanticsAction(SemanticsActions.OnFillData) {
       it(checkNotNull(FillableData.createFromText("Test1234")))
     }
-    compose.onNodeWithText("Log in").assertIsEnabled()
+    compose.onNodeWithText("Log in").assertIsNotEnabled()
     compose.onNodeWithText("Verification code").assertDoesNotExist()
     val passkeyButton = compose.onNodeWithText("Sign in with a passkey")
     passkeyButton.assertDoesNotExist()
     compose.runOnIdle { supported = true }
+    passkeyButton.assertIsNotEnabled()
+    account.performSemanticsAction(SemanticsActions.OnFillData) {
+      it(checkNotNull(FillableData.createFromText("notes@example.com")))
+    }
+    compose.onNodeWithText("Log in").assertIsEnabled()
+    passkeyButton.assertIsEnabled()
     passkeyButton.performScrollTo().assertIsDisplayed().assertHasClickAction()
     val passwordButtonBounds = compose.onNodeWithText("Log in").fetchSemanticsNode().boundsInRoot
     org.junit.Assert.assertTrue(passkeyButton.fetchSemanticsNode().boundsInRoot.top >= passwordButtonBounds.bottom)

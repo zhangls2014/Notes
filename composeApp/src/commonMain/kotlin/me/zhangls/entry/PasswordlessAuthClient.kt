@@ -26,6 +26,7 @@ import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.login.api.AccountRegistration
+import me.zhangls.login.api.EmailAlreadyRegisteredException
 import me.zhangls.login.api.PasskeyProvider
 import me.zhangls.login.api.PasskeyResult
 import me.zhangls.login.api.PasskeyUnavailableException
@@ -89,16 +90,16 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
   }
 
   override suspend fun signInWithPassword(
-    account: String,
+    email: String,
     password: String,
     onPasswordVerified: (() -> Unit)?,
   ) = sessionMutex.withLock {
-    val reply = post("password/login", fields("account" to account, "password" to password))
+    val reply = post("password/login", fields("account" to email, "password" to password))
     installSession(json.decodeFromString(reply), onPasswordVerified)
   }
 
-  override suspend fun signInWithPasskey(provider: PasskeyProvider): Boolean {
-    val options = json.decodeFromString<PasskeyOptions>(post("passkeys/authentication/options", fields()))
+  override suspend fun signInWithPasskey(email: String, provider: PasskeyProvider): Boolean {
+    val options = json.decodeFromString<PasskeyOptions>(post("passkeys/authentication/options", fields("email" to email)))
     val credential = provider.get(options.publicKey.toString()).credentialOrNull() ?: return false
     sessionMutex.withLock {
       installSession(json.decodeFromString(post("passkeys/authentication/verify", options.answer(credential))))
@@ -231,7 +232,14 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
         setBody(body.toString())
       }
     }
-    if (!response.status.isSuccess()) throw AuthHttpException(response.status.value)
+    if (!response.status.isSuccess()) {
+      if (path == "signup/code" && response.status.value == 409) {
+        val errorBody = response.bodyAsText()
+        val error = runCatching { json.decodeFromString<AuthError>(errorBody) }.getOrNull()
+        if (error?.error == "email_already_registered") throw EmailAlreadyRegisteredException()
+      }
+      throw AuthHttpException(response.status.value)
+    }
     return response.bodyAsText()
   }
 
@@ -254,6 +262,9 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     val accountIdPattern = Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
   }
 }
+
+@Serializable
+private class AuthError(val error: String)
 
 internal class AuthHttpException(val status: Int) : Exception("Authentication request failed ($status)")
 

@@ -28,6 +28,10 @@ type Passkey = {
   transports: AuthenticatorTransport[] | null;
 };
 
+function passkeyChallengeDigest(challenge: string, userId: string, email: string): string {
+  return tokenDigest(JSON.stringify([challenge, userId, email])).toString("base64url");
+}
+
 function registrationFailureReason(error: unknown) {
   if (!(error instanceof Error)) return "verification_error";
   const code = "code" in error ? error.code : undefined;
@@ -157,7 +161,8 @@ export function createAuthService(config: {
       if (!await withinLimit("signup-ip", ip, 20, 15) || !await withinLimit("signup-email", email, 5, 15)) {
         throw new RequestError(429, "try_later");
       }
-      if (!await emailIsRegistered(email)) await emailCodes.send(signup, email);
+      if (await emailIsRegistered(email)) throw new RequestError(409, "email_already_registered");
+      await emailCodes.send(signup, email);
     },
 
     async verifySignupCode(email: string, code: string, ip: string) {
@@ -236,13 +241,13 @@ export function createAuthService(config: {
       }
     },
 
-    async signInWithPassword(account: string, password: string, ip: string) {
+    async signInWithPassword(email: string, password: string, ip: string) {
       if (!await withinLimit("password-ip", ip, 50, 15) ||
-        !await withinLimit("password-account", account, 10, 15)) {
+        !await withinLimit("password-account", email, 10, 15)) {
         throw new RequestError(429, "try_later");
       }
       const { rows: [user] } = await database.query<User & { password_hash: Buffer | null }>(
-        "SELECT id, account, password_hash FROM auth_users WHERE account = $1", [account],
+        "SELECT id, account, password_hash FROM auth_users WHERE email = $1", [email],
       );
       const verified = await verifyPassword(password, user?.password_hash ?? null);
       if (!user || !verified) throw new RequestError(401, "invalid_credentials");
@@ -258,7 +263,7 @@ export function createAuthService(config: {
         rpName: "Notes",
         rpID: rpId,
         userID: Buffer.from(session.id, "utf8"),
-        userName: session.account,
+        userName: session.email,
         attestationType: "none",
         excludeCredentials: rows.map(({ id, transports }) => ({ id, transports: transports ?? undefined })),
         authenticatorSelection: { residentKey: "required", userVerification: "required" },
@@ -292,28 +297,36 @@ export function createAuthService(config: {
       if (inserted.rowCount !== 1) throw new RequestError(409, "registration_conflict");
     },
 
-    async authenticationOptions(ip: string) {
+    async authenticationOptions(email: string, ip: string) {
       if (!await withinLimit("authentication", ip, 50, 5)) throw new RequestError(429, "try_later");
+      const { rows } = await database.query<Pick<Passkey, "id" | "transports" | "user_id">>(
+        `SELECT p.id, p.transports, p.user_id FROM auth_passkeys p
+         JOIN auth_users u ON u.id = p.user_id WHERE u.email = $1`, [email],
+      );
+      if (!rows.length) throw new RequestError(401, "invalid_passkey");
       const publicKey = await generateAuthenticationOptions({
         rpID: rpId, userVerification: "required", timeout: 120_000,
+        allowCredentials: rows.map(({ id, transports }) => ({ id, transports: transports ?? undefined })),
       });
-      return { requestId: await saveChallenge(publicKey.challenge, "authentication", null), publicKey };
+      const boundChallenge = passkeyChallengeDigest(publicKey.challenge, rows[0].user_id, email);
+      return { requestId: await saveChallenge(boundChallenge, "authentication", null), publicKey };
     },
 
     async authenticatePasskey(requestId: string, response: AuthenticationResponseJSON) {
-      const challenge = await takeChallenge(requestId, "authentication", null);
+      const boundChallenge = await takeChallenge(requestId, "authentication", null);
       return transaction(async (db) => {
-        const { rows: [credential] } = await db.query<Passkey>(
-          `SELECT p.*, u.account FROM auth_passkeys p JOIN auth_users u ON u.id = p.user_id
-           WHERE p.id = $1 FOR UPDATE OF p`, [response.id],
+        const { rows: [credential] } = await db.query<Passkey & { email: string }>(
+          `SELECT p.*, u.account, u.email FROM auth_passkeys p JOIN auth_users u ON u.id = p.user_id
+           WHERE p.id = $1 FOR UPDATE OF p FOR SHARE OF u`, [response.id],
         );
-        const expectedHandle = credential && Buffer.from(credential.user_id, "utf8").toString("base64url");
-        if (!credential || response.response?.userHandle !== expectedHandle) {
+        const userHandle = response.response?.userHandle;
+        if (!credential || (userHandle !== undefined &&
+          userHandle !== Buffer.from(credential.user_id, "utf8").toString("base64url"))) {
           throw new RequestError(401, "invalid_passkey");
         }
         const result = await verifyAuthenticationResponse({
           response,
-          expectedChallenge: challenge,
+          expectedChallenge: challenge => passkeyChallengeDigest(challenge, credential.user_id, credential.email) === boundChallenge,
           expectedRPID: rpId,
           expectedOrigin: origins,
           requireUserVerification: true,

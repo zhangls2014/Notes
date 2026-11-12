@@ -4,8 +4,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 
 interface PasswordlessAuth {
   /** Calls [onPasswordVerified] after server verification and before publishing the session. */
-  suspend fun signInWithPassword(account: String, password: String, onPasswordVerified: (() -> Unit)? = null)
-  suspend fun signInWithPasskey(provider: PasskeyProvider): Boolean
+  suspend fun signInWithPassword(email: String, password: String, onPasswordVerified: (() -> Unit)? = null)
+  suspend fun signInWithPasskey(email: String, provider: PasskeyProvider): Boolean
 }
 
 val LocalPasswordlessAuth = staticCompositionLocalOf<PasswordlessAuth?> { null }

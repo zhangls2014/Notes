@@ -12,15 +12,7 @@ export class RequestError extends Error {
 }
 
 const accountName = /^[a-z0-9][a-z0-9._-]{2,63}$/;
-const legacyEmail = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i;
-
-export function normalizeAccount(input: unknown): string {
-  const account = typeof input === "string" ? input.trim().toLowerCase() : "";
-  if (account.length > 254 || !(accountName.test(account) || legacyEmail.test(account))) {
-    throw new RequestError(400, "invalid_account");
-  }
-  return account;
-}
+const emailPattern = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i;
 
 export function normalizeUsername(input: unknown): string {
   const account = typeof input === "string" ? input.trim().toLowerCase() : "";
@@ -31,7 +23,7 @@ export function normalizeUsername(input: unknown): string {
 export function normalizeEmail(input: unknown): string {
   const email = typeof input === "string" ? input.trim() : "";
   const at = email.lastIndexOf("@");
-  if (email.length > 254 || !legacyEmail.test(email) || email.slice(0, at).split(".").some(part => !part)) {
+  if (email.length > 254 || !emailPattern.test(email) || email.slice(0, at).split(".").some(part => !part)) {
     throw new RequestError(400, "invalid_email");
   }
   return email.slice(0, at + 1) + email.slice(at + 1).toLowerCase();

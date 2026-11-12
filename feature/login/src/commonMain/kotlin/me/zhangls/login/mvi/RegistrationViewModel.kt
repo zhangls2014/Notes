@@ -10,9 +10,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.zhangls.login.api.AccountRegistration
+import me.zhangls.login.api.EmailAlreadyRegisteredException
 import me.zhangls.login.domain.LoginValidator
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.signup_create_failed
+import notes.feature.login.generated.resources.signup_email_already_registered
 import notes.feature.login.generated.resources.signup_send_failed
 import notes.feature.login.generated.resources.signup_verify_failed
 import org.jetbrains.compose.resources.StringResource
@@ -60,8 +62,11 @@ internal class RegistrationViewModel : ViewModel() {
     }
   }
 
-  fun verifyCode(auth: AccountRegistration) = request(Res.string.signup_verify_failed) {
-    proof = auth.verifySignupCode(email.trim(), code)
+  fun verifyCode(auth: AccountRegistration) {
+    if (!codeSent) return
+    request(Res.string.signup_verify_failed) {
+      proof = auth.verifySignupCode(email.trim(), code)
+    }
   }
 
   fun register(auth: AccountRegistration) {
@@ -91,6 +96,10 @@ internal class RegistrationViewModel : ViewModel() {
         action()
       } catch (cancelled: CancellationException) {
         throw cancelled
+      } catch (_: EmailAlreadyRegisteredException) {
+        sentEmail = null
+        code = ""
+        error = Res.string.signup_email_already_registered
       } catch (_: Exception) {
         error = failureMessage
       } finally {

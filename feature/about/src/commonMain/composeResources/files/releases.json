@@ -10,6 +10,14 @@
           "en": "All Android and iOS builds now offer email registration by default, with passkey sign-in on supported devices.",
           "zh": "所有 Android 和 iOS 构建默认开放邮箱注册，支持通行密钥的设备也可使用通行密钥登录。"
         }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Use your registered email to sign in with a password or passkey. Registration tells you if the email is already in use.",
+          "zh": "使用已注册邮箱进行密码或通行密钥登录。注册时会提示邮箱已被使用。"
+        }
       }
     ]
   },

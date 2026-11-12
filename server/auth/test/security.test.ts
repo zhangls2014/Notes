@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hashPassword, verifyPassword, constantTimeEqual, rateLimitDigest, normalizeAccount, tokenDigest } from "../src/security.ts";
+import { hashPassword, verifyPassword, constantTimeEqual, rateLimitDigest, normalizeUsername, tokenDigest } from "../src/security.ts";
 
 test("rate-limit identifiers are bound to the bucket and server key", () => {
   const key = "key";
@@ -10,13 +10,11 @@ test("rate-limit identifiers are bound to the bucket and server key", () => {
   assert(!constantTimeEqual(first, rateLimitDigest("another", "one@example.com", "012345")));
 });
 
-test("account names are normalized and legacy email-style accounts still work", () => {
-  assert.equal(normalizeAccount(" USER+notes@Example.com "), "user+notes@example.com");
-  assert.throws(() => normalizeAccount("user@example.com\r\nBcc:other@example.com"));
-  assert.equal(normalizeAccount(" Notes_Tester "), "notes_tester");
-  assert.throws(() => normalizeAccount("ab"));
-  assert.throws(() => normalizeAccount("invalid account"));
-  assert.throws(() => normalizeAccount("a".repeat(65)));
+test("usernames are normalized and constrained", () => {
+  assert.equal(normalizeUsername(" Notes_Tester "), "notes_tester");
+  assert.throws(() => normalizeUsername("ab"));
+  assert.throws(() => normalizeUsername("invalid account"));
+  assert.throws(() => normalizeUsername("a".repeat(65)));
 });
 
 test("opaque token digests are fixed size and can be compared safely", () => {

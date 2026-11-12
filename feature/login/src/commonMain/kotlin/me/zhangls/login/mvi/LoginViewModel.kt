@@ -52,14 +52,18 @@ class LoginViewModel(
     when (intent) {
       is LoginIntent.PasswordLogin -> {
         val (account, password) = state.value
-        if (account.isBlank() || password.isEmpty()) return
+        if (!LoginValidator.isValidEmail(account) || password.isEmpty()) return
         authenticate {
-          intent.auth.signInWithPassword(account, password, intent.onPasswordVerified)
+          intent.auth.signInWithPassword(account.trim(), password, intent.onPasswordVerified)
           true
         }
       }
 
-      is LoginIntent.SignInWithPasskey -> authenticate { intent.auth.signInWithPasskey(intent.provider) }
+      is LoginIntent.SignInWithPasskey -> {
+        val email = state.value.account.trim()
+        if (!LoginValidator.isValidEmail(email)) return
+        authenticate { intent.auth.signInWithPasskey(email, intent.provider) }
+      }
 
       LoginIntent.Login -> {
         if (LoginValidator.validateAll(state.value.account, state.value.password).not()) {
