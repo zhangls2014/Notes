@@ -7,7 +7,7 @@ import {
   normalizeAccount, normalizeEmail, normalizeUsername, readNewPassword, readPassword, RequestError,
 } from "./security.ts";
 import { maxAvatarBytes } from "./avatar.ts";
-import type { createAuthService } from "./service.ts";
+import { PasskeyRegistrationError, type createAuthService } from "./service.ts";
 
 type AuthService = ReturnType<typeof createAuthService>;
 const api = "/v1/auth";
@@ -95,7 +95,7 @@ function clientIp(request: IncomingMessage, trustLoopbackProxy: boolean): string
 
 export function createAuthHttpServer(
   service: AuthService,
-  logError: (requestId: string) => void,
+  logError: (requestId: string, registrationFailure?: PasskeyRegistrationError["reason"]) => void,
   { trustLoopbackProxy = false } = {},
 ) {
   return createServer(async (request, response) => {
@@ -215,6 +215,7 @@ export function createAuthHttpServer(
       }
     } catch (error) {
       if (error instanceof RequestError) {
+        if (error instanceof PasskeyRegistrationError) logError(id, error.reason);
         send(response, error.status, { error: error.code });
       } else {
         logError(id);

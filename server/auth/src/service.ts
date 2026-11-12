@@ -28,6 +28,31 @@ type Passkey = {
   transports: AuthenticatorTransport[] | null;
 };
 
+function registrationFailureReason(error: unknown) {
+  if (!(error instanceof Error)) return "verification_error";
+  const code = "code" in error ? error.code : undefined;
+  if (code === "UNEXPECTED_ORIGIN") return "origin_mismatch";
+  if (code === "UNEXPECTED_RP_ID") return "rp_id_mismatch";
+  if (code === "BAD_ARGUMENT") return "invalid_verifier_configuration";
+  if (error.message.startsWith("Unexpected registration response challenge ")) return "challenge_mismatch";
+  if (error.message.startsWith("User presence was required")) return "user_presence_missing";
+  if (error.message.startsWith("User verification was required")) return "user_verification_missing";
+  if (code === "RUNTIME_NO_PQC_SUPPORT" || error.message.startsWith("Unexpected public key alg ")) {
+    return "unsupported_public_key_algorithm";
+  }
+  if (error.message.startsWith("Unsupported Attestation Format:")) return "unsupported_attestation_format";
+  return "verification_error";
+}
+
+export class PasskeyRegistrationError extends RequestError {
+  readonly reason: ReturnType<typeof registrationFailureReason> | "attestation_rejected";
+
+  constructor(reason: PasskeyRegistrationError["reason"]) {
+    super(401, "invalid_passkey");
+    this.reason = reason;
+  }
+}
+
 export function createAuthService(config: {
   database: Pool;
   rpId: string;
@@ -252,8 +277,10 @@ export function createAuthService(config: {
         expectedRPID: rpId,
         expectedOrigin: origins,
         requireUserVerification: true,
-      }).catch(() => null);
-      if (!result?.verified || !result.registrationInfo) throw new RequestError(401, "invalid_passkey");
+      }).catch((error: unknown) => {
+        throw new PasskeyRegistrationError(registrationFailureReason(error));
+      });
+      if (!result.verified || !result.registrationInfo) throw new PasskeyRegistrationError("attestation_rejected");
       const credential = result.registrationInfo.credential;
       const inserted = await database.query(
         `INSERT INTO auth_passkeys (id, user_id, public_key, sign_count, transports)

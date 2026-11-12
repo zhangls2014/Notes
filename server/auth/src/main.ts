@@ -44,7 +44,10 @@ const service = createAuthService({
 const host = process.env.NOTES_AUTH_HOST ?? "127.0.0.1";
 const trustLoopbackProxy = process.env.NOTES_AUTH_TRUST_LOOPBACK_PROXY === "true";
 if (trustLoopbackProxy && host !== "127.0.0.1") throw new Error("Trusted proxy requires a loopback listener");
-const server = createAuthHttpServer(service, (id) => console.error("auth_request_failed", id), { trustLoopbackProxy });
+const server = createAuthHttpServer(service, (id, registrationFailure) => {
+  if (registrationFailure) console.error("auth_passkey_registration_failed", id, registrationFailure);
+  else console.error("auth_request_failed", id);
+}, { trustLoopbackProxy });
 const port = Number(process.env.NOTES_AUTH_PORT ?? "8080");
 server.listen(port, host);
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

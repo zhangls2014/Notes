@@ -245,6 +245,7 @@ curl -i https://auth.notes.zhangls.me/v1/auth/me
 | 资料、注册或发码返回 500 | 按 `X-Request-Id` 查日志，核对数据库地址、角色与七张表是否存在。匿名 `/me` 的 401 只能验证 HTTP 与认证入口。 |
 | 注册提示已提交但收不到邮件，或返回 `email_unavailable` | 检查 SMTP 投递记录、垃圾邮件、沙箱白名单、发送域验证、凭据 URI 编码和出站连通性。已注册邮箱的发码接口也可能返回 204，最终验收以实际收到测试邮件为准。 |
 | 密码可登录，Passkey 不可用 | 对照构建渠道、RP ID、客户端 Origin、APK 签名指纹、iOS entitlement 和两个关联文件。 |
+| 添加 Passkey 的验证请求返回 401 | 按响应的 `X-Request-Id` 在 `notes-auth` 日志查找 `auth_passkey_registration_failed`。该事件仅记录请求 ID 和固定失败类别。 |
 | 更换头像返回 413 或 415 | 检查请求大小限制与 `Content-Type: image/jpeg`。服务限制 256 KiB，且 JPEG 每边最多 512 像素。 |
 | 返回 429 | 区分 Nginx 的入口限流和应用的账号、邮箱或 IP 限流。等待相应时间窗口再用测试账号重试。 |
 

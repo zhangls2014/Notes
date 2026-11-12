@@ -1,20 +1,37 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { once } from "node:events";
+import type { Pool } from "pg";
 import { createAuthHttpServer } from "../src/http.ts";
-import type { createAuthService } from "../src/service.ts";
+import { createAuthService } from "../src/service.ts";
 import { RequestError } from "../src/security.ts";
 
 test("auth HTTP boundary validates input and never returns secrets on errors", async (t) => {
   const accounts: string[] = [];
   const clientIps: string[] = [];
   const errors: string[] = [];
+  const registrationFailures: [string, string][] = [];
   const expired = "A".repeat(43);
   const successfulSession = { user: { id: "user", account: "notes_tester" }, accessToken: "access", refreshToken: "refresh" };
   const revision = "0af7af37-ab71-408a-be8b-a43b23f74034";
   const profile = { id: "user", account: "notes_tester", email: "notes@example.com", avatarRevision: revision };
   const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
   const unsupported = () => Promise.reject(new Error("unexpected request"));
+  const registrationService = createAuthService({
+    database: {
+      async query(sql: string) {
+        if (sql.includes("FROM auth_sessions")) {
+          return { rows: [{ id: "user", session_id: revision, verified_at: new Date() }] };
+        }
+        assert.match(sql, /DELETE FROM auth_challenges/);
+        return { rows: [{ challenge: "expected-challenge" }] };
+      },
+    } as unknown as Pool,
+    rpId: "auth.example.com",
+    origins: ["https://auth.example.com"],
+    codeKey: "test-code-key",
+    sendEmail: unsupported,
+  });
   const service: ReturnType<typeof createAuthService> = {
     async signInWithPassword(account: string, password: string, ip: string) {
       accounts.push(account);
@@ -62,7 +79,7 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
       assert.equal(code, "123456");
     },
     registrationOptions: unsupported,
-    registerPasskey: unsupported,
+    registerPasskey: registrationService.registerPasskey,
     authenticationOptions: unsupported,
     authenticatePasskey: unsupported,
     listPasskeys: unsupported,
@@ -70,7 +87,10 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
     async refreshSession() { throw new RequestError(401, "invalid_session"); },
     logout: unsupported,
   };
-  const server = createAuthHttpServer(service, (requestId) => errors.push(requestId), { trustLoopbackProxy: true });
+  const server = createAuthHttpServer(service, (requestId: string, reason?: string) => {
+    if (reason) registrationFailures.push([requestId, reason]);
+    else errors.push(requestId);
+  }, { trustLoopbackProxy: true });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   t.after(() => new Promise<void>((resolve) => server.close(() => resolve())));
@@ -112,6 +132,22 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
   const edit = (method: string, path: string, body: object) => fetch(base + path, {
     method, headers: { ...authenticated, "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
+  const badOrigin = await edit("POST", "/passkeys/registration/verify", {
+    requestId: revision,
+    credential: {
+      id: "Y3JlZGVudGlhbA",
+      rawId: "Y3JlZGVudGlhbA",
+      type: "public-key",
+      response: {
+        clientDataJSON: Buffer.from(JSON.stringify({
+          type: "webauthn.create", challenge: "expected-challenge", origin: "https://unexpected.example",
+        })).toString("base64url"),
+      },
+    },
+  });
+  assert.equal(badOrigin.status, 401);
+  assert.deepEqual(await badOrigin.json(), { error: "invalid_passkey" });
+  assert.deepEqual(registrationFailures, [[badOrigin.headers.get("X-Request-Id"), "origin_mismatch"]]);
   assert.equal((await edit("PUT", "/me/username", { account: "New_Name" })).status, 204);
   assert.equal((await edit("POST", "/me/email/code", { email: "new@example.com", password: "current password" })).status, 204);
   assert.equal((await edit("PUT", "/me/email", { email: "new@example.com", code: "123456" })).status, 204);
