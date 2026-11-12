@@ -71,6 +71,7 @@ fun App(
   val profile: AccountProfileRefresh = koinInject()
   val accounts = services.accounts
   val auth = services.auth
+  val enabledPasskeyProvider = passkeyProvider?.takeIf { services.passkeysEnabled && it.isSupported }
   val accountId = state.accountId
   var readyAccountId by remember { mutableStateOf<String?>(null) }
   var accountDataError by remember(accountId) { mutableStateOf(false) }
@@ -151,7 +152,7 @@ fun App(
     LocalUriHandler provides browserUriHandler,
     LocalPasswordlessAuth provides auth,
     LocalAccountRegistration provides auth,
-    LocalPasskeyProvider provides passkeyProvider?.takeIf { services.passkeysEnabled },
+    LocalPasskeyProvider provides enabledPasskeyProvider,
     LocalPasskeyManagementAvailable provides (auth != null),
     LocalWindowAdaptiveInfo provides windowAdaptiveInfo,
     LocalPaneScaffoldDirective provides paneScaffoldDirective,
@@ -192,7 +193,7 @@ fun App(
       }
 
       if (managingPasskeys && auth != null && state.access == AppAccess.Ready) {
-        PasskeyManagementDialog(auth, passkeyProvider, onDismiss = { managingPasskeys = false })
+        PasskeyManagementDialog(auth, enabledPasskeyProvider, onDismiss = { managingPasskeys = false })
       }
 
       if ((state.access == AppAccess.SignedOut || state.access == AppAccess.Ready) &&

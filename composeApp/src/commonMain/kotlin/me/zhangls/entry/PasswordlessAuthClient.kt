@@ -25,7 +25,6 @@ import kotlinx.serialization.json.put
 import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
-import me.zhangls.framework.AppInfo
 import me.zhangls.login.api.AccountRegistration
 import me.zhangls.login.api.PasskeyProvider
 import me.zhangls.login.api.PasskeyResult
@@ -35,10 +34,7 @@ import me.zhangls.network.httpClient
 import me.zhangls.profile.api.AccountAvatar
 import me.zhangls.profile.api.AccountProfile
 
-private const val PRODUCTION_AUTH_ORIGIN = "https://auth.notes.zhangls.me"
-
-internal fun configuredAuthEndpoint(appInfo: AppInfo): String? =
-  if (appInfo.getUpdateChannel() != null) PRODUCTION_AUTH_ORIGIN else passwordlessEndpoint(BuildKonfig.AUTH_BASE_URL)
+internal fun configuredAuthEndpoint(): String? = passwordlessEndpoint(BuildKonfig.AUTH_BASE_URL)
 
 internal fun passwordlessEndpoint(config: String): String? {
   if (config.isBlank()) return null

@@ -2,14 +2,13 @@ package me.zhangls.entry.data
 
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.configuredAuthEndpoint
-import me.zhangls.framework.AppInfo
 import me.zhangls.network.TokenPair
 import me.zhangls.network.TokenProvider
 import org.koin.core.annotation.Singleton
 
 @Singleton(binds = [TokenProvider::class])
-class TokenProviderImpl(private val user: UserRepository, appInfo: AppInfo) : TokenProvider {
-  private val endpoint = configuredAuthEndpoint(appInfo)
+class TokenProviderImpl(private val user: UserRepository) : TokenProvider {
+  private val endpoint = configuredAuthEndpoint()
 
   override suspend fun getTokens(): TokenPair? {
     if (endpoint != null) return null

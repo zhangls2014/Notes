@@ -31,7 +31,7 @@ class ReleaseNotesStartupTest {
     try {
       val settings = AdaptiveSettings()
       val users = AdaptiveUsers()
-      val viewModel = AppViewModel(SavedStateHandle(), ToastGlobalNotifier(), users, settings, testAppInfo())
+      val viewModel = AppViewModel(SavedStateHandle(), ToastGlobalNotifier(), users, settings)
       store.put("app", viewModel)
       assertFalse(viewModel.state.value.settingsLoaded)
       runCurrent()
@@ -42,7 +42,7 @@ class ReleaseNotesStartupTest {
       runCurrent()
       assertEquals("1.1.0", viewModel.state.value.lastReadReleaseVersion)
       store.clear()
-      val recreated = AppViewModel(SavedStateHandle(), ToastGlobalNotifier(), users, settings, testAppInfo())
+      val recreated = AppViewModel(SavedStateHandle(), ToastGlobalNotifier(), users, settings)
       store.put("recreated", recreated)
       assertFalse(recreated.state.value.settingsLoaded)
       runCurrent()

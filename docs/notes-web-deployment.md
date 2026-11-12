@@ -10,7 +10,7 @@
 
 ## 登录源站
 
-按 [认证服务部署与配置清单](notes-auth-deployment.md) 部署 `auth.notes.zhangls.me`。Android 正式渠道 Release 和 iOS Release 使用该认证地址并启用 Passkey。测试构建继续使用 `NOTES_AUTH_BASE_URL` 与 `NOTES_AUTH_PASSKEYS_ENABLED`，iOS 用测试 entitlement 和测试 RP ID。在获授权的空库执行单份 `server/auth/sql/schema.sql`，并配置 SMTP 供注册和邮箱变更发码。测试库初始化、正式环境部署与公开发布分别按仓库规则授权。
+按 [认证服务部署与配置清单](notes-auth-deployment.md) 部署 `auth.notes.zhangls.me`。该地址用于 Android 和 iOS 所有构建的默认注册和登录。测试服务的构建参数与应用关联按认证部署清单配置。在获授权的空库执行单份 `server/auth/sql/schema.sql`，并配置 SMTP 供注册和邮箱变更发码。测试库初始化、正式环境部署与公开发布分别按仓库规则授权。
 
 ## 发布新构建
 

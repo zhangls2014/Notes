@@ -1,7 +1,6 @@
 package me.zhangls.entry
 
 import me.zhangls.data.model.UserModel
-import me.zhangls.framework.AppInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -14,17 +13,6 @@ class PasswordlessEndpointTest {
   fun acceptsAnHttpsOriginAndTreatsBlankAsDemoMode() {
     assertNull(passwordlessEndpoint(""))
     assertEquals("https://auth.test.example", passwordlessEndpoint("https://auth.test.example/"))
-  }
-
-  @Test
-  fun productionDistributionUsesTheDedicatedAuthOrigin() {
-    val appInfo = object : AppInfo {
-      override fun getVersionCode() = 4L
-      override fun getVersionName() = "1.1.1"
-      override fun getBuildNumber() = "4"
-      override fun getUpdateChannel() = "android-prd-full"
-    }
-    assertEquals("https://auth.notes.zhangls.me", configuredAuthEndpoint(appInfo))
   }
 
   @Test

@@ -315,7 +315,7 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 - `core:data/impl/security/SecureTokenStore` 是内部契约：Android 用 Keystore AES/GCM 和随机 IV 加密整组账号凭据，经 `AtomicFile` 写入 `noBackupFilesDir`；iOS 用 Generic Password Keychain，`WhenUnlockedThisDeviceOnly`，不启用同步。永久密钥失效或损坏密文会清除凭据；临时访问失败不回退明文。登录态 Flow 保留最近状态并执行可取消重试；请求级 getTokens 仍抛出失败，不使用旧凭据兜底。
 - 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。Ktor 禁用鉴权 Token 缓存，每次整组读取当前凭据。认证端点未配置时，演示构建继续使用本地模拟会话。启用认证端点的构建使用 Notes 认证服务；第三方 Ktor 客户端不读取真实会话令牌。
 - 生物识别解锁设置随本机会话资料保存，旧资料和新登录默认关闭。设置入口通过 `SettingsResult` 请求根层验证；Android 与 iOS 宿主发起系统设备验证，支持设备锁屏凭据回退。启动时组合根等待本进程首次确认会话；有锁定会话时仅显示解锁页，导航、待处理深链和更新提示等验证成功再恢复。授权只保留在进程内，退出会话时清除。保护范围是应用内访问，Room 和 Token 存储沿用现有机制。
-- 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。Passkey 入口要求构建启用认证域名关联，且平台支持 Passkey。用户在独立注册页验证邮箱后创建账户，通过用户名密码或 Passkey 登录。通行密钥和本地数据绑定稳定的服务端账户 UUID，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
+- 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。所有 Android 和 iOS 构建默认连接 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey，认证配置独立于应用更新渠道。Passkey 入口还要求平台支持，实际使用需要签名应用与认证域名建立关联。用户在独立注册页验证邮箱后创建账户，通过用户名密码或 Passkey 登录。通行密钥和本地数据绑定稳定的服务端账户 UUID，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
 - Android 真实账号登录使用 Compose Autofill，账号和密码由系统自动填充服务管理。认证客户端确认服务端响应有效后、发布会话前通知登录表单提交自动填充会话。演示登录和 Passkey 流程不主动提交密码保存。
 - 真实账号在 `notes-<uuid>.db` 使用独立 Room 文件，表结构沿用现有 schema。组合根在账号数据库就绪后才挂载受保护导航；切换账号时退役旧数据库和查询。原 `notes.db` 保留给本地演示会话。真实会话的邮件深链须同时携带匹配的 `accountId`，避免数字邮件 ID 在不同数据库间碰撞。
 - Android 排除旧 `notes.preferences_pb` 的云备份及设备迁移，iOS 排除 DataStore 目录备份，避免未完成迁移的旧明文被备份。这也意味着普通设置不会随该文件备份迁移；旧有备份中的数据无法由本次升级追溯删除。
@@ -424,4 +424,4 @@ Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配
 
 ## 官网、发布渠道与认证域
 
-Cloudflare Pages 从 `web/` 构建官网。公开历史从包内 `releases.json` 生成，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查 `notes.zhangls.me` 的清单。离线历史及声明仍由 About 资源提供。生产渠道的密码与 Passkey 连接独立的 `auth.notes.zhangls.me`，认证会话按来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+Cloudflare Pages 从 `web/` 构建官网。公开历史从包内 `releases.json` 生成，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查 `notes.zhangls.me` 的清单。离线历史及声明仍由 About 资源提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。

@@ -22,7 +22,7 @@ printf '%s' "$notes_test_password" | npm run provision-account -- notes_tester n
 unset notes_test_password
 ```
 
-Run `npm start` with the process variables below. Keep the local service bound to loopback and give the emulator or phone an HTTPS address it can reach and trust. Build the app with `-Pnotes.authBaseUrl=https://<auth-host>` or set `NOTES_AUTH_BASE_URL` in the build environment. An unset endpoint leaves the offline demo flow available.
+Run `npm start` with the process variables below. Keep the local service bound to loopback and give the emulator or phone an HTTPS address it can reach and trust. Build the app with `-Pnotes.authBaseUrl=https://<auth-host>` or set `NOTES_AUTH_BASE_URL` in the build environment. All Android and iOS builds default to `https://auth.notes.zhangls.me` with Passkeys enabled. For offline demo testing, explicitly set an empty endpoint and disable Passkeys.
 
 ## Service and Passkey configuration
 
@@ -36,7 +36,7 @@ Run `npm start` with the process variables below. Keep the local service bound t
 | `NOTES_AUTH_SMTP_FROM` | Sender address approved by the SMTP provider |
 | `NOTES_AUTH_HOST`, `NOTES_AUTH_PORT` | Listen address and port, defaulting to 127.0.0.1:8080 |
 
-For device Passkey testing, configure the reverse proxy to forward the API and serve the [Android](association/assetlinks.example.json) and [Apple](association/apple-app-site-association.example.json) association files under `/.well-known/`. Fill them with the actual test identifiers and signing values. For iOS, pass `CODE_SIGN_ENTITLEMENTS=PasskeyTesting.entitlements NOTES_PASSKEY_RP_ID=<test-domain>` to Xcode. After configuring both the domain and the signed app, build with `-Pnotes.authPasskeysEnabled=true` or set `NOTES_AUTH_PASSKEYS_ENABLED=true` in the build environment. This enables the login entry on supported devices. Keep the flag off for a local password-only test.
+For device Passkey testing, configure the reverse proxy to forward the API and serve the [Android](association/assetlinks.example.json) and [Apple](association/apple-app-site-association.example.json) association files under `/.well-known/`. Fill them with the actual test identifiers and signing values. For iOS, pass `CODE_SIGN_ENTITLEMENTS=PasskeyTesting.entitlements NOTES_PASSKEY_RP_ID=<test-domain>` to Xcode. With a matching domain and signed app, the login entry is available by default on supported devices. For a local password-only test, build with `-Pnotes.authPasskeysEnabled=false` or set `NOTES_AUTH_PASSKEYS_ENABLED=false` in the build environment.
 
 The service limits password attempts by account and socket IP. For production reverse proxy configuration, see [Production origin](#production-origin). Passkey challenges expire in five minutes and are consumed on first use. Enrollment and removal require a session verified in the previous five minutes. Access tokens last 15 minutes and refresh tokens support one-time rotation for up to 30 days. The service does not apply schema changes at startup.
 

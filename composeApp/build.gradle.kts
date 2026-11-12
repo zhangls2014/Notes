@@ -100,13 +100,13 @@ buildkonfig {
     buildConfigField(STRING, "BASE_URL", "https://www.mxnzp.com/")
     val authBaseUrl = providers.gradleProperty("notes.authBaseUrl")
       .orElse(providers.environmentVariable("NOTES_AUTH_BASE_URL"))
-      .orElse("")
+      .orElse("https://auth.notes.zhangls.me")
       .get()
     require(authBaseUrl.all { it.isLetterOrDigit() || it in ":/.-" }) { "Invalid Notes authentication URL" }
     buildConfigField(STRING, "AUTH_BASE_URL", authBaseUrl)
     val passkeysEnabled = providers.gradleProperty("notes.authPasskeysEnabled")
       .orElse(providers.environmentVariable("NOTES_AUTH_PASSKEYS_ENABLED"))
-      .orElse("false")
+      .orElse("true")
       .get()
       .toBooleanStrict()
     require(!passkeysEnabled || authBaseUrl.isNotBlank()) { "Passkeys require a Notes authentication URL" }

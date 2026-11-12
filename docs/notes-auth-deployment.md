@@ -229,8 +229,8 @@ curl -i https://auth.notes.zhangls.me/v1/auth/me
 
 ## 7. 上线前验收
 
-- [ ] **测试构建**：非正式渠道构建设置 `NOTES_AUTH_BASE_URL=https://auth-staging.zhangls.me` 和 `NOTES_AUTH_PASSKEYS_ENABLED=true`。iOS 测试构建使用 `CODE_SIGN_ENTITLEMENTS=PasskeyTesting.entitlements` 与对应的 `NOTES_PASSKEY_RP_ID`。测试服务端 Origin 和关联文件登记测试包的实际签名。
-- [ ] **正式构建**：Android `prdFullRelease`、`prdMainlandRelease` 与 iOS Release 使用 `https://auth.notes.zhangls.me`，认证服务和域名关联须在应用正式分发前就绪。见 [App 正式认证地址](../composeApp/src/commonMain/kotlin/me/zhangls/entry/PasswordlessAuthClient.kt) 与 [iOS 正式 entitlement](../iosApp/iosApp/iosApp.entitlements)。
+- [ ] **默认构建**：Android 和 iOS 的 Debug、Release 与各渠道默认使用 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey。使用实际签名核对域名关联，覆盖开发包和分发包。见 [共享构建配置](../composeApp/build.gradle.kts) 与 [iOS 默认 entitlement](../iosApp/iosApp/iosApp.entitlements)。
+- [ ] **测试服务构建**：显式设置 `NOTES_AUTH_BASE_URL=https://auth-staging.zhangls.me`。仅验证密码登录时设置 `NOTES_AUTH_PASSKEYS_ENABLED=false`。在 iOS 验证测试域名的 Passkey 时使用 `CODE_SIGN_ENTITLEMENTS=PasskeyTesting.entitlements` 与对应的 `NOTES_PASSKEY_RP_ID`。测试服务端 Origin 和关联文件登记测试包的实际签名。
 - [ ] **真实邮箱注册**：用测试邮箱从独立注册页收信并完成两步注册。验证错误、过期和重复使用的验证码，以及邮箱或用户名重复的情况。再次登录时使用已设置的用户名。
 - [ ] **资料编辑**：核对个人信息页显示已验证邮箱。改用户名后退出并以新用户名登录。更换邮箱时先试错密码，再用正确密码收取新邮箱验证码，核对验证前后显示。上传头像后用另一台设备登录，确认资料同步。断网和上传失败时核对本地旧头像。
 - [ ] **Passkey 与会话**：Android、iOS 分别用正式签名等效包完成密码登录、Passkey 注册与登录、刷新及退出。管理 Passkey 时需在最近五分钟内完成登录验证。测试退出后旧凭据访问受保护接口的结果。
