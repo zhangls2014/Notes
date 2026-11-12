@@ -18,6 +18,14 @@
           "en": "Use your registered email to sign in with a password or passkey. Registration tells you if the email is already in use.",
           "zh": "使用已注册邮箱进行密码或通行密钥登录。注册时会提示邮箱已被使用。"
         }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "Adding a passkey now explains when no password manager is available or when the service stops responding.",
+          "zh": "添加通行密钥时，如果没有可用的密码管理器或服务未响应，应用会显示相应提示并允许重试。"
+        }
       }
     ]
   },

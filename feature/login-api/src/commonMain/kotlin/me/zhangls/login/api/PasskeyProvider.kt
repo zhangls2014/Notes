@@ -12,3 +12,7 @@ sealed interface PasskeyResult {
   data object Cancelled : PasskeyResult
   data object Unavailable : PasskeyResult
 }
+
+class PasskeyCreationUnavailableException : Exception()
+
+class PasskeyCreationTimedOutException : Exception()

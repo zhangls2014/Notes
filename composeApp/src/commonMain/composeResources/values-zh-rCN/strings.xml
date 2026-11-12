@@ -11,6 +11,8 @@
   <string name="auth_passkey_close">关闭</string>
   <string name="auth_passkey_empty">尚未添加通行密钥。</string>
   <string name="auth_passkey_error">无法管理通行密钥，请重试。</string>
+  <string name="auth_passkey_no_service">当前没有可用的通行密钥服务。请在系统设置中启用支持通行密钥的密码管理器，并确认已登录该服务所需的账号。</string>
+  <string name="auth_passkey_timeout">通行密钥服务未响应，请重试。</string>
   <string name="auth_passkey_recent">请重新使用账号密码或通行密钥登录，再重试此操作。</string>
   <string name="auth_passkey_retry">重试</string>
   <string name="auth_logout_error">退出登录失败，请重试。</string>

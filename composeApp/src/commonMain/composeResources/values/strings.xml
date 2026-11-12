@@ -11,6 +11,8 @@
   <string name="auth_passkey_close">Close</string>
   <string name="auth_passkey_empty">No passkeys yet.</string>
   <string name="auth_passkey_error">Could not manage passkeys. Try again.</string>
+  <string name="auth_passkey_no_service">No passkey service is available. In system settings, enable a password manager that supports passkeys and sign in to it if required.</string>
+  <string name="auth_passkey_timeout">The passkey service did not respond. Try again.</string>
   <string name="auth_passkey_recent">Sign in again with your password or a passkey, then retry this change.</string>
   <string name="auth_passkey_retry">Retry</string>
   <string name="auth_logout_error">Could not sign out. Try again.</string>

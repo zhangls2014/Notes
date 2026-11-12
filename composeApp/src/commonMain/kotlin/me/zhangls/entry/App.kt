@@ -193,7 +193,16 @@ fun App(
       }
 
       if (managingPasskeys && auth != null && state.access == AppAccess.Ready) {
-        PasskeyManagementDialog(auth, enabledPasskeyProvider, onDismiss = { managingPasskeys = false })
+        PasskeyManagementDialog(
+          listPasskeys = auth::listPasskeys,
+          addPasskey = if (enabledPasskeyProvider != null) {
+            { auth.addPasskey(enabledPasskeyProvider) }
+          } else {
+            null
+          },
+          revokePasskey = auth::revokePasskey,
+          onDismiss = { managingPasskeys = false },
+        )
       }
 
       if ((state.access == AppAccess.SignedOut || state.access == AppAccess.Ready) &&

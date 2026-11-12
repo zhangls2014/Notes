@@ -19,6 +19,7 @@ kotlin {
 
   dependencies {
     testImplementation(kmp.junit)
+    testImplementation(kmp.jetbrains.kotlinx.coroutines.test)
     androidTestImplementation(kmp.androidx.test.ext.junit)
     androidTestImplementation(kmp.androidx.test.espresso)
     debugImplementation(kmp.squareup.leakCanary)

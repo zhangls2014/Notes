@@ -292,3 +292,4 @@
 - [ ] 完成 Pages GitHub 预览与生产域名绑定，核对公开历史、各渠道清单、下载链接、声明归档及深链关联文件。
 - [ ] 用实际签名的 Android 和 iOS 开发包与分发包核对默认认证域名关联，验证邮箱发码注册、密码、Passkey 与会话，并验证 Android 覆盖安装和 iOS 商店跳转。操作步骤见 [认证上线前验收](../notes-auth-deployment.md#7-上线前验收)与[网站部署与应用发布](../notes-web-deployment.md)。
 - [ ] 正式认证域名的 iOS `apple-app-site-association` 在 2026-11-12 只读检查返回 HTTP 404。待使用实际签名应用的 `application-identifier` 配置 `webcredentials.apps`，确认关联文件返回 200 后实机验证 Passkey。Android 关联文件返回 200，登记指纹与本轮八个 Debug 和 Release APK 相符。
+- [ ] 在小米 测试设备（Android 14）上验收添加通行密钥时无可用服务的提示与按钮恢复。Android 单元和宿主测试已覆盖无创建选项、120 秒无回调及主动取消。真机已覆盖安装并启动测试包，设备拒绝 ADB 点击注入，需在已重新登录的会话中手动完成验证。

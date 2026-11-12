@@ -17,23 +17,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import me.zhangls.login.api.PasskeyProvider
+import me.zhangls.login.api.PasskeyCreationTimedOutException
+import me.zhangls.login.api.PasskeyCreationUnavailableException
 import notes.composeapp.generated.resources.Res
 import notes.composeapp.generated.resources.auth_passkey_add
 import notes.composeapp.generated.resources.auth_passkey_close
 import notes.composeapp.generated.resources.auth_passkey_empty
 import notes.composeapp.generated.resources.auth_passkey_error
 import notes.composeapp.generated.resources.auth_passkey_manage
+import notes.composeapp.generated.resources.auth_passkey_no_service
 import notes.composeapp.generated.resources.auth_passkey_recent
 import notes.composeapp.generated.resources.auth_passkey_remove
 import notes.composeapp.generated.resources.auth_passkey_retry
+import notes.composeapp.generated.resources.auth_passkey_timeout
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun PasskeyManagementDialog(
-  auth: PasswordlessAuthClient,
-  provider: PasskeyProvider?,
+  listPasskeys: suspend () -> List<RegisteredPasskey>,
+  addPasskey: (suspend () -> Boolean)?,
+  revokePasskey: suspend (String) -> Unit,
   onDismiss: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
@@ -45,9 +49,13 @@ internal fun PasskeyManagementDialog(
     error = null
     try {
       operation()
-      passkeys = auth.listPasskeys()
+      passkeys = listPasskeys()
     } catch (cancelled: CancellationException) {
       throw cancelled
+    } catch (_: PasskeyCreationUnavailableException) {
+      error = Res.string.auth_passkey_no_service
+    } catch (_: PasskeyCreationTimedOutException) {
+      error = Res.string.auth_passkey_timeout
     } catch (failure: AuthHttpException) {
       error = if (failure.status == 403) Res.string.auth_passkey_recent else Res.string.auth_passkey_error
     } catch (_: Exception) {
@@ -63,7 +71,7 @@ internal fun PasskeyManagementDialog(
     scope.launch { update(operation) }
   }
 
-  LaunchedEffect(auth) { submit {} }
+  LaunchedEffect(listPasskeys) { submit {} }
 
   AlertDialog(
     onDismissRequest = onDismiss,
@@ -80,7 +88,7 @@ internal fun PasskeyManagementDialog(
         passkeys.orEmpty().forEach { passkey ->
           Row {
             Text(passkey.createdAt.substringBefore('T'), Modifier.weight(1f))
-            TextButton(enabled = !busy, onClick = { submit { auth.revokePasskey(passkey.id) } }) {
+            TextButton(enabled = !busy, onClick = { submit { revokePasskey(passkey.id) } }) {
               Text(stringResource(Res.string.auth_passkey_remove))
             }
           }
@@ -90,9 +98,9 @@ internal fun PasskeyManagementDialog(
     confirmButton = {
       TextButton(onClick = onDismiss) { Text(stringResource(Res.string.auth_passkey_close)) }
     },
-    dismissButton = provider?.let {
+    dismissButton = addPasskey?.let { add ->
       {
-        TextButton(enabled = !busy, onClick = { submit { auth.addPasskey(provider) } }) {
+        TextButton(enabled = !busy, onClick = { submit { add() } }) {
           Text(stringResource(Res.string.auth_passkey_add))
         }
       }

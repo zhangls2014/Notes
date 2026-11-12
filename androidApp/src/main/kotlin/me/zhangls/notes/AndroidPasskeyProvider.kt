@@ -11,10 +11,15 @@ import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
 import androidx.credentials.exceptions.CreateCredentialCancellationException
 import androidx.credentials.exceptions.CreateCredentialException
+import androidx.credentials.exceptions.CreateCredentialNoCreateOptionException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import kotlinx.coroutines.withTimeoutOrNull
+import me.zhangls.login.api.PasskeyCreationTimedOutException
+import me.zhangls.login.api.PasskeyCreationUnavailableException
 import me.zhangls.login.api.PasskeyProvider
 import me.zhangls.login.api.PasskeyResult
+import kotlin.time.Duration.Companion.seconds
 
 internal class AndroidPasskeyProvider(private val activity: Activity) : PasskeyProvider {
   override val isSupported: Boolean
@@ -23,17 +28,11 @@ internal class AndroidPasskeyProvider(private val activity: Activity) : PasskeyP
 
   private val credentialManager = CredentialManager.create(activity.applicationContext)
 
-  override suspend fun create(optionsJson: String): PasskeyResult = try {
+  override suspend fun create(optionsJson: String): PasskeyResult = createAndroidPasskey {
     val response = credentialManager.createCredential(activity, CreatePublicKeyCredentialRequest(optionsJson))
     (response as? CreatePublicKeyCredentialResponse)
       ?.let { PasskeyResult.Success(it.registrationResponseJson) }
       ?: PasskeyResult.Unavailable
-  } catch (_: CreateCredentialCancellationException) {
-    PasskeyResult.Cancelled
-  } catch (_: CreateCredentialException) {
-    PasskeyResult.Unavailable
-  } catch (_: IllegalArgumentException) {
-    PasskeyResult.Unavailable
   }
 
   override suspend fun get(optionsJson: String): PasskeyResult = try {
@@ -49,4 +48,17 @@ internal class AndroidPasskeyProvider(private val activity: Activity) : PasskeyP
   } catch (_: IllegalArgumentException) {
     PasskeyResult.Unavailable
   }
+}
+
+internal suspend fun createAndroidPasskey(request: suspend () -> PasskeyResult): PasskeyResult = try {
+  // Match the registration options' 120-second user interaction timeout.
+  withTimeoutOrNull(120.seconds) { request() } ?: throw PasskeyCreationTimedOutException()
+} catch (_: CreateCredentialNoCreateOptionException) {
+  throw PasskeyCreationUnavailableException()
+} catch (_: CreateCredentialCancellationException) {
+  PasskeyResult.Cancelled
+} catch (_: CreateCredentialException) {
+  PasskeyResult.Unavailable
+} catch (_: IllegalArgumentException) {
+  PasskeyResult.Unavailable
 }
