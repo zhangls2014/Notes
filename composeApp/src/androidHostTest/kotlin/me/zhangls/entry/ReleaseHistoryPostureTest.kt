@@ -80,7 +80,7 @@ class ReleaseHistoryPostureTest {
       }
     }
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(hasText("1.1.0")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(hasText("1.1.2")).fetchSemanticsNodes().isNotEmpty()
     }
   }
 
@@ -134,7 +134,7 @@ class ReleaseHistoryPostureTest {
     direction = LayoutDirection.Rtl
     launch()
     compose.onNodeWithContentDescription("Switch to columns").performClick()
-    val card = compose.onNodeWithTag("release-1.1.0").getUnclippedBoundsInRoot()
+    val card = compose.onNodeWithTag("release-1.1.2").getUnclippedBoundsInRoot()
     assertTrue("RTL first card belongs to the right physical pane", card.left.value >= 380f)
     assertEquals("Wide pane must be filled after hinge clearance", 796f, cardWidth(), 1f)
     assertEquals(388f, card.left.value, 1f)
@@ -206,13 +206,13 @@ class ReleaseHistoryPostureTest {
   private fun assertStableContentDuringPageTransform() {
     launch()
     compose.onNodeWithContentDescription("Switch to columns").performClick()
-    val initial = compose.onNodeWithTag("release-1.1.0").fetchSemanticsNode().layoutInfo.coordinates.size
+    val initial = compose.onNodeWithTag("release-1.1.2").fetchSemanticsNode().layoutInfo.coordinates.size
     for ((scale, translation) in listOf(0.95f to 30f, 0.85f to 90f, 0.9f to 12f, 1f to 0f)) {
       compose.runOnIdle {
         pageScale = scale
         pageTranslation = translation
       }
-      val node = compose.onNodeWithTag("release-1.1.0").fetchSemanticsNode()
+      val node = compose.onNodeWithTag("release-1.1.2").fetchSemanticsNode()
       assertEquals("Drawing transforms must preserve card width and wrapped height", initial, node.layoutInfo.coordinates.size)
       assertEquals("The visible card must still scale", initial.width * scale, node.boundsInRoot.width, 1f)
     }
@@ -221,7 +221,7 @@ class ReleaseHistoryPostureTest {
   private fun iconWidth(description: String): Float =
     compose.onNodeWithContentDescription(description, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.width
 
-  private fun cardWidth(version: String = "1.1.0"): Float {
+  private fun cardWidth(version: String = "1.1.2"): Float {
     val bounds = compose.onNodeWithTag("release-$version").getUnclippedBoundsInRoot()
     return bounds.right.value - bounds.left.value
   }

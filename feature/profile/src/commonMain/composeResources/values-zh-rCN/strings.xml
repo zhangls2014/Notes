@@ -7,4 +7,20 @@
   <string name="profile_msg_saving_avatar">正在保存头像…</string>
   <string name="profile_msg_avatar_saved">头像已更新</string>
   <string name="profile_msg_save_avatar_failed">头像保存失败，请重试。</string>
+  <string name="profile_email">邮箱</string>
+  <string name="profile_email_unavailable">暂无邮箱</string>
+  <string name="profile_set_username">设置用户名</string>
+  <string name="profile_username_hint">修改后，下次可用新用户名登录。</string>
+  <string name="profile_change_email">修改邮箱</string>
+  <string name="profile_current_password">当前密码</string>
+  <string name="profile_new_email">新邮箱</string>
+  <string name="profile_email_code">邮箱验证码</string>
+  <string name="profile_send_code">发送验证码</string>
+  <string name="profile_resend_code">%1$d 秒后重发</string>
+  <string name="profile_email_hint">新邮箱验证成功后生效。</string>
+  <string name="profile_save">保存</string>
+  <string name="profile_confirm_change">确认修改</string>
+  <string name="profile_cancel">取消</string>
+  <string name="profile_change_failed">无法保存，请检查填写的信息后重试。</string>
+  <string name="profile_send_failed">无法发送验证码，请检查密码和邮箱。</string>
 </resources>

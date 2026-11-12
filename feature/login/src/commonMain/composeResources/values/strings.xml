@@ -18,4 +18,21 @@
   <string name="login_passkey">Sign in with a passkey</string>
   <string name="login_passkey_unavailable">No passkey is available. Try signing in with your account and password.</string>
   <string name="login_passwordless_error">Could not complete the request. Check your details and try again.</string>
+  <string name="signup_title">Register account</string>
+  <string name="signup_verify_email">Verify email</string>
+  <string name="signup_email">Email</string>
+  <string name="signup_send_code">Send code</string>
+  <string name="signup_resend_code">Resend in %1$d s</string>
+  <string name="signup_code">Email verification code</string>
+  <string name="signup_continue">Continue</string>
+  <string name="signup_credentials">Set up sign-in</string>
+  <string name="signup_username">Username</string>
+  <string name="signup_username_hint">3–64 letters, digits, dots, underscores or hyphens</string>
+  <string name="signup_password_hint">At least 15 characters</string>
+  <string name="signup_create">Create account</string>
+  <string name="signup_back_to_email">Back to email verification</string>
+  <string name="signup_send_failed">Could not send a code. Try again later.</string>
+  <string name="signup_verify_failed">Could not verify the code. Check it or request a new one.</string>
+  <string name="signup_create_failed">Could not create the account. Check the username or verify your email again.</string>
+  <string name="signup_working">Please wait…</string>
 </resources>

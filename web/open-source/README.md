@@ -62,7 +62,7 @@ and the corresponding iOS files into
 `feature/about/build/generated/open-source/iosMain/composeResources/files/open-source/`.
 These ignored outputs are Compose Resources inputs, with their Sync task dependencies
 provided through `customDirectory`. Each app contains only its own platform's two pages.
-No hosting is required.
+For published builds, archive the exact bundled files on the public site following the [release workflow](../../docs/notes-web-deployment.md#发布新构建).
 
 ## Preview and package
 

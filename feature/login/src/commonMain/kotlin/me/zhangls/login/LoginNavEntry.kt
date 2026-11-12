@@ -1,11 +1,17 @@
 package me.zhangls.login
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import me.zhangls.framework.nav.NavEffect
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginEntry
 import me.zhangls.login.api.LoginResult
+import me.zhangls.login.api.RegistrationDestination
 import org.koin.compose.koinInject
+
+internal val LocalOpenRegistration = staticCompositionLocalOf<(() -> Unit)?> { null }
 
 /**
  * 登录页的导航条目。
@@ -17,11 +23,20 @@ import org.koin.compose.koinInject
  * key 与它的序列化登记都在契约模块（[me.zhangls.login.api.LoginNavigation]）。
  */
 fun EntryProviderScope<NavKey>.loginNavEntry(
+  onNavigate: (NavEffect) -> Unit,
   onLoginResult: (result: LoginResult, destination: LoginDestination) -> Unit,
 ) {
   entry<LoginDestination> { destination ->
-    koinInject<LoginEntry>().Screen(
-      onLoginResult = { result -> onLoginResult(result, destination) },
+    CompositionLocalProvider(
+      LocalOpenRegistration provides { onNavigate(NavEffect.Navigate(RegistrationDestination(destination.redirectTo))) },
+    ) {
+      koinInject<LoginEntry>().Screen(onLoginResult = { result -> onLoginResult(result, destination) })
+    }
+  }
+  entry<RegistrationDestination> { destination ->
+    RegistrationScreen(
+      onBack = { onNavigate(NavEffect.Popup) },
+      onRegistered = { onLoginResult(LoginResult.Success, LoginDestination(destination.redirectTo)) },
     )
   }
 }

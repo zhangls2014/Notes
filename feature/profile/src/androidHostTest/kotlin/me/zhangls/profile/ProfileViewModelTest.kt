@@ -44,7 +44,7 @@ class ProfileViewModelTest {
 
   @Before fun start() {
     Dispatchers.setMain(dispatcher)
-    viewModel = ProfileViewModel(savedState, users, AvatarUpdater(users, storage, dispatcher))
+    viewModel = ProfileViewModel(savedState, users, AvatarUpdater(users, storage, dispatcher, null))
     viewModelStore.put("profile", viewModel)
   }
 
@@ -100,6 +100,9 @@ class ProfileViewModelTest {
       beforeReturn()
       return path
     }
+    override fun encodeForUpload(path: String): ByteArray = error("No remote avatar expected")
+    override fun storeJpeg(jpeg: ByteArray): String = error("No remote avatar expected")
+    override fun exists(path: String) = true
     override suspend fun delete(path: String) = Unit
   }
   private class Users : UserRepository {
@@ -114,6 +117,13 @@ class ProfileViewModelTest {
       userFlow.value = userFlow.value?.copy(avatar = avatar)
       return true
     }
+    override suspend fun updateAccountProfile(
+      account: String,
+      avatar: String?,
+      revision: String?,
+      expectedUser: UserModel,
+      email: String?,
+    ): Boolean = false
     override suspend fun updateBiometricUnlock(enabled: Boolean) = false
     override suspend fun updateEmailSearchHistory(keyword: String) = Unit
     override suspend fun deleteEmailSearchHistory(keyword: String) = Unit

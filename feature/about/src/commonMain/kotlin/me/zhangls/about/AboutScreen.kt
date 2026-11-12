@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.about.mvi.AboutIntent
 import me.zhangls.about.mvi.AboutViewModel
+import me.zhangls.about.mvi.UpdateStatus
 import me.zhangls.about.ui.AboutBrandCard
 import me.zhangls.about.ui.AboutInfoRow
 import me.zhangls.about.ui.AboutVersionGroup
@@ -45,6 +46,15 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenRel
   val viewModel = koinViewModel<AboutViewModel>()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val releases by viewModel.releases.collectAsStateWithLifecycle()
+  val updateStatus by viewModel.updateStatus.collectAsStateWithLifecycle()
+  val checkForUpdates = { viewModel.sendIntent(AboutIntent.CheckForUpdates) }
+  if (updateStatus != UpdateStatus.Idle) {
+    UpdateCheckDialog(
+      updateStatus,
+      onDismiss = { viewModel.sendIntent(AboutIntent.DismissUpdateResult) },
+      onRetry = checkForUpdates,
+    )
+  }
   val layoutDirection = LocalLayoutDirection.current
   Scaffold(topBar = {
     CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBack)
@@ -76,6 +86,8 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenRel
           expanded = state.isVersionInfoExpanded,
           onToggleVersionInfo = { viewModel.sendIntent(AboutIntent.ToggleVersionInfo) },
           onOpenReleaseHistory = onOpenReleaseHistory,
+          canCheckForUpdates = viewModel.updateChannel != null,
+          onCheckForUpdates = checkForUpdates,
         )
         val noticesShape = MaterialTheme.shapes.extraLarge
         AboutInfoRow(

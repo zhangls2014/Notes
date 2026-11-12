@@ -35,10 +35,11 @@ import me.zhangls.theme.icon.Refresh
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_check_updates
 import notes.feature.about.generated.resources.about_collapsed
-import notes.feature.about.generated.resources.about_coming_soon
 import notes.feature.about.generated.resources.about_expanded
 import notes.feature.about.generated.resources.about_unknown
+import notes.feature.about.generated.resources.about_update_check
 import notes.feature.about.generated.resources.about_update_description
+import notes.feature.about.generated.resources.about_update_unavailable
 import notes.feature.about.generated.resources.about_version
 import org.jetbrains.compose.resources.stringResource
 
@@ -52,6 +53,8 @@ internal fun AboutVersionGroup(
   expanded: Boolean,
   onToggleVersionInfo: () -> Unit,
   onOpenReleaseHistory: () -> Unit,
+  canCheckForUpdates: Boolean,
+  onCheckForUpdates: () -> Unit,
 ) {
   val outer = MaterialTheme.shapes.extraLarge
   val inner = MaterialTheme.shapes.extraSmall
@@ -79,21 +82,20 @@ internal fun AboutVersionGroup(
     if (expanded) {
       AboutReleaseSummary(appInfo.versionName, releases, inner, onOpenReleaseHistory)
     }
-    // Update checks await release-channel and platform integration; see docs/testing/pending-acceptance.md.
-    // The disabled button communicates availability without triggering an update check.
     AboutInfoRow(
       title = stringResource(Res.string.about_check_updates),
       detail = stringResource(Res.string.about_update_description),
       icon = Icons.Rounded.Refresh,
       shape = outer.copy(topStart = inner.topStart, topEnd = inner.topEnd),
       trailing = {
+        val action = if (canCheckForUpdates) Res.string.about_update_check else Res.string.about_update_unavailable
         FilledTonalButton(
-          onClick = {},
-          enabled = false,
+          onClick = onCheckForUpdates,
+          enabled = canCheckForUpdates,
           modifier = Modifier.widthIn(max = 120.dp),
           contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         ) {
-          Text(stringResource(Res.string.about_coming_soon), textAlign = TextAlign.Center)
+          Text(stringResource(action), textAlign = TextAlign.Center)
         }
       },
     )

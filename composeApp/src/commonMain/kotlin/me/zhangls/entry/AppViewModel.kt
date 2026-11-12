@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
+import me.zhangls.framework.AppInfo
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.composeapp.generated.resources.Res
@@ -31,6 +32,7 @@ class AppViewModel(
   private val toastGlobalNotifier: ToastGlobalNotifier,
   private val userRepository: UserRepository,
   private val settingsRepository: SettingsRepository,
+  appInfo: AppInfo,
 ) : MviViewModel<AppState, AppIntent>(
   initialState = AppState(null),
   stateSerializer = AppState.serializer(),
@@ -124,9 +126,10 @@ class AppViewModel(
   }
 
   init {
+    val endpoint = configuredAuthEndpoint(appInfo)
     viewModelScope.launch {
       userRepository.userFlow.collectLatest { storedUser ->
-        val user = storedUser?.takeIf { sessionMatchesAuthOrigin(it, configuredAuthEndpoint) }
+        val user = storedUser?.takeIf { sessionMatchesAuthOrigin(it, endpoint) }
         val sessionChanged = sessionUserId != user?.id
         if (sessionChanged) sessionGeneration++
         sessionUserId = user?.id

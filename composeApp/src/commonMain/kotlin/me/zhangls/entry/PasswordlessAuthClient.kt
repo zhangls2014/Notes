@@ -1,17 +1,19 @@
 package me.zhangls.entry
 
+import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import io.ktor.http.encodeURLPathPart
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,13 +25,20 @@ import kotlinx.serialization.json.put
 import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
+import me.zhangls.framework.AppInfo
+import me.zhangls.login.api.AccountRegistration
 import me.zhangls.login.api.PasskeyProvider
 import me.zhangls.login.api.PasskeyResult
 import me.zhangls.login.api.PasskeyUnavailableException
 import me.zhangls.login.api.PasswordlessAuth
 import me.zhangls.network.httpClient
+import me.zhangls.profile.api.AccountAvatar
+import me.zhangls.profile.api.AccountProfile
 
-internal val configuredAuthEndpoint = passwordlessEndpoint(BuildKonfig.AUTH_BASE_URL)
+private const val PRODUCTION_AUTH_ORIGIN = "https://auth.notes.zhangls.me"
+
+internal fun configuredAuthEndpoint(appInfo: AppInfo): String? =
+  if (appInfo.getUpdateChannel() != null) PRODUCTION_AUTH_ORIGIN else passwordlessEndpoint(BuildKonfig.AUTH_BASE_URL)
 
 internal fun passwordlessEndpoint(config: String): String? {
   if (config.isBlank()) return null
@@ -44,12 +53,43 @@ internal fun passwordlessEndpoint(config: String): String? {
 internal fun sessionMatchesAuthOrigin(user: UserModel, endpoint: String?): Boolean =
   if (endpoint == null) user.authOrigin == null else user.id != "local" && user.authOrigin == endpoint
 
-internal class PasswordlessAuthClient(private val endpoint: String, private val users: UserRepository) : PasswordlessAuth {
+internal class PasswordlessAuthClient(private val endpoint: String, private val users: UserRepository) : PasswordlessAuth, AccountRegistration {
   private val json = Json { ignoreUnknownKeys = true }
   private val sessionMutex = Mutex()
   private val client = httpClient {
     followRedirects = false
     install(HttpTimeout) { requestTimeoutMillis = 15_000 }
+  }
+
+  override suspend fun sendSignupCode(email: String) {
+    post("signup/code", fields("email" to email))
+  }
+
+  override suspend fun verifySignupCode(email: String, code: String): String =
+    json.decodeFromString<SignupProof>(post("signup/verify", fields("email" to email, "code" to code))).proof
+
+  override suspend fun registerAccount(email: String, proof: String, username: String, password: String) =
+    sessionMutex.withLock {
+      val reply = post("signup", fields("email" to email, "proof" to proof, "account" to username, "password" to password))
+      installSession(json.decodeFromString<SessionResponse>(reply))
+    }
+
+  suspend fun updateUsername(userId: String, username: String) {
+    withProfileSession(userId) { access ->
+      request(HttpMethod.Put, "me/username", fields("account" to username), access)
+    }
+  }
+
+  suspend fun sendEmailChangeCode(userId: String, email: String, password: String) {
+    withProfileSession(userId) { access ->
+      post("me/email/code", fields("email" to email, "password" to password), access)
+    }
+  }
+
+  suspend fun changeEmail(userId: String, email: String, code: String) {
+    withProfileSession(userId) { access ->
+      request(HttpMethod.Put, "me/email", fields("email" to email, "code" to code), access)
+    }
   }
 
   override suspend fun signInWithPassword(
@@ -91,15 +131,67 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     )
   }
 
-  suspend fun refresh(accountId: String) = sessionMutex.withLock {
-    val user = users.getUser() ?: return@withLock
-    if (user.id != accountId || !sessionMatchesAuthOrigin(user, endpoint)) return@withLock
-    val refreshToken = users.getTokens()?.refreshToken?.takeIf { it.isNotBlank() } ?: return@withLock
+  suspend fun getProfile(userId: String): AccountProfile = withProfileSession(userId) { access ->
+    val reply = json.decodeFromString<ProfileReply>(request(HttpMethod.Get, "me", accessToken = access))
+    require(reply.id == userId && reply.account.isNotBlank())
+    require(reply.avatarRevision == null || accountIdPattern.matches(reply.avatarRevision))
+    AccountProfile(reply.id, reply.account, reply.avatarRevision, reply.email)
+  }
+
+  suspend fun getAvatar(userId: String): AccountAvatar = withProfileSession(userId) { access ->
+    avatarRequest(HttpMethod.Get, access)
+  }
+
+  suspend fun updateAvatar(userId: String, jpeg: ByteArray): AccountAvatar = withProfileSession(userId) { access ->
+    avatarRequest(HttpMethod.Put, access, jpeg)
+  }
+
+  private suspend fun avatarRequest(method: HttpMethod, access: String, jpeg: ByteArray? = null): AccountAvatar {
+    val response = client.request("$endpoint/v1/auth/me/avatar") {
+      this.method = method
+      bearerAuth(access)
+      if (jpeg != null) {
+        contentType(ContentType.Image.JPEG)
+        setBody(jpeg)
+      }
+    }
+    if (!response.status.isSuccess()) throw AuthHttpException(response.status.value)
+    require(response.headers[HttpHeaders.ContentType] == ContentType.Image.JPEG.toString())
+    val tag = requireNotNull(response.headers[HttpHeaders.ETag])
+    require(tag.startsWith('"') && tag.endsWith('"'))
+    val revision = tag.removeSurrounding("\"")
+    require(accountIdPattern.matches(revision))
+    return AccountAvatar(revision, response.body<ByteArray>())
+  }
+
+  private suspend fun <T> withProfileSession(userId: String, call: suspend (String) -> T): T =
+    sessionMutex.withLock {
+      try {
+        call(profileAccessToken(userId))
+      } catch (failure: AuthHttpException) {
+        if (failure.status != 401) throw failure
+        refreshLocked(userId)
+        call(profileAccessToken(userId))
+      }
+    }
+
+  private suspend fun profileAccessToken(userId: String): String {
+    val user = checkNotNull(users.getUser())
+    check(user.id == userId && sessionMatchesAuthOrigin(user, endpoint))
+    return checkNotNull(users.getTokens()).accessToken
+  }
+
+  suspend fun refresh(accountId: String) = sessionMutex.withLock { refreshLocked(accountId) }
+
+  private suspend fun refreshLocked(accountId: String) {
+    val user = users.getUser() ?: return
+    if (user.id != accountId || !sessionMatchesAuthOrigin(user, endpoint)) return
+    val refreshToken = users.getTokens()?.refreshToken?.takeIf { it.isNotBlank() } ?: return
     val reply = try {
       json.decodeFromString<SessionResponse>(post("session/refresh", fields("refreshToken" to refreshToken)))
     } catch (failure: AuthHttpException) {
       if (failure.status == 401 || failure.status == 403) users.clear() else throw failure
-      return@withLock
+      return
     }
     check(reply.user.id == accountId)
     users.replaceTokens(accountId, refreshToken, reply.tokens())
@@ -185,3 +277,14 @@ private class SessionResponse(val user: Account, val accessToken: String, val re
 
 @Serializable
 private class Account(val id: String, val account: String)
+
+@Serializable
+private class ProfileReply(
+  val id: String,
+  val account: String,
+  val avatarRevision: String?,
+  val email: String? = null,
+)
+
+@Serializable
+private class SignupProof(val proof: String)

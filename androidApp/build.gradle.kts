@@ -147,6 +147,12 @@ android {
 
 androidComponents {
   onVariants { variant ->
+    val channel = when (variant.name) {
+      "prdFullRelease" -> "android-prd-full"
+      "prdMainlandRelease" -> "android-prd-mainland"
+      else -> ""
+    }
+    variant.manifestPlaceholders.put("notesUpdateChannel", channel)
     val flavorLabel = variant.flavorName?.replaceFirstChar { it.titlecase() }
     variant.outputs.forEach { output ->
       output.outputFileName.set(

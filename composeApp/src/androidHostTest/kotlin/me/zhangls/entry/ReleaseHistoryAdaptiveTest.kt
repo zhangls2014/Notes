@@ -63,20 +63,20 @@ class ReleaseHistoryAdaptiveTest(private val width: Int, private val columns: In
       }
     }
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(androidx.compose.ui.test.hasText("1.1.0")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(androidx.compose.ui.test.hasText("1.1.2")).fetchSemanticsNodes().isNotEmpty()
     }
     assertCardWidth(width, columns)
     compose.runOnIdle { windowWidth = 400 }
     assertCardWidth(400, 1)
     compose.runOnIdle { windowWidth = 1600 }
     assertCardWidth(1600, 3)
-    compose.onNodeWithText("1.1.0").assertIsDisplayed()
+    compose.onNodeWithText("1.1.2").assertIsDisplayed()
     compose.onNodeWithText("Release notes").assertIsDisplayed()
   }
 
   private fun assertCardWidth(windowWidth: Int, columnCount: Int) {
     val grid = compose.onNodeWithTag("release-history-grid").getUnclippedBoundsInRoot()
-    val card = compose.onNodeWithTag("release-1.1.0").getUnclippedBoundsInRoot()
+    val card = compose.onNodeWithTag("release-1.1.2").getUnclippedBoundsInRoot()
     val gridWidth = grid.right.value - grid.left.value
     val cardWidth = card.right.value - card.left.value
     assertEquals(windowWidth.toFloat(), gridWidth, 1f)

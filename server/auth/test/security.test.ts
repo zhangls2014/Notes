@@ -33,3 +33,11 @@ test("password hashes are salted and require an exact password match", async () 
   assert.equal(await verifyPassword(password.trim(), hash), false);
   assert.equal(await verifyPassword(password, null), false);
 });
+
+test("registration validates email and username as separate identifiers", async () => {
+  const { normalizeEmail, normalizeUsername } = await import("../src/security.ts");
+  assert.equal(normalizeEmail(" Alex+notes@EXAMPLE.COM "), "Alex+notes@example.com");
+  assert.equal(normalizeUsername(" Demo_User "), "demo_user");
+  assert.throws(() => normalizeEmail("alex@example.com, other@example.com"), /invalid_email/);
+  assert.throws(() => normalizeUsername("alex@example.com"), /invalid_account/);
+});

@@ -228,7 +228,7 @@ fun AppNavHost(
           embedProject = { embedProject.value },
         ) { effect -> paneNavigation.value(effect) }
 
-        loginNavEntry { result, destination ->
+        loginNavEntry(onNavigate = { navHandler(it) }) { result, destination ->
           if (result == LoginResult.Success && !accountNavigationManagedByApp) {
             // 去向取自登录页 key 自身携带的 redirectTo：它随返回栈一起被序列化恢复，
             // 因此 Activity 重建后依然成立；为空则进主页。

@@ -140,7 +140,7 @@
 
 - 本次自动验证（2026-10-28）：Android 4 个 Debug 变体构建完成；浏览器 Android 宿主测试 7 通过、0 跳过；`composeApp` iOS 模拟器测试 38 通过、0 跳过，其中浏览器相关 7 通过。首次扩展验证因堆内存不足中断，按仓库指引临时增加堆内存后串行完成，未修改全局配置。
 - 静态检查限制：普通 detekt 与 Android 宿主类型解析各因未修改文件中的 9 条存量告警失败，新增浏览器文件无规则告警。Android 主源码类型解析任务未报告规则告警，但 debug 输出包含 7 条编译诊断，涉及现有与新增的 expect/actual 识别和生成 `serializer()` 解析，不能视为完整语义分析通过；真实 Android 编译及 iOS 测试已分别验证。
-- [ ] **外链浏览器界面与返回行为（2026-10-28）**：开源组件的项目来源链接使用 Android Custom Tabs 与 iOS Safari 控制器。验收展示、关闭、重开、历史返回、普通浏览器回退，以及 iOS 已有模态界面时的拒绝处理和多窗口宿主归属。自动化异常/Intent 用例不替代实际界面验收；声明正文现为本地嵌入，不再等待托管或部署。
+- [ ] **外链浏览器界面与返回行为（2026-10-28）**：开源组件的项目来源链接使用 Android Custom Tabs 与 iOS Safari 控制器。验收展示、关闭、重开、历史返回、普通浏览器回退，以及 iOS 已有模态界面时的拒绝处理和多窗口宿主归属。自动化异常/Intent 用例不替代实际界面验收；包内声明可离线阅读，公开构建归档见 [网站部署](../notes-web-deployment.md)。
 - [ ] **本地声明 WebView 设备验收（2026-10-28）**：Android/iOS 分别加载自己的随包页面，列表—详情—返回和锚点定位、离线显示、外链交接、阅读位置恢复、1/1.5/2 倍字号、显式浅/深色及窄屏长按钮需实际设备确认。Android 连接设备在操作期间已切至其他应用，停止继续操控，未记录实际网页视觉通过；iOS 模拟器包已构建、安装并启动，但当前界面控制通道不支持 Simulator，未完成视觉验收。
 - 唯一网页源与平台资源隔离（2026-10-28）：仅 `web/open-source/` 的四份 HTML 入库，Gradle Sync 在构建时复制到被 Git 忽略的 `build/generated/open-source/`，源集内无副本。APK／iOS 模拟器 App 均只包含各自两页，内容与源文件逐字节一致。实测源 HTML 修改会自动进入 APK，仅影响对应平台；未修改时复制任务 `UP-TO-DATE`，配置缓存可复用。Android 网页压缩数据从 46,241 降至 21,687 字节。Python 7 项、脚本 1,920 组、重新执行的 Android 原生回归 3 项通过；Android 构建、iOS 编译和 Xcode 模拟器构建通过。About 静态检查通过，应用模块保留 9 条既有告警，无新增。迁移首轮发现旧共享资源残留，已备份旧构建目录后以新产物清单验证；包内容检查不代替设备视觉验收。
 - 全部声明网页外观跟随（2026-10-28）：Android/iOS 列表和许可证全文共四页保留应用字号、已解析深色模式及实际 Material 配色，包含 Android 动态取色。Node 1,920 组字号／主题／配色／URL 来源用例、Python 7 项、Android 宿主 30 项、iOS 模拟器 46 项均通过；Android DevFull Debug 构建、iOS 编译和 About/API 静态检查通过。四份预览与随包 HTML 逐字节一致。动态取色切换、应用重开、离线站内跳转的双端实际视觉仍待设备确认。
@@ -286,3 +286,8 @@
 - 本轮执行的应用宿主回归：60 项、50 通过、10 失败、0 跳过。失败为 `AboutNoticesNavigationTest` 的 `returningFromNoticesPreservesScroll`、`clickingNoticesMountsWebViewAndPredictiveReturnRevealsAbout`（测试传入 `1.1.0` 却等待 `Unreleased`）；`AboutUiTest.releaseHistoryPageOpensOfflineAndReturns` 四组窗口；`ReleaseHistoryAdaptiveTest.columnWidthTracksWindowAndReflowsWithoutLosingCurrentVersion` 的 width=840/fontScale=2；`ReleaseHistoryPostureTest` 的 `disabledMotionSwitchesImmediatelyWithoutIntermediateRotation`、`rtlKeepsThePhysicalHingeInPlace`、`fullOpenDefaultsToSingleAndManualSplitAvoidsOffCenterHinge`。其余失败原因尚未完成本次归因，不能视为发布回归通过。
 - 静态检查失败：`:feature:about:detekt` 报 `NoticesNavigationTest.kt:18` 原有长行的 `MaxLineLength`、`MaximumLineLength`、`ArgumentListWrapping`，本次未改该测试或放宽规则。
 - 待验收与关闭条件：修复并重新通过上述宿主断言和静态检查；Android/iOS 设备确认同系列单组按钮、模块位于按钮上方且始终可见、分类定位与聚合声明详情，以及返回滚动。未执行设备视觉验收或更新正式截图基线。
+
+## 官网与联网发布（2026-11-12）
+
+- [ ] 完成 Pages GitHub 预览与生产域名绑定，核对公开历史、各渠道清单、下载链接、声明归档及深链关联文件。
+- [ ] 在授权测试库和正式签名等效设备上验证密码、Passkey、会话以及 Android 覆盖安装和 iOS 商店跳转。操作步骤见 [网站部署与应用发布](../notes-web-deployment.md)。

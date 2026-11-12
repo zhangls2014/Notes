@@ -22,6 +22,27 @@ export function normalizeAccount(input: unknown): string {
   return account;
 }
 
+export function normalizeUsername(input: unknown): string {
+  const account = typeof input === "string" ? input.trim().toLowerCase() : "";
+  if (!accountName.test(account)) throw new RequestError(400, "invalid_account");
+  return account;
+}
+
+export function normalizeEmail(input: unknown): string {
+  const email = typeof input === "string" ? input.trim() : "";
+  const at = email.lastIndexOf("@");
+  if (email.length > 254 || !legacyEmail.test(email) || email.slice(0, at).split(".").some(part => !part)) {
+    throw new RequestError(400, "invalid_email");
+  }
+  return email.slice(0, at + 1) + email.slice(at + 1).toLowerCase();
+}
+
+export function readNewPassword(input: unknown): string {
+  const password = readPassword(input);
+  if ([...password].length < 15) throw new RequestError(400, "invalid_password");
+  return password;
+}
+
 export function token(): string {
   return randomBytes(32).toString("base64url");
 }

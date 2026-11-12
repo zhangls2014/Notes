@@ -2,6 +2,7 @@ package me.zhangls.entry.util
 
 import android.content.Context
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import me.zhangls.framework.AppInfo
 import org.koin.core.annotation.Singleton
 
@@ -11,6 +12,11 @@ class AndroidAppInfo(context: Context) : AppInfo {
 
   private fun packageInfo(): PackageInfo = with(applicationContext) {
     packageManager.getPackageInfo(packageName, 0)
+  }
+
+  override fun getUpdateChannel(): String? = with(applicationContext) {
+    packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+      .metaData?.getString("me.zhangls.notes.UPDATE_CHANNEL")?.takeIf { it.isNotBlank() }
   }
 
   override fun getVersionCode() = packageInfo().longVersionCode

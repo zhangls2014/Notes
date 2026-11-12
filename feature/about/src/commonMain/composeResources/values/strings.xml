@@ -7,7 +7,16 @@
   <string name="about_version_information">Version information</string>
   <string name="about_version">Version</string>
   <string name="about_check_updates">Check for updates</string>
-  <string name="about_coming_soon">Coming soon</string>
+  <string name="about_update_check">Check</string>
+  <string name="about_update_unavailable">Unavailable</string>
+  <string name="about_update_checking">Checking for updates…</string>
+  <string name="about_update_current">You have the latest version.</string>
+  <string name="about_update_failed">Could not check for updates. Try again.</string>
+  <string name="about_update_available">Notes %1$s is available.</string>
+  <string name="about_update_open">Get update</string>
+  <string name="about_update_retry">Retry</string>
+  <string name="about_open_in_browser">View in browser</string>
+  <string name="about_browser_failed">Could not open the browser.</string>
   <string name="about_update_description">New versions and release notes</string>
   <string name="about_unknown">Unknown</string>
   <string name="about_expanded">Version information expanded</string>

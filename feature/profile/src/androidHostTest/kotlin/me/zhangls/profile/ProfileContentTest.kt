@@ -10,11 +10,14 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.UserModel
 import me.zhangls.profile.mvi.AvatarSaveStatus
@@ -52,6 +55,36 @@ class ProfileContentTest {
     assertEquals(1, selections)
     compose.onNodeWithContentDescription("Back").performClick()
     assertEquals(1, back)
+  }
+
+  @Test
+  @Config(qualifiers = "en-rUS-w400dp-h800dp-mdpi")
+  fun changingEmailRequiresSendingCodeWithPasswordBeforeSaving() {
+    val requests = mutableListOf<String>()
+    compose.setContent {
+      ComposeAppTheme {
+        ProfileIdentityEditor(
+          field = ProfileField.Email,
+          username = "xander",
+          onCancel = {},
+          onSaveUsername = { error("Unexpected username update") },
+          onSendCode = { email, password ->
+            check(password == "example password")
+            requests += "send:$email"
+          },
+          onSaveEmail = { email, code -> requests += "save:$email:$code" },
+        )
+      }
+    }
+    compose.onNodeWithText("Confirm change").assertIsNotEnabled()
+    compose.onNode(hasSetTextAction() and hasText("Current password")).performTextInput("example password")
+    compose.onNode(hasSetTextAction() and hasText("New email")).performTextInput("new@example.com")
+    compose.onNodeWithText("Send code").performClick()
+    compose.onNode(hasSetTextAction() and hasText("Email verification code")).performTextInput("123456")
+    compose.onNodeWithText("Confirm change").performClick()
+    compose.runOnIdle {
+      assertEquals(listOf("send:new@example.com", "save:new@example.com:123456"), requests)
+    }
   }
 
   @Test fun savingDisablesChangeAndStatusIsAnnouncedWithRetryAvailable() {

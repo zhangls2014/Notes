@@ -4,6 +4,8 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.res.AssetFileDescriptor
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import com.mohamedrejeb.calf.io.KmpFile
 import kotlinx.coroutines.runBlocking
@@ -19,6 +21,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowContentResolver
 import java.io.File
 
@@ -69,6 +72,28 @@ class AvatarSaverTest {
     val before = directory.listFiles().orEmpty().map { it.name }.toSet()
     assertNull(saver.save(KmpFile(Uri.parse("content://empty-avatar/photo"))))
     assertEquals(before, directory.listFiles().orEmpty().map { it.name }.toSet())
+  }
+
+  @Test
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  fun uploadEncodingScalesToBoundedJpeg() {
+    val source = File.createTempFile("notes-avatar-source", ".png")
+    try {
+      val original = Bitmap.createBitmap(1024, 256, Bitmap.Config.ARGB_8888)
+      source.outputStream().use { assertTrue(original.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+      original.recycle()
+
+      val jpeg = saver.encodeForUpload(source.path)
+      assertTrue(jpeg.size in 1..AVATAR_MAX_BYTES)
+      assertEquals(0xff.toByte(), jpeg[0])
+      assertEquals(0xd8.toByte(), jpeg[1])
+      val decoded = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)
+      assertEquals(512, decoded.width)
+      assertEquals(128, decoded.height)
+      decoded.recycle()
+    } finally {
+      source.delete()
+    }
   }
 
   @Test fun extensionCannotEscapePrivateDirectory() {

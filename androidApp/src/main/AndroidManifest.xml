@@ -12,6 +12,7 @@
     android:roundIcon="@mipmap/app_ic_launcher_round"
     android:supportsRtl="true"
     android:theme="@style/Theme.AppCompat.NoActionBar">
+    <meta-data android:name="me.zhangls.notes.UPDATE_CHANNEL" android:value="${notesUpdateChannel}" />
     <activity
       android:name=".MainActivity"
       android:launchMode="singleTop"

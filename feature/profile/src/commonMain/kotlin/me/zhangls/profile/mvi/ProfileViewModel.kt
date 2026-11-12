@@ -20,6 +20,7 @@ internal class ProfileViewModel(
   savedStateHandle = savedStateHandle,
 ) {
   init {
+    viewModelScope.launch { avatars.refresh() }
     viewModelScope.launch {
       users.userFlow.collect { dispatch(ProfileAction.UpdateUser(it)) }
     }
@@ -44,6 +45,12 @@ internal class ProfileViewModel(
       }
     }
   }
+
+  suspend fun updateUsername(username: String) = avatars.updateUsername(username)
+
+  suspend fun sendEmailChangeCode(email: String, password: String) = avatars.sendEmailChangeCode(email, password)
+
+  suspend fun changeEmail(email: String, code: String) = avatars.changeEmail(email, code)
 
   private fun dispatch(action: ProfileAction) {
     updateState { ProfileReducer.reduce(this, action) }

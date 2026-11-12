@@ -140,7 +140,7 @@ class AboutNoticesNavigationTest {
   }
 
   @Test fun returningFromNoticesPreservesScroll() {
-    provideAboutAppInfo(me.zhangls.about.api.AboutAppInfo("1.1.0", "2"))
+    provideAboutAppInfo(me.zhangls.about.api.AboutAppInfo("1.1.2", "5"))
     launch()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.waitUntil(timeoutMillis = 10_000) {
@@ -160,7 +160,7 @@ class AboutNoticesNavigationTest {
   }
 
   @Test fun clickingNoticesMountsWebViewAndPredictiveReturnRevealsAbout() {
-    provideAboutAppInfo(me.zhangls.about.api.AboutAppInfo("1.1.0", "2"))
+    provideAboutAppInfo(me.zhangls.about.api.AboutAppInfo("1.1.2", "5"))
     launch()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.waitUntil(timeoutMillis = 10_000) {
@@ -211,13 +211,13 @@ class AboutNoticesNavigationTest {
     val posture = Posture(hingeList = listOf(HingeInfo(Rect(360f, 0f, 380f, 600f), true, true, false, false)))
     launch(1200, posture)
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(hasTestTag("release-1.1.0")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(hasTestTag("release-1.1.2")).fetchSemanticsNodes().isNotEmpty()
     }
     compose.onNodeWithContentDescription("Switch to columns").performClick()
     compose.onNodeWithTag("release-history-grid").performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, 80f) }
     val initial = historyCardGeometry()
     assertTrue("Regression must begin with a scrolled list", initial.second.y < 16f)
-    val initialVisibleWidth = compose.onNodeWithTag("release-1.1.0").fetchSemanticsNode().boundsInRoot.width
+    val initialVisibleWidth = compose.onNodeWithTag("release-1.1.2").fetchSemanticsNode().boundsInRoot.width
     val dispatcher = checkNotNull(rootView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
     compose.mainClock.autoAdvance = false
     try {
@@ -232,7 +232,7 @@ class AboutNoticesNavigationTest {
         assertEquals("Gesture must preserve layout size and scroll position", initial, historyCardGeometry())
         assertTrue(
           "Predictive return must still visually shrink the page",
-          compose.onNodeWithTag("release-1.1.0").fetchSemanticsNode().boundsInRoot.width < initialVisibleWidth,
+          compose.onNodeWithTag("release-1.1.2").fetchSemanticsNode().boundsInRoot.width < initialVisibleWidth,
         )
       }
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
@@ -247,7 +247,7 @@ class AboutNoticesNavigationTest {
   }
 
   private fun historyCardGeometry(): Pair<IntSize, Offset> {
-    val card = compose.onNodeWithTag("release-1.1.0").fetchSemanticsNode().layoutInfo.coordinates
+    val card = compose.onNodeWithTag("release-1.1.2").fetchSemanticsNode().layoutInfo.coordinates
     val grid = compose.onNodeWithTag("release-history-grid").fetchSemanticsNode().layoutInfo.coordinates
     return card.size to grid.localPositionOf(card, Offset.Zero)
   }

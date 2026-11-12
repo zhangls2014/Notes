@@ -7,6 +7,7 @@ import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.login.api.LoginDestination
+import me.zhangls.login.api.RegistrationDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
@@ -24,6 +25,19 @@ class TabNavigationTest {
     assertEquals(listOf<NavKey>(SettingsDestination, AboutDestination), state.backStack.toList())
     handler(NavEffect.Popup)
     assertEquals(listOf<NavKey>(SettingsDestination), state.backStack.toList())
+  }
+
+  @Test
+  fun registrationUsesTheLoginStackAndBackRestoresLogin() {
+    val target = ProfileDestination(ProfileOrigin.Settings)
+    val login = LoginDestination(redirectTo = target)
+    val registration = RegistrationDestination(redirectTo = target)
+    val state = navigationState(NavBackStack<NavKey>(login))
+    val handler = NavHandler(state) { false }
+    handler(NavEffect.Navigate(registration))
+    assertEquals(listOf<NavKey>(login, registration), state.backStack.toList())
+    handler(NavEffect.Popup)
+    assertEquals(listOf<NavKey>(login), state.backStack.toList())
   }
 
   @Test fun homeSelectionReplacesDetailAndCloseReturnsToList() {

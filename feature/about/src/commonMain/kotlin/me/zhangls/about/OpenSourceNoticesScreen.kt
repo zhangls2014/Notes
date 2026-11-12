@@ -9,7 +9,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.ktor.http.URLBuilder
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_copyright_notices
@@ -28,18 +30,25 @@ internal fun OpenSourceNoticesScreen(
   onExternalLink: (String) -> Unit,
 ) {
   val notifier = koinInject<ToastGlobalNotifier>()
+  val appearance = currentNoticesAppearance()
+  val appInfo = koinInject<AppInfo>()
+  val onlineUrl = appInfo.onlineNoticesPath()?.takeIf { page == OpenSourcePage.LIBRARIES }?.let { path ->
+    URLBuilder("$NOTES_SITE$path").apply {
+      appearance.noticesAppearanceParameters().forEach { (key, value) -> parameters.append(key, value) }
+    }.buildString()
+  }
   Scaffold(topBar = {
     val title = when {
       page == OpenSourcePage.LIBRARIES -> stringResource(Res.string.about_open_source_notices)
       anchor?.startsWith("license-") == true -> stringResource(Res.string.about_license)
       else -> stringResource(Res.string.about_copyright_notices)
     }
-    NoticesTopAppBar(title = title, onBack = onBack, isDetail = page != OpenSourcePage.LIBRARIES)
+    NoticesTopAppBar(title = title, onBack = onBack, isDetail = page != OpenSourcePage.LIBRARIES, onlineUrl = onlineUrl)
   }) { padding ->
     NoticesWebView(
       page = page,
       anchor = anchor,
-      appearance = currentNoticesAppearance(),
+      appearance = appearance,
       onNavigate = onNavigate,
       onExternalLink = onExternalLink,
       onError = { notifier.showToast(Res.string.about_notices_open_failed) },

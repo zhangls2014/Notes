@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import me.zhangls.about.ui.ReleaseChanges
@@ -86,6 +87,8 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit) {
       title = stringResource(Res.string.about_release_history),
       navigate = onBack,
       actions = {
+        val language = if (Locale.current.language == "zh") "zh" else "en"
+        OpenInBrowserAction("$NOTES_SITE/releases/?lang=$language")
         if (canToggle) {
           val rotation = animateFloatAsState(
             targetValue = if (manualSplit) LAYOUT_ICON_ROTATION_DEGREES else 0f,

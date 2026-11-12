@@ -5,6 +5,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:notes.zhangls.me</string>
+		<string>webcredentials:auth.notes.zhangls.me</string>
 	</array>
 </dict>
 </plist>

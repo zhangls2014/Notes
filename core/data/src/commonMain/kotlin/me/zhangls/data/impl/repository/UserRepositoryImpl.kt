@@ -86,15 +86,33 @@ internal class UserRepositoryImpl(
     prefsDataStore.edit { it[userKey] = json.encodeToString(user.copy(biometricUnlockEnabled = false)) }
   }
 
-  override suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean = mutex.withLock {
+  override suspend fun updateAvatar(avatar: String, expectedUser: UserModel): Boolean =
+    replaceProfile(expectedUser) { it.copy(avatar = avatar) }
+
+  override suspend fun updateAccountProfile(
+    account: String,
+    avatar: String?,
+    revision: String?,
+    expectedUser: UserModel,
+    email: String?,
+  ): Boolean = replaceProfile(expectedUser) {
+    it.copy(nickname = account, avatar = avatar, avatarRevision = revision, email = email)
+  }
+
+  private suspend fun replaceProfile(
+    expectedUser: UserModel,
+    transform: (UserModel) -> UserModel,
+  ): Boolean = mutex.withLock {
     migrate()
     val current = readProfile() ?: return@withLock false
-    if (current.id != expectedUser.id || current.nickname != expectedUser.nickname ||
-      current.avatar != expectedUser.avatar || matchingCredentials(current) == null
+    if (current.id != expectedUser.id || current.authOrigin != expectedUser.authOrigin ||
+      current.nickname != expectedUser.nickname || current.avatar != expectedUser.avatar ||
+      current.avatarRevision != expectedUser.avatarRevision || current.email != expectedUser.email ||
+      matchingCredentials(current) == null
     ) {
       return@withLock false
     }
-    prefsDataStore.edit { it[userKey] = json.encodeToString(current.copy(avatar = avatar)) }
+    prefsDataStore.edit { it[userKey] = json.encodeToString(transform(current)) }
     true
   }
 

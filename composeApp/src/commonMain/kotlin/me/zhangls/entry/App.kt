@@ -3,8 +3,8 @@ package me.zhangls.entry
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -26,12 +26,14 @@ import me.zhangls.about.api.AboutEntry
 import me.zhangls.entry.data.sample.LocalEmailsDataProvider
 import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.SystemToast
+import me.zhangls.login.api.LocalAccountRegistration
 import me.zhangls.login.api.LocalPasskeyProvider
 import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.PasskeyProvider
 import me.zhangls.model.AppLanguage
-import me.zhangls.settings.api.LocalPasskeyManagementAvailable
 import me.zhangls.preference.DarkThemePreference
+import me.zhangls.profile.api.AccountProfileRefresh
+import me.zhangls.settings.api.LocalPasskeyManagementAvailable
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
@@ -66,6 +68,7 @@ fun App(
   val state by viewModel.state.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val services: AppSessionServices = koinInject()
+  val profile: AccountProfileRefresh = koinInject()
   val accounts = services.accounts
   val auth = services.auth
   val accountId = state.accountId
@@ -88,6 +91,9 @@ fun App(
     } catch (_: Exception) {
       accountDataError = true
     }
+  }
+  LaunchedEffect(profile, accessibleAccount) {
+    if (auth != null && accessibleAccount != null) profile.refresh()
   }
   LaunchedEffect(auth, accessibleAccount) {
     if (auth == null || accessibleAccount == null) return@LaunchedEffect
@@ -144,7 +150,8 @@ fun App(
   CompositionLocalProvider(
     LocalUriHandler provides browserUriHandler,
     LocalPasswordlessAuth provides auth,
-    LocalPasskeyProvider provides passkeyProvider?.takeIf { BuildKonfig.AUTH_PASSKEYS_ENABLED },
+    LocalAccountRegistration provides auth,
+    LocalPasskeyProvider provides passkeyProvider?.takeIf { services.passkeysEnabled },
     LocalPasskeyManagementAvailable provides (auth != null),
     LocalWindowAdaptiveInfo provides windowAdaptiveInfo,
     LocalPaneScaffoldDirective provides paneScaffoldDirective,

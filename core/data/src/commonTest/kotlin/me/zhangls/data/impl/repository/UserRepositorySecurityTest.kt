@@ -79,6 +79,33 @@ class UserRepositorySecurityTest {
   }
 
   @Test
+  fun serverProfilePreservesDeviceStateAndRejectsStaleOriginOrRevision() = runTest {
+    val path =
+      FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-profile-test-${kotlin.random.Random.nextLong()}.preferences_pb"
+    val prefs = PreferenceDataStoreFactory.createWithPath(scope = backgroundScope) { path }
+    val repository = UserRepositoryImpl(prefs, FakeStore())
+    try {
+      val user = UserModel("one", "Cached", "old", authOrigin = "https://auth.test")
+      repository.login(user, AuthTokens("access", "refresh"))
+      repository.updateBiometricUnlock(true)
+      repository.updateEmailSearchHistory("query")
+
+      assertTrue(repository.updateAccountProfile("Server", "new", "revision", user))
+      val updated = repository.getUser()!!
+      assertEquals("Server", updated.nickname)
+      assertEquals("new", updated.avatar)
+      assertEquals("revision", updated.avatarRevision)
+      assertTrue(updated.biometricUnlockEnabled)
+      assertEquals(listOf("query"), updated.emailSearchHistory)
+      assertFalse(repository.updateAccountProfile("Stale", "old", null, user))
+      assertFalse(repository.updateAccountProfile("Other", null, null, updated.copy(authOrigin = "https://other.test")))
+      assertEquals(updated, repository.getUser())
+    } finally {
+      FileSystem.SYSTEM.delete(path, mustExist = false)
+    }
+  }
+
+  @Test
   fun biometricUnlockPersistsOnlyForTheCurrentSession() = runTest {
     val path =
       FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "notes-token-test-${kotlin.random.Random.nextLong()}.preferences_pb"

@@ -15,7 +15,10 @@ class NoticesNavigationTest {
       assertEquals(uri, noticesPageUri(libraries, OpenSourcePage.LICENSES, id))
       assertEquals(
         LocalNoticesLink(OpenSourcePage.LICENSES, id),
-        localNoticesLink("file:///app/resources/android-licenses.html?fontScale=2&theme=dark&lang=zh-CN#$id", libraries),
+        localNoticesLink(
+          "file:///app/resources/android-licenses.html?fontScale=2&theme=dark&lang=zh-CN#$id",
+          libraries,
+        ),
       )
     }
     assertEquals(LocalNoticesLink(OpenSourcePage.LIBRARIES, null), localNoticesLink(libraries, libraries))

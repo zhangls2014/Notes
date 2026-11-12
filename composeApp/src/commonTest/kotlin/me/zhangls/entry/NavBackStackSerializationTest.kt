@@ -16,6 +16,7 @@ import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailNavigation
 import me.zhangls.framework.nav.NavigationContribution
 import me.zhangls.login.api.LoginDestination
+import me.zhangls.login.api.RegistrationDestination
 import me.zhangls.login.api.LoginNavigation
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
@@ -90,6 +91,13 @@ class NavBackStackSerializationTest {
       LoginDestination(redirectTo = EmailDetailDestination(emailId = 7L)),
     )
 
+    assertEquals(stack.toList(), roundTrip(stack).toList())
+  }
+
+  @Test
+  fun registrationRestoresTheOriginalLoginRedirect() {
+    val redirect = EmailDetailDestination(emailId = 7L)
+    val stack = NavBackStack<NavKey>(LoginDestination(redirect), RegistrationDestination(redirect))
     assertEquals(stack.toList(), roundTrip(stack).toList())
   }
 

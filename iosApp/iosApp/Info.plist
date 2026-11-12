@@ -13,6 +13,8 @@
     <true />
     <key>NSFaceIDUsageDescription</key>
     <string>Use Face ID to unlock Notes on this device.</string>
+    <key>NotesUpdateChannel</key>
+    <string>$(NOTES_UPDATE_CHANNEL)</string>
     <key>CFBundleLocalizations</key>
     <array>
       <string>en</string>

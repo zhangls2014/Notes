@@ -7,7 +7,16 @@
   <string name="about_version_information">版本信息</string>
   <string name="about_version">版本号</string>
   <string name="about_check_updates">检查更新</string>
-  <string name="about_coming_soon">即将推出</string>
+  <string name="about_update_check">检查</string>
+  <string name="about_update_unavailable">不可用</string>
+  <string name="about_update_checking">正在检查更新…</string>
+  <string name="about_update_current">当前已是最新版本。</string>
+  <string name="about_update_failed">检查更新失败，请重试。</string>
+  <string name="about_update_available">Notes %1$s 已可获取。</string>
+  <string name="about_update_open">获取更新</string>
+  <string name="about_update_retry">重试</string>
+  <string name="about_open_in_browser">在浏览器查看</string>
+  <string name="about_browser_failed">无法打开浏览器。</string>
   <string name="about_update_description">查看新版本与更新内容</string>
   <string name="about_unknown">未知</string>
   <string name="about_expanded">版本信息已展开</string>

@@ -13,6 +13,7 @@ import me.zhangls.framework.nav.registerDestination
 object LoginNavigation : NavigationContribution {
   override val navModule: SerializersModule = SerializersModule {
     registerDestination(LoginDestination::class, LoginDestination.serializer())
+    registerDestination(RegistrationDestination::class, RegistrationDestination.serializer())
   }
 
   override val deepLinkMatchers: List<DeepLinkMatcher> = emptyList()

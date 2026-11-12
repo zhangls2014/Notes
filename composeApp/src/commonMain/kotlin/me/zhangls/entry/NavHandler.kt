@@ -13,6 +13,7 @@ import me.zhangls.framework.nav.Destination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.RequireLogin
 import me.zhangls.login.api.LoginDestination
+import me.zhangls.login.api.RegistrationDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.SettingsDestination
@@ -76,6 +77,10 @@ internal class NavHandler(private val state: AppNavigationState, private val isL
   private fun push(destination: Destination) {
     if (destination is LoginDestination) {
       reset(destination)
+      return
+    }
+    if (destination is RegistrationDestination) {
+      if (backStack.lastOrNull() is LoginDestination) backStack.add(destination)
       return
     }
     val leavingLogin = state.selectedRoot is LoginDestination

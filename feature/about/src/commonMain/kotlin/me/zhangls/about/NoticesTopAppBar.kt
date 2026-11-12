@@ -18,7 +18,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun NoticesTopAppBar(title: String, onBack: () -> Unit, isDetail: Boolean) {
+internal fun NoticesTopAppBar(title: String, onBack: () -> Unit, isDetail: Boolean, onlineUrl: String? = null) {
   val scene = LocalListDetailSceneScope.current
   val listVisible = scene != null && scene.scaffoldTransitionScope.scaffoldStateTransition.targetState[
     ListDetailPaneScaffoldRole.List,
@@ -28,6 +28,7 @@ internal fun NoticesTopAppBar(title: String, onBack: () -> Unit, isDetail: Boole
     title = title,
     navigate = onBack.takeUnless { showClose },
     actions = {
+      onlineUrl?.let { OpenInBrowserAction(it) }
       if (showClose) {
         IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
           Icon(imageVector = Icons.Rounded.Close, contentDescription = stringResource(Res.string.about_close_detail))

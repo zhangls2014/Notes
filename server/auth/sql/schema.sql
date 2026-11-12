@@ -1,14 +1,21 @@
 CREATE TABLE auth_users (
   id uuid PRIMARY KEY,
-  email text NOT NULL UNIQUE
+  account text NOT NULL UNIQUE CHECK (account ~ '^[a-z0-9][a-z0-9._-]{2,63}$'),
+  email text NOT NULL UNIQUE,
+  password_hash bytea NOT NULL
 );
 
 CREATE TABLE auth_email_codes (
-  email text PRIMARY KEY,
-  digest bytea NOT NULL,
+  scope text NOT NULL,
+  email text NOT NULL,
+  digest bytea,
+  proof_digest bytea,
+  sent_at timestamptz NOT NULL DEFAULT now(),
   expires_at timestamptz NOT NULL,
-  attempts_left smallint NOT NULL
+  attempts_left smallint NOT NULL CHECK (attempts_left >= 0),
+  PRIMARY KEY (scope, email)
 );
+CREATE INDEX auth_email_codes_expiry ON auth_email_codes(expires_at);
 
 CREATE TABLE auth_rate_limits (
   bucket text PRIMARY KEY,
@@ -42,4 +49,10 @@ CREATE TABLE auth_challenges (
   purpose text NOT NULL CHECK (purpose IN ('registration', 'authentication')),
   session_id uuid REFERENCES auth_sessions(id) ON DELETE CASCADE,
   expires_at timestamptz NOT NULL
+);
+
+CREATE TABLE auth_user_avatars (
+  user_id uuid PRIMARY KEY REFERENCES auth_users(id) ON DELETE CASCADE,
+  revision uuid NOT NULL,
+  jpeg bytea NOT NULL CHECK (octet_length(jpeg) BETWEEN 1 AND 262144)
 );

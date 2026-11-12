@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -63,6 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import me.zhangls.login.api.LocalAccountRegistration
 import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.domain.AccountError
@@ -98,6 +100,7 @@ import notes.feature.login.generated.resources.login_brand_tagline
 import notes.feature.login.generated.resources.login_label_account
 import notes.feature.login.generated.resources.login_label_password
 import notes.feature.login.generated.resources.login_state_loading
+import notes.feature.login.generated.resources.signup_title
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -300,6 +303,13 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
               Text(text = stringResource(Res.string.login_action_login))
             }
             PasswordlessForm(state, onIntent)
+            if (LocalAccountRegistration.current != null) {
+              LocalOpenRegistration.current?.let { open ->
+                TextButton(onClick = open, enabled = !state.isLoading) {
+                  Text(stringResource(Res.string.signup_title))
+                }
+              }
+            }
           }
         },
       ) { measurables, layoutConstraints ->

@@ -8,7 +8,7 @@
 |---|---|---|
 | 项目入口 | 根 `README.md`、`AGENTS.md` | 快速开始、执行命令和硬约束 |
 | 当前规范 | `architecture.md`、`dependency-upgrades.md` | 当前架构与长期升级规则 |
-| 操作指南 | `testing/`，除待验收清单 | 可重复的验证步骤与适用边界 |
+| 操作指南 | `testing/`，除待验收清单；`notes-web-deployment.md`、`notes-auth-deployment.md` | 可重复的验证与部署步骤 |
 | 待验收事项 | `testing/pending-acceptance.md` | 尚未关闭的事项、已有证据与关闭条件 |
 | 决策理由 | `decisions.md` | 无法单靠源码恢复的选择理由 |
 | 调查证据 | `audits/` | 有独立价值的实验条件、对照与结论 |
@@ -22,7 +22,9 @@
 - [根 README.md](../README.md)：面向开发者的项目概览、环境要求和快速开始。
 - [依赖与工具链升级规范](dependency-upgrades.md)：官方范围上限、正式版优先、版本兼容选择、验证和授权边界。
 
-- [应用版本与更新记录](app-releases.md)：版本递增、离线更新日志数据格式与发布维护流程。
+- [应用版本与更新记录](app-releases.md)：版本递增、更新记录与发布维护流程。
+- [网站部署与应用发布](notes-web-deployment.md)：Pages、下载及声明归档的操作步骤。
+- [认证服务部署与配置清单](notes-auth-deployment.md)：PostgreSQL、SMTP、Nginx、Passkey 关联与上线验收。
 - [Android 启动图标与应用名称](android-app-identity.md)：构建类型的图标、独立包命名及资源生成。
 - [iOS 启动图标与应用名称](ios-app-identity.md)：Xcode 构建配置、独立 Bundle ID 命名及资源生成。
 
@@ -36,6 +38,8 @@ docs/
 ├── architecture.md        # 当前模块职责、依赖边界与运行时架构
 ├── dependency-upgrades.md # 长期依赖与工具链升级规范
 ├── ios-app-identity.md     # iOS 启动图标、应用名称及资源生成
+├── notes-auth-deployment.md # 认证源站部署与配置清单
+├── notes-web-deployment.md # 网站部署与联网发布指南
 ├── decisions.md           # 重要决策的理由与历史追溯
 ├── testing/               # 测试入口与平台/专项操作指南
 │   ├── README.md          # 源集、模块与回归命令索引

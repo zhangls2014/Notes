@@ -5,6 +5,30 @@
     "changes": [
       {
         "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Register with a verified email and manage your username, email, and avatar in Profile.",
+          "zh": "支持通过邮箱验证码注册，并在个人信息页设置用户名、修改邮箱和更换头像。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Signed-in accounts can load their profile and sync avatar changes across devices.",
+          "zh": "登录后可获取账号资料，更换的头像会同步到其他设备。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Check for app updates and view release history and open-source notices on the Notes website.",
+          "zh": "支持检查应用更新，并可在 Notes 官网查看历史更新与开源声明。"
+        }
+      },
+      {
+        "type": "added",
         "platforms": [
           "android"
         ],

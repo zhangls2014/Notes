@@ -11,9 +11,12 @@ import type {
   RegistrationResponseJSON,
 } from "@simplewebauthn/server";
 import type { Pool, PoolClient } from "pg";
-import { rateLimitDigest, RequestError, token, tokenDigest, verifyPassword } from "./security.ts";
+import { normalizeAvatar } from "./avatar.ts";
+import { createEmailCodes } from "./email-codes.ts";
+import type { SendEmail } from "./email-codes.ts";
+import { hashPassword, rateLimitDigest, RequestError, token, tokenDigest, verifyPassword } from "./security.ts";
 
-type Session = { session_id: string; id: string; account: string; verified_at: Date };
+type Session = { session_id: string; id: string; account: string; email: string; verified_at: Date };
 type User = Pick<Session, "id" | "account">;
 type Challenge = { challenge: string };
 type Passkey = {
@@ -30,8 +33,11 @@ export function createAuthService(config: {
   rpId: string;
   origins: string[];
   codeKey: string;
+  sendEmail: SendEmail;
 }) {
-  const { database, rpId, origins, codeKey } = config;
+  const { database, rpId, origins, codeKey, sendEmail } = config;
+  const emailCodes = createEmailCodes(database, codeKey, sendEmail);
+  const signup = "signup";
 
   async function transaction<T>(operation: (db: PoolClient) => Promise<T>): Promise<T> {
     const db = await database.connect();
@@ -77,7 +83,7 @@ export function createAuthService(config: {
 
   async function requireSession(accessToken: string): Promise<Session> {
     const { rows: [session] } = await database.query<Session>(
-      `SELECT s.id AS session_id, u.id, u.account, s.verified_at
+      `SELECT s.id AS session_id, u.id, u.account, u.email, s.verified_at
        FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
        WHERE s.access_digest = $1 AND s.access_expires_at > now()`,
       [tokenDigest(accessToken)],
@@ -112,7 +118,99 @@ export function createAuthService(config: {
     return row.challenge;
   }
 
+  function emailChangeScope(session: Session) {
+    return "email-change:" + session.session_id;
+  }
+
+  async function emailIsRegistered(email: string): Promise<boolean> {
+    const result = await database.query("SELECT 1 FROM auth_users WHERE email = $1", [email]);
+    return Boolean(result.rowCount);
+  }
+
   return {
+    async sendSignupCode(email: string, ip: string) {
+      if (!await withinLimit("signup-ip", ip, 20, 15) || !await withinLimit("signup-email", email, 5, 15)) {
+        throw new RequestError(429, "try_later");
+      }
+      if (!await emailIsRegistered(email)) await emailCodes.send(signup, email);
+    },
+
+    async verifySignupCode(email: string, code: string, ip: string) {
+      if (!await withinLimit("signup-verify-ip", ip, 50, 15)) throw new RequestError(429, "try_later");
+      return { proof: await emailCodes.verify(signup, email, code) };
+    },
+
+    async registerAccount(email: string, proof: string, account: string, password: string, ip: string) {
+      if (!await withinLimit("signup-finish-ip", ip, 25, 15)) throw new RequestError(429, "try_later");
+      return transaction(async db => {
+        await emailCodes.consume(db, signup, email, proof);
+        const result = await db.query<User>(
+          `INSERT INTO auth_users (id, account, email, password_hash) VALUES ($1, $2, $3, $4)
+           ON CONFLICT DO NOTHING RETURNING id, account`,
+          [randomUUID(), account, email, await hashPassword(password)],
+        );
+        if (!result.rows[0]) throw new RequestError(409, "account_unavailable");
+        return issueSession(db, result.rows[0]);
+      });
+    },
+
+    async updateUsername(accessToken: string, account: string) {
+      const session = await requireSession(accessToken);
+      if (!await withinLimit("rename-account", session.id, 10, 15)) throw new RequestError(429, "try_later");
+      try {
+        const result = await database.query(
+          `UPDATE auth_users SET account = $1 WHERE id = $2
+           AND EXISTS (SELECT 1 FROM auth_sessions WHERE id = $3 AND access_digest = $4 AND access_expires_at > now())`,
+          [account, session.id, session.session_id, tokenDigest(accessToken)],
+        );
+        if (!result.rowCount) throw new RequestError(401, "invalid_session");
+      } catch (error) {
+        if (error instanceof Error && "code" in error && error.code === "23505") {
+          throw new RequestError(409, "account_unavailable");
+        }
+        throw error;
+      }
+    },
+
+    async sendEmailChangeCode(accessToken: string, email: string, password: string) {
+      const session = await requireSession(accessToken);
+      if (email === session.email) throw new RequestError(400, "email_unchanged");
+      if (!await withinLimit("email-change-account", session.id, 5, 15) ||
+        !await withinLimit("email-change-email", email, 5, 15)) {
+        throw new RequestError(429, "try_later");
+      }
+      const { rows: [user] } = await database.query<{ password_hash: Buffer }>(
+        "SELECT password_hash FROM auth_users WHERE id = $1", [session.id],
+      );
+      if (!await verifyPassword(password, user?.password_hash ?? null)) {
+        throw new RequestError(403, "invalid_credentials");
+      }
+      if (!await emailIsRegistered(email)) await emailCodes.send(emailChangeScope(session), email);
+    },
+
+    async changeEmail(accessToken: string, email: string, code: string) {
+      const session = await requireSession(accessToken);
+      if (!await withinLimit("email-change-verify", session.id, 25, 15)) throw new RequestError(429, "try_later");
+      const scope = emailChangeScope(session);
+      const proof = await emailCodes.verify(scope, email, code);
+      try {
+        await transaction(async db => {
+          await emailCodes.consume(db, scope, email, proof);
+          const result = await db.query(
+            `UPDATE auth_users SET email = $1 WHERE id = $2 AND email = $3
+             AND EXISTS (SELECT 1 FROM auth_sessions WHERE id = $4 AND access_digest = $5 AND access_expires_at > now())`,
+            [email, session.id, session.email, session.session_id, tokenDigest(accessToken)],
+          );
+          if (!result.rowCount) throw new RequestError(409, "profile_changed");
+        });
+      } catch (error) {
+        if (error instanceof Error && "code" in error && error.code === "23505") {
+          throw new RequestError(409, "email_unavailable");
+        }
+        throw error;
+      }
+    },
+
     async signInWithPassword(account: string, password: string, ip: string) {
       if (!await withinLimit("password-ip", ip, 50, 15) ||
         !await withinLimit("password-account", account, 10, 15)) {
@@ -204,6 +302,41 @@ export function createAuthService(config: {
           [result.authenticationInfo.newCounter, credential.id]);
         return issueSession(db, { id: credential.user_id, account: credential.account });
       });
+    },
+
+    async getProfile(accessToken: string) {
+      const session = await requireSession(accessToken);
+      const { rows: [avatar] } = await database.query<{ revision: string }>(
+        "SELECT revision FROM auth_user_avatars WHERE user_id = $1", [session.id],
+      );
+      return { id: session.id, account: session.account, email: session.email, avatarRevision: avatar?.revision ?? null };
+    },
+
+    async getAvatar(accessToken: string) {
+      const session = await requireSession(accessToken);
+      const { rows: [avatar] } = await database.query<{ revision: string; jpeg: Buffer }>(
+        "SELECT revision, jpeg FROM auth_user_avatars WHERE user_id = $1", [session.id],
+      );
+      if (!avatar) throw new RequestError(404, "avatar_not_found");
+      return avatar;
+    },
+
+    async updateAvatar(accessToken: string, upload: Buffer) {
+      const session = await requireSession(accessToken);
+      if (!await withinLimit("avatar-account", session.id, 10, 10)) {
+        throw new RequestError(429, "rate_limited");
+      }
+      const jpeg = await normalizeAvatar(upload);
+      const revision = randomUUID();
+      const result = await database.query(
+        `INSERT INTO auth_user_avatars (user_id, revision, jpeg)
+         SELECT user_id, $1, $2 FROM auth_sessions
+         WHERE id = $3 AND access_digest = $4 AND access_expires_at > now()
+         ON CONFLICT (user_id) DO UPDATE SET revision = EXCLUDED.revision, jpeg = EXCLUDED.jpeg`,
+        [revision, jpeg, session.session_id, tokenDigest(accessToken)],
+      );
+      if (!result.rowCount) throw new RequestError(401, "invalid_session");
+      return { revision, jpeg };
     },
 
     async listPasskeys(accessToken: string) {

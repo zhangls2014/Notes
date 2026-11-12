@@ -3,6 +3,60 @@ info:
   title: Notes authentication
   version: 1.0.0
 paths:
+  /v1/auth/signup/code:
+    post:
+      operationId: sendSignupCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '204':
+          description: Code request accepted
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/signup/verify:
+    post:
+      operationId: verifySignupCode
+      requestBody:
+        $ref: '#/components/requestBodies/EmailCode'
+      responses:
+        '200':
+          description: Single-use proof for the verified email
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proof]
+                properties:
+                  proof: { type: string, minLength: 43, maxLength: 43 }
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/signup:
+    post:
+      operationId: registerAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, proof, account, password]
+              properties:
+                email: { type: string, format: email }
+                proof: { type: string, minLength: 43, maxLength: 43 }
+                account: { type: string, minLength: 3, maxLength: 64 }
+                password: { type: string, minLength: 15, maxLength: 1024, format: password, writeOnly: true }
+      responses:
+        '201':
+          $ref: '#/components/responses/Session'
+        default:
+          $ref: '#/components/responses/Error'
   /v1/auth/password/login:
     post:
       operationId: signInWithPassword
@@ -14,7 +68,7 @@ paths:
               type: object
               required: [account, password]
               properties:
-                account: { type: string, minLength: 3, maxLength: 254, description: "Account name or existing email-style account" }
+                account: { type: string, minLength: 3, maxLength: 64, description: "Username" }
                 password: { type: string, minLength: 1, maxLength: 1024, format: password, writeOnly: true }
       responses:
         '200':
@@ -104,6 +158,105 @@ paths:
           description: No current credential remains with the given identifier
         default:
           $ref: '#/components/responses/Error'
+  /v1/auth/me:
+    get:
+      operationId: getProfile
+      security: [{ bearer: [] }]
+      responses:
+        '200':
+          description: Current account profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, account, email, avatarRevision]
+                properties:
+                  id: { type: string, format: uuid }
+                  account: { type: string }
+                  email: { type: string, format: email }
+                  avatarRevision: { type: [string, 'null'], format: uuid }
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/me/username:
+    put:
+      operationId: updateUsername
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [account]
+              properties:
+                account: { type: string, minLength: 3, maxLength: 64 }
+      responses:
+        '204':
+          description: Login username updated
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/me/email/code:
+    post:
+      operationId: sendEmailChangeCode
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password, writeOnly: true }
+      responses:
+        '204':
+          description: Code request accepted after password verification
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/me/email:
+    put:
+      operationId: changeEmail
+      security: [{ bearer: [] }]
+      requestBody:
+        $ref: '#/components/requestBodies/EmailCode'
+      responses:
+        '204':
+          description: Verified email updated
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/auth/me/avatar:
+    get:
+      operationId: getAvatar
+      security: [{ bearer: [] }]
+      responses:
+        '200':
+          $ref: '#/components/responses/Avatar'
+        '404':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      operationId: updateAvatar
+      security: [{ bearer: [] }]
+      requestBody:
+        description: JPEG with each side at most 512 pixels and a body no larger than 256 KiB
+        required: true
+        content:
+          image/jpeg: {}
+      responses:
+        '200':
+          $ref: '#/components/responses/Avatar'
+        '400':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
   /v1/auth/session/refresh:
     post:
       operationId: refreshSession
@@ -132,6 +285,16 @@ components:
       type: http
       scheme: bearer
   requestBodies:
+    EmailCode:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, code]
+            properties:
+              email: { type: string, format: email }
+              code: { type: string, pattern: '^[0-9]{6}$', writeOnly: true }
     RefreshToken:
       required: true
       content:
@@ -161,6 +324,16 @@ components:
                   response: { type: object }
                   clientExtensionResults: { type: object }
   responses:
+    Avatar:
+      description: Private, normalized JPEG for the authenticated account
+      headers:
+        ETag:
+          description: Quoted avatar revision UUID
+          schema: { type: string }
+        Cache-Control:
+          schema: { const: no-store }
+      content:
+        image/jpeg: {}
     Session:
       description: Signed-in account and credentials
       content:

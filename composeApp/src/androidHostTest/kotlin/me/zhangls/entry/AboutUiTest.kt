@@ -106,9 +106,10 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Release notes").assertIsDisplayed()
     compose.onNodeWithText("About app").assertDoesNotExist()
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(hasText("2026-10-30")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(hasText("1.1.2")).fetchSemanticsNodes().isNotEmpty()
     }
-    assertReleaseChanges()
+    compose.onNodeWithContentDescription("View in browser").assertIsDisplayed()
+    compose.onNodeWithText("1.1.2").assertIsDisplayed()
     compose.onNodeWithContentDescription("Back").performClick()
     compose.onNodeWithText("Release notes").assertDoesNotExist()
     compose.onNodeWithText("Version").performScrollTo().performClick()
@@ -169,9 +170,9 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Build number").assertDoesNotExist()
     compose.onNodeWithText("Check for updates").performScrollTo().assertIsDisplayed()
     assertTrue(compose.onAllNodes(hasText("Check for updates") and hasClickAction()).fetchSemanticsNodes().isEmpty())
-    compose.onNodeWithText("Coming soon").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
+    compose.onNodeWithText("Unavailable").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
     val versionRowRight = compose.onNodeWithText("Version").getUnclippedBoundsInRoot().right.value
-    val badgeTextRight = compose.onNodeWithText("Coming soon").getUnclippedBoundsInRoot().right.value
+    val badgeTextRight = compose.onNodeWithText("Unavailable").getUnclippedBoundsInRoot().right.value
     org.junit.Assert.assertEquals(
       "Update status aligns to the row's trailing inset",
       versionRowRight - 16f,
@@ -180,7 +181,7 @@ class AboutUiTest(private val scenario: Scenario) {
     )
     val titleBounds = compose.onNodeWithText("Check for updates").getUnclippedBoundsInRoot()
     val detailBounds = compose.onNodeWithText("New versions and release notes").getUnclippedBoundsInRoot()
-    val badgeBounds = compose.onNodeWithText("Coming soon").getUnclippedBoundsInRoot()
+    val badgeBounds = compose.onNodeWithText("Unavailable").getUnclippedBoundsInRoot()
     org.junit.Assert.assertEquals(
       "Update status is centered beside the title and description",
       (titleBounds.top.value + detailBounds.bottom.value) / 2f,

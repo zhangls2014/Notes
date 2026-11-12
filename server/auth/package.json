@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "check": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
@@ -12,10 +14,13 @@
   },
   "dependencies": {
     "@simplewebauthn/server": "^14.1.0",
-    "pg": "^8.16.0"
+    "nodemailer": "10.5.0",
+    "pg": "^8.16.0",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.15.0",
     "typescript": "^5.9.0"
   }
