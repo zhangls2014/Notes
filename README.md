@@ -64,15 +64,16 @@ Notes/
 | Material 3 Adaptive | 1.3.0 |
 | Navigation 3 | 1.2.0 |
 | NavigationEvent | 1.2.0 |
-| Koin | 4.2.2，注解与编译器插件 1.2.1 |
+| Koin | 4.2.2，编译器插件 1.2.3 |
 | Room | 3.0.3，KSP 生成 |
 | Paging | 3.5.3 |
 | Ktor | 3.6.1 |
 | DataStore | 1.3.0 |
-| Kotlinx Serialization | 1.12.0 |
-| Roborazzi | 1.77.0 |
+| Kotlinx Serialization | 1.13.0 |
+| Roborazzi | 1.78.0 |
+| UI Automator | 2.4.1 |
 
-后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3（现用菜单 API）与 detekt 当前保留必要预览版；当次版本决策、官方兼容范围和验证状态见 [2026-10-30 升级记录](docs/audits/2026-10-30-dependency-upgrade.md)。
+后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3 和 detekt 当前保留必要预览版。版本决策、官方兼容范围和验证结果见 [2026-11-12 升级记录](docs/audits/2026-11-12-dependency-upgrade.md)。
 
 ## 快速开始
 

@@ -3660,70 +3660,70 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-bom:1.13.0",
       "name": "kotlinx-serialization-bom",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-bom/1.12.0/kotlinx-serialization-bom-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-bom/1.13.0/kotlinx-serialization-bom-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.13.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.12.0/kotlinx-serialization-core-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.13.0/kotlinx-serialization-core-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.13.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.12.0/kotlinx-serialization-core-jvm-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.13.0/kotlinx-serialization-core-jvm-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.12.0/kotlinx-serialization-json-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.13.0/kotlinx-serialization-json-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.13.0",
       "name": "kotlinx-serialization-json-io",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io/1.12.0/kotlinx-serialization-json-io-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io/1.13.0/kotlinx-serialization-json-io-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.13.0",
       "name": "kotlinx-serialization-json-io",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io-jvm/1.12.0/kotlinx-serialization-json-io-jvm-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io-jvm/1.13.0/kotlinx-serialization-json-io-jvm-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.13.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.12.0/kotlinx-serialization-json-jvm-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.13.0/kotlinx-serialization-json-jvm-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6294,30 +6294,30 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core:1.13.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.12.0/kotlinx-serialization-core-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.13.0/kotlinx-serialization-core-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-iosarm64:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-core-iosarm64:1.13.0",
       "name": "kotlinx-serialization-core",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-iosarm64/1.12.0/kotlinx-serialization-core-iosarm64-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-iosarm64/1.13.0/kotlinx-serialization-core-iosarm64-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.12.0/kotlinx-serialization-json-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.13.0/kotlinx-serialization-json-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6344,10 +6344,10 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-iosarm64:1.12.0",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-iosarm64:1.13.0",
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-iosarm64/1.12.0/kotlinx-serialization-json-iosarm64-1.12.0.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-iosarm64/1.13.0/kotlinx-serialization-json-iosarm64-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],

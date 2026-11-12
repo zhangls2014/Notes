@@ -78,6 +78,7 @@ docs/
 
 ## 决策与调查证据
 
+- [2026-11-12 应用依赖升级](audits/2026-11-12-dependency-upgrade.md)：四组正式版升级、Kotlin 与 KSP 保留依据、双端开源声明及回归结果。
 - [2026-10-30 依赖升级方案](audits/2026-10-30-dependency-upgrade.md)：7 组升级、Navigation3 宿主截图调查与 Android 原生对照、共同失败及 iOS 环境缺口。
 
 以下调查记录特定日期的代码、环境与测量结果，不能直接外推为当前状态。
