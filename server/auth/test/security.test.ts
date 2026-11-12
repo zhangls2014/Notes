@@ -41,3 +41,15 @@ test("registration validates email and username as separate identifiers", async 
   assert.throws(() => normalizeEmail("alex@example.com, other@example.com"), /invalid_email/);
   assert.throws(() => normalizeUsername("alex@example.com"), /invalid_account/);
 });
+
+test("new passwords need 8 code points and no emoji", async () => {
+  const { readNewPassword } = await import("../src/security.ts");
+  assert.equal(readNewPassword("abcdefg1"), "abcdefg1");
+  assert.throws(() => readNewPassword("abcdef1"), /invalid_password/);
+  // 表情由多个码点拼成，逗号区段与组件字符都要拦住
+  ["abcdefg1😀", "👍🏽abcdefg1", "👨‍👩‍👧abcdefg1", "❤️abcdefg1", "1️⃣abcdefg1", "⭐abcdefg1"]
+    .forEach((password) => assert.throws(() => readNewPassword(password), /invalid_password/, password));
+  // U+20000 不属于表情符号，按码点而不是 UTF-16 单元计数
+  const ideographs = "𠀀".repeat(7) + "1";
+  assert.equal(readNewPassword(ideographs), ideographs);
+});

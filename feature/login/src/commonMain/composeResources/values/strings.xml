@@ -5,6 +5,7 @@
   <string name="login_hint_login_password">Enter password</string>
   <string name="login_hint_login_password_too_short">Password must be at least 8 characters</string>
   <string name="login_hint_login_password_weak_type">Password must include at least two of letters, numbers, and symbols</string>
+  <string name="login_hint_login_password_emoji">Password can't include emoji</string>
   <string name="login_msg_login_success">Login successful</string>
 
   <string name="login_brand_name">Notes</string>
@@ -27,8 +28,8 @@
   <string name="signup_continue">Continue</string>
   <string name="signup_credentials">Set up sign-in</string>
   <string name="signup_username">Username</string>
-  <string name="signup_username_hint">3–64 letters, digits, dots, underscores or hyphens</string>
-  <string name="signup_password_hint">At least 15 characters</string>
+  <string name="signup_username_hint">3–64 letters, digits, dots, underscores or hyphens, starting with a letter or digit</string>
+  <string name="signup_password_hint">At least 8 characters, two of letters, numbers and symbols, no emoji</string>
   <string name="signup_create">Create account</string>
   <string name="signup_back_to_email">Back to email verification</string>
   <string name="signup_send_failed">Could not send a code. Try again later.</string>

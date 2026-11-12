@@ -37,9 +37,31 @@ export function normalizeEmail(input: unknown): string {
   return email.slice(0, at + 1) + email.slice(at + 1).toLowerCase();
 }
 
+/**
+ * 表情符号及用于组合表情的区段，与客户端 `LoginValidator.emojiRanges` 保持一致。
+ * 表情由多个码点拼成，因此组件字符（变体选择符、零宽连接符、标签字符）也一并拒绝。
+ */
+const emojiRanges: ReadonlyArray<readonly [number, number]> = [
+  [0x1f000, 0x1faff],
+  [0x2600, 0x27bf],
+  [0x2b00, 0x2bff],
+  [0xfe0f, 0xfe0f],
+  [0x200d, 0x200d],
+  [0x20e3, 0x20e3],
+  [0xe0020, 0xe007f],
+];
+
+function containsEmoji(value: string): boolean {
+  for (const char of value) {
+    const codePoint = char.codePointAt(0) ?? 0;
+    if (emojiRanges.some(([start, end]) => codePoint >= start && codePoint <= end)) return true;
+  }
+  return false;
+}
+
 export function readNewPassword(input: unknown): string {
   const password = readPassword(input);
-  if ([...password].length < 15) throw new RequestError(400, "invalid_password");
+  if ([...password].length < 8 || containsEmoji(password)) throw new RequestError(400, "invalid_password");
   return password;
 }
 

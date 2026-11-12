@@ -2,7 +2,9 @@ package me.zhangls.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +31,12 @@ internal fun PasswordlessForm(state: LoginState, onIntent: (LoginIntent) -> Unit
     modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp),
     enabled = !state.isLoading,
     onClick = { onIntent(LoginIntent.SignInWithPasskey(auth, passkey)) },
+    contentPadding = PaddingValues(
+      start = 32.dp,
+      top = ButtonDefaults.TextButtonContentPadding.calculateTopPadding(),
+      end = 32.dp,
+      bottom = ButtonDefaults.TextButtonContentPadding.calculateBottomPadding(),
+    ),
   ) {
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,

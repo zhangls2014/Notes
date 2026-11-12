@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -305,7 +306,16 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
             PasswordlessForm(state, onIntent)
             if (LocalAccountRegistration.current != null) {
               LocalOpenRegistration.current?.let { open ->
-                TextButton(onClick = open, enabled = !state.isLoading) {
+                TextButton(
+                  onClick = open,
+                  enabled = !state.isLoading,
+                  contentPadding = PaddingValues(
+                    start = 24.dp,
+                    top = ButtonDefaults.TextButtonContentPadding.calculateTopPadding(),
+                    end = 24.dp,
+                    bottom = ButtonDefaults.TextButtonContentPadding.calculateBottomPadding(),
+                  ),
+                ) {
                   Text(stringResource(Res.string.signup_title))
                 }
               }

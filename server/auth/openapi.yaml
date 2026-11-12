@@ -51,7 +51,7 @@ paths:
                 email: { type: string, format: email }
                 proof: { type: string, minLength: 43, maxLength: 43 }
                 account: { type: string, minLength: 3, maxLength: 64 }
-                password: { type: string, minLength: 15, maxLength: 1024, format: password, writeOnly: true }
+                password: { type: string, minLength: 8, maxLength: 1024, description: 'Counted in code points; emoji are rejected.', format: password, writeOnly: true }
       responses:
         '201':
           $ref: '#/components/responses/Session'

@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "channel": "android-prd-full",
+    "version": "1.1.2",
+    "build": "5",
+    "artifactUrl": "https://downloads.zhangls.me/android-prd-full/5/Notes-1.1.2-full.apk"
+  },
+  {
+    "channel": "android-prd-mainland",
+    "version": "1.1.2",
+    "build": "5",
+    "artifactUrl": "https://downloads.zhangls.me/android-prd-mainland/5/Notes-1.1.2-mainland.apk"
+  }
+]

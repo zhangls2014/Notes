@@ -1,6 +1,10 @@
 package me.zhangls.entry
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
@@ -9,10 +13,14 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.coroutines.CompletableDeferred
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.login.api.AccountRegistration
 import me.zhangls.login.api.LocalAccountRegistration
@@ -33,13 +41,16 @@ import org.robolectric.annotation.Config
 class AccountRegistrationUiTest {
   @get:Rule val compose = createComposeRule()
 
-  @Test fun verifiesEmailBeforeCreatingAccountAndPreservesRedirect() {
+  @Test fun retainsRegistrationAcrossRecompositionOfTheScreenAndPreservesRedirect() {
     val redirect = EmailDetailDestination(42)
     var completed: LoginDestination? = null
+    val screenGeneration = mutableIntStateOf(0)
+    val sendFinished = CompletableDeferred<Unit>()
     val actions = mutableListOf<String>()
     val auth = object : AccountRegistration {
       override suspend fun sendSignupCode(email: String) {
         actions += "send:$email"
+        sendFinished.await()
       }
 
       override suspend fun verifySignupCode(email: String, code: String): String {
@@ -59,6 +70,15 @@ class AccountRegistrationUiTest {
           NavDisplay(
             backStack = stack,
             onBack = {},
+            entryDecorators = listOf(
+              rememberSaveableStateHolderNavEntryDecorator(),
+              rememberViewModelStoreNavEntryDecorator(),
+              remember {
+                NavEntryDecorator<NavKey> { entry ->
+                  key(screenGeneration.intValue) { entry.Content() }
+                }
+              },
+            ),
             entryProvider = entryProvider {
               loginNavEntry(onNavigate = {}) { result, destination ->
                 assertEquals(LoginResult.Success, result)
@@ -72,13 +92,25 @@ class AccountRegistrationUiTest {
 
     compose.onNodeWithText("Verify email").assertIsDisplayed()
     compose.onNodeWithText("Continue").assertIsNotEnabled()
+    val emailBounds = compose.onNode(hasSetTextAction() and hasText("Email")).getUnclippedBoundsInRoot()
+    val buttonBounds = compose.onNodeWithText("Send code").getUnclippedBoundsInRoot()
+    // At mdpi and default font scale, the field reserves 8 dp above its outline for the label.
+    val outlineCenter = (emailBounds.top.value + 8f + emailBounds.bottom.value) / 2
+    val buttonCenter = (buttonBounds.top.value + buttonBounds.bottom.value) / 2
+    assertEquals(outlineCenter, buttonCenter, 1f)
     enter("Email", "notes@example.com")
     compose.onNodeWithText("Send code").performClick()
+    compose.runOnIdle { screenGeneration.intValue++ }
+    compose.onNodeWithText("notes@example.com").assertIsDisplayed()
+    compose.runOnIdle { sendFinished.complete(Unit) }
     enter("Email verification code", "123456")
+    compose.runOnIdle { screenGeneration.intValue++ }
+    compose.onNodeWithText("Resend in", substring = true).assertIsNotEnabled()
     compose.onNodeWithText("Continue").performClick()
     compose.onNodeWithText("Set up sign-in").assertIsDisplayed()
     enter("Username", "notes_tester")
     enter("Password", "a long example password")
+    compose.runOnIdle { screenGeneration.intValue++ }
     compose.onNodeWithText("Create account").performClick()
     compose.runOnIdle {
       assertEquals(

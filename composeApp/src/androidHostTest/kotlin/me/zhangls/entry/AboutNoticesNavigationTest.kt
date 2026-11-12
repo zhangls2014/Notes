@@ -52,6 +52,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.stopKoin
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -68,7 +69,7 @@ class AboutNoticesNavigationTest {
   @get:Rule val rules = drainMainLooperAfter(compose)
 
   @Before fun start() {
-    initKoin(null)
+    initKoin { androidContext(RuntimeEnvironment.getApplication()) }
     provideAboutAppInfo()
   }
 
@@ -144,7 +145,7 @@ class AboutNoticesNavigationTest {
     launch()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(androidx.compose.ui.test.hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(androidx.compose.ui.test.hasText("View update history")).fetchSemanticsNodes().isNotEmpty()
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo()
     val before = compose.onNode(hasScrollAction()).fetchSemanticsNode()
@@ -164,7 +165,7 @@ class AboutNoticesNavigationTest {
     launch()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(androidx.compose.ui.test.hasText("Unreleased")).fetchSemanticsNodes().isNotEmpty()
+      compose.onAllNodes(androidx.compose.ui.test.hasText("View update history")).fetchSemanticsNodes().isNotEmpty()
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo()
     val initialScroll = compose.onNode(hasScrollAction()).fetchSemanticsNode()

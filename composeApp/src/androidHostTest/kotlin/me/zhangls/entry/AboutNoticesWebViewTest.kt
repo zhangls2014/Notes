@@ -30,9 +30,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
 import org.koin.compose.koinInject
 import org.koin.core.context.stopKoin
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
@@ -45,7 +47,7 @@ class AboutNoticesWebViewTest {
   private lateinit var rootView: View
 
   @Before fun start() {
-    initKoin(null)
+    initKoin { androidContext(RuntimeEnvironment.getApplication()) }
   }
 
   @After fun stop() {

@@ -5,6 +5,7 @@
   <string name="login_hint_login_password">请输入密码</string>
   <string name="login_hint_login_password_too_short">密码不能少于 8 位</string>
   <string name="login_hint_login_password_weak_type">密码至少包含字母、数字、特殊符号中的两种</string>
+  <string name="login_hint_login_password_emoji">密码不能包含表情符号</string>
   <string name="login_msg_login_success">登录成功</string>
 
   <string name="login_brand_name">摘星</string>
@@ -27,8 +28,8 @@
   <string name="signup_continue">继续</string>
   <string name="signup_credentials">设置登录信息</string>
   <string name="signup_username">用户名</string>
-  <string name="signup_username_hint">3–64 个英文字母、数字、点、下划线或连字符</string>
-  <string name="signup_password_hint">至少 15 个字符</string>
+  <string name="signup_username_hint">3–64 个字母、数字、点、下划线或连字符，以字母或数字开头</string>
+  <string name="signup_password_hint">至少 8 个字符，包含字母、数字、特殊符号中的两种，不能包含表情符号</string>
   <string name="signup_create">创建账号</string>
   <string name="signup_back_to_email">返回验证邮箱</string>
   <string name="signup_send_failed">验证码发送失败，请稍后重试。</string>

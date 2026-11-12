@@ -1,7 +1,7 @@
 [
   {
     "version": "1.1.2",
-    "date": null,
+    "date": "2026-11-12",
     "changes": [
       {
         "type": "added",
@@ -68,6 +68,44 @@
         "text": {
           "en": "Let dialogs fit their content up to 80% of the app window width, preserving minimum margins and keeping long content clear of system bars.",
           "zh": "弹窗按内容需要展开，最大宽度为应用窗口的 80%，保留默认最小边距，长内容避开状态栏和底部系统区域。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Match the sign-up fields to the sign-in page's rounded corners, borders, and spacing, and use the shared loading indicator while a request is in progress.",
+          "zh": "注册账号页面的输入框改用与登录页一致的圆角、描边和间距，请求处理期间显示统一加载提示。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": [
+          "android",
+          "ios"
+        ],
+        "text": {
+          "en": "Sign-in and sign-up share one password rule: at least 8 characters counted in code points, two of letters, numbers and symbols, and no emoji.",
+          "zh": "登录与注册使用同一条密码规则：至少 8 个字符（按字符计数），包含字母、数字、特殊符号中的两种，且不能使用表情符号。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Give the passkey and registration labels more room inside their buttons on the sign-in screen.",
+          "zh": "增加登录页通行密钥和注册按钮的左右内边距，让文字避开圆角。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Keep sign-up progress when the screen rotates and center the send-code button against the email field.",
+          "zh": "注册时旋转屏幕会保留当前进度，发送验证码按钮与邮箱输入框垂直居中。"
         }
       }
     ]

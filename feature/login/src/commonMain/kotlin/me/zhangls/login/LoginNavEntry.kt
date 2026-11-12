@@ -36,7 +36,7 @@ fun EntryProviderScope<NavKey>.loginNavEntry(
   entry<RegistrationDestination> { destination ->
     RegistrationScreen(
       onBack = { onNavigate(NavEffect.Popup) },
-      onRegistered = { onLoginResult(LoginResult.Success, LoginDestination(destination.redirectTo)) },
+      onRegistrationSuccess = { onLoginResult(LoginResult.Success, LoginDestination(destination.redirectTo)) },
     )
   }
 }

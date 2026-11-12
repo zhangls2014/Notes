@@ -17,7 +17,7 @@ The optional PostgreSQL test creates and cleans up its own isolated rows. It exe
 To seed a test account manually, set `DATABASE_URL` to the authorized test database and provide a username and email. Use a username of 3–64 letters, digits, dots, underscores or hyphens, starting with a letter or digit.
 
 ```zsh
-read -rs 'notes_test_password?Test password (at least 15 characters): '
+read -rs 'notes_test_password?Test password (at least 8 characters, no emoji): '
 printf '%s' "$notes_test_password" | npm run provision-account -- notes_tester notes_tester@example.com
 unset notes_test_password
 ```
