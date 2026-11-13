@@ -21,7 +21,7 @@ internal class AccountPasskeyManagement(
     return try {
       operation()
     } catch (failure: AuthHttpException) {
-      if (failure.status == 403 || failure.code == "invalid_session") {
+      if ((failure.status == 403 && failure.code == "recent_verification_required") || failure.invalidSession) {
         throw PasskeySessionVerificationRequiredException()
       }
       throw failure

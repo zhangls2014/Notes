@@ -1,5 +1,24 @@
 # Notes 网站部署与应用发布
 
+## 服务地址配置
+
+| 用途 | 配置 |
+|---|---|
+| 客户端认证 | Gradle 属性 `notes.authBaseUrl` 或环境变量 `NOTES_AUTH_BASE_URL` |
+| 客户端官网和 Android App Links | Gradle 属性 `notes.siteBaseUrl` 或环境变量 `NOTES_SITE_BASE_URL` |
+| 网站生成的更新清单 | 环境变量 `NOTES_SITE_BASE_URL` |
+| 网站接受的 Android APK 下载来源 | 环境变量 `NOTES_APK_BASE_URL` |
+| 独立部署的已发布构建清单 | 环境变量 `NOTES_PUBLISHED_BUILDS_FILE` 指向该环境的 JSON 文件 |
+
+Gradle 属性优先于同用途的环境变量。正式默认值在 [Gradle 配置](../gradle.properties) 和 [网站构建入口](../web/build.mjs)。
+官网和认证配置均使用不带路径、端口或凭据的 HTTPS origin，构建时校验。更换 APK 来源时，发布清单中的 `artifactUrl` 须指向该来源；
+生成器继续校验来源、渠道、构建号和文件名。
+
+Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关联域名，并在
+未设置 URL 环境变量时为共享框架派生 HTTPS 地址。若用 Gradle 属性、环境变量或预构建框架
+覆盖 URL，应同步配置 Xcode 的主机名。由 Xcode 构建共享框架时，Gradle 校验最终生效的官网和启用 Passkey 的认证主机名。使用预构建框架时，在签名包验收中核对这些值。测试地址也应提供匹配当前应用签名的关联文件。
+
+
 ## 站点预览与绑定
 
 1. 从仓库根目录运行 `node --test web/build.test.mjs` 和 `node web/build.mjs`。使用全新检出目录构建，再用 `python3 -m http.server 8842 --bind 127.0.0.1 --directory web/dist` 预览。

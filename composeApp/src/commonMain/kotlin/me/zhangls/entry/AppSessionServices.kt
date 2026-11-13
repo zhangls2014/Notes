@@ -1,5 +1,6 @@
 package me.zhangls.entry
 
+import io.ktor.client.HttpClient
 import me.zhangls.data.repository.AccountDataRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.profile.api.AccountProfileRemote
@@ -9,9 +10,11 @@ import org.koin.core.annotation.Singleton
 internal class AppSessionServices(
   val accounts: AccountDataRepository,
   users: UserRepository,
+  client: HttpClient,
+  config: AuthenticationConfig,
 ) : AccountProfileRemote {
-  val auth = configuredAuthEndpoint()?.let { PasswordlessAuthClient(it, users) }
-  val passkeysEnabled = auth != null && BuildKonfig.AUTH_PASSKEYS_ENABLED
+  val auth = config.origin?.let { PasswordlessAuthClient(it, users, client) }
+  val passkeysEnabled = auth != null && config.passkeysEnabled
 
   override suspend fun updateUsername(userId: String, username: String) = checkNotNull(auth).updateUsername(userId, username)
 

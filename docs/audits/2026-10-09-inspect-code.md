@@ -61,7 +61,7 @@ Room 的生成模式和定点 suppression 有[官方说明](https://developer.an
 
 | 编号 | 候选 | 调查结果 | 建议与验证 |
 |---|---|---|---|
-| C1 | 闲置网络包装及错误类型 | [SafeRequest.kt](../../core/network/src/commonMain/kotlin/me/zhangls/network/SafeRequest.kt) 只有定义、无手写调用；`NetworkError.Timeout/NoConnection/Unauthorized/TokenExpired` 同样无引用 | 先决定当前网络层是否采用这一套结果协议。删除闲置能力或让调用链采用它是两种不同需求，不在本次审计实施。保留并启用前补错误映射与取消回归 |
+| C1 | 闲置网络包装及错误类型 | 当时的 `SafeRequest.kt` 只有定义、无手写调用；`NetworkError.Timeout/NoConnection/Unauthorized/TokenExpired` 同样无引用 | 先决定当前网络层是否采用这一套结果协议。删除闲置能力或让调用链采用它是两种不同需求，不在本次审计实施。保留并启用前补错误映射与取消回归 |
 | C2 | `safeRequest` 的取消传播缺口 | 上述函数 `catch (Exception)` 会把 `CancellationException` 转为 `Unknown`；这是阅读 unused 候选时发现的附加问题，不是 Inspect Code 直接报出的运行时错误 | 若保留并启用，先单独捕获取消异常并重新抛出。当前无调用，不能声称现有网络请求已经受影响；用取消场景测试证明传播。依据[协程异常处理文档](https://kotlinlang.org/docs/exception-handling.html) |
 | C3 | 未使用的文件工具 | Android `AppFileManager.createCacheImageFile/getFileNameNoExtension`；iOS `documentDir()`；全仓手写源码查询未发现调用 | 私有 `documentDir` 可列为清理候选；公开平台工具要确认有无外部使用。`getFileNameNoExtension` 的 MIME 回退使用 `substringBeforeLast("/")`，对 `image/jpeg` 会得到 `image`，不能当扩展名或真实文件名；若保留并使用，应先明确回退契约 |
 | C4 | 未使用的 `DialogState` | [DialogState.kt](../../core/framework/src/commonMain/kotlin/me/zhangls/framework/mvi/DialogState.kt) 中此模型无调用；同文件 `DialogResult` 被设置页面和行为处理使用 | 只评估 `DialogState`，不得整文件删除；设置层已有自己的 `DialogUiModel`，不为去告警新增整合抽象 |

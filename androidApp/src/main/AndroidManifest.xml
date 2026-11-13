@@ -31,7 +31,7 @@
         <category android:name="android.intent.category.BROWSABLE" />
 
         <data android:scheme="https" />
-        <data android:host="notes.zhangls.me" />
+        <data android:host="${notesSiteHost}" />
         <data android:path="/home" />
         <data android:path="/email" />
       </intent-filter>

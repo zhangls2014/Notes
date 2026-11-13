@@ -5,17 +5,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.zhangls.about.AboutModule
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.data.DataModule
 import me.zhangls.email.EmailModule
 import me.zhangls.entry.data.InitData
 import me.zhangls.framework.FrameworkModule
 import me.zhangls.login.LoginModule
 import me.zhangls.main.MainModule
+import me.zhangls.network.NetworkModule
 import me.zhangls.profile.ProfileModule
 import me.zhangls.settings.SettingsModule
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.mp.KoinPlatform
 import org.koin.plugin.module.dsl.startKoin
@@ -30,13 +33,21 @@ import org.koin.plugin.module.dsl.startKoin
     EmailModule::class,
     LoginModule::class,
     MainModule::class,
+    NetworkModule::class,
     SettingsModule::class,
     ProfileModule::class,
     AboutModule::class,
   ],
 )
 @ComponentScan("me.zhangls.entry")
-class NotesModule
+class NotesModule {
+  @Single
+  fun notesWebsite(): NotesWebsite = NotesWebsite(BuildKonfig.SITE_BASE_URL)
+
+  @Single
+  fun authenticationConfig(): AuthenticationConfig =
+    AuthenticationConfig(configuredAuthEndpoint(), BuildKonfig.AUTH_PASSKEYS_ENABLED)
+}
 
 @KoinApplication(modules = [NotesModule::class])
 @ComponentScan("me.zhangls.notes")

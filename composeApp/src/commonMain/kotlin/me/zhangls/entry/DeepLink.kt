@@ -1,16 +1,14 @@
 package me.zhangls.entry
 
+import io.ktor.http.Url
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.deeplink.DeepLinkMatcher
 import me.zhangls.framework.deeplink.parseDeepLinkUrl
 
-private const val HTTPS = "https"
-private const val NOTES_HOST = "notes.zhangls.me"
-
 /**
  * 把 DeepLink URL 解析成本应用的目的地。
  *
- * 本函数只判断"这是不是本应用的链接"（scheme + host）。**路径表不在这里** —— 每条路径与它对应的
+ * 本函数只判断"这是不是本应用的链接"（origin）。**路径表不在这里** —— 每条路径与它对应的
  * key 一起定义在各 feature 的 `-api`（`DeepLinkMatcher`），由组合根收集后传入。
  *
  * 早先路径表硬编码在这里的 `when (request.path)` 里：key 改名不会有编译错误，只会在运行期静默
@@ -18,10 +16,17 @@ private const val NOTES_HOST = "notes.zhangls.me"
  *
  * @param matchers 各 feature 的匹配器，按序尝试，第一个匹配成功者胜出
  */
-internal fun parseDeepLink(url: String?, matchers: List<DeepLinkMatcher>): DeepLinkDestination? {
-  val request = parseDeepLinkUrl(url)
-    ?.takeIf { it.scheme == HTTPS && it.host == NOTES_HOST }
-    ?: return null
+internal fun parseDeepLink(
+  url: String?,
+  matchers: List<DeepLinkMatcher>,
+  siteOrigin: String,
+): DeepLinkDestination? {
+  val request = parseDeepLinkUrl(url) ?: return null
+  val link = runCatching { Url(url.orEmpty().trim()) }.getOrNull() ?: return null
+  val site = Url(siteOrigin)
+  if (link.protocol != site.protocol || !link.host.equals(site.host, ignoreCase = true) ||
+    link.port != site.port || link.user != null || link.password != null
+  ) return null
 
   return matchers.firstNotNullOfOrNull { it.match(request) }
 }

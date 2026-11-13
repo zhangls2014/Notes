@@ -31,6 +31,7 @@ class AppViewModel(
   private val toastGlobalNotifier: ToastGlobalNotifier,
   private val userRepository: UserRepository,
   private val settingsRepository: SettingsRepository,
+  authConfig: AuthenticationConfig,
 ) : MviViewModel<AppState, AppIntent>(
   initialState = AppState(null),
   stateSerializer = AppState.serializer(),
@@ -124,7 +125,7 @@ class AppViewModel(
   }
 
   init {
-    val endpoint = configuredAuthEndpoint()
+    val endpoint = authConfig.origin
     viewModelScope.launch {
       userRepository.userFlow.collectLatest { storedUser ->
         val user = storedUser?.takeIf { sessionMatchesAuthOrigin(it, endpoint) }

@@ -3,8 +3,17 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
-const origin = 'https://notes.zhangls.me'
-const apkOrigin = 'https://downloads.zhangls.me'
+const defaultOrigins = {
+  siteOrigin: 'https://notes.zhangls.me',
+  apkOrigin: 'https://downloads.zhangls.me',
+}
+
+function httpsOrigin(value) {
+  const url = new URL(value)
+  requireValue(url.protocol === 'https:' && !url.username && !url.password &&
+    url.pathname === '/' && !url.search && !url.hash, 'Expected an HTTPS service origin')
+  return url.origin
+}
 const channels = {
   'android-prd-full': 'android',
   'android-prd-mainland': 'android',
@@ -62,7 +71,8 @@ function validateReleases(releases) {
     release === draft || compareNumbers(draft.version, release.version) > 0)), 'Invalid unpublished release')
 }
 
-export function validatePublishedBuilds(releases, builds) {
+export function validatePublishedBuilds(releases, builds, downloadOrigin = defaultOrigins.apkOrigin) {
+  const apkOrigin = httpsOrigin(downloadOrigin)
   validateReleases(releases)
   requireValue(Array.isArray(builds), 'Expected an array of published builds')
   const seen = new Set()
@@ -179,8 +189,9 @@ const noticeLink = (entry, label) =>
   `<a data-notice-link href="/${archive(entry)}/${channels[entry.channel]}.html">${label}</a>`
 const download = entry => `downloads/android/${entry.channel}/${entry.build}/`
 
-export function buildSite(releases, builds) {
-  validatePublishedBuilds(releases, builds)
+export function buildSite(releases, builds, origins = defaultOrigins) {
+  const origin = httpsOrigin(origins.siteOrigin)
+  validatePublishedBuilds(releases, builds, origins.apkOrigin)
   const files = new Map()
   const current = new Map()
   for (const entry of builds) current.set(entry.channel, entry)
@@ -233,8 +244,11 @@ function addAssociations(files) {
 async function main() {
   const releases = JSON.parse(await readFile(join(webRoot,
     '../feature/about/src/commonMain/composeResources/files/releases.json'), 'utf8'))
-  const builds = JSON.parse(await readFile(join(webRoot, 'published-builds.json'), 'utf8'))
-  const files = buildSite(releases, builds)
+  const builds = JSON.parse(await readFile(process.env.NOTES_PUBLISHED_BUILDS_FILE ?? join(webRoot, 'published-builds.json'), 'utf8'))
+  const files = buildSite(releases, builds, {
+    siteOrigin: process.env.NOTES_SITE_BASE_URL ?? defaultOrigins.siteOrigin,
+    apkOrigin: process.env.NOTES_APK_BASE_URL ?? defaultOrigins.apkOrigin,
+  })
   addAssociations(files)
   for (const entry of builds) {
     const platform = channels[entry.channel]

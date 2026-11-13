@@ -1,10 +1,11 @@
 package me.zhangls.about
 
 import androidx.compose.runtime.Composable
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.OpenSourcePage
 
-class AboutEntryImpl : AboutEntry {
+class AboutEntryImpl(private val site: NotesWebsite) : AboutEntry {
   @Composable
   override fun ReleaseNotesDialog(version: String, onDismiss: () -> Unit) {
     me.zhangls.about.ReleaseNotesDialog(version, onDismiss)
@@ -22,7 +23,7 @@ class AboutEntryImpl : AboutEntry {
 
   @Composable
   override fun ReleaseHistoryScreen(onBack: () -> Unit) {
-    me.zhangls.about.ReleaseHistoryScreen(onBack)
+    me.zhangls.about.ReleaseHistoryScreen(onBack, site)
   }
 
   @Composable
@@ -33,6 +34,6 @@ class AboutEntryImpl : AboutEntry {
     onNavigate: (OpenSourcePage, String?) -> Unit,
     onExternalLink: (String) -> Unit,
   ) {
-    OpenSourceNoticesScreen(page, anchor, onBack, onNavigate, onExternalLink)
+    OpenSourceNoticesScreen(page, anchor, onBack, onNavigate, onExternalLink, site)
   }
 }

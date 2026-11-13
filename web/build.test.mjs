@@ -29,6 +29,14 @@ test('a manifest must refer to a published release and an approved artifact host
     channel: build.channel, version: build.version, build: build.build,
     updateUrl: 'https://notes.zhangls.me/downloads/android/android-prd-full/5/',
   })
+  const origins = { siteOrigin: 'https://site.example.test/', apkOrigin: 'https://apk.example.test/' }
+  const custom = { ...build, artifactUrl: 'https://apk.example.test/android-prd-full/5/Notes.apk' }
+  const customSite = buildSite([release], [custom], origins)
+  assert.equal(JSON.parse(customSite.get('updates/v1/android-prd-full.json')).updateUrl,
+    'https://site.example.test/downloads/android/android-prd-full/5/')
+  assert.match(customSite.get('downloads/android/android-prd-full/5/index.html'), /https:\/\/apk\.example\.test\//)
+  assert.throws(() => buildSite([release], [build], origins))
+  assert.throws(() => buildSite([release], [custom], { ...origins, siteOrigin: 'http://site.example.test' }))
   assert.throws(() => validatePublishedBuilds([{ ...release, date: null }], [build]))
   assert.throws(() => validatePublishedBuilds([release], [{ ...build, artifactUrl: 'https://example.com/Notes.apk' }]))
 })

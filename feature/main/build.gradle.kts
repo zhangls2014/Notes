@@ -10,7 +10,6 @@ kotlin {
       dependencies {
         implementation(projects.core.data)
         implementation(projects.core.theme)
-        implementation(projects.core.network)
         implementation(projects.core.framework)
 
         // 依赖 email 契约(api)；HomeScreen / FavoritesScreen 由 Koin 提供 EmailEntry 实现

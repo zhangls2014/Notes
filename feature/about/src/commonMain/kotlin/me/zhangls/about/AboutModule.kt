@@ -1,9 +1,13 @@
 package me.zhangls.about
 
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.AboutNavigation
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.framework.FrameworkModule
 import me.zhangls.framework.nav.NavigationContribution
+import me.zhangls.network.httpClient
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
@@ -13,7 +17,14 @@ import org.koin.core.annotation.Single
 @ComponentScan("me.zhangls.about")
 class AboutModule {
   @Single
-  fun aboutEntry(): AboutEntry = AboutEntryImpl()
+  @Named("publicUpdates")
+  fun updatesClient(): HttpClient = httpClient {
+    followRedirects = false
+    install(HttpTimeout) { requestTimeoutMillis = 10_000L }
+  }
+
+  @Single
+  fun aboutEntry(site: NotesWebsite): AboutEntry = AboutEntryImpl(site)
 
   @Single
   @Named("aboutNavigationContribution")

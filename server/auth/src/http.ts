@@ -204,12 +204,14 @@ export function createAuthHttpServer(
           return;
         case "POST " + api + "/session/refresh": {
           const input = await body(request);
-          send(response, 200, await service.refreshSession(refreshToken(input.refreshToken)));
+          send(response, 200, await service.refreshSession(refreshToken(input.refreshToken),
+            input.operationId === undefined ? undefined : requestId(input.operationId)));
           return;
         }
         case "POST " + api + "/session/logout": {
           const input = await body(request);
-          await service.logout(refreshToken(input.refreshToken));
+          await service.logout(refreshToken(input.refreshToken),
+            input.operationId === undefined ? undefined : requestId(input.operationId));
           send(response, 204);
           return;
         }

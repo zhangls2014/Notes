@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 export function expandAndroidPasskeyOrigins(origins: string[]): string[] {
   const prefix = "android:apk-key-hash:";
@@ -77,6 +77,26 @@ export function token(): string {
 
 export function tokenDigest(value: string): Buffer {
   return createHash("sha256").update(value).digest();
+}
+
+export function refreshRecovery(refreshToken: string, operationId: string) {
+  const input = JSON.stringify([refreshToken, operationId.toLowerCase()]);
+  const key = tokenDigest("notes-refresh-key:" + input);
+  return {
+    digest: tokenDigest("notes-refresh-lookup:" + input),
+    seal(accessToken: string, nextRefreshToken: string): Buffer {
+      const iv = randomBytes(12);
+      const cipher = createCipheriv("aes-256-gcm", key, iv);
+      const ciphertext = Buffer.concat([cipher.update(accessToken + nextRefreshToken, "ascii"), cipher.final()]);
+      return Buffer.concat([iv, cipher.getAuthTag(), ciphertext]);
+    },
+    open(payload: Buffer) {
+      const decipher = createDecipheriv("aes-256-gcm", key, payload.subarray(0, 12));
+      decipher.setAuthTag(payload.subarray(12, 28));
+      const pair = Buffer.concat([decipher.update(payload.subarray(28)), decipher.final()]).toString("ascii");
+      return { accessToken: pair.slice(0, 43), refreshToken: pair.slice(43) };
+    },
+  };
 }
 
 export function rateLimitDigest(secret: string, kind: string, key: string): Buffer {

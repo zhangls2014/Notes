@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import me.zhangls.about.AboutEntryImpl
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.EmailEntryImpl
@@ -62,7 +63,7 @@ class EmailEntryDispatchTest {
 
   @Test
   fun releaseNotesEntryDispatchesWithoutDefaultArguments() {
-    val about: AboutEntry = AboutEntryImpl()
+    val about: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     val recomposer = Recomposer(EmptyCoroutineContext)
     val composition = Composition(NoOpApplier(), recomposer)
     var dispatched = false
@@ -113,7 +114,7 @@ class EmailEntryDispatchTest {
     val login: LoginEntry = LoginEntryImpl()
     val settings: SettingsEntry = SettingsEntryImpl()
     val profile: ProfileEntry = ProfileEntryImpl()
-    val about: AboutEntry = AboutEntryImpl()
+    val about: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     val recomposer = Recomposer(EmptyCoroutineContext)
     val composition = Composition(NoOpApplier(), recomposer)
     try {

@@ -346,7 +346,12 @@ components:
             type: object
             required: [refreshToken]
             properties:
-              refreshToken: { type: string }
+              refreshToken: { type: string, writeOnly: true }
+              operationId:
+                type: string
+                format: uuid
+                writeOnly: true
+                description: Persist before refreshing. Reuse with the original token to recover the same result within five minutes or to revoke a pending rotation.
     PasskeyRegistrationResponse:
       required: true
       content:

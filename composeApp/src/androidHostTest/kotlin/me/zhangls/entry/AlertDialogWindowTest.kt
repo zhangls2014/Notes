@@ -27,6 +27,7 @@ import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import me.zhangls.about.AboutEntryImpl
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.model.AppLanguage
 import me.zhangls.model.DarkThemeConfig
 import me.zhangls.model.FontSizeConfig
@@ -62,7 +63,7 @@ class AlertDialogWindowTest {
   }
 
   @Test fun releaseNotesUseFullWindowForCentering() {
-    launch { AboutEntryImpl().ReleaseNotesDialog(version = "1.1.0", onDismiss = {}) }
+    launch { AboutEntryImpl(NotesWebsite("https://website.example.test")).ReleaseNotesDialog(version = "1.1.0", onDismiss = {}) }
     compose.waitUntil(10_000) { ShadowDialog.getLatestDialog()?.isShowing == true }
     assertFullWindow()
   }

@@ -1817,26 +1817,6 @@
       "notices": []
     },
     {
-      "coordinate": "com.charleskorn.kaml:kaml:0.79.0",
-      "name": "kaml",
-      "url": "https://github.com/charleskorn/kaml",
-      "pom": "https://repo.maven.apache.org/maven2/com/charleskorn/kaml/kaml/0.79.0/kaml-0.79.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "com.charleskorn.kaml:kaml-jvm:0.79.0",
-      "name": "kaml",
-      "url": "https://github.com/charleskorn/kaml",
-      "pom": "https://repo.maven.apache.org/maven2/com/charleskorn/kaml/kaml-jvm/0.79.0/kaml-jvm-0.79.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "com.github.ajalt.colormath:colormath:3.7.0",
       "name": "Colormath",
       "url": "https://github.com/ajalt/colormath/",
@@ -2342,66 +2322,6 @@
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-auth:3.6.1",
-      "name": "ktor-client-auth",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth/3.6.1/ktor-client-auth-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-auth-jvm:3.6.1",
-      "name": "ktor-client-auth",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth-jvm/3.6.1/ktor-client-auth-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-cio:3.6.1",
-      "name": "ktor-client-cio",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio/3.6.1/ktor-client-cio-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-cio-jvm:3.6.1",
-      "name": "ktor-client-cio",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio-jvm/3.6.1/ktor-client-cio-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-content-negotiation:3.6.1",
-      "name": "ktor-client-content-negotiation",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation/3.6.1/ktor-client-content-negotiation-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-content-negotiation-jvm:3.6.1",
-      "name": "ktor-client-content-negotiation",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation-jvm/3.6.1/ktor-client-content-negotiation-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "io.ktor:ktor-client-core:3.6.1",
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
@@ -2416,26 +2336,6 @@
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
       "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-core-jvm/3.6.1/ktor-client-core-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-logging:3.6.1",
-      "name": "ktor-client-logging",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging/3.6.1/ktor-client-logging-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-logging-jvm:3.6.1",
-      "name": "ktor-client-logging",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging-jvm/3.6.1/ktor-client-logging-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2562,46 +2462,6 @@
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-network-tls:3.6.1",
-      "name": "ktor-network-tls",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls/3.6.1/ktor-network-tls-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-network-tls-jvm:3.6.1",
-      "name": "ktor-network-tls",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-network-tls-jvm/3.6.1/ktor-network-tls-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-openapi-schema:3.6.1",
-      "name": "ktor-openapi-schema",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema/3.6.1/ktor-openapi-schema-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-openapi-schema-jvm:3.6.1",
-      "name": "ktor-openapi-schema",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema-jvm/3.6.1/ktor-openapi-schema-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "io.ktor:ktor-serialization:3.6.1",
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
@@ -2616,46 +2476,6 @@
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
       "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-jvm/3.6.1/ktor-serialization-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx:3.6.1",
-      "name": "ktor-serialization-kotlinx",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx/3.6.1/ktor-serialization-kotlinx-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json:3.6.1",
-      "name": "ktor-serialization-kotlinx-json",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json/3.6.1/ktor-serialization-kotlinx-json-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.1",
-      "name": "ktor-serialization-kotlinx-json",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json-jvm/3.6.1/ktor-serialization-kotlinx-json-jvm-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-jvm:3.6.1",
-      "name": "ktor-serialization-kotlinx",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-jvm/3.6.1/ktor-serialization-kotlinx-jvm-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -2742,26 +2562,6 @@
       "notices": []
     },
     {
-      "coordinate": "it.krzeminski:snakeyaml-engine-kmp:3.1.1",
-      "name": "SnakeYAML Engine KMP",
-      "url": "https://github.com/krzema12/snakeyaml-engine-kmp/",
-      "pom": "https://repo.maven.apache.org/maven2/it/krzeminski/snakeyaml-engine-kmp/3.1.1/snakeyaml-engine-kmp-3.1.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "it.krzeminski:snakeyaml-engine-kmp-jvm:3.1.1",
-      "name": "SnakeYAML Engine KMP",
-      "url": "https://github.com/krzema12/snakeyaml-engine-kmp/",
-      "pom": "https://repo.maven.apache.org/maven2/it/krzeminski/snakeyaml-engine-kmp-jvm/3.1.1/snakeyaml-engine-kmp-jvm-3.1.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "me.zhanghai.compose.preference:preference:2.2.0",
       "name": "ComposePreference",
       "url": "https://github.com/zhanghai/ComposePreference",
@@ -2776,26 +2576,6 @@
       "name": "ComposePreference",
       "url": "https://github.com/zhanghai/ComposePreference",
       "pom": "https://repo.maven.apache.org/maven2/me/zhanghai/compose/preference/preference-android/2.2.0/preference-android-2.2.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "net.thauvin.erik.urlencoder:urlencoder-lib:1.6.0",
-      "name": "UrlEncoder for Kotlin Multiplatform",
-      "url": "https://github.com/ethauvin/urlencoder",
-      "pom": "https://repo.maven.apache.org/maven2/net/thauvin/erik/urlencoder/urlencoder-lib/1.6.0/urlencoder-lib-1.6.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "net.thauvin.erik.urlencoder:urlencoder-lib-jvm:1.6.0",
-      "name": "UrlEncoder for Kotlin Multiplatform",
-      "url": "https://github.com/ethauvin/urlencoder",
-      "pom": "https://repo.maven.apache.org/maven2/net/thauvin/erik/urlencoder/urlencoder-lib-jvm/1.6.0/urlencoder-lib-jvm-1.6.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -3600,26 +3380,6 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat",
-      "name": "kotlinx-datetime",
-      "url": "https://github.com/Kotlin/kotlinx-datetime",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-datetime/0.8.0-0.6.x-compat/kotlinx-datetime-0.8.0-0.6.x-compat.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.8.0-0.6.x-compat",
-      "name": "kotlinx-datetime",
-      "url": "https://github.com/Kotlin/kotlinx-datetime",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-datetime-jvm/0.8.0-0.6.x-compat/kotlinx-datetime-jvm-0.8.0-0.6.x-compat.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.1",
       "name": "kotlinx-io-bytestring",
       "url": "https://github.com/Kotlin/kotlinx-io",
@@ -3694,26 +3454,6 @@
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
       "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.13.0/kotlinx-serialization-json-1.13.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.13.0",
-      "name": "kotlinx-serialization-json-io",
-      "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io/1.13.0/kotlinx-serialization-json-io-1.13.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.13.0",
-      "name": "kotlinx-serialization-json-io",
-      "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io-jvm/1.13.0/kotlinx-serialization-json-io-jvm-1.13.0.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -4932,66 +4672,6 @@
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-client-auth:3.6.1",
-      "name": "ktor-client-auth",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth/3.6.1/ktor-client-auth-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-auth-iosarm64:3.6.1",
-      "name": "ktor-client-auth",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-auth-iosarm64/3.6.1/ktor-client-auth-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-cio:3.6.1",
-      "name": "ktor-client-cio",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio/3.6.1/ktor-client-cio-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-cio-iosarm64:3.6.1",
-      "name": "ktor-client-cio",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-cio-iosarm64/3.6.1/ktor-client-cio-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-content-negotiation:3.6.1",
-      "name": "ktor-client-content-negotiation",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation/3.6.1/ktor-client-content-negotiation-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-content-negotiation-iosarm64:3.6.1",
-      "name": "ktor-client-content-negotiation",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-content-negotiation-iosarm64/3.6.1/ktor-client-content-negotiation-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "io.ktor:ktor-client-core:3.6.1",
       "name": "ktor-client-core",
       "url": "https://github.com/ktorio/ktor",
@@ -5026,26 +4706,6 @@
       "name": "ktor-client-darwin",
       "url": "https://github.com/ktorio/ktor",
       "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-darwin-iosarm64/3.6.1/ktor-client-darwin-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-logging:3.6.1",
-      "name": "ktor-client-logging",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging/3.6.1/ktor-client-logging-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-client-logging-iosarm64:3.6.1",
-      "name": "ktor-client-logging",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-client-logging-iosarm64/3.6.1/ktor-client-logging-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -5172,26 +4832,6 @@
       "notices": []
     },
     {
-      "coordinate": "io.ktor:ktor-openapi-schema:3.6.1",
-      "name": "ktor-openapi-schema",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema/3.6.1/ktor-openapi-schema-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-openapi-schema-iosarm64:3.6.1",
-      "name": "ktor-openapi-schema",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-openapi-schema-iosarm64/3.6.1/ktor-openapi-schema-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
       "coordinate": "io.ktor:ktor-serialization:3.6.1",
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
@@ -5206,46 +4846,6 @@
       "name": "ktor-serialization",
       "url": "https://github.com/ktorio/ktor",
       "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-iosarm64/3.6.1/ktor-serialization-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx:3.6.1",
-      "name": "ktor-serialization-kotlinx",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx/3.6.1/ktor-serialization-kotlinx-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-iosarm64:3.6.1",
-      "name": "ktor-serialization-kotlinx",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-iosarm64/3.6.1/ktor-serialization-kotlinx-iosarm64-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json:3.6.1",
-      "name": "ktor-serialization-kotlinx-json",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json/3.6.1/ktor-serialization-kotlinx-json-3.6.1.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "io.ktor:ktor-serialization-kotlinx-json-iosarm64:3.6.1",
-      "name": "ktor-serialization-kotlinx-json",
-      "url": "https://github.com/ktorio/ktor",
-      "pom": "https://repo.maven.apache.org/maven2/io/ktor/ktor-serialization-kotlinx-json-iosarm64/3.6.1/ktor-serialization-kotlinx-json-iosarm64-3.6.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6214,20 +5814,20 @@
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1",
       "name": "kotlinx-datetime",
       "url": "https://github.com/Kotlin/kotlinx-datetime",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-datetime/0.8.0-0.6.x-compat/kotlinx-datetime-0.8.0-0.6.x-compat.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-datetime/0.7.1/kotlinx-datetime-0.7.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
       "notices": []
     },
     {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-datetime-iosarm64:0.8.0-0.6.x-compat",
+      "coordinate": "org.jetbrains.kotlinx:kotlinx-datetime-iosarm64:0.7.1",
       "name": "kotlinx-datetime",
       "url": "https://github.com/Kotlin/kotlinx-datetime",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-datetime-iosarm64/0.8.0-0.6.x-compat/kotlinx-datetime-iosarm64-0.8.0-0.6.x-compat.pom",
+      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-datetime-iosarm64/0.7.1/kotlinx-datetime-iosarm64-0.7.1.pom",
       "licenses": [
         "Apache-2.0"
       ],
@@ -6318,26 +5918,6 @@
       "name": "kotlinx-serialization-json",
       "url": "https://github.com/Kotlin/kotlinx.serialization",
       "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.13.0/kotlinx-serialization-json-1.13.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.11.0",
-      "name": "kotlinx-serialization-json-io",
-      "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io/1.11.0/kotlinx-serialization-json-io-1.11.0.pom",
-      "licenses": [
-        "Apache-2.0"
-      ],
-      "notices": []
-    },
-    {
-      "coordinate": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-iosarm64:1.11.0",
-      "name": "kotlinx-serialization-json-io",
-      "url": "https://github.com/Kotlin/kotlinx.serialization",
-      "pom": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-io-iosarm64/1.11.0/kotlinx-serialization-json-io-iosarm64-1.11.0.pom",
       "licenses": [
         "Apache-2.0"
       ],

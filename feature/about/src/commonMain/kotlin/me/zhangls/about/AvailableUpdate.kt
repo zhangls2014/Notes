@@ -1,17 +1,16 @@
 package me.zhangls.about
 
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import kotlinx.io.IOException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.framework.AppInfo
-import me.zhangls.network.httpClient
 
-internal const val NOTES_SITE = "https://notes.zhangls.me"
 private const val IOS_CHANNEL = "ios-app-store"
-private const val UPDATE_TIMEOUT_MILLIS = 10_000L
 private val androidChannels = setOf("android-prd-full", "android-prd-mainland")
 private val versionPattern = Regex("""(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)""")
 private val buildPattern = Regex("""[1-9]\d*(\.\d+){0,2}""")
@@ -21,20 +20,35 @@ private val updateJson = Json { ignoreUnknownKeys = true }
 @Serializable
 internal data class UpdateManifest(val channel: String, val version: String, val build: String, val updateUrl: String)
 
-internal suspend fun checkAvailableUpdate(appInfo: AppInfo, channel: String): UpdateManifest? {
+internal enum class UpdateFailure { Transport, Http, Manifest }
+
+internal class UpdateCheckException(val reason: UpdateFailure, val status: Int? = null) :
+  Exception("Update check failed: $reason")
+
+internal suspend fun checkAvailableUpdate(
+  client: HttpClient,
+  appInfo: AppInfo,
+  channel: String,
+  site: NotesWebsite,
+): UpdateManifest? {
   require(channel == IOS_CHANNEL || channel in androidChannels)
-  return httpClient {
-    followRedirects = false
-    install(HttpTimeout) { requestTimeoutMillis = UPDATE_TIMEOUT_MILLIS }
-  }.use { client ->
-    val response = client.get("$NOTES_SITE/updates/v1/$channel.json")
-    check(response.status.isSuccess())
+  val body = try {
+    val response = client.get("${site.origin}/updates/v1/$channel.json")
+    if (!response.status.isSuccess()) throw UpdateCheckException(UpdateFailure.Http, response.status.value)
+    response.bodyAsText()
+  } catch (_: IOException) {
+    throw UpdateCheckException(UpdateFailure.Transport)
+  }
+  return try {
     availableUpdate(
-      updateJson.decodeFromString<UpdateManifest>(response.bodyAsText()),
+      updateJson.decodeFromString<UpdateManifest>(body),
       channel,
       appInfo.getVersionName(),
       requireNotNull(appInfo.getBuildNumber()),
+      site,
     )
+  } catch (_: IllegalArgumentException) {
+    throw UpdateCheckException(UpdateFailure.Manifest)
   }
 }
 
@@ -43,11 +57,12 @@ internal fun availableUpdate(
   channel: String,
   currentVersion: String,
   currentBuild: String,
+  site: NotesWebsite,
 ): UpdateManifest? {
   require(manifest.channel == channel && versionPattern.matches(manifest.version))
   val newer = when (channel) {
     in androidChannels -> {
-      val expectedUrl = "$NOTES_SITE/downloads/android/$channel/${manifest.build}/"
+      val expectedUrl = "${site.origin}/downloads/android/$channel/${manifest.build}/"
       require(manifest.updateUrl == expectedUrl)
       require('.' !in manifest.build && '.' !in currentBuild)
       compareBuilds(manifest.build, currentBuild) > 0

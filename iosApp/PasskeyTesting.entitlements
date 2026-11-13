@@ -4,7 +4,7 @@
 <dict>
   <key>com.apple.developer.associated-domains</key>
   <array>
-    <string>applinks:notes.zhangls.me</string>
+    <string>applinks:$(NOTES_SITE_HOST)</string>
     <string>webcredentials:$(NOTES_PASSKEY_RP_ID)</string>
   </array>
 </dict>

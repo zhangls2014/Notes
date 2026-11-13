@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.ktor.http.URLBuilder
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.ToastGlobalNotifier
@@ -28,12 +29,13 @@ internal fun OpenSourceNoticesScreen(
   onBack: () -> Unit,
   onNavigate: (OpenSourcePage, String?) -> Unit,
   onExternalLink: (String) -> Unit,
+  site: NotesWebsite,
 ) {
   val notifier = koinInject<ToastGlobalNotifier>()
   val appearance = currentNoticesAppearance()
   val appInfo = koinInject<AppInfo>()
   val onlineUrl = appInfo.onlineNoticesPath()?.takeIf { page == OpenSourcePage.LIBRARIES }?.let { path ->
-    URLBuilder("$NOTES_SITE$path").apply {
+    URLBuilder("${site.origin}$path").apply {
       appearance.noticesAppearanceParameters().forEach { (key, value) -> parameters.append(key, value) }
     }.buildString()
   }

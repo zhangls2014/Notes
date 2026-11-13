@@ -74,6 +74,8 @@ node --input-type=module -e 'import sharp from "sharp"; console.log(sharp.versio
 
 升级到记录通行密钥创建来源和设备品牌的版本前，先在隔离测试库验证，再在获准的生产库执行 [通行密钥元数据迁移](../server/auth/sql/add-passkey-creation-metadata.sql)。迁移在一个事务中给 `auth_passkeys` 增加两个可空字段 `aaguid` 和 `device_brand`，旧记录保留空值。确认两列已存在后再切换服务版本。首次安装直接使用建库脚本。
 
+升级到支持 Token 刷新恢复的版本前，在获准的数据库上以单事务执行 [刷新恢复迁移](../server/auth/sql/add-refresh-recovery.sql)。新建库直接使用 [建库脚本](../server/auth/sql/schema.sql)。先迁移数据库，再更新认证服务，最后发布客户端。服务端继续接受旧客户端的刷新请求。新客户端将刷新操作 ID 随凭据保存在系统安全存储中，服务端允许在五分钟内用原 Refresh Token 和同一个操作 ID 取回同一次轮换结果。每个会话保留一份加密结果，下一次轮换会覆盖，退出时随会话删除。操作 ID 和 Token 都不得写入日志。
+
 ## 3. 准备 SMTP 和服务环境变量
 
 - [ ] 在邮件服务商后台验证发件域，配置服务商要求的 SPF、DKIM 和 DMARC。若服务商有沙箱或收件白名单，先加入验收邮箱。

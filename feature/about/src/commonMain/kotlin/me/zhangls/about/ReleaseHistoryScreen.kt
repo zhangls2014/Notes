@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.ui.ReleaseChanges
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.icon.Icons
@@ -69,7 +70,7 @@ private const val LAYOUT_ICON_ROTATION_DEGREES = 180f
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun ReleaseHistoryScreen(onBack: () -> Unit) {
+internal fun ReleaseHistoryScreen(onBack: () -> Unit, site: NotesWebsite) {
   val result by rememberReleaseHistory()
   val window = LocalWindowAdaptiveInfo.current
   val fullyOpen = window.windowPosture.isFullyOpen
@@ -88,7 +89,7 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit) {
       navigate = onBack,
       actions = {
         val language = if (Locale.current.language == "zh") "zh" else "en"
-        OpenInBrowserAction("$NOTES_SITE/releases/?lang=$language")
+        OpenInBrowserAction("${site.origin}/releases/?lang=$language")
         if (canToggle) {
           val rotation = animateFloatAsState(
             targetValue = if (manualSplit) LAYOUT_ICON_ROTATION_DEGREES else 0f,

@@ -4,7 +4,6 @@ import me.zhangls.data.DataModule
 import me.zhangls.framework.FrameworkModule
 import me.zhangls.framework.nav.NavigationContribution
 import me.zhangls.main.api.MainNavigation
-import me.zhangls.network.NetworkModule
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
@@ -14,7 +13,6 @@ import org.koin.core.annotation.Single
 @Module(
   includes = [
     DataModule::class,
-    NetworkModule::class,
     FrameworkModule::class,
   ],
 )

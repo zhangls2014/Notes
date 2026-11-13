@@ -14,7 +14,7 @@ import type { Pool, PoolClient } from "pg";
 import { normalizeAvatar } from "./avatar.ts";
 import { createEmailCodes } from "./email-codes.ts";
 import type { SendEmail } from "./email-codes.ts";
-import { expandAndroidPasskeyOrigins, hashPassword, rateLimitDigest, RequestError, token, tokenDigest, verifyPassword } from "./security.ts";
+import { expandAndroidPasskeyOrigins, hashPassword, rateLimitDigest, refreshRecovery, RequestError, token, tokenDigest, verifyPassword } from "./security.ts";
 
 type Session = { session_id: string; id: string; account: string; email: string; verified_at: Date };
 type User = Pick<Session, "id" | "account">;
@@ -421,22 +421,42 @@ export function createAuthService(config: {
       );
     },
 
-    async refreshSession(oldToken: string) {
+    async refreshSession(oldToken: string, operationId?: string) {
       const accessToken = token();
       const refreshToken = token();
+      const recovery = operationId === undefined ? null : refreshRecovery(oldToken, operationId);
       const { rows: [user] } = await database.query<User>(
         `UPDATE auth_sessions s SET access_digest = $2, refresh_digest = $3,
-           access_expires_at = now() + interval '15 minutes'
+           access_expires_at = now() + interval '15 minutes',
+           refresh_recovery_digest = $4, refresh_recovery_payload = $5,
+           refresh_recovery_expires_at = CASE WHEN $4::bytea IS NULL THEN NULL ELSE now() + interval '5 minutes' END
          FROM auth_users u WHERE s.user_id = u.id AND s.refresh_digest = $1
            AND s.refresh_expires_at > now() RETURNING u.id, u.account`,
-        [tokenDigest(oldToken), tokenDigest(accessToken), tokenDigest(refreshToken)],
+        [tokenDigest(oldToken), tokenDigest(accessToken), tokenDigest(refreshToken),
+          recovery?.digest ?? null, recovery?.seal(accessToken, refreshToken) ?? null],
       );
-      if (!user) throw new RequestError(401, "invalid_session");
-      return { user, accessToken, refreshToken };
+      if (user) return { user, accessToken, refreshToken };
+      if (recovery) {
+        const { rows: [previous] } = await database.query<User & { payload: Buffer }>(
+          `SELECT u.id, u.account, s.refresh_recovery_payload AS payload
+           FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
+           WHERE s.refresh_recovery_digest = $1 AND s.refresh_recovery_expires_at > now()
+             AND s.refresh_expires_at > now()`,
+          [recovery.digest],
+        );
+        if (previous) {
+          return { user: { id: previous.id, account: previous.account }, ...recovery.open(previous.payload) };
+        }
+      }
+      throw new RequestError(401, "invalid_session");
     },
 
-    async logout(refreshToken: string) {
-      await database.query("DELETE FROM auth_sessions WHERE refresh_digest = $1", [tokenDigest(refreshToken)]);
-    },
+    async logout(refreshToken: string, operationId?: string) {
+      const recovery = operationId === undefined ? null : refreshRecovery(refreshToken, operationId);
+      await database.query(
+        `DELETE FROM auth_sessions WHERE refresh_digest = $1 OR refresh_recovery_digest = $2`,
+        [tokenDigest(refreshToken), recovery?.digest ?? null],
+      );
+    }
   };
 }

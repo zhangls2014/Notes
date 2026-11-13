@@ -7,6 +7,22 @@
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {
+          "en": "Passkey management asks you to verify again only when your session requires it.",
+          "zh": "通行密钥管理仅在会话需要重新验证时显示相应提示。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Account requests can run alongside each other. When a session expires, the app tries to renew it when needed.",
+          "zh": "账号请求可以并行执行，会话过期后应用会在需要时尝试续期。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
           "en": "Scroll from either side of the screen on Personal information and Passkeys.",
           "zh": "可从屏幕两侧的留白处滑动，滚动个人信息和通行密钥页面。"
         }

@@ -23,7 +23,7 @@ internal fun UpdateCheckDialog(status: UpdateStatus, onDismiss: () -> Unit, onRe
     UpdateStatus.Idle -> return
     UpdateStatus.Checking -> stringResource(Res.string.about_update_checking)
     UpdateStatus.Current -> stringResource(Res.string.about_update_current)
-    UpdateStatus.Failed -> stringResource(Res.string.about_update_failed)
+    is UpdateStatus.Failed -> stringResource(Res.string.about_update_failed)
     is UpdateStatus.Available -> stringResource(Res.string.about_update_available, status.manifest.version)
   }
   AlertDialog(
@@ -31,13 +31,13 @@ internal fun UpdateCheckDialog(status: UpdateStatus, onDismiss: () -> Unit, onRe
     title = { Text(stringResource(Res.string.about_check_updates)) },
     text = { Text(message) },
     dismissButton = {
-      if (status == UpdateStatus.Failed || status is UpdateStatus.Available) {
+      if (status is UpdateStatus.Failed || status is UpdateStatus.Available) {
         TextButton(onClick = onDismiss) { Text(stringResource(Res.string.about_release_dialog_dismiss)) }
       }
     },
     confirmButton = {
       when (status) {
-        UpdateStatus.Failed -> TextButton(onClick = onRetry) { Text(stringResource(Res.string.about_update_retry)) }
+        is UpdateStatus.Failed -> TextButton(onClick = onRetry) { Text(stringResource(Res.string.about_update_retry)) }
 
         is UpdateStatus.Available -> TextButton(onClick = {
           openInBrowser(status.manifest.updateUrl)

@@ -147,6 +147,26 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     await service.logout(renewed.refreshToken);
     await assert.rejects(service.refreshSession(renewed.refreshToken), { message: "invalid_session" });
 
+    const recoverySession = await service.signInWithPassword(email, password, testId);
+    const operationId = randomUUID();
+    // Ignore the first result as a client that lost its connection would.
+    const rotated = await service.refreshSession(recoverySession.refreshToken, operationId);
+    assert.deepEqual(await service.refreshSession(recoverySession.refreshToken, operationId), rotated);
+    await assert.rejects(service.refreshSession(recoverySession.refreshToken, randomUUID()), { message: "invalid_session" });
+    await assert.rejects(service.refreshSession(recoverySession.refreshToken), { message: "invalid_session" });
+    await service.logout(recoverySession.refreshToken, operationId);
+    await assert.rejects(service.refreshSession(rotated.refreshToken), { message: "invalid_session" });
+
+    const concurrentSession = await service.signInWithPassword(email, password, testId);
+    const concurrentOperation = randomUUID();
+    const [first, second] = await Promise.all([
+      service.refreshSession(concurrentSession.refreshToken, concurrentOperation),
+      service.refreshSession(concurrentSession.refreshToken, concurrentOperation),
+    ]);
+    assert.deepEqual(first, second);
+    await database.query("UPDATE auth_sessions SET refresh_recovery_expires_at = now() WHERE user_id = $1", [userId]);
+    await assert.rejects(service.refreshSession(concurrentSession.refreshToken, concurrentOperation), { message: "invalid_session" });
+
     const stale = await authenticationOptions();
     const passkeyLogin = await authenticationOptions();
     const passkeyAccess = (await service.authenticatePasskey(
@@ -164,6 +184,21 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     const address = http.address();
     assert(address && typeof address === "object");
     const authUrl = "http://127.0.0.1:" + address.port + "/v1/auth";
+    const disconnected = await service.signInWithPassword(email, password, testId);
+    const refreshBody = JSON.stringify({ refreshToken: disconnected.refreshToken, operationId: randomUUID() });
+    const refreshRequest = () => fetch(authUrl + "/session/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: refreshBody,
+    });
+    const ignored = await refreshRequest();
+    assert.equal(ignored.status, 200);
+    await ignored.body?.cancel();
+    const recovered = await refreshRequest();
+    assert.equal(recovered.status, 200);
+    const recoveredSession = await recovered.json() as { accessToken: string; refreshToken: string };
+    assert.equal((await service.getProfile(recoveredSession.accessToken)).id, userId);
+    await service.logout(recoveredSession.refreshToken);
     const headers = { Authorization: "Bearer " + passkeyAccess };
     const changed = await fetch(authUrl + "/me/email", {
       method: "PUT",

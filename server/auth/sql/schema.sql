@@ -30,6 +30,9 @@ CREATE TABLE auth_sessions (
   refresh_digest bytea NOT NULL UNIQUE,
   access_expires_at timestamptz NOT NULL,
   refresh_expires_at timestamptz NOT NULL,
+  refresh_recovery_digest bytea UNIQUE,
+  refresh_recovery_payload bytea,
+  refresh_recovery_expires_at timestamptz,
   verified_at timestamptz NOT NULL DEFAULT now()
 );
 

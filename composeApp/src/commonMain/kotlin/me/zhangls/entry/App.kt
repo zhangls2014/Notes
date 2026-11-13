@@ -20,10 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.entry.data.sample.LocalEmailsDataProvider
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.SystemToast
 import me.zhangls.login.api.LocalAccountRegistration
@@ -96,26 +96,14 @@ fun App(
   LaunchedEffect(profile, accessibleAccount) {
     if (auth != null && accessibleAccount != null) profile.refresh()
   }
-  LaunchedEffect(auth, accessibleAccount) {
-    if (auth == null || accessibleAccount == null) return@LaunchedEffect
-    while (true) {
-      try {
-        auth.refresh(accessibleAccount)
-      } catch (cancelled: CancellationException) {
-        throw cancelled
-      } catch (_: Exception) {
-        // The existing local session stays available during transient network failures.
-      }
-      delay(5 * 60 * 1000L)
-    }
-  }
   // 各 feature 对导航的贡献由它们自己的 Koin 模块以多绑定登记，这里一处收集
   val navigationRegistry = rememberNavigationRegistry()
   // remember 住解析结果：parseDeepLink 每次调用都会新建对象，不记住的话这个参数会随每次
   // 重组变化。下游需要按**引用**区分"首帧带进来的 DeepLink"与"运行期新来的同一条
   // DeepLink"，参数不稳定会让这个判断失准（等于把每次重组都当成一次新导航）。
-  val deepLinkDestination = remember(deepLinkUrl, navigationRegistry) {
-    parseDeepLink(deepLinkUrl, navigationRegistry.deepLinkMatchers)
+  val website: NotesWebsite = koinInject()
+  val deepLinkDestination = remember(deepLinkUrl, navigationRegistry, website) {
+    parseDeepLink(deepLinkUrl, navigationRegistry.deepLinkMatchers, website.origin)
   }
   val currentDeepLink = deepLinkDestination.takeIf {
     auth == null || accessibleAccount != null && isDeepLinkForAccount(deepLinkUrl, accessibleAccount)

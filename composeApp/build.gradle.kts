@@ -1,3 +1,4 @@
+import java.net.URI
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
@@ -91,25 +92,47 @@ koinCompiler {
   compileSafety = true
 }
 
+fun validateHttpsOrigin(value: String, setting: String): URI {
+  val uri = runCatching { URI(value) }.getOrNull()
+  require(uri != null && uri.scheme == "https" && uri.host != null && uri.rawUserInfo == null &&
+    uri.port == -1 && uri.rawQuery == null && uri.rawFragment == null && uri.rawPath in listOf("", "/") &&
+    uri.rawAuthority.equals(uri.host, ignoreCase = true)
+  ) { "$setting must be an HTTPS origin with a DNS host and no port" }
+  return uri
+}
+
 /**
  * 编译期常量配置
  */
 buildkonfig {
   packageName = "me.zhangls.entry"
   defaultConfigs {
-    buildConfigField(STRING, "BASE_URL", "https://www.mxnzp.com/")
+    val siteBaseUrl = providers.gradleProperty("notes.siteBaseUrl")
+      .orElse(providers.environmentVariable("NOTES_SITE_BASE_URL"))
+      .orElse(providers.gradleProperty("notes.defaultSiteBaseUrl"))
+      .get()
+    val siteOrigin = validateHttpsOrigin(siteBaseUrl, "Notes website")
+    buildConfigField(STRING, "SITE_BASE_URL", siteBaseUrl.trimEnd('/'))
     val authBaseUrl = providers.gradleProperty("notes.authBaseUrl")
       .orElse(providers.environmentVariable("NOTES_AUTH_BASE_URL"))
-      .orElse("https://auth.notes.zhangls.me")
+      .orElse(providers.gradleProperty("notes.defaultAuthBaseUrl"))
       .get()
-    require(authBaseUrl.all { it.isLetterOrDigit() || it in ":/.-" }) { "Invalid Notes authentication URL" }
+    val authOrigin = authBaseUrl.takeIf(String::isNotEmpty)?.let { validateHttpsOrigin(it, "Notes authentication") }
     buildConfigField(STRING, "AUTH_BASE_URL", authBaseUrl)
     val passkeysEnabled = providers.gradleProperty("notes.authPasskeysEnabled")
       .orElse(providers.environmentVariable("NOTES_AUTH_PASSKEYS_ENABLED"))
       .orElse("true")
       .get()
       .toBooleanStrict()
-    require(!passkeysEnabled || authBaseUrl.isNotBlank()) { "Passkeys require a Notes authentication URL" }
+    require(!passkeysEnabled || authOrigin != null) { "Passkeys require a Notes authentication URL" }
+    providers.environmentVariable("NOTES_XCODE_SITE_HOST").orNull?.let { host ->
+      require(siteOrigin.host.equals(host, ignoreCase = true)) { "Notes website and iOS App Links host must match" }
+    }
+    providers.environmentVariable("NOTES_XCODE_PASSKEY_RP_ID").orNull?.let { host ->
+      require(!passkeysEnabled || authOrigin?.host.equals(host, ignoreCase = true)) {
+        "Notes authentication host and iOS Passkey RP ID must match"
+      }
+    }
     buildConfigField(BOOLEAN, "AUTH_PASSKEYS_ENABLED", passkeysEnabled.toString())
   }
 }

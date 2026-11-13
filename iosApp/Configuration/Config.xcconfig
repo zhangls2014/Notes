@@ -5,3 +5,7 @@ PRODUCT_BUNDLE_IDENTIFIER=me.zhangls.notes.Notes$(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=5
 MARKETING_VERSION=1.1.2
+
+// Keep these hosts aligned with NOTES_SITE_BASE_URL and NOTES_AUTH_BASE_URL.
+NOTES_SITE_HOST=notes.zhangls.me
+NOTES_PASSKEY_RP_ID=auth.notes.zhangls.me

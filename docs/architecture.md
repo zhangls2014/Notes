@@ -69,7 +69,7 @@ Gradle 中启用的模块：
 | `core:data` | 对外模型、Repository 接口和数据实现；隐藏数据库实现类型 |
 | `core:theme` | 主题、图标、通用 Compose 组件、内容宽度和窗口事实 |
 | `core:preference` | 设置项展示元数据、通用设置控件和渲染契约 |
-| `core:network` | Ktor 客户端、认证、响应和错误封装 |
+| `core:network` | 跨平台 Ktor 客户端工厂、HTTP 客户端绑定 |
 | `core:framework` | MVI 基类、Navigation 3 契约、Deep Link 和全局 Effect |
 | `core:navigation` | 导航显示、预测返回转场、设备圆角和窗格安全区；不依赖 Feature，不拥有应用返回栈或业务导航策略 |
 
@@ -93,6 +93,10 @@ Gradle 中启用的模块：
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
 当前 Native 编译链下，跨模块 `@Composable` 抽象 Entry 方法不声明默认参数，调用方显式传参；默认值可以留在模块内部的顶层页面函数。邮件、设置入口曾因此触发 `IrLinkageError`，同类检查还发现登录入口风险（修复提交 `7f203ca8`、`1d3dfb34`）。新增或修改契约时，在 `composeApp` 的 iOS 测试中通过接口调用真实实现；编译成功不能证明运行时分派正确。编译链升级后，只有对应回归证明问题消失，才可重新评估该限制。
+
+### 服务地址配置
+
+应用构建从 Gradle 属性、环境变量、集中默认值依次解析认证和官网地址。组合根把官网来源注入 About Feature，更新清单请求、Android 下载页校验、发布历史和在线声明链接共用该来源。Android App Links 使用相同构建参数生成 host；iOS 的关联域名通过 Xcode 构建设置提供，并为框架构建派生对应地址。测试环境及网站发布参数见 [部署配置](notes-web-deployment.md#服务地址配置)。
 
 ### 源码定位
 
@@ -335,7 +339,9 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 - 数据库文件路径由 `core:data` 的 `AppFileManager` 提供，平台建库差异由 `AppDatabaseFactory` 的 expect/actual 承担。
 - `AppDataStore` 只负责普通资料/设置的 JSON 序列化，不存储登录凭据。`UserModel` 不含 Token；`UserRepository.login(user, tokens)` 串行协调资料与凭据，`getTokens()` 仅供组合根网络适配使用，Token 不进入 UI State。
 - `core:data/impl/security/SecureTokenStore` 是内部契约：Android 用 Keystore AES/GCM 和随机 IV 加密整组账号凭据，经 `AtomicFile` 写入 `noBackupFilesDir`；iOS 用 Generic Password Keychain，`WhenUnlockedThisDeviceOnly`，不启用同步。永久密钥失效或损坏密文会清除凭据；临时访问失败不回退明文。登录态 Flow 保留最近状态并执行可取消重试；请求级 getTokens 仍抛出失败，不使用旧凭据兜底。
-- 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。Ktor 禁用鉴权 Token 缓存，每次整组读取当前凭据。认证端点未配置时，演示构建继续使用本地模拟会话。启用认证端点的构建使用 Notes 认证服务；第三方 Ktor 客户端不读取真实会话令牌。
+- 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。认证客户端按请求读取当前凭据，通过组合根注入 `core:network` 创建的 HTTP 客户端。会话刷新、错误码解析与认证地址由 Notes 认证代码管理。认证端点未配置时，演示构建继续使用本地模拟会话。启用认证端点的构建使用 Notes 认证服务；第三方 Ktor 客户端不读取真实会话令牌。
+- 应用组合根直接注册 `NetworkModule`，并把构建提供的官网和认证 origin 分别注入 `NotesWebsite` 和 `AuthenticationConfig`。根导航用官网配置校验深链来源，账号会话和认证请求共用认证配置。「关于应用」使用独立的匿名客户端检查更新。
+- `composeApp` 的 `AccountSession` 管理账号会话与按需刷新。`core:data` 继续负责平台安全存储和凭据的条件更新。普通请求可并行执行。服务端返回 `401 invalid_session` 时，暂停新请求并等待在途请求完成，再轮换凭据，避免旧 Token 在写入提交前失效。同一批旧 Token 请求共享刷新结果，只在同一会话内重发一次。轮换前将操作 ID 与原凭据一起原子写入安全存储。断线后沿用该 ID，在五分钟内可向服务端取回同一次结果。`403` 保留业务流程自己的处理，超时和连接失败不自动重发。认证失败诊断保留 HTTP 状态、业务码和 `X-Request-Id`，不记录请求正文或凭据。
 - 生物识别解锁设置随本机会话资料保存，旧资料和新登录默认关闭。设置入口通过 `SettingsResult` 请求根层验证；Android 与 iOS 宿主发起系统设备验证，支持设备锁屏凭据回退。启动时组合根等待本进程首次确认会话；有锁定会话时仅显示解锁页，导航、待处理深链和更新提示等验证成功再恢复。授权只保留在进程内，退出会话时清除。保护范围是应用内访问，Room 和 Token 存储沿用现有机制。
 - 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。所有 Android 和 iOS 构建默认连接 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey，认证配置独立于应用更新渠道。Passkey 入口还要求平台支持，实际使用需要签名应用与认证域名建立关联。注册发码时拒绝已注册邮箱。用户使用已验证邮箱和密码或 Passkey 登录。Passkey 登录挑战绑定当前邮箱和账户 UUID，凭据及本地数据仍以稳定的账户 UUID 标识，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
 - Android 真实账号登录使用 Compose Autofill，账号和密码由系统自动填充服务管理。登录输入框使用 [RoundedAutofillHighlight](../core/theme/src/commonMain/kotlin/me/zhangls/theme/component/RoundedAutofillHighlight.kt) 将高亮绘制为与输入框一致的形状。认证客户端确认服务端响应有效后、发布会话前通知登录表单提交自动填充会话。演示登录和 Passkey 流程不主动提交密码保存。
@@ -446,4 +452,4 @@ Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配
 
 ## 官网、发布渠道与认证域
 
-Cloudflare Pages 从 `web/` 构建官网。公开历史从包内 `releases.json` 生成，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查 `notes.zhangls.me` 的清单。离线历史及声明仍由 About 资源提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+Cloudflare Pages 从 `web/` 构建官网。公开历史从包内 `releases.json` 生成，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。离线历史及声明仍由 About 资源提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。

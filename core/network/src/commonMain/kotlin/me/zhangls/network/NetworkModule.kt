@@ -2,29 +2,12 @@ package me.zhangls.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
-import io.ktor.client.plugins.Charsets
-import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.addDefaultResponseValidation
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BearerTokens
-import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.utils.io.charsets.Charsets
-import kotlinx.serialization.json.Json
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Singleton
 
-private const val HTTP_TIMEOUT_MILLIS = 10_000L
+private const val HTTP_TIMEOUT_MILLIS = 15_000L
 
 /**
  * @author zhangls
@@ -33,57 +16,14 @@ private const val HTTP_TIMEOUT_MILLIS = 10_000L
 @ComponentScan("me.zhangls.network")
 class NetworkModule
 
-expect fun httpClient(config: HttpClientConfig<*>.() -> Unit = {}): HttpClient
+expect fun httpClient(
+  retryOnConnectionFailure: Boolean = true,
+  config: HttpClientConfig<*>.() -> Unit = {},
+): HttpClient
 
 @Singleton
-fun provideKtorClient(networkConfig: NetworkConfig, tokenProvider: TokenProvider): HttpClient {
-  // 通过 expect/actual 走平台引擎（Android: OkHttp / iOS: Darwin），
-  // 平台特定的 engine 配置（如 retryOnConnectionFailure）才会生效
-  return httpClient {
-    expectSuccess = true
-    addDefaultResponseValidation()
-
-    Charsets {
-      register(Charsets.UTF_8)
-    }
-
-    install(HttpTimeout) {
-      requestTimeoutMillis = HTTP_TIMEOUT_MILLIS
-      connectTimeoutMillis = HTTP_TIMEOUT_MILLIS
-    }
-
-    install(DefaultRequest) {
-      contentType(ContentType.Application.Json)
-      url(networkConfig.baseUrl)
-    }
-
-    install(Auth) {
-      bearer {
-        // Repository owns current credentials; do not retain tokens after logout/account changes.
-        cacheTokens = false
-        loadTokens {
-          val tokens = tokenProvider.getTokens() ?: return@loadTokens null
-          BearerTokens(tokens.accessToken, tokens.refreshToken)
-        }
-      }
-    }
-
-    install(Logging) {
-      logger = Logger.DEFAULT
-      level = LogLevel.HEADERS
-      sanitizeHeader { header -> header == HttpHeaders.Authorization }
-    }
-
-    install(ContentNegotiation) {
-      json(
-        Json {
-          ignoreUnknownKeys = true
-          explicitNulls = false
-          encodeDefaults = true
-          isLenient = true
-          prettyPrint = true
-        },
-      )
-    }
-  }
+fun provideKtorClient(): HttpClient = httpClient(retryOnConnectionFailure = false) {
+  expectSuccess = false
+  followRedirects = false
+  install(HttpTimeout) { requestTimeoutMillis = HTTP_TIMEOUT_MILLIS }
 }

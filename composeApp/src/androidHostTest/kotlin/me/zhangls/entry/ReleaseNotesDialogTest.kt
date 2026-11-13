@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import me.zhangls.about.AboutEntryImpl
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.Assert.assertEquals
@@ -32,7 +33,7 @@ class ReleaseNotesDialogTest {
   @get:Rule val compose = createComposeRule()
 
   @Test fun currentVersionAppearsAndCanBeAcknowledged() {
-    val entry: AboutEntry = AboutEntryImpl()
+    val entry: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     var visible by mutableStateOf(true)
     var dismissed = 0
     compose.setContent {
@@ -80,7 +81,7 @@ class ReleaseNotesDialogTest {
   private fun launchCurrentVersion() {
     compose.setContent {
       ComposeAppTheme {
-        AboutEntryImpl().ReleaseNotesDialog(version = "1.1.0", onDismiss = {})
+        AboutEntryImpl(NotesWebsite("https://website.example.test")).ReleaseNotesDialog(version = "1.1.0", onDismiss = {})
       }
     }
     compose.waitUntil(10_000) {
@@ -89,7 +90,7 @@ class ReleaseNotesDialogTest {
   }
 
   @Test fun missingCurrentVersionDoesNotUseNewestRecord() {
-    val entry: AboutEntry = AboutEntryImpl()
+    val entry: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     compose.setContent {
       ComposeAppTheme(darkTheme = false) {
         entry.ReleaseNotesDialog(version = "9.0.0", onDismiss = { error("No dialog to dismiss") })
@@ -105,7 +106,7 @@ class ReleaseNotesDialogTest {
     var dismissed = false
     compose.setContent {
       ComposeAppTheme(darkTheme = false, fontScale = 2F) {
-        AboutEntryImpl().ReleaseNotesDialog(version = "1.1.0", onDismiss = { dismissed = true })
+        AboutEntryImpl(NotesWebsite("https://website.example.test")).ReleaseNotesDialog(version = "1.1.0", onDismiss = { dismissed = true })
       }
     }
     compose.waitUntil(10_000) {

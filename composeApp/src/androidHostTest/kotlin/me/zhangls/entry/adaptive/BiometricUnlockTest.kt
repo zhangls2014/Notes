@@ -16,6 +16,7 @@ import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppAccess
 import me.zhangls.entry.AppViewModel
+import me.zhangls.entry.AuthenticationConfig
 import me.zhangls.entry.DeviceAuthenticationResult
 import me.zhangls.entry.configuredAuthEndpoint
 import me.zhangls.framework.toast.ToastGlobalNotifier
@@ -42,7 +43,7 @@ class BiometricUnlockTest {
         biometricUnlockEnabled = true,
       )
       val handle = SavedStateHandle()
-      val viewModel = AppViewModel(handle, ToastGlobalNotifier(), users, AdaptiveSettings())
+      val viewModel = AppViewModel(handle, ToastGlobalNotifier(), users, AdaptiveSettings(), AuthenticationConfig(configuredAuthEndpoint(), true))
       store.put("app", viewModel)
       assertEquals(AppAccess.Loading, viewModel.state.value.access)
       runCurrent()
@@ -56,7 +57,7 @@ class BiometricUnlockTest {
       val restoredHandle = SavedStateHandle(
         mapOf("state" to encodeToSavedState(viewModel.state.value)),
       )
-      val recreated = AppViewModel(restoredHandle, ToastGlobalNotifier(), users, AdaptiveSettings())
+      val recreated = AppViewModel(restoredHandle, ToastGlobalNotifier(), users, AdaptiveSettings(), AuthenticationConfig(configuredAuthEndpoint(), true))
       store.put("recreated", recreated)
       assertEquals(true, recreated.state.value.isLogin)
       assertEquals(AppAccess.Loading, recreated.state.value.access)
@@ -80,7 +81,7 @@ class BiometricUnlockTest {
         override suspend fun updateBiometricUnlock(enabled: Boolean): Boolean =
           if (failWrites) error("storage unavailable") else users.updateBiometricUnlock(enabled)
       }
-      val viewModel = AppViewModel(SavedStateHandle(), ToastGlobalNotifier(), repository, AdaptiveSettings())
+      val viewModel = AppViewModel(SavedStateHandle(), ToastGlobalNotifier(), repository, AdaptiveSettings(), AuthenticationConfig(configuredAuthEndpoint(), true))
       store.put("app", viewModel)
       runCurrent()
       viewModel.verifyDevice({ DeviceAuthenticationResult.Success }, enabled = true)
@@ -112,7 +113,7 @@ class BiometricUnlockTest {
       val user = UserModel("account-a", "Notes", authOrigin = configuredAuthEndpoint(), biometricUnlockEnabled = true)
       users.userFlow.value = user
       val handle = SavedStateHandle()
-      val viewModel = AppViewModel(handle, ToastGlobalNotifier(), users, AdaptiveSettings())
+      val viewModel = AppViewModel(handle, ToastGlobalNotifier(), users, AdaptiveSettings(), AuthenticationConfig(configuredAuthEndpoint(), true))
       store.put("app", viewModel)
       runCurrent()
       val response = CompletableDeferred<DeviceAuthenticationResult>()

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import me.zhangls.about.AboutEntryImpl
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -51,7 +52,7 @@ class ReleaseHistoryAdaptiveTest(private val width: Int, private val columns: In
 
   @Test fun columnWidthTracksWindowAndReflowsWithoutLosingCurrentVersion() {
     var windowWidth by mutableStateOf(width)
-    val entry: AboutEntry = AboutEntryImpl()
+    val entry: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     compose.setContent {
       Box(Modifier.requiredSize(windowWidth.dp, 1000.dp).testTag("release-window")) {
         ProvideWindowAdaptiveInfo(

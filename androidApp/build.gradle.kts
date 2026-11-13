@@ -1,3 +1,4 @@
+import java.net.URI
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -71,6 +72,14 @@ val signingKeyPassword = signingProperty(
   "NOTES_SIGNING_KEY_PASSWORD",
 )
 
+val notesSiteOrigin = providers.gradleProperty("notes.siteBaseUrl")
+  .orElse(providers.environmentVariable("NOTES_SITE_BASE_URL"))
+  .orElse(providers.gradleProperty("notes.defaultSiteBaseUrl"))
+  .map { origin ->
+    require(Regex("https://[A-Za-z0-9.-]+/?").matches(origin)) { "Invalid Notes website origin" }
+    requireNotNull(URI.create(origin).host) { "Invalid Notes website host" }.lowercase()
+  }
+
 android {
   namespace = "me.zhangls.notes"
   buildToolsVersion = kmp.versions.android.buildTools.get()
@@ -83,6 +92,7 @@ android {
 
   defaultConfig {
     applicationId = "me.zhangls.notes"
+    manifestPlaceholders["notesSiteHost"] = notesSiteOrigin.get()
     minSdk = kmp.versions.android.minSdk.get().toInt()
     targetSdk = kmp.versions.android.targetSdk.get().toInt()
     versionCode = 5

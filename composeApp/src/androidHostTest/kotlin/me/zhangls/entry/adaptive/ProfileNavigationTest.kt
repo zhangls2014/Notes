@@ -67,6 +67,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
+import org.koin.mp.KoinPlatform
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -160,7 +161,7 @@ class ProfileNavigationTest {
 
   @Test fun settingsEntryOpensFullScreenPasskeyManagement() {
     val endpoint = configuredAuthEndpoint() ?: "https://example.invalid"
-    launch(passkeyAuth = PasswordlessAuthClient(endpoint, users))
+    launch(passkeyAuth = PasswordlessAuthClient(endpoint, users, KoinPlatform.getKoin().get()))
     compose.onNodeWithText("Settings").performClick()
     compose.onNodeWithText("Sign in without a password using biometrics or your device screen lock").assertIsDisplayed()
     compose.onNodeWithText("Passkeys").performClick()
