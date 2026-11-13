@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -31,7 +32,14 @@ fun ContainedLoadingIndicator(
   Box(
     modifier = modifier
       .fillMaxSize()
-      .background(backgroundColor),
+      .background(backgroundColor)
+      .pointerInput(Unit) {
+        awaitPointerEventScope {
+          while (true) {
+            awaitPointerEvent()
+          }
+        }
+      },
     contentAlignment = Alignment.Center,
   ) {
     ContainedLoadingIndicator(

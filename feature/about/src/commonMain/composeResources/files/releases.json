@@ -58,6 +58,14 @@
           "en": "Manage passkeys on a dedicated page that shows the password manager and device brand used at creation, when available.",
           "zh": "可在独立页面管理通行密钥，并查看可识别的创建服务和设备品牌。"
         }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Taps and swipes no longer reach the sign-in or registration screen through the loading overlay.",
+          "zh": "登录和注册时，加载遮罩会拦截点击和滑动。"
+        }
       }
     ]
   },
