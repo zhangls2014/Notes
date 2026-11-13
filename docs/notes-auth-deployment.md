@@ -12,6 +12,8 @@
 
 生产和测试分别准备域名、数据库、SMTP 凭据、验证码密钥和签名标识。测试可使用 `auth-staging.zhangls.me` 作为示例域名，以下涉及域名的 DNS、证书、RP ID、Origin 和签名关联文件均替换为对应环境的值。实际空库初始化、域名切换与生产上线按仓库约定分别授权。官网与 APK 发布步骤见 [网站部署与应用发布](notes-web-deployment.md)。
 
+生产源站的实际地址、SSH 身份和主机指纹保存在本机忽略文件 `server/auth/production-access.local.md` 或受控凭据存储中。部署文档记录公开服务域名和可复用操作步骤。
+
 生产服务器只允许使用 `admin` 账号登录（包括 SSH 和阿里云 Workbench），禁止使用
 `root` 账号登录。需要提权时，通过已登录的 `admin` 会话执行获准的 `sudo` 命令。
 

@@ -31,7 +31,7 @@ regressions, but their device checks remain open. Native pixel tests retain the
 existing combined-run presentation instability documented in
 [the adaptive testing guide](../../testing/adaptive-ui.md).
 
-Keep this plan while acceptance remains open. File deletion requires the maintainer’s
+Keep this plan while acceptance remains open. File deletion requires the maintainer's
 separate authorization under the repository rules.
 
 ## Expressive follow-up implementation plan (approved 2026-10-28)
