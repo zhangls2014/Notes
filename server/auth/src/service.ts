@@ -273,7 +273,9 @@ export function createAuthService(config: {
       return { requestId: await saveChallenge(publicKey.challenge, "registration", session.session_id), publicKey };
     },
 
-    async registerPasskey(accessToken: string, requestId: string, response: RegistrationResponseJSON) {
+    async registerPasskey(
+      accessToken: string, requestId: string, response: RegistrationResponseJSON, deviceBrand?: string,
+    ) {
       const session = await requireSession(accessToken);
       requireRecentVerification(session);
       const challenge = await takeChallenge(requestId, "registration", session.session_id);
@@ -289,11 +291,11 @@ export function createAuthService(config: {
       if (!result.verified || !result.registrationInfo) throw new PasskeyRegistrationError("attestation_rejected");
       const credential = result.registrationInfo.credential;
       const inserted = await database.query(
-        `INSERT INTO auth_passkeys (id, user_id, public_key, sign_count, transports)
-         SELECT $1, s.user_id, $2, $3, $4 FROM auth_sessions s WHERE s.id = $5 AND s.access_digest = $6
+        `INSERT INTO auth_passkeys (id, user_id, public_key, sign_count, transports, aaguid, device_brand)
+         SELECT $1, s.user_id, $2, $3, $4, $5, $6 FROM auth_sessions s WHERE s.id = $7 AND s.access_digest = $8
          AND s.access_expires_at > now() ON CONFLICT (id) DO NOTHING`,
         [credential.id, Buffer.from(credential.publicKey), credential.counter, credential.transports ?? null,
-          session.session_id, tokenDigest(accessToken)],
+          result.registrationInfo.aaguid, deviceBrand ?? null, session.session_id, tokenDigest(accessToken)],
       );
       if (inserted.rowCount !== 1) throw new RequestError(409, "registration_conflict");
     },
@@ -382,11 +384,18 @@ export function createAuthService(config: {
 
     async listPasskeys(accessToken: string) {
       const session = await requireSession(accessToken);
-      const { rows } = await database.query<{ id: string; createdAt: Date }>(
-        'SELECT id, created_at AS "createdAt" FROM auth_passkeys WHERE user_id = $1 ORDER BY created_at, id',
+      const { rows } = await database.query<{ id: string; createdAt: Date; aaguid: string | null; deviceBrand: string | null }>(
+        `SELECT id, created_at AS "createdAt", aaguid, device_brand AS "deviceBrand"
+         FROM auth_passkeys WHERE user_id = $1 ORDER BY created_at DESC, id`,
         [session.id],
       );
-      return { passkeys: rows };
+      return {
+        passkeys: rows.map(({ aaguid, ...passkey }) => ({
+          ...passkey,
+          // https://web.dev/articles/webauthn-aaguid
+          provider: aaguid === "ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4" ? "google_password_manager" : null,
+        })),
+      };
     },
 
     async deletePasskey(accessToken: string, id: string) {

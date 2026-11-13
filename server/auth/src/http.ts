@@ -160,8 +160,10 @@ export function createAuthHttpServer(
         case "POST " + api + "/passkeys/registration/verify": {
           const access = bearer(request);
           const input = await body(request);
+          const deviceBrand = input.deviceBrand === undefined ? undefined :
+            requirePattern(input.deviceBrand, /^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,63}$/u, "invalid_device_brand");
           await service.registerPasskey(access, requestId(input.requestId),
-            object(input.credential) as unknown as RegistrationResponseJSON);
+            object(input.credential) as unknown as RegistrationResponseJSON, deviceBrand);
           send(response, 204);
           return;
         }

@@ -7,6 +7,7 @@
   <string name="settings_label_biometric_unlock">Biometric unlock</string>
   <string name="settings_msg_biometric_unlock">Verify with biometrics or your device screen lock when the app starts</string>
   <string name="settings_label_passkeys">Passkeys</string>
+  <string name="settings_msg_passkeys">Sign in without a password using biometrics or your device screen lock</string>
   <string name="settings_label_security">Security</string>
   <string name="settings_group_account">Account</string>
   <string name="settings_group_general">General</string>

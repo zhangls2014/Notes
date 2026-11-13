@@ -23,8 +23,8 @@
         "type": "fixed",
         "platforms": ["android"],
         "text": {
-          "en": "Adding a passkey explains when no password manager is available. Passkey setup and sign-in let you retry if the service stops responding.",
-          "zh": "添加通行密钥时会提示没有可用的密码管理器。添加或登录时，如果通行密钥服务未响应，应用会结束等待并提示重试。"
+          "en": "Adding a passkey explains when no password manager is available or when the selected manager already has a passkey for your Notes account. Passkey setup and sign-in let you retry if the service stops responding.",
+          "zh": "添加通行密钥时，如果没有可用的密码管理器，或所选管理器已保存此 Notes 账号的通行密钥，应用会给出对应提示。添加或登录时，如果通行密钥服务未响应，应用会结束等待并提示重试。"
         }
       },
       {
@@ -49,6 +49,14 @@
         "text": {
           "en": "Support adding and using passkeys with Xiaomi Password Manager.",
           "zh": "兼容小米密码管理器添加通行密钥和使用通行密钥登录。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Manage passkeys on a dedicated page that shows the password manager and device brand used at creation, when available.",
+          "zh": "可在独立页面管理通行密钥，并查看可识别的创建服务和设备品牌。"
         }
       }
     ]

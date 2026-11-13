@@ -2,6 +2,7 @@ package me.zhangls.login.api
 
 interface PasskeyProvider {
   val isSupported: Boolean get() = true
+  val deviceBrand: String? get() = null
 
   suspend fun create(optionsJson: String): PasskeyResult
   suspend fun get(optionsJson: String): PasskeyResult
@@ -14,6 +15,8 @@ sealed interface PasskeyResult {
 }
 
 class PasskeyCreationUnavailableException : Exception()
+
+class PasskeyAlreadyExistsException : Exception()
 
 class PasskeyCreationTimedOutException : Exception()
 

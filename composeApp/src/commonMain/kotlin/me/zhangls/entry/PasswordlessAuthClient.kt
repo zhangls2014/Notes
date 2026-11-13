@@ -72,19 +72,19 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     }
 
   suspend fun updateUsername(userId: String, username: String) {
-    withProfileSession(userId) { access ->
+    withAccountSession(userId) { access ->
       request(HttpMethod.Put, "me/username", fields("account" to username), access)
     }
   }
 
   suspend fun sendEmailChangeCode(userId: String, email: String, password: String) {
-    withProfileSession(userId) { access ->
+    withAccountSession(userId) { access ->
       post("me/email/code", fields("email" to email, "password" to password), access)
     }
   }
 
   suspend fun changeEmail(userId: String, email: String, code: String) {
-    withProfileSession(userId) { access ->
+    withAccountSession(userId) { access ->
       request(HttpMethod.Put, "me/email", fields("email" to email, "code" to code), access)
     }
   }
@@ -108,38 +108,47 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
   }
 
   suspend fun addPasskey(provider: PasskeyProvider): Boolean {
-    val accessToken = requireNotNull(users.getTokens()).accessToken
-    val options = json.decodeFromString<PasskeyOptions>(
-      post("passkeys/registration/options", fields(), accessToken),
-    )
+    val user = users.getUser() ?: throw AuthHttpException(401, "invalid_session")
+    val options = withAccountSession(user.id) { access ->
+      json.decodeFromString<PasskeyOptions>(post("passkeys/registration/options", fields(), access))
+    }
     val credential = provider.create(options.publicKey.toString()).credentialOrNull() ?: return false
-    post("passkeys/registration/verify", options.answer(credential), accessToken)
+    val brand = provider.deviceBrand?.trim()?.takeIf {
+      it.length in 1..64 && it.first().isLetterOrDigit() && it.all { char -> char.isLetterOrDigit() || char in " ._-" } &&
+        !it.equals("unknown", ignoreCase = true)
+    }
+    withAccountSession(user.id) { access ->
+      post("passkeys/registration/verify", options.answer(credential, brand), access)
+    }
     return true
   }
 
-  suspend fun listPasskeys(): List<RegisteredPasskey> = json.decodeFromString<PasskeyList>(
-    request(HttpMethod.Get, "passkeys", accessToken = requireNotNull(users.getTokens()).accessToken),
-  ).passkeys
-
-  suspend fun revokePasskey(id: String) {
-    request(
-      HttpMethod.Delete, "passkeys/${id.encodeURLPathPart()}",
-      accessToken = requireNotNull(users.getTokens()).accessToken,
-    )
+  suspend fun listPasskeys(): List<RegisteredPasskey> {
+    val user = users.getUser() ?: throw AuthHttpException(401, "invalid_session")
+    return withAccountSession(user.id) { access ->
+      json.decodeFromString<PasskeyList>(request(HttpMethod.Get, "passkeys", accessToken = access)).passkeys
+    }
   }
 
-  suspend fun getProfile(userId: String): AccountProfile = withProfileSession(userId) { access ->
+  suspend fun revokePasskey(id: String) {
+    val user = users.getUser() ?: throw AuthHttpException(401, "invalid_session")
+    withAccountSession(user.id) { access ->
+      request(HttpMethod.Delete, "passkeys/${id.encodeURLPathPart()}", accessToken = access)
+    }
+  }
+
+  suspend fun getProfile(userId: String): AccountProfile = withAccountSession(userId) { access ->
     val reply = json.decodeFromString<ProfileReply>(request(HttpMethod.Get, "me", accessToken = access))
     require(reply.id == userId && reply.account.isNotBlank())
     require(reply.avatarRevision == null || accountIdPattern.matches(reply.avatarRevision))
     AccountProfile(reply.id, reply.account, reply.avatarRevision, reply.email)
   }
 
-  suspend fun getAvatar(userId: String): AccountAvatar = withProfileSession(userId) { access ->
+  suspend fun getAvatar(userId: String): AccountAvatar = withAccountSession(userId) { access ->
     avatarRequest(HttpMethod.Get, access)
   }
 
-  suspend fun updateAvatar(userId: String, jpeg: ByteArray): AccountAvatar = withProfileSession(userId) { access ->
+  suspend fun updateAvatar(userId: String, jpeg: ByteArray): AccountAvatar = withAccountSession(userId) { access ->
     avatarRequest(HttpMethod.Put, access, jpeg)
   }
 
@@ -161,21 +170,21 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     return AccountAvatar(revision, response.body<ByteArray>())
   }
 
-  private suspend fun <T> withProfileSession(userId: String, call: suspend (String) -> T): T =
+  private suspend fun <T> withAccountSession(userId: String, call: suspend (String) -> T): T =
     sessionMutex.withLock {
       try {
-        call(profileAccessToken(userId))
+        call(accountAccessToken(userId))
       } catch (failure: AuthHttpException) {
-        if (failure.status != 401) throw failure
+        if (failure.status != 401 || failure.code == "invalid_passkey") throw failure
         refreshLocked(userId)
-        call(profileAccessToken(userId))
+        call(accountAccessToken(userId))
       }
     }
 
-  private suspend fun profileAccessToken(userId: String): String {
-    val user = checkNotNull(users.getUser())
+  private suspend fun accountAccessToken(userId: String): String {
+    val user = users.getUser() ?: throw AuthHttpException(401, "invalid_session")
     check(user.id == userId && sessionMatchesAuthOrigin(user, endpoint))
-    return checkNotNull(users.getTokens()).accessToken
+    return users.getTokens()?.accessToken ?: throw AuthHttpException(401, "invalid_session")
   }
 
   suspend fun refresh(accountId: String) = sessionMutex.withLock { refreshLocked(accountId) }
@@ -233,19 +242,25 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
       }
     }
     if (!response.status.isSuccess()) {
-      if (path == "signup/code" && response.status.value == 409) {
+      val status = response.status.value
+      val code = if (status == 401 || (path == "signup/code" && status == 409)) {
         val errorBody = response.bodyAsText()
-        val error = runCatching { json.decodeFromString<AuthError>(errorBody) }.getOrNull()
-        if (error?.error == "email_already_registered") throw EmailAlreadyRegisteredException()
+        runCatching { json.decodeFromString<AuthError>(errorBody).error }.getOrNull()
+      } else {
+        null
       }
-      throw AuthHttpException(response.status.value)
+      if (code == "email_already_registered" && path == "signup/code" && status == 409) {
+        throw EmailAlreadyRegisteredException()
+      }
+      throw AuthHttpException(status, code)
     }
     return response.bodyAsText()
   }
 
-  private fun PasskeyOptions.answer(credential: String) = buildJsonObject {
+  private fun PasskeyOptions.answer(credential: String, deviceBrand: String? = null) = buildJsonObject {
     put("requestId", requestId)
     put("credential", json.parseToJsonElement(credential))
+    deviceBrand?.let { put("deviceBrand", it) }
   }
 
   private fun PasskeyResult.credentialOrNull(): String? = when (this) {
@@ -266,10 +281,15 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
 @Serializable
 private class AuthError(val error: String)
 
-internal class AuthHttpException(val status: Int) : Exception("Authentication request failed ($status)")
+internal class AuthHttpException(val status: Int, val code: String? = null) : Exception("Authentication request failed ($status)")
 
 @Serializable
-internal class RegisteredPasskey(val id: String, val createdAt: String)
+internal class RegisteredPasskey(
+  val id: String,
+  val createdAt: String,
+  val provider: String? = null,
+  val deviceBrand: String? = null,
+)
 
 @Serializable
 private class PasskeyList(val passkeys: List<RegisteredPasskey>)

@@ -143,6 +143,11 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
   const edit = (method: string, path: string, body: object) => fetch(base + path, {
     method, headers: { ...authenticated, "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
+  const invalidBrand = await edit("POST", "/passkeys/registration/verify", {
+    requestId: revision, credential: {}, deviceBrand: "x".repeat(65),
+  });
+  assert.equal(invalidBrand.status, 400);
+  assert.deepEqual(await invalidBrand.json(), { error: "invalid_device_brand" });
   const badOrigin = await edit("POST", "/passkeys/registration/verify", {
     requestId: revision,
     credential: {

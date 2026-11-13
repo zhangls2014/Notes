@@ -109,7 +109,6 @@ fun App(
       delay(5 * 60 * 1000L)
     }
   }
-  var managingPasskeys by remember(accountId) { mutableStateOf(false) }
   // 各 feature 对导航的贡献由它们自己的 Koin 模块以多绑定登记，这里一处收集
   val navigationRegistry = rememberNavigationRegistry()
   // remember 住解析结果：parseDeepLink 每次调用都会新建对象，不记住的话这个参数会随每次
@@ -180,7 +179,6 @@ fun App(
               deepLinkDestination = currentDeepLink.takeIf { state.access == AppAccess.Ready },
               onDeepLinkConsume = onDeepLinkConsume,
               deviceAuthenticator = deviceAuthenticator,
-              onManagePasskeys = { managingPasskeys = true },
               accountNavigationManagedByApp = true,
             )
           }
@@ -190,19 +188,6 @@ fun App(
             }
           }
         }
-      }
-
-      if (managingPasskeys && auth != null && state.access == AppAccess.Ready) {
-        PasskeyManagementDialog(
-          listPasskeys = auth::listPasskeys,
-          addPasskey = if (enabledPasskeyProvider != null) {
-            { auth.addPasskey(enabledPasskeyProvider) }
-          } else {
-            null
-          },
-          revokePasskey = auth::revokePasskey,
-          onDismiss = { managingPasskeys = false },
-        )
       }
 
       if ((state.access == AppAccess.SignedOut || state.access == AppAccess.Ready) &&

@@ -14,7 +14,10 @@ import androidx.credentials.exceptions.CreateCredentialException
 import androidx.credentials.exceptions.CreateCredentialNoCreateOptionException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.domerrors.InvalidStateError
+import androidx.credentials.exceptions.publickeycredential.CreatePublicKeyCredentialDomException
 import kotlinx.coroutines.withTimeoutOrNull
+import me.zhangls.login.api.PasskeyAlreadyExistsException
 import me.zhangls.login.api.PasskeyCreationTimedOutException
 import me.zhangls.login.api.PasskeyCreationUnavailableException
 import me.zhangls.login.api.PasskeyLoginTimedOutException
@@ -26,6 +29,8 @@ import kotlin.time.Duration.Companion.seconds
 private val passkeyInteractionTimeout = 120.seconds
 
 internal class AndroidPasskeyProvider(private val activity: Activity) : PasskeyProvider {
+  override val deviceBrand: String get() = Build.BRAND
+
   override val isSupported: Boolean
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
       activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CREDENTIALS)
@@ -64,6 +69,9 @@ internal suspend fun createAndroidPasskey(request: suspend () -> PasskeyResult):
   throw PasskeyCreationUnavailableException()
 } catch (_: CreateCredentialCancellationException) {
   PasskeyResult.Cancelled
+} catch (failure: CreatePublicKeyCredentialDomException) {
+  if (failure.domError is InvalidStateError) throw PasskeyAlreadyExistsException()
+  PasskeyResult.Unavailable
 } catch (_: CreateCredentialException) {
   PasskeyResult.Unavailable
 } catch (_: IllegalArgumentException) {

@@ -74,7 +74,8 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     const attestation = isoCBOR.encode(new Map<string, string | Uint8Array | Map<string, string>>([
       ["fmt", "none"],
       ["attStmt", new Map()],
-      ["authData", Buffer.concat([sha256(rpId), Buffer.from([0x45]), Buffer.alloc(4), Buffer.alloc(16),
+      ["authData", Buffer.concat([sha256(rpId), Buffer.from([0x45]), Buffer.alloc(4),
+        Buffer.from("ea9b8d664d011d213ce4b6b48cb575d4", "hex"),
         Buffer.from([0, credentialId.length]), credentialId, key])],
     ]));
     await service.registerPasskey(session.accessToken, registration.requestId, {
@@ -85,8 +86,10 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
         }))),
         attestationObject: base64url(attestation),
       },
-    });
-    assert.equal((await service.listPasskeys(session.accessToken)).passkeys.length, 1);
+    }, "Xiaomi");
+    const [savedPasskey] = (await service.listPasskeys(session.accessToken)).passkeys;
+    assert.equal(savedPasskey?.provider, "google_password_manager");
+    assert.equal(savedPasskey?.deviceBrand, "Xiaomi");
 
     function assertion(challenge: string, assertionOrigin: string, validSignature = true) {
       const clientData = Buffer.from(JSON.stringify({ type: "webauthn.get", challenge, origin: assertionOrigin }));

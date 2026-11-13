@@ -61,6 +61,10 @@ node --input-type=module -e 'import sharp from "sharp"; console.log(sharp.versio
 
 数据库连接失败时，先核对服务角色能否使用与 Node 相同的主机、端口和库名登录。使用远程 PostgreSQL 时，按服务商提供的 TLS 参数和 CA 配置连接。参考 [首次发布建库脚本](../server/auth/sql/schema.sql) 与 [psql 参数](https://www.postgresql.org/docs/current/app-psql.html)。
 
+### 已有数据库升级通行密钥元数据
+
+升级到记录通行密钥创建来源和设备品牌的版本前，先在隔离测试库验证，再在获准的生产库执行 [通行密钥元数据迁移](../server/auth/sql/add-passkey-creation-metadata.sql)。迁移在一个事务中给 `auth_passkeys` 增加两个可空字段 `aaguid` 和 `device_brand`，旧记录保留空值。确认两列已存在后再切换服务版本。首次安装直接使用建库脚本。
+
 ## 3. 准备 SMTP 和服务环境变量
 
 - [ ] 在邮件服务商后台验证发件域，配置服务商要求的 SPF、DKIM 和 DMARC。若服务商有沙箱或收件白名单，先加入验收邮箱。

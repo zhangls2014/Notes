@@ -43,10 +43,14 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
+import me.zhangls.entry.PasswordlessAuthClient
+import me.zhangls.entry.configuredAuthEndpoint
 import me.zhangls.entry.drainMainLooperAfter
 import me.zhangls.entry.initKoin
+import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.main.AppShell
 import me.zhangls.main.api.HomeDestination
+import me.zhangls.settings.api.LocalPasskeyManagementAvailable
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
@@ -71,7 +75,12 @@ class ProfileNavigationTest {
   @get:Rule val rules = drainMainLooperAfter(compose)
   private lateinit var composeView: android.view.View
   private val users = AdaptiveUsers().apply {
-    userFlow.value = UserModel("local", "Ada Lovelace")
+    val endpoint = configuredAuthEndpoint()
+    userFlow.value = UserModel(
+      id = if (endpoint == null) "local" else "test-account",
+      nickname = "Ada Lovelace",
+      authOrigin = endpoint,
+    )
   }
 
   @Before fun start() {
@@ -95,6 +104,7 @@ class ProfileNavigationTest {
     restoration: StateRestorationTester = StateRestorationTester(compose),
     width: Int = 400,
     height: Int = 800,
+    passkeyAuth: PasswordlessAuthClient? = null,
   ) {
     restoration.setContent {
       composeView = androidx.compose.ui.platform.LocalView.current
@@ -103,7 +113,12 @@ class ProfileNavigationTest {
         Posture(),
       ) {
         ComposeAppTheme {
-          AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
+          CompositionLocalProvider(
+            LocalPasswordlessAuth provides passkeyAuth,
+            LocalPasskeyManagementAvailable provides (passkeyAuth != null),
+          ) {
+            AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
+          }
         }
       }
     }
@@ -127,6 +142,23 @@ class ProfileNavigationTest {
     listOf("Home", "Favorites", "Settings").forEach {
       compose.onNodeWithContentDescription(it).assertDoesNotExist()
     }
+  }
+
+  @Test fun settingsEntryOpensFullScreenPasskeyManagement() {
+    val endpoint = configuredAuthEndpoint() ?: "https://example.invalid"
+    launch(passkeyAuth = PasswordlessAuthClient(endpoint, users))
+    compose.onNodeWithText("Settings").performClick()
+    compose.onNodeWithText("Sign in without a password using biometrics or your device screen lock").assertIsDisplayed()
+    compose.onNodeWithText("Passkeys").performClick()
+    repeat(3) {
+      compose.mainClock.advanceTimeBy(1000)
+      compose.waitForIdle()
+    }
+    compose.onNodeWithText("Passkeys").assertIsDisplayed()
+    compose.onNodeWithContentDescription("Settings").assertDoesNotExist()
+    compose.onNodeWithContentDescription("Back").performClick()
+    compose.onNodeWithText("Passkeys").assertHasClickAction()
+    compose.onNodeWithContentDescription("Settings").assertIsSelected()
   }
 
   @Test fun settingsEntryOpensProfileAndRestoresBackStack() {

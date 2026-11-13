@@ -293,4 +293,4 @@
 - [ ] 用实际签名的 Android 和 iOS 开发包与分发包核对默认认证域名关联，验证邮箱发码注册、密码、Passkey 与会话，并验证 Android 覆盖安装和 iOS 商店跳转。操作步骤见 [认证上线前验收](../notes-auth-deployment.md#7-上线前验收)与[网站部署与应用发布](../notes-web-deployment.md)。
 - [ ] 正式认证域名的 iOS `apple-app-site-association` 在 2026-11-12 只读检查返回 HTTP 404。待使用实际签名应用的 `application-identifier` 配置 `webcredentials.apps`，确认关联文件返回 200 后实机验证 Passkey。Android 关联文件返回 200，登记指纹与本轮八个 Debug 和 Release APK 相符。
 - [ ] 在小米 测试设备（Android 14）上验收添加通行密钥时无可用服务的提示与按钮恢复。Android 单元和宿主测试已覆盖无创建选项、120 秒无回调及主动取消。真机已覆盖安装并启动测试包，设备拒绝 ADB 点击注入，需在已重新登录的会话中手动完成验证。
-- [ ] 维护者 已确认 Google 密码管理器在 Android 真机上可使用通行密钥登录。小米密码管理器的普通 Base64 Origin 兼容待部署后验收，覆盖添加通行密钥、退出后重新登录，并复核 Google 密钥仍可登录。
+- [ ] 维护者 已确认 Google 密码管理器在 Android 真机上可登录，并于 2026-11-13 确认小米密码管理器在普通 Base64 Origin 兼容上线后可登录。独立管理页待用新包验收。迁移上线后，用小米真机新建密钥以核对 AAGUID 和设备品牌，并复核 Google 密钥仍可登录。

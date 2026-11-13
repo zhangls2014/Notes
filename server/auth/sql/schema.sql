@@ -39,6 +39,8 @@ CREATE TABLE auth_passkeys (
   public_key bytea NOT NULL,
   sign_count bigint NOT NULL,
   transports text[],
+  aaguid uuid,
+  device_brand varchar(64),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX auth_passkeys_user ON auth_passkeys(user_id);

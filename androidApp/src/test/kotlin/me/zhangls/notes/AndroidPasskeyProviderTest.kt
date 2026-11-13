@@ -4,9 +4,13 @@ import androidx.credentials.exceptions.CreateCredentialCancellationException
 import androidx.credentials.exceptions.CreateCredentialNoCreateOptionException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
+import androidx.credentials.exceptions.domerrors.InvalidStateError
+import androidx.credentials.exceptions.domerrors.NotAllowedError
+import androidx.credentials.exceptions.publickeycredential.CreatePublicKeyCredentialDomException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.runTest
+import me.zhangls.login.api.PasskeyAlreadyExistsException
 import me.zhangls.login.api.PasskeyCreationTimedOutException
 import me.zhangls.login.api.PasskeyCreationUnavailableException
 import me.zhangls.login.api.PasskeyLoginTimedOutException
@@ -17,6 +21,16 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AndroidPasskeyProviderTest {
+  @Test fun reportsAnExistingPasskeyOnlyForInvalidState() = runTest {
+    val error = runCatching {
+      createAndroidPasskey { throw CreatePublicKeyCredentialDomException(InvalidStateError()) }
+    }.exceptionOrNull()
+    assertTrue(error is PasskeyAlreadyExistsException)
+    assertEquals(PasskeyResult.Unavailable, createAndroidPasskey {
+      throw CreatePublicKeyCredentialDomException(NotAllowedError())
+    })
+  }
+
   @Test fun reportsNoCreationOption() = runTest {
     val error = runCatching {
       createAndroidPasskey { throw CreateCredentialNoCreateOptionException() }

@@ -104,7 +104,7 @@ paths:
       security:
         - bearer: []
       requestBody:
-        $ref: '#/components/requestBodies/PasskeyResponse'
+        $ref: '#/components/requestBodies/PasskeyRegistrationResponse'
       responses:
         '204':
           description: Passkey added
@@ -159,6 +159,13 @@ paths:
                       properties:
                         id: { type: string }
                         createdAt: { type: string, format: date-time }
+                        provider:
+                          type: [string, 'null']
+                          description: Password manager that created the credential, when identifiable
+                        deviceBrand:
+                          type: [string, 'null']
+                          maxLength: 64
+                          description: Device brand reported by the app that initiated registration
         default:
           $ref: '#/components/responses/Error'
   /v1/auth/passkeys/{id}:
@@ -322,25 +329,38 @@ components:
             required: [refreshToken]
             properties:
               refreshToken: { type: string }
+    PasskeyRegistrationResponse:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PasskeyResponse'
+              - type: object
+                properties:
+                  deviceBrand: { type: string, minLength: 1, maxLength: 64 }
     PasskeyResponse:
       required: true
       content:
         application/json:
           schema:
-            type: object
-            required: [requestId, credential]
-            properties:
-              requestId: { type: string, format: uuid }
-              credential:
-                type: object
-                description: WebAuthn JSON representation of the public-key credential returned by the platform
-                required: [id, rawId, type, response, clientExtensionResults]
-                properties:
-                  id: { type: string }
-                  rawId: { type: string }
-                  type: { const: public-key }
-                  response: { type: object }
-                  clientExtensionResults: { type: object }
+            $ref: '#/components/schemas/PasskeyResponse'
+  schemas:
+    PasskeyResponse:
+      type: object
+      required: [requestId, credential]
+      properties:
+        requestId: { type: string, format: uuid }
+        credential:
+          type: object
+          description: WebAuthn JSON representation of the public-key credential returned by the platform
+          required: [id, rawId, type, response, clientExtensionResults]
+          properties:
+            id: { type: string }
+            rawId: { type: string }
+            type: { const: public-key }
+            response: { type: object }
+            clientExtensionResults: { type: object }
   responses:
     Avatar:
       description: Private, normalized JPEG for the authenticated account

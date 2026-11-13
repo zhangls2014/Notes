@@ -35,6 +35,8 @@ import kotlin.coroutines.resume
 
 @OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
 internal class IosPasskeyProvider(private val host: UIViewController) : PasskeyProvider {
+  override val deviceBrand: String get() = "Apple"
+
   private var activeRequest: AuthorizationDelegate? = null
 
   override suspend fun create(optionsJson: String): PasskeyResult {

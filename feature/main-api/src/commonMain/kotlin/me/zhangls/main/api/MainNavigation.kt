@@ -15,6 +15,7 @@ object MainNavigation : NavigationContribution {
     registerDestination(HomeDestination::class, HomeDestination.serializer())
     registerDestination(FavoritesDestination::class, FavoritesDestination.serializer())
     registerDestination(SettingsDestination::class, SettingsDestination.serializer())
+    registerDestination(PasskeyManagementDestination::class, PasskeyManagementDestination.serializer())
   }
 
   override val deepLinkMatchers: List<DeepLinkMatcher> = listOf(

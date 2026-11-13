@@ -18,6 +18,7 @@ import notes.feature.settings.generated.resources.Res
 import notes.feature.settings.generated.resources.settings_label_biometric_unlock
 import notes.feature.settings.generated.resources.settings_label_passkeys
 import notes.feature.settings.generated.resources.settings_msg_biometric_unlock
+import notes.feature.settings.generated.resources.settings_msg_passkeys
 
 /**
  * 把领域模型 [SettingsModel] 映射为 `core:preference` 的表现层模型（`spec` + 取值 + 回调）。
@@ -78,6 +79,7 @@ private val passkeysPreference = PreferenceSpec.Action(
   key = "passkeys",
   title = Res.string.settings_label_passkeys,
   icon = Icons.Rounded.Passkey,
+  summary = Res.string.settings_msg_passkeys,
 )
 
 private val biometricUnlockPreference = PreferenceSpec.Toggle(

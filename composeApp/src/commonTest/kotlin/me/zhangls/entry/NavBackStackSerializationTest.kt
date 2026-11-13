@@ -21,6 +21,7 @@ import me.zhangls.login.api.LoginNavigation
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.api.MainNavigation
+import me.zhangls.main.api.PasskeyManagementDestination
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.api.ProfileNavigation
@@ -59,6 +60,12 @@ class NavBackStackSerializationTest {
   }
 
   private val serializer = NavBackStackSerializer(PolymorphicSerializer(NavKey::class))
+
+  @Test
+  fun passkeyManagementRestoresAboveSettings() {
+    val stack = NavBackStack<NavKey>(SettingsDestination, PasskeyManagementDestination)
+    assertEquals(stack.toList(), roundTrip(stack).toList())
+  }
 
   @Test
   fun aboutRestoresAboveSettingsWithoutRequiringLogin() {

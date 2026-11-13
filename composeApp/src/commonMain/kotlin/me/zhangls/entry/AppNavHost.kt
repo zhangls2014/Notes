@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -39,11 +40,13 @@ import me.zhangls.email.emailNavEntry
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
+import me.zhangls.login.api.LocalPasskeyProvider
 import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.main.api.HomeDestination
+import me.zhangls.main.api.PasskeyManagementDestination
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.navigation.PaneWindowInsets
@@ -63,7 +66,6 @@ fun AppNavHost(
   deepLinkDestination: DeepLinkDestination? = null,
   onDeepLinkConsume: () -> Unit = {},
   deviceAuthenticator: DeviceAuthenticator = UnavailableDeviceAuthenticator,
-  onManagePasskeys: () -> Unit = {},
   accountNavigationManagedByApp: Boolean = false,
 ) {
   // 登录状态
@@ -197,7 +199,7 @@ fun AppNavHost(
               if (!accountNavigationManagedByApp) navHandler(Restart(LoginDestination()))
             }
           },
-          onManagePasskeys = onManagePasskeys,
+          onManagePasskeys = { navHandler(NavEffect.Navigate(PasskeyManagementDestination)) },
           onBiometricUnlockChange = { enabled ->
             coroutineScope {
               val request = launch {
@@ -217,6 +219,22 @@ fun AppNavHost(
             }
           },
         )
+
+        entry<PasskeyManagementDestination> {
+          val authClient = LocalPasswordlessAuth.current as? PasswordlessAuthClient
+          val passkeyProvider = LocalPasskeyProvider.current
+          val onBack = { navHandler(NavEffect.Popup) }
+          if (authClient != null) {
+            PasskeyManagementScreen(
+              listPasskeys = remember(authClient) { authClient::listPasskeys },
+              addPasskey = passkeyProvider?.let { provider -> { authClient.addPasskey(provider) } },
+              revokePasskey = authClient::revokePasskey,
+              onBack = onBack,
+            )
+          } else {
+            LaunchedEffect(Unit) { onBack() }
+          }
+        }
 
         emailNavEntry(
           paneMetadata = ::homeEmailPaneMetadata,
@@ -255,7 +273,7 @@ fun AppNavHost(
       LayeredNavDisplay(
         entries = entriesByRoot.getValue(navigationState.selectedRoot).toImmutableList(),
         fullscreenEntryCount = backStack.takeLastWhile {
-          it is ProfileDestination || it is AboutDestination ||
+          it is ProfileDestination || it is PasskeyManagementDestination || it is AboutDestination ||
             it is ReleaseHistoryDestination || it is OpenSourceNoticesDestination
         }.size,
         displayKey = navigationState.selectedRoot,

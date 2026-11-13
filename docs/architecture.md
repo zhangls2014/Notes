@@ -81,7 +81,7 @@ Gradle 中启用的模块：
 
 | API / 实现 | 职责 |
 |---|---|
-| `feature:main-api` / `feature:main` | 顶层 Tab 目的地和应用外壳 |
+| `feature:main-api` / `feature:main` | 顶层 Tab、通行密钥管理目的地和应用外壳 |
 | `feature:login-api` / `feature:login` | 登录目的地、入口契约和登录 UI |
 | `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
 | `feature:settings-api` / `feature:settings` | 设置入口/结果契约和设置行为/UI |
@@ -119,7 +119,9 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 - 只有 `composeApp` 依赖全部实现模块，并将实现绑定到 API 契约。
 - Core 不依赖 Feature。
 
-当前 `feature:main` 依赖 `feature:email-api`、`feature:settings-api` 和 `feature:profile-api`：通过 `EmailEntry`、`SettingsEntry` 渲染 Tab 内容，通过 `ProfileOrigin` 标识个人信息入口。设置页仅发送 `SettingsResult.OpenProfile` / `OpenAbout`；main 将结果交给宿主回调，`composeApp` 注册 profile/about 的 Nav Entry，不在 Feature 之间装配实现。
+当前 `feature:main` 依赖 `feature:email-api`、`feature:settings-api` 和 `feature:profile-api`：通过 `EmailEntry`、`SettingsEntry` 渲染 Tab 内容，通过 `ProfileOrigin` 标识个人信息入口。设置页通过 `SettingsResult.OpenProfile` 和 `OpenAbout` 请求导航；main 将结果交给宿主回调，`composeApp` 注册 profile/about 的 Nav Entry。
+
+设置页通过 `SettingsResult.ManagePasskeys` 请求宿主把通行密钥管理页压入设置 Tab 的返回栈。共享管理页由 `composeApp` 装配认证客户端，作为全屏页面处理返回。创建时，平台提供设备品牌，服务端在验证注册成功后保存品牌和 AAGUID，再由列表接口返回品牌及匹配到的密码管理器标识。
 
 ### `api` 与 `implementation`
 
