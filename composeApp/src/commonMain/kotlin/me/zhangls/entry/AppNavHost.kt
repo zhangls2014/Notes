@@ -35,8 +35,14 @@ import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.email.api.EmailDetailDestination
-import me.zhangls.email.api.EmailListScene
 import me.zhangls.email.emailNavEntry
+import me.zhangls.entry.panes.PANE_CLOSE_DURATION_MILLIS
+import me.zhangls.entry.panes.emailPaneMetadata
+import me.zhangls.entry.panes.favoritesEmailListMetadata
+import me.zhangls.entry.panes.homeEmailListMetadata
+import me.zhangls.entry.panes.noticesPaneMetadata
+import me.zhangls.entry.panes.rememberAppSceneStrategies
+import me.zhangls.entry.panes.rememberListDetailPaneController
 import me.zhangls.framework.deeplink.DeepLinkDestination
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.framework.nav.NavEffect.Restart
@@ -53,8 +59,6 @@ import me.zhangls.profile.api.PasskeyManagementDestination
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.api.ProfileEntry
 import me.zhangls.profile.profileNavEntry
-import me.zhangls.theme.layout.LocalPaneScaffoldDirective
-import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.ProvideModalViewport
 import org.koin.compose.koinInject
 
@@ -125,13 +129,12 @@ fun AppNavHost(
     onDeepLinkConsume()
   }
 
-  val embedProject = rememberUpdatedState(
-    LocalPaneScaffoldDirective.current.maxHorizontalPartitions > 1,
-  )
+  val paneController = rememberListDetailPaneController()
+  val embedProject = rememberUpdatedState(paneController.canSplitHorizontally)
   var homeDraftVisible by rememberHomeDraftVisibility()
   KeepHomeDraftVisible(
     backStack = backStack,
-    singlePane = LocalPaneScaffoldDirective.current.maxHorizontalPartitions == 1,
+    singlePane = !paneController.canSplitHorizontally,
     draftVisible = homeDraftVisible,
   )
   val scope = rememberCoroutineScope()
@@ -160,8 +163,9 @@ fun AppNavHost(
   }
   val sceneStrategies = rememberAppSceneStrategies<NavKey>(
     detailClosing = detailClosing && closingRoot == navigationState.selectedRoot,
+    paneController = paneController,
   )
-  val hasHinge = LocalWindowAdaptiveInfo.current.windowPosture.hingeList.isNotEmpty()
+  val hasHinge = paneController.hasHinge
 
   // 所有栈的装饰器持续留在组合中，非活动 Entry 的保存状态及 ViewModel 因而不被清除。
   // 只把活动栈交给 NavDisplay；非活动页面不会绘制，也不会处理返回事件。
@@ -187,6 +191,7 @@ fun AppNavHost(
       val provider = entryProvider {
         mainNavEntries(
           homeMetadata = homeEmailListMetadata,
+          favoritesMetadata = favoritesEmailListMetadata,
           onDraftVisibilityChange = { homeDraftVisible = it },
           // 详情是返回栈里的一个真实条目，"哪封邮件正被打开"因此可以从返回栈派生。
           // 放在参数里而不是让列表自己去查：返回栈在宿主手里，列表不该知道导航结构。
@@ -237,7 +242,7 @@ fun AppNavHost(
         }
 
         emailNavEntry(
-          paneMetadata = ::homeEmailPaneMetadata,
+          paneMetadata = ::emailPaneMetadata,
           closeDetail = { paneNavigation.value(emailDetailCloseEffect(it)) },
         ) { effect -> paneNavigation.value(effect) }
         profileNavEntry { effect -> navHandler(effect) }
@@ -292,6 +297,6 @@ private fun shouldAnimateDetailClose(effect: NavEffect, detail: NavKey?, expande
 
 private fun NavKey?.isAnimatedPaneDetail(): Boolean = when (this) {
   is OpenSourceNoticesDestination -> projectUrl != null || page == OpenSourcePage.LICENSES
-  is EmailDetailDestination -> scene == EmailListScene.Home
+  is EmailDetailDestination -> true
   else -> false
 }

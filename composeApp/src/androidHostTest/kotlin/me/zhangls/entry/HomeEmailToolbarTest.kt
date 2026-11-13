@@ -25,6 +25,9 @@ import me.zhangls.email.api.EmailListScene
 import me.zhangls.email.emailNavEntry
 import me.zhangls.entry.adaptive.AdaptiveEmails
 import me.zhangls.entry.adaptive.AdaptiveUsers
+import me.zhangls.entry.panes.emailPaneMetadata
+import me.zhangls.entry.panes.homeEmailListMetadata
+import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.navigation.DeviceCornerNavDisplay
@@ -82,7 +85,7 @@ class HomeEmailToolbarTest {
       ) {
         ComposeAppTheme {
           val provider = entryProvider<NavKey> {
-            emailNavEntry(paneMetadata = ::homeEmailPaneMetadata) { closed++ }
+            emailNavEntry(paneMetadata = ::emailPaneMetadata) { closed++ }
           }
           val listMetadata = if (scene == EmailListScene.Home) {
             homeEmailListMetadata

@@ -1,4 +1,4 @@
-package me.zhangls.entry
+package me.zhangls.entry.panes
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateBounds

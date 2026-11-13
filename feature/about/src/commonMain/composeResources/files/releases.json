@@ -4,6 +4,14 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Favorites fills the available width on wide windows until you open an email.",
+          "zh": "在宽窗口中，收藏列表在打开邮件前会占满可用宽度。"
+        }
+      },
+      {
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {

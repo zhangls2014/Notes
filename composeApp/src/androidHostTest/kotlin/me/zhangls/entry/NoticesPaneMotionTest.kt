@@ -19,6 +19,9 @@ import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.entry.panes.PANE_CLOSE_DURATION_MILLIS
+import me.zhangls.entry.panes.noticesPaneMetadata
+import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.navigation.DeviceCornerNavDisplay
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo

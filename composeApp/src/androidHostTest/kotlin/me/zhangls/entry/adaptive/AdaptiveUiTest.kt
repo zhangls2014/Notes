@@ -71,6 +71,7 @@ import me.zhangls.data.repository.SettingsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
+import me.zhangls.entry.configuredAuthEndpoint
 import me.zhangls.entry.initKoin
 import me.zhangls.login.api.LocalPasskeyProvider
 import me.zhangls.login.api.LocalPasswordlessAuth
@@ -707,7 +708,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun noHingeUsesPreferredWidthsInsideTheSafeAreaForEitherCutoutSide() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -751,7 +752,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   @Test fun physicalHingeKeepsItsBoundaryWhenSystemInsetsChange() {
     org.junit.Assume.assumeTrue(scenario.name == "book-half")
     verticalHingeCenter = 320f
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -1285,7 +1286,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNode(hasText(tab) and hasClickAction()).performClick()
@@ -1609,7 +1610,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabRootsReleaseBackAndDetailsReturnToFavorites() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     for (tab in listOf("Favorites", "Settings")) {

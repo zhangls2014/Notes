@@ -37,6 +37,8 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.entry.panes.noticesPaneMetadata
+import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.navigation.PAGE_EXIT_FADE_DURATION
 import me.zhangls.navigation.PREDICTIVE_MOTION_DURATION

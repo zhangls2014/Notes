@@ -41,6 +41,7 @@ import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.ReleaseHistoryDestination
+import me.zhangls.entry.panes.noticesPaneMetadata
 import me.zhangls.framework.nav.NavEffect
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.theme.ComposeAppTheme

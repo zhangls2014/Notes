@@ -22,6 +22,13 @@ import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.email.api.EmailListScene
+import me.zhangls.entry.panes.emailPaneMetadata
+import me.zhangls.entry.panes.favoritesEmailListMetadata
+import me.zhangls.entry.panes.homeEmailListMetadata
+import me.zhangls.entry.panes.noticesPaneMetadata
+import me.zhangls.entry.panes.rememberAppSceneStrategies
+import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.navigation.DeviceCornerNavDisplay
 import me.zhangls.theme.ComposeAppTheme
@@ -50,22 +57,36 @@ class HalfOpenPaneTest {
 
   @Test fun noticesTabletopKeepsItsSplit() = assertSplit(notices = true, vertical = false)
 
-  private fun assertSplit(notices: Boolean, vertical: Boolean) {
+  @Test fun favoritesBookKeepsItsPhysicalPartitions() =
+    assertSplit(notices = false, vertical = true, emailScene = EmailListScene.Favorites)
+
+  @Test fun favoritesTabletopKeepsItsSplit() =
+    assertSplit(notices = false, vertical = false, emailScene = EmailListScene.Favorites)
+
+  private fun assertSplit(notices: Boolean, vertical: Boolean, emailScene: EmailListScene = EmailListScene.Home) {
     val selected = mutableStateOf(false)
     val closing = mutableStateOf(false)
     val flat = mutableStateOf(false)
     var listBounds = Rect.Zero
     var detailX = 0f
-    val hinge = if (vertical) Rect(495f, 0f, 505f, 1000f) else Rect(0f, 495f, 1000f, 505f)
+    val hinge = if (vertical) Rect(410f, 0f, 420f, 1000f) else Rect(0f, 495f, 1000f, 505f)
     compose.setContent {
       ProvideWindowAdaptiveInfo(
         WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(1000, 1000),
         Posture(!vertical && !flat.value, listOf(HingeInfo(hinge, flat.value, vertical, !flat.value, false))),
       ) {
         ComposeAppTheme {
-          val list: NavKey = if (notices) OpenSourceNoticesDestination() else HomeDestination
-          val detail = detailEntry(notices) { detailX = it }
-          val metadata = if (notices) noticesPaneMetadata(OpenSourceNoticesDestination()) else homeEmailListMetadata
+          val list: NavKey = when {
+            notices -> OpenSourceNoticesDestination()
+            emailScene == EmailListScene.Favorites -> FavoritesDestination
+            else -> HomeDestination
+          }
+          val detail = detailEntry(notices, emailScene) { detailX = it }
+          val metadata = when (list) {
+            is OpenSourceNoticesDestination -> noticesPaneMetadata(list)
+            FavoritesDestination -> favoritesEmailListMetadata
+            else -> homeEmailListMetadata
+          }
           DeviceCornerNavDisplay(
             entries = buildList {
               add(
@@ -87,9 +108,13 @@ class HalfOpenPaneTest {
     }
     assertPlaceholder(notices)
     val partition = listBounds
+    compose.runOnIdle { assertEquals(if (vertical) 410f else 360f, partition.width) }
     assertDetailMoves({ selected.value = true }) { detailX }
     compose.onAllNodesWithText("Select an email to read").assertCountEquals(0)
-    compose.runOnIdle { assertEquals(partition, listBounds) }
+    compose.runOnIdle {
+      assertEquals(partition, listBounds)
+      assertEquals(if (vertical) 420f else 360f, detailX)
+    }
     compose.runOnIdle { flat.value = true }
     compose.runOnIdle { assertEquals(partition, listBounds) }
     compose.runOnIdle { flat.value = false }
@@ -104,11 +129,11 @@ class HalfOpenPaneTest {
     assertPlaceholder(notices)
   }
 
-  private fun detailEntry(notices: Boolean, onPosition: (Float) -> Unit): NavEntry<NavKey> {
+  private fun detailEntry(notices: Boolean, emailScene: EmailListScene, onPosition: (Float) -> Unit): NavEntry<NavKey> {
     val notice = OpenSourceNoticesDestination(OpenSourcePage.LICENSES, "license-MIT")
-    val email = EmailDetailDestination(1L)
+    val email = EmailDetailDestination(1L, emailScene)
     val key: NavKey = if (notices) notice else email
-    val metadata = if (notices) noticesPaneMetadata(notice) else homeEmailPaneMetadata(email)
+    val metadata = if (notices) noticesPaneMetadata(notice) else emailPaneMetadata(email)
     return NavEntry(key, metadata = metadata) {
       Box(Modifier.fillMaxSize().onGloballyPositioned { onPosition(it.positionInRoot().x) })
     }

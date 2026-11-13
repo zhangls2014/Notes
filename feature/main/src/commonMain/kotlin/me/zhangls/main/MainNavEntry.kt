@@ -38,7 +38,7 @@ private val homePaneMetadata = ListDetailSceneStrategy.listPane(
 )
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private val favoritesPaneMetadata = ListDetailSceneStrategy.listPane(
+private val defaultFavoritesPaneMetadata = ListDetailSceneStrategy.listPane(
   sceneKey = EmailListScene.Favorites,
   detailPlaceholder = { EmailDetailPlaceholder() },
 )
@@ -70,6 +70,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
   onDraftVisibilityChange: (Boolean) -> Unit = {},
   onBiometricUnlockChange: suspend (Boolean) -> Unit = {},
   onManagePasskeys: () -> Unit = {},
+  favoritesMetadata: Map<String, Any> = defaultFavoritesPaneMetadata,
 ) {
   entry<HomeDestination>(
     metadata = homeMetadata,
@@ -84,7 +85,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
 
   entry<FavoritesDestination>(
     // 与首页使用独立的 sceneKey，保持各自的列表—详情场景。
-    metadata = favoritesPaneMetadata,
+    metadata = favoritesMetadata,
   ) {
     koinInject<EmailEntry>().FavoritesScreen(
       openedEmailId = openedDetail?.emailIdIn(EmailListScene.Favorites),
@@ -114,7 +115,7 @@ fun EntryProviderScope<NavKey>.mainNavEntries(
 private fun EmailDetailDestination.emailIdIn(scene: EmailListScene): Long? = emailId.takeIf { this.scene == scene }
 
 /**
- * 分栏保留但尚未选择邮件时的提示。首页半开空态与收藏页复用同一 UI，
+ * 分栏保留但尚未选择邮件时的提示。首页与收藏的半开空态复用同一 UI，
  * 文本、样式和本地化保持一致；详情内容的退出动画不隐藏此空态。
  */
 @Composable

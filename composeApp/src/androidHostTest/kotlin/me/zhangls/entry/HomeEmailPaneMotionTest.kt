@@ -20,7 +20,14 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.email.api.EmailDetailDestination
+import me.zhangls.email.api.EmailListScene
 import me.zhangls.email.emailNavEntry
+import me.zhangls.entry.panes.PANE_CLOSE_DURATION_MILLIS
+import me.zhangls.entry.panes.emailPaneMetadata
+import me.zhangls.entry.panes.favoritesEmailListMetadata
+import me.zhangls.entry.panes.homeEmailListMetadata
+import me.zhangls.entry.panes.rememberAppSceneStrategies
+import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.navigation.DeviceCornerNavDisplay
@@ -49,8 +56,10 @@ class HomeEmailPaneMotionTest {
     Posture(hingeList = listOf(HingeInfo(Rect(500f, 0f, 500f, 1000f), true, true, false, false))),
   )
 
-  private fun assertPaneMotion(posture: Posture) {
-    val state = MotionState()
+  @Test fun favoritesDetailsUseTheSameOnDemandMotion() = assertPaneMotion(Posture(), EmailListScene.Favorites)
+
+  private fun assertPaneMotion(posture: Posture, scene: EmailListScene = EmailListScene.Home) {
+    val state = MotionState(scene)
     setUpMotion(state, posture)
     with(state) {
       compose.runOnIdle {
@@ -156,19 +165,20 @@ class HomeEmailPaneMotionTest {
   private fun homeMetadata(key: NavKey): Map<String, Any> = entryProvider<NavKey> {
     mainNavEntries(
       homeMetadata = homeEmailListMetadata,
+      favoritesMetadata = favoritesEmailListMetadata,
       openedDetail = null,
       navigateToEmailDetail = { _, _ -> },
       navigateToProfile = {},
       navigateToAbout = {},
       onLogout = {},
     )
-    emailNavEntry(paneMetadata = ::homeEmailPaneMetadata) {}
+    emailNavEntry(paneMetadata = ::emailPaneMetadata) {}
   }(key).metadata
 
-  private class MotionState {
-    val list: NavKey = HomeDestination
-    val license: NavKey = EmailDetailDestination(1L)
-    val project: NavKey = EmailDetailDestination(2L)
+  private class MotionState(scene: EmailListScene) {
+    val list: NavKey = if (scene == EmailListScene.Home) HomeDestination else FavoritesDestination
+    val license: NavKey = EmailDetailDestination(1L, scene)
+    val project: NavKey = EmailDetailDestination(2L, scene)
     val selected = mutableStateOf<NavKey?>(null)
     val closing = mutableStateOf(false)
     var hostWidth = 0

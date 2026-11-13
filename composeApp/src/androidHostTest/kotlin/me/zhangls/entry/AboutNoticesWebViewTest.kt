@@ -23,6 +23,7 @@ import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.entry.panes.noticesPaneMetadata
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.After
 import org.junit.Assert.assertTrue
