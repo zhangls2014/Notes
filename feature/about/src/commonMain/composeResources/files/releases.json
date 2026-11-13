@@ -26,6 +26,14 @@
           "en": "Adding a passkey now explains when no password manager is available or when the service stops responding.",
           "zh": "添加通行密钥时，如果没有可用的密码管理器或服务未响应，应用会显示相应提示并允许重试。"
         }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "Autofill highlights follow the rounded corners of the sign-in fields and the email verification fields during registration.",
+          "zh": "登录页和注册页「验证邮箱」步骤的自动填充高亮现在与输入框圆角对齐。"
+        }
       }
     ]
   },

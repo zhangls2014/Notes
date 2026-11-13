@@ -80,6 +80,7 @@ import me.zhangls.preference.DarkThemePreference
 import me.zhangls.preference.LanguagePreference
 import me.zhangls.preference.ui.SelectIconButton
 import me.zhangls.theme.component.ContainedLoadingIndicator
+import me.zhangls.theme.component.RoundedAutofillHighlight
 import me.zhangls.theme.icon.AccountCircle
 import me.zhangls.theme.icon.Clear
 import me.zhangls.theme.icon.Icons
@@ -273,30 +274,32 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
               Image(imageVector = AppLogo, contentDescription = null)
             }
 
-            AccountInput(
-              modifier = Modifier.padding(top = 40.dp)
-                .loginAutofill(supportsAutofill, ContentType.Username)
-                .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
-              account = state.account,
-              usesEmail = usesServerAuth,
-              enabled = !state.isLoading,
-              accountError = state.accountError,
-              onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
-              onClearAccount = { onIntent(LoginIntent.ClearAccount) },
-            )
+            RoundedAutofillHighlight(MaterialTheme.shapes.large) {
+              AccountInput(
+                modifier = Modifier.padding(top = 40.dp)
+                  .loginAutofill(supportsAutofill, ContentType.Username)
+                  .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
+                account = state.account,
+                usesEmail = usesServerAuth,
+                enabled = !state.isLoading,
+                accountError = state.accountError,
+                onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
+                onClearAccount = { onIntent(LoginIntent.ClearAccount) },
+              )
 
-            PasswordInput(
-              modifier = Modifier.padding(top = 16.dp)
-                .loginAutofill(supportsAutofill, ContentType.Password)
-                .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
-              password = state.password,
-              enabled = !state.isLoading,
-              passwordError = state.passwordError.takeUnless { usesServerAuth },
-              passwordVisible = state.passwordVisible,
-              onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
-              onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
-              onLogin = onLoginClick,
-            )
+              PasswordInput(
+                modifier = Modifier.padding(top = 16.dp)
+                  .loginAutofill(supportsAutofill, ContentType.Password)
+                  .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
+                password = state.password,
+                enabled = !state.isLoading,
+                passwordError = state.passwordError.takeUnless { usesServerAuth },
+                passwordVisible = state.passwordVisible,
+                onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
+                onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
+                onLogin = onLoginClick,
+              )
+            }
 
             Button(
               onClick = onLoginClick,

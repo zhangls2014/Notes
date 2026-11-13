@@ -316,7 +316,7 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 - 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。Ktor 禁用鉴权 Token 缓存，每次整组读取当前凭据。认证端点未配置时，演示构建继续使用本地模拟会话。启用认证端点的构建使用 Notes 认证服务；第三方 Ktor 客户端不读取真实会话令牌。
 - 生物识别解锁设置随本机会话资料保存，旧资料和新登录默认关闭。设置入口通过 `SettingsResult` 请求根层验证；Android 与 iOS 宿主发起系统设备验证，支持设备锁屏凭据回退。启动时组合根等待本进程首次确认会话；有锁定会话时仅显示解锁页，导航、待处理深链和更新提示等验证成功再恢复。授权只保留在进程内，退出会话时清除。保护范围是应用内访问，Room 和 Token 存储沿用现有机制。
 - 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。所有 Android 和 iOS 构建默认连接 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey，认证配置独立于应用更新渠道。Passkey 入口还要求平台支持，实际使用需要签名应用与认证域名建立关联。注册发码时拒绝已注册邮箱。用户使用已验证邮箱和密码或 Passkey 登录。Passkey 登录挑战绑定当前邮箱和账户 UUID，凭据及本地数据仍以稳定的账户 UUID 标识，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
-- Android 真实账号登录使用 Compose Autofill，账号和密码由系统自动填充服务管理。认证客户端确认服务端响应有效后、发布会话前通知登录表单提交自动填充会话。演示登录和 Passkey 流程不主动提交密码保存。
+- Android 真实账号登录使用 Compose Autofill，账号和密码由系统自动填充服务管理。登录输入框使用 [RoundedAutofillHighlight](../core/theme/src/commonMain/kotlin/me/zhangls/theme/component/RoundedAutofillHighlight.kt) 将高亮绘制为与输入框一致的形状。认证客户端确认服务端响应有效后、发布会话前通知登录表单提交自动填充会话。演示登录和 Passkey 流程不主动提交密码保存。
 - 真实账号在 `notes-<uuid>.db` 使用独立 Room 文件，表结构沿用现有 schema。组合根在账号数据库就绪后才挂载受保护导航；切换账号时退役旧数据库和查询。原 `notes.db` 保留给本地演示会话。真实会话的邮件深链须同时携带匹配的 `accountId`，避免数字邮件 ID 在不同数据库间碰撞。
 - Android 排除旧 `notes.preferences_pb` 的云备份及设备迁移，iOS 排除 DataStore 目录备份，避免未完成迁移的旧明文被备份。这也意味着普通设置不会随该文件备份迁移；旧有备份中的数据无法由本次升级追溯删除。
 - Compose Resources 的格式化占位符必须带位置，例如 `%1$s`；无位置的 `%s` 不会被正确替换。

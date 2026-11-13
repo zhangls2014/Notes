@@ -298,6 +298,33 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assert.assertTrue(passkeyButton.fetchSemanticsNode().boundsInRoot.top >= passwordButtonBounds.bottom)
   }
 
+  @Test fun autofillHighlightFollowsTheLoginFieldCorners() {
+    org.junit.Assume.assumeTrue(scenario.name == "400x1000")
+    val auth = object : PasswordlessAuth {
+      override suspend fun signInWithPassword(email: String, password: String, onPasswordVerified: (() -> Unit)?) = Unit
+      override suspend fun signInWithPasskey(email: String, provider: PasskeyProvider) = false
+    }
+    launch(auth = auth)
+    waitFor("Log in")
+
+    for ((label, value) in listOf("Email" to "notes@example.com", "Password" to "Test1234")) {
+      val field = compose.onNodeWithText(label)
+      val before = field.captureToImage().toPixelMap()
+      field.performSemanticsAction(SemanticsActions.OnFillData) {
+        it(checkNotNull(FillableData.createFromText(value)))
+      }
+      val filled = field.captureToImage().toPixelMap()
+      org.junit.Assert.assertEquals(before[1, filled.height - 2], filled[1, filled.height - 2])
+      val x = filled.width / 2
+      val y = filled.height - 10
+      org.junit.Assert.assertNotEquals(before[x, y], filled[x, y])
+
+      field.performTextReplacement("${value}x")
+      val edited = field.captureToImage().toPixelMap()
+      org.junit.Assert.assertEquals(before[x, y], edited[x, y])
+    }
+  }
+
   @Test fun loginInputActionsAreAccessible() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x500", "large-font", "dark"))
     launch()

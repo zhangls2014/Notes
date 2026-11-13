@@ -44,6 +44,7 @@ import me.zhangls.login.mvi.RegistrationViewModel
 import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.ContainedLoadingIndicator
+import me.zhangls.theme.component.RoundedAutofillHighlight
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Visibility
 import me.zhangls.theme.icon.VisibilityOff
@@ -184,45 +185,47 @@ private fun VerifyEmailForm(
   // The outline starts below the space reserved for half of the floating label.
   val labelLineHeight = MaterialTheme.typography.bodySmall.lineHeight.takeIf { it.isSp } ?: 16.sp
   val labelInset = with(LocalDensity.current) { labelLineHeight.toDp() / 2 }
-  Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+  RoundedAutofillHighlight(MaterialTheme.shapes.large) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      OutlinedTextField(
+        value = email,
+        onValueChange = onEmailChange,
+        label = { Text(stringResource(Res.string.signup_email)) },
+        textStyle = MaterialTheme.typography.bodyLarge,
+        shape = MaterialTheme.shapes.large,
+        colors = signupFieldColors(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+        modifier = Modifier.weight(1f),
+        enabled = enabled,
+        singleLine = true,
+      )
+      FilledTonalButton(
+        onClick = onSend,
+        enabled = enabled && email.isNotBlank() && resendIn == 0,
+        modifier = Modifier.padding(top = labelInset),
+      ) {
+        Text(
+          if (resendIn > 0) {
+            stringResource(Res.string.signup_resend_code, resendIn)
+          } else {
+            stringResource(Res.string.signup_send_code)
+          },
+        )
+      }
+    }
     OutlinedTextField(
-      value = email,
-      onValueChange = onEmailChange,
-      label = { Text(stringResource(Res.string.signup_email)) },
+      value = code,
+      onValueChange = onCodeChange,
+      label = { Text(stringResource(Res.string.signup_code)) },
       textStyle = MaterialTheme.typography.bodyLarge,
       shape = MaterialTheme.shapes.large,
       colors = signupFieldColors(),
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-      modifier = Modifier.weight(1f),
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+      modifier = Modifier.fillMaxWidth(),
       enabled = enabled,
       singleLine = true,
     )
-    FilledTonalButton(
-      onClick = onSend,
-      enabled = enabled && email.isNotBlank() && resendIn == 0,
-      modifier = Modifier.padding(top = labelInset),
-    ) {
-      Text(
-        if (resendIn > 0) {
-          stringResource(Res.string.signup_resend_code, resendIn)
-        } else {
-          stringResource(Res.string.signup_send_code)
-        },
-      )
-    }
   }
-  OutlinedTextField(
-    value = code,
-    onValueChange = onCodeChange,
-    label = { Text(stringResource(Res.string.signup_code)) },
-    textStyle = MaterialTheme.typography.bodyLarge,
-    shape = MaterialTheme.shapes.large,
-    colors = signupFieldColors(),
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-    modifier = Modifier.fillMaxWidth(),
-    enabled = enabled,
-    singleLine = true,
-  )
   Button(
     onClick = onVerify,
     enabled = enabled && codeSent && code.length == CODE_LENGTH,
