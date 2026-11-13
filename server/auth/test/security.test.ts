@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hashPassword, verifyPassword, constantTimeEqual, rateLimitDigest, normalizeUsername, tokenDigest } from "../src/security.ts";
+import { expandAndroidPasskeyOrigins, hashPassword, verifyPassword, constantTimeEqual, rateLimitDigest, normalizeUsername, tokenDigest } from "../src/security.ts";
+
+test("only configured Android signing digests get a standard Base64 Origin alias", () => {
+  const web = "https://auth.example.com";
+  const prefix = "android:apk-key-hash:";
+  const android = prefix + "YdTv2mOXLm-jNnm_hcnmdrvDU1h4eaNDtwRgIdiV0xM";
+  const xiaomi = prefix + "YdTv2mOXLm+jNnm/hcnmdrvDU1h4eaNDtwRgIdiV0xM";
+  const sameEncoding = prefix + "A".repeat(43);
+  assert.deepEqual(expandAndroidPasskeyOrigins([web, android, sameEncoding]), [web, android, xiaomi, sameEncoding]);
+});
 
 test("rate-limit identifiers are bound to the bucket and server key", () => {
   const key = "key";

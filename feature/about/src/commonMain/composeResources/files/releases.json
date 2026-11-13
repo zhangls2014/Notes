@@ -42,6 +42,14 @@
           "en": "Shortened the Chinese label on the passkey sign-in button.",
           "zh": "登录页按钮文案简化为「通行密钥登录」。"
         }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "Support adding and using passkeys with Xiaomi Password Manager.",
+          "zh": "兼容小米密码管理器添加通行密钥和使用通行密钥登录。"
+        }
       }
     ]
   },

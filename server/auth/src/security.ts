@@ -1,5 +1,19 @@
 import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
+export function expandAndroidPasskeyOrigins(origins: string[]): string[] {
+  const prefix = "android:apk-key-hash:";
+  const expanded = new Set<string>();
+  for (const origin of origins) {
+    expanded.add(origin);
+    // Some Android providers encode the same signing digest as unpadded standard Base64.
+    const digest = origin.slice(prefix.length);
+    if (origin.startsWith(prefix) && /^[A-Za-z0-9_-]{43}$/.test(digest)) {
+      expanded.add(prefix + digest.replaceAll("-", "+").replaceAll("_", "/"));
+    }
+  }
+  return [...expanded];
+}
+
 export class RequestError extends Error {
   readonly status: number;
   readonly code: string;

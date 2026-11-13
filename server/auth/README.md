@@ -70,7 +70,8 @@ Serve the existing API on `https://auth.notes.zhangls.me`. Set
 `https://auth.notes.zhangls.me` plus the actual APK signing origin in
 `NOTES_AUTH_ORIGINS`. The Android signing origin is
 `android:apk-key-hash:` followed by the base64url-encoded SHA-256 digest of the
-signing certificate. Keep the database URL and code key in the service environment.
+signing certificate. The service also accepts the unpadded standard Base64 spelling of each configured
+Android signing digest for passkey enrollment and sign-in. Keep the database URL and code key in the service environment.
 Use a separate RP ID, database and signing allowlist for staging. Initialize an approved empty
 database with `sql/schema.sql` and configure SMTP before starting the service.
 

@@ -72,7 +72,7 @@ node --input-type=module -e 'import sharp from "sharp"; console.log(sharp.versio
 | --- | --- |
 | `DATABASE_URL` | `postgresql://notes_auth:ENCODED_PASSWORD@127.0.0.1:5432/notes_auth` |
 | `NOTES_AUTH_RP_ID` | `auth.notes.zhangls.me`，只填主机名 |
-| `NOTES_AUTH_ORIGINS` | `https://auth.notes.zhangls.me,android:apk-key-hash:BASE64URL_SHA256`。多个分发签名 Origin 用逗号追加 |
+| `NOTES_AUTH_ORIGINS` | `https://auth.notes.zhangls.me,android:apk-key-hash:BASE64URL_SHA256`。多个分发签名 Origin 用逗号追加。服务端为已登记的 Android 签名派生无填充普通 Base64 别名，供通行密钥注册和登录使用 |
 | `NOTES_AUTH_CODE_KEY` | 至少 32 字节的随机秘密值 |
 | `NOTES_AUTH_SMTP_URL` | 如 `smtp://ENCODED_USER:ENCODED_PASSWORD@smtp.example.com:587`，用邮件服务商实际值 |
 | `NOTES_AUTH_SMTP_FROM` | SMTP 服务商允许的发件邮箱 |

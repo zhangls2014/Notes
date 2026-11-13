@@ -10,6 +10,8 @@ import { hashPassword, rateLimitDigest } from "../src/security.ts";
 const databaseUrl = process.env.NOTES_AUTH_TEST_DATABASE_URL;
 const rpId = "notes-test.example.com";
 const origin = "https://" + rpId;
+const androidOrigin = "android:apk-key-hash:YdTv2mOXLm-jNnm_hcnmdrvDU1h4eaNDtwRgIdiV0xM";
+const xiaomiOrigin = "android:apk-key-hash:YdTv2mOXLm+jNnm/hcnmdrvDU1h4eaNDtwRgIdiV0xM";
 const sha256 = (input: Buffer | string) => createHash("sha256").update(input).digest();
 const base64url = (input: Buffer | Uint8Array) => Buffer.from(input).toString("base64url");
 
@@ -42,7 +44,7 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
       }
     });
     const service = createAuthService({
-      database, rpId, origins: [origin], codeKey, async sendEmail() { assert.fail("Unexpected email"); },
+      database, rpId, origins: [origin, androidOrigin], codeKey, async sendEmail() { assert.fail("Unexpected email"); },
     });
     await database.query("INSERT INTO auth_users (id, account, email, password_hash) VALUES ($1, $2, $3, $4)",
       [userId, account, email, await hashPassword(password)]);
@@ -79,7 +81,7 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
       id, rawId: id, type: "public-key", clientExtensionResults: {},
       response: {
         clientDataJSON: base64url(Buffer.from(JSON.stringify({
-          type: "webauthn.create", origin, challenge: registration.publicKey.challenge,
+          type: "webauthn.create", origin: xiaomiOrigin, challenge: registration.publicKey.challenge,
         }))),
         attestationObject: base64url(attestation),
       },
@@ -107,20 +109,25 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     }
 
     const incorrectOrigin = await authenticationOptions();
+    const untrustedOrigin = xiaomiOrigin.replace(":Y", ":Z");
     await assert.rejects(service.authenticatePasskey(incorrectOrigin.requestId,
-      assertion(incorrectOrigin.publicKey.challenge, "https://wrong.example.com")), { message: "invalid_passkey" });
+      assertion(incorrectOrigin.publicKey.challenge, untrustedOrigin)), { message: "invalid_passkey" });
     const incorrectSignature = await authenticationOptions();
     await assert.rejects(service.authenticatePasskey(incorrectSignature.requestId,
       assertion(incorrectSignature.publicKey.challenge, origin, false)), { message: "invalid_passkey" });
 
     const auth = await authenticationOptions();
     assert.deepEqual(auth.publicKey.allowCredentials?.map(credential => credential.id), [id]);
-    const response = assertion(auth.publicKey.challenge, origin);
+    const response = assertion(auth.publicKey.challenge, xiaomiOrigin);
     const verified = await service.authenticatePasskey(auth.requestId, response);
     assert.equal(verified.user.id, session.user.id);
     assert.equal((await service.getProfile(verified.accessToken)).avatarRevision, avatar.revision);
     assert.deepEqual(await service.getAvatar(verified.accessToken), avatar);
     await assert.rejects(service.authenticatePasskey(auth.requestId, response), { message: "invalid_challenge" });
+
+    const android = await authenticationOptions();
+    assert.equal((await service.authenticatePasskey(android.requestId,
+      assertion(android.publicKey.challenge, androidOrigin))).user.id, userId);
 
     const renewed = await service.refreshSession(verified.refreshToken);
     await assert.rejects(service.refreshSession(verified.refreshToken), { message: "invalid_session" });

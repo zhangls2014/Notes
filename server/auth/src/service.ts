@@ -14,7 +14,7 @@ import type { Pool, PoolClient } from "pg";
 import { normalizeAvatar } from "./avatar.ts";
 import { createEmailCodes } from "./email-codes.ts";
 import type { SendEmail } from "./email-codes.ts";
-import { hashPassword, rateLimitDigest, RequestError, token, tokenDigest, verifyPassword } from "./security.ts";
+import { expandAndroidPasskeyOrigins, hashPassword, rateLimitDigest, RequestError, token, tokenDigest, verifyPassword } from "./security.ts";
 
 type Session = { session_id: string; id: string; account: string; email: string; verified_at: Date };
 type User = Pick<Session, "id" | "account">;
@@ -64,7 +64,8 @@ export function createAuthService(config: {
   codeKey: string;
   sendEmail: SendEmail;
 }) {
-  const { database, rpId, origins, codeKey, sendEmail } = config;
+  const { database, rpId, codeKey, sendEmail } = config;
+  const origins = expandAndroidPasskeyOrigins(config.origins);
   const emailCodes = createEmailCodes(database, codeKey, sendEmail);
   const signup = "signup";
 
