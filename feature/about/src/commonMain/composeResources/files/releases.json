@@ -34,6 +34,14 @@
           "en": "Autofill highlights follow the rounded corners of the sign-in fields and the email verification fields during registration.",
           "zh": "登录页和注册页「验证邮箱」步骤的自动填充高亮现在与输入框圆角对齐。"
         }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Shortened the Chinese label on the passkey sign-in button.",
+          "zh": "登录页按钮文案简化为「通行密钥登录」。"
+        }
       }
     ]
   },
