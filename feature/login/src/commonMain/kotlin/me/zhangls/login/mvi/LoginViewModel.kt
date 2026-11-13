@@ -12,12 +12,14 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.mvi.MviViewModel
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import me.zhangls.login.api.LoginResult
+import me.zhangls.login.api.PasskeyLoginTimedOutException
 import me.zhangls.login.api.PasskeyUnavailableException
 import me.zhangls.login.domain.LoginValidator
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_msg_login_success
 import notes.feature.login.generated.resources.login_msg_storage_failed
 import notes.feature.login.generated.resources.login_passwordless_error
+import notes.feature.login.generated.resources.login_passkey_timeout
 import notes.feature.login.generated.resources.login_passkey_unavailable
 import org.koin.core.annotation.KoinViewModel
 
@@ -114,6 +116,8 @@ class LoginViewModel(
         if (operation()) sendEffect(LoginResult.Success)
       } catch (cancelled: CancellationException) {
         throw cancelled
+      } catch (_: PasskeyLoginTimedOutException) {
+        toastGlobalNotifier.showToast(Res.string.login_passkey_timeout)
       } catch (_: PasskeyUnavailableException) {
         toastGlobalNotifier.showToast(Res.string.login_passkey_unavailable)
       } catch (_: Exception) {

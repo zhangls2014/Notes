@@ -16,3 +16,5 @@ sealed interface PasskeyResult {
 class PasskeyCreationUnavailableException : Exception()
 
 class PasskeyCreationTimedOutException : Exception()
+
+class PasskeyLoginTimedOutException : Exception()

@@ -16,6 +16,7 @@ import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.framework.toast.ToastGlobalNotifier
 import me.zhangls.login.api.LoginResult
+import me.zhangls.login.api.PasskeyLoginTimedOutException
 import me.zhangls.login.api.PasskeyProvider
 import me.zhangls.login.api.PasskeyResult
 import me.zhangls.login.api.PasswordlessAuth
@@ -143,6 +144,49 @@ class LoginSubmissionTest {
       users.result.cancel()
       runCurrent()
       assertFalse(viewModel.state.value.isLoading)
+    } finally {
+      store.clear()
+      Dispatchers.resetMain()
+    }
+  }
+
+  @Test fun passkeyTimeoutRestoresPasswordLoginAndShowsFeedback() = runTest {
+    Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+    val store = ViewModelStore()
+    try {
+      val notifier = ToastGlobalNotifier()
+      val messages = mutableListOf<String>()
+      backgroundScope.launch { notifier.toast.collect { messages += it.resId.key } }
+      val viewModel = LoginViewModel(SavedStateHandle(), AdaptiveUsers(), AdaptiveSettings(), notifier)
+      store.put("login", viewModel)
+      val result = CompletableDeferred<Boolean>()
+      var passwordAttempts = 0
+      val auth = object : PasswordlessAuth {
+        override suspend fun signInWithPassword(email: String, password: String, onPasswordVerified: (() -> Unit)?) {
+          passwordAttempts++
+        }
+
+        override suspend fun signInWithPasskey(email: String, provider: PasskeyProvider) = result.await()
+      }
+      val provider = object : PasskeyProvider {
+        override suspend fun create(optionsJson: String) = PasskeyResult.Cancelled
+        override suspend fun get(optionsJson: String) = PasskeyResult.Cancelled
+      }
+      runCurrent()
+      viewModel.sendIntent(LoginIntent.UpdateAccount("notes@example.com"))
+      viewModel.sendIntent(LoginIntent.UpdatePassword("Test1234"))
+      viewModel.sendIntent(LoginIntent.SignInWithPasskey(auth, provider))
+      runCurrent()
+      assertTrue(viewModel.state.value.isLoading)
+
+      result.completeExceptionally(PasskeyLoginTimedOutException())
+      runCurrent()
+      assertFalse(viewModel.state.value.isLoading)
+      assertEquals(listOf("login_passkey_timeout"), messages)
+
+      viewModel.sendIntent(LoginIntent.PasswordLogin(auth))
+      runCurrent()
+      assertEquals(1, passwordAttempts)
     } finally {
       store.clear()
       Dispatchers.resetMain()

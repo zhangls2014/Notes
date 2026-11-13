@@ -23,8 +23,8 @@
         "type": "fixed",
         "platforms": ["android"],
         "text": {
-          "en": "Adding a passkey now explains when no password manager is available or when the service stops responding.",
-          "zh": "添加通行密钥时，如果没有可用的密码管理器或服务未响应，应用会显示相应提示并允许重试。"
+          "en": "Adding a passkey explains when no password manager is available. Passkey setup and sign-in let you retry if the service stops responding.",
+          "zh": "添加通行密钥时会提示没有可用的密码管理器。添加或登录时，如果通行密钥服务未响应，应用会结束等待并提示重试。"
         }
       },
       {
