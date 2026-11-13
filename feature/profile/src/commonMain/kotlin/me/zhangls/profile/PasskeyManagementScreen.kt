@@ -112,59 +112,63 @@ internal fun PasskeyManagementScreen(
       }
     },
   ) { padding ->
-    Box(
-      Modifier.fillMaxSize()
+    val currentError = state.error
+    val currentPasskeys = state.passkeys
+    LazyColumn(
+      modifier = Modifier.fillMaxSize()
         .padding(top = padding.calculateTopPadding())
-        .consumeWindowInsets(padding)
-        .padding(horizontal = horizontalPadding),
-      contentAlignment = Alignment.TopCenter,
+        .consumeWindowInsets(padding),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      contentPadding = PaddingValues(
+        start = horizontalPadding,
+        top = 16.dp,
+        end = horizontalPadding,
+        bottom = padding.calculateBottomPadding() + 16.dp,
+      ),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      val currentError = state.error
-      val currentPasskeys = state.passkeys
-      LazyColumn(
-        modifier = Modifier.contentWidth(ContentWidth.Form),
-        contentPadding = PaddingValues(
-          top = 16.dp,
-          bottom = padding.calculateBottomPadding() + 16.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        if (currentError != null) {
-          item {
-            Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.errorContainer) {
-              Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                Text(stringResource(currentError), color = MaterialTheme.colorScheme.onErrorContainer)
-                if (currentError == Res.string.auth_passkey_error) {
-                  TextButton(onClick = viewModel::reload, enabled = !state.busy) {
-                    Text(stringResource(Res.string.auth_passkey_retry))
-                  }
+      if (currentError != null) {
+        item {
+          Surface(
+            modifier = Modifier.contentWidth(ContentWidth.Form),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.errorContainer,
+          ) {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+              Text(stringResource(currentError), color = MaterialTheme.colorScheme.onErrorContainer)
+              if (currentError == Res.string.auth_passkey_error) {
+                TextButton(onClick = viewModel::reload, enabled = !state.busy) {
+                  Text(stringResource(Res.string.auth_passkey_retry))
                 }
               }
             }
           }
         }
-        if (currentPasskeys == null && currentError == null) {
-          item {
-            Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-              CircularProgressIndicator()
-            }
+      }
+      if (currentPasskeys == null && currentError == null) {
+        item {
+          Box(
+            Modifier.contentWidth(ContentWidth.Form).padding(32.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            CircularProgressIndicator()
           }
         }
-        if (currentPasskeys?.isEmpty() == true) {
-          item {
-            Column(
-              Modifier.fillMaxWidth().padding(vertical = 40.dp),
-              horizontalAlignment = Alignment.CenterHorizontally,
-              verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-              Icon(Icons.Rounded.Passkey, contentDescription = null, modifier = Modifier.size(40.dp))
-              Text(stringResource(Res.string.auth_passkey_empty), style = MaterialTheme.typography.titleMedium)
-            }
+      }
+      if (currentPasskeys?.isEmpty() == true) {
+        item {
+          Column(
+            Modifier.contentWidth(ContentWidth.Form).padding(vertical = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            Icon(Icons.Rounded.Passkey, contentDescription = null, modifier = Modifier.size(40.dp))
+            Text(stringResource(Res.string.auth_passkey_empty), style = MaterialTheme.typography.titleMedium)
           }
         }
-        items(currentPasskeys.orEmpty(), key = { it.id }) { passkey ->
-          PasskeyRow(passkey, enabled = !state.busy, onRevoke = { viewModel.requestRevocation(passkey) })
-        }
+      }
+      items(currentPasskeys.orEmpty(), key = { it.id }) { passkey ->
+        PasskeyRow(passkey, enabled = !state.busy, onRevoke = { viewModel.requestRevocation(passkey) })
       }
     }
   }
@@ -200,7 +204,7 @@ private fun PasskeyRow(passkey: RegisteredPasskey, enabled: Boolean, onRevoke: (
     else -> passkey.deviceBrand?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.auth_passkey_brand_unknown)
   }
   Surface(
-    modifier = Modifier.fillMaxWidth().testTag("passkey-row"),
+    modifier = Modifier.contentWidth(ContentWidth.Form).testTag("passkey-row"),
     shape = MaterialTheme.shapes.large,
     color = MaterialTheme.colorScheme.surfaceContainer,
   ) {

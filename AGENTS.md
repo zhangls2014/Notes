@@ -79,6 +79,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 
 - 账号表单复用 `core:theme` 的共享描边输入框，成对底部操作遵循 [表单风格](docs/architecture.md#表单风格)。
 
+- 单栏滚动页的宽度上限只应用于内容。安全区内两侧留白属于滚动视口，应能像内容区一样发起滚动手势。
 - 页面默认要求内容延伸至底部安全区域，实现 Edge-to-Edge；滚动视口不得因底部安全区提前截断。底部安全距离放入可滚动内容内部，保证末项滚到底后完整可见、可操作；固定底部控件仍须避让手势区域，已消费的 Insets 不重复计算。
 
 - 应用内功能图标必须来自 Google Fonts 的 Material Symbols，统一使用 Rounded，默认未填充（`FILL=0`）；明确的填充变体（如 `StarFill`，`FILL=1`）允许保留并用于状态表达。共享图标由 `core:theme` 提供。转换去掉原始注释，使用原有缓存属性和 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。品牌图标（登录页、关于应用页及桌面启动图标）保留现有设计，不受此功能图标约束限制。

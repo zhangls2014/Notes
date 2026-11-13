@@ -18,12 +18,16 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.UserModel
 import me.zhangls.profile.mvi.AvatarSaveStatus
@@ -54,6 +58,18 @@ class ProfileContentTest {
         ProfileContent(state, onBack = { back++ }, onChangeAvatar = { selections++ })
       }
     }
+  }
+
+  @Test
+  @Config(qualifiers = "en-rUS-w1000dp-h320dp-mdpi")
+  fun draggingTheSideGutterScrollsProfile() {
+    launch()
+    val avatar = compose.onNodeWithContentDescription("Avatar")
+    val before = avatar.fetchSemanticsNode().positionInRoot.y
+    compose.onRoot().performTouchInput {
+      swipe(start = Offset(40f, height - 32f), end = Offset(40f, 100f))
+    }
+    assertTrue(avatar.fetchSemanticsNode().positionInRoot.y < before)
   }
 
   @Test fun largeTextCanScrollToUsernameAndExplicitChangeAction() {

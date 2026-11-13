@@ -7,6 +7,14 @@
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {
+          "en": "Scroll from either side of the screen on Personal information and Passkeys.",
+          "zh": "可从屏幕两侧的留白处滑动，滚动个人信息和通行密钥页面。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
           "en": "The passkey management page keeps its list and pending actions when you rotate the screen.",
           "zh": "旋转屏幕时，通行密钥管理页会保留列表和待确认的操作。"
         }

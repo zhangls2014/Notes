@@ -101,7 +101,7 @@ internal fun ProfileContent(
         start = padding.calculateStartPadding(direction),
         top = padding.calculateTopPadding(),
         end = padding.calculateEndPadding(direction),
-      ).imePadding(),
+      ).imePadding().verticalScroll(rememberScrollState()),
       maxWidth = ContentWidth.Form,
     ) {
       ProfileDetails(
@@ -126,7 +126,7 @@ private fun ProfileDetails(
   editor: @Composable () -> Unit,
 ) {
   Column(
-    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(padding).padding(24.dp),
+    modifier = Modifier.fillMaxWidth().padding(padding).padding(24.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {

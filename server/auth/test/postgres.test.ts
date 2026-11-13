@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import { generateKeyPairSync, createHash, randomBytes, randomUUID, sign } from "node:crypto";
 import test from "node:test";
 import pg from "pg";
 import sharp from "sharp";
 import { isoCBOR } from "@simplewebauthn/server/helpers";
+import { createAuthHttpServer } from "../src/http.ts";
 import { createAuthService } from "../src/service.ts";
 import { hashPassword, rateLimitDigest } from "../src/security.ts";
 
@@ -155,7 +157,25 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     assert.equal(emailChangeCode, undefined);
     await service.sendEmailChangeCode(passkeyAccess, newEmail, password);
     assert.ok(emailChangeCode);
-    await service.changeEmail(passkeyAccess, newEmail, emailChangeCode);
+    const http = createAuthHttpServer(service, () => assert.fail("Unexpected auth server error"));
+    http.listen(0, "127.0.0.1");
+    await once(http, "listening");
+    t.after(() => new Promise<void>(resolve => http.close(() => resolve())));
+    const address = http.address();
+    assert(address && typeof address === "object");
+    const authUrl = "http://127.0.0.1:" + address.port + "/v1/auth";
+    const headers = { Authorization: "Bearer " + passkeyAccess };
+    const changed = await fetch(authUrl + "/me/email", {
+      method: "PUT",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: newEmail, code: emailChangeCode }),
+    });
+    assert.equal(changed.status, 204);
+    const passkeys = await fetch(authUrl + "/passkeys", { headers });
+    assert.equal(passkeys.status, 200);
+    assert.deepEqual(await passkeys.json(), {
+      passkeys: [{ ...savedPasskey, createdAt: savedPasskey.createdAt.toISOString() }],
+    });
     await assert.rejects(service.authenticatePasskey(stale.requestId,
       assertion(stale.publicKey.challenge, origin)), { message: "invalid_passkey" });
     await assert.rejects(service.authenticationOptions(email, testId), { message: "invalid_passkey" });

@@ -4,8 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -13,6 +15,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlin.test.assertEquals
 import me.zhangls.login.api.PasskeyAlreadyExistsException
@@ -113,6 +117,21 @@ class PasskeyManagementScreenTest {
     compose.onNodeWithText("Revoke").performClick()
     compose.onNodeWithText("Google Password Manager").assertDoesNotExist()
     assertEquals("new", revoked)
+  }
+
+  @Test
+  @Config(qualifiers = "en-rUS-w1000dp-h400dp-mdpi")
+  fun draggingTheSideGutterScrollsPasskeys() {
+    launch(listPasskeys = {
+      List(12) { index ->
+        RegisteredPasskey("key-$index", "2026-11-13T00:00:00Z", deviceBrand = "Device $index")
+      }
+    }) { false }
+    compose.onNodeWithText("Creation device: Device 0").assertIsDisplayed()
+    compose.onRoot().performTouchInput {
+      swipe(start = Offset(width - 40f, height - 100f), end = Offset(width - 40f, 90f))
+    }
+    compose.onNodeWithText("Creation device: Device 0").assertIsNotDisplayed()
   }
 
   @Test fun compactScreenCentersTheListAndButtonAtTheSameWidth() {
