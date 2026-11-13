@@ -46,27 +46,33 @@ class AvatarUpdater internal constructor(
     }
   }
 
-  internal suspend fun updateUsername(username: String) = mutex.withLock {
-    val user = requireRemoteUser()
+  internal suspend fun updateUsername(accountId: String, username: String) = mutex.withLock {
+    val user = requireRemoteUser(accountId)
     val account = username.trim().lowercase()
     checkNotNull(remote).updateUsername(user.id, account)
     check(users.updateAccountProfile(account, user.avatar, user.avatarRevision, user))
   }
 
-  internal suspend fun sendEmailChangeCode(email: String, password: String) = mutex.withLock {
-    val user = requireRemoteUser()
+  internal suspend fun verifyEmailChangePassword(accountId: String, password: String) = mutex.withLock {
+    val user = requireRemoteUser(accountId)
+    checkNotNull(remote).verifyEmailChangePassword(user.id, password)
+  }
+
+  internal suspend fun sendEmailChangeCode(accountId: String, email: String, password: String) = mutex.withLock {
+    val user = requireRemoteUser(accountId)
     checkNotNull(remote).sendEmailChangeCode(user.id, email.trim(), password)
   }
 
-  internal suspend fun changeEmail(email: String, code: String) = mutex.withLock {
-    val user = requireRemoteUser()
+  internal suspend fun changeEmail(accountId: String, email: String, code: String) = mutex.withLock {
+    val user = requireRemoteUser(accountId)
     val recipient = email.trim()
     val address = recipient.substringBeforeLast('@') + "@" + recipient.substringAfterLast('@').lowercase()
     checkNotNull(remote).changeEmail(user.id, address, code)
     check(users.updateAccountProfile(user.nickname, user.avatar, user.avatarRevision, user, email = address))
   }
 
-  private suspend fun requireRemoteUser(): UserModel = checkNotNull(users.getUser()?.takeIf { it.authOrigin != null })
+  private suspend fun requireRemoteUser(accountId: String): UserModel =
+    checkNotNull(users.getUser()?.takeIf { it.id == accountId && it.authOrigin != null })
 
   override suspend fun refresh() {
     try {

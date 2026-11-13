@@ -17,7 +17,7 @@
 | `feature:main` | `commonTest` | 导航套件尺寸策略 |
 | `feature:login` | `commonTest` | 登录输入校验、窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
 | `feature:email` | `androidHostTest` | 邮件列表无障碍操作与新建邮件表单 |
-| `feature:profile` | `androidHostTest` | 头像复制/清理、原子更新、ViewModel 与页面交互 |
+| `feature:profile` | `androidHostTest` | 头像复制/清理、原子更新、ViewModel 与页面交互、通行密钥管理和旋转恢复 |
 | `feature:about` | `commonTest`；页面由组合根宿主测试覆盖 | 包信息映射、网页外观与路由；`AboutUiTest` 与自适应导航回归 |
 
 导航显示机制的测试位于 `core/navigation/src/androidHostTest/kotlin/me/zhangls/navigation/`，只依赖本模块与测试库；`LayeredNavDisplayTest`、`AppSceneStrategiesTest`、Tab 和序列化测试继续在组合根验证。Native 像素用例分批命令见 [自适应 UI 回归](adaptive-ui.md)。
@@ -50,6 +50,8 @@ API 模块不承载页面测试；跨 Feature 导航和真实 Entry 装配在 `c
 ```
 
 `--tests` 过滤器跟随对应的测试任务；不要将组合根用例的过滤器用于 profile 模块。自适应布局变更运行完整 `AdaptiveUiTest`；截图候选、人工批准基线和既有 verify 限制见 [自适应 UI 回归](adaptive-ui.md)。
+
+通行密钥管理页的候选截图可通过 `./gradlew :feature:profile:testAndroidHostTest --tests '*PasskeyManagementScreenTest.showsCreationMetadataAndConfirmsRevocation' -Pnotes.screenshots.candidates=true` 生成，输出位于 `feature/profile/build/adaptive-candidates/passkey-management.png`。
 
 iOS 平台代码、Native 跨模块契约或数据迁移变更：
 

@@ -16,9 +16,9 @@ import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.RegistrationDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
-import me.zhangls.main.api.PasskeyManagementDestination
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.api.TabDestination
+import me.zhangls.profile.api.PasskeyManagementDestination
 import me.zhangls.profile.api.ProfileDestination
 import me.zhangls.profile.api.ProfileOrigin
 

@@ -81,12 +81,14 @@ Gradle 中启用的模块：
 
 | API / 实现 | 职责 |
 |---|---|
-| `feature:main-api` / `feature:main` | 顶层 Tab、通行密钥管理目的地和应用外壳 |
+| `feature:main-api` / `feature:main` | 顶层 Tab 和应用外壳 |
 | `feature:login-api` / `feature:login` | 登录目的地、入口契约和登录 UI |
 | `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
 | `feature:settings-api` / `feature:settings` | 设置入口/结果契约和设置行为/UI |
-| `feature:profile-api` / `feature:profile` | 个人信息入口/导航契约、用户资料展示和头像修改 UI |
+| `feature:profile-api` / `feature:profile` | 个人信息与通行密钥管理的入口、导航契约、页面与状态 |
 | `feature:about-api` / `feature:about` | 关于应用目的地/入口契约、品牌信息、安装包版本展示、版本更新摘要展开与离线更新列表 |
+
+新增页面时先确定其业务职责、状态所有者、入口和依赖方向，并在设计或实施计划中记录模块归属与理由。现有 Feature 能承担完整职责时复用该 Feature；独立职责需要独立依赖边界时，可新增 API/实现模块对。设置列表、工具栏等访问入口可以属于其他 Feature，由宿主装配导航。
 
 API 模块只包含其他模块有理由知道的稳定契约，例如 `Destination`、Feature Entry 接口、导航贡献和必要参数。页面、ViewModel、Reducer、Repository 实现、DI provider 和内部模型都属于实现模块。
 
@@ -208,6 +210,14 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 状态跨进程持久化是 opt-in：`savedKey` 默认 `null`。只有确认状态体积小、可序列化且不含密码、token 或其他敏感数据时，才允许传入 key。`AppViewModel` 显式使用 `savedKey = "state"`；邮件、搜索和登录状态有意保持为纯内存态。
 
+#### 页面状态
+
+页面级业务状态统一由所属导航条目的 ViewModel 持有，包括请求结果、加载与错误状态、
+表单草稿、业务步骤和待确认操作。首次加载和用户操作的协程使用 `viewModelScope`。
+旋转和宿主重建时复用已有状态与进行中的请求，首次进入新条目时重新初始化。
+`remember` 用于动画、焦点对象、菜单等短暂控件状态和派生对象；
+滚动位置等纯展示状态沿用 Compose 的可保存状态机制。跨进程恢复仍遵循上述持久化约束。
+
 ### Navigation 3
 
 导航显示机制位于 `core:navigation`：`DeviceCornerNavDisplay`、页面缩放/淡出与遮罩、设备圆角、`SafeAreaSceneStrategy` 和 `PaneWindowInsets`。模块不读取第二套窗口事实，不依赖 `core:framework` 或 Feature，也不持有应用返回栈。公开面仅包括显示入口、宿主协调外壳所需的只读页面进度、动画时长和安全区包装；设备圆角值、几何计算与事件桥接保持内部实现。设备圆角的 expect/actual 与显示机制一起维护。
@@ -287,6 +297,14 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 
 `core:preference/PreferenceRow` 接收 `isGroupStart / isGroupEnd` 渲染外角与内角；分组清单、顺序和独立操作的选择仍由 `feature:settings` 负责。底层 Compose Preference 控件继续隐藏在 implementation 依赖之后。主题迁移不引入第二套窗口事实、导航策略或铰链避让。
 
+#### 表单风格
+
+账号表单（登录、注册、个人信息）使用 `core:theme` 的共享描边输入框。字段统一采用
+`MaterialTheme.shapes.large`（20 dp）、`typography.bodyLarge` 和未聚焦时的
+`colorScheme.outlineVariant`；标签、键盘行为、校验反馈与无障碍语义由各表单提供。
+表单底部的成对操作沿用确认弹窗的层级：取消用文字按钮，主操作用有按压形变的实心按钮，
+横向间隔 8 dp，靠尾端对齐。单栏表单使用共享内容宽度，并将底部安全距离留在滚动内容内。
+
 ### 设置项
 
 设置项拆成四部分：
@@ -302,11 +320,13 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 
 设置清单统一定义在 common；expect/actual 只提供平台能力位。`SettingsModel.toPreferenceUiModels` 的 `dynamicColorSupported` 参数默认取平台值，允许测试覆盖支持与不支持的清单。Action 与 Select 通过 settings 内的私有、类型安全辅助函数绑定 Intent，UI 仍以当前 SettingsModel 和 ViewModel 为 key 缓存映射结果。
 
-`ProfileEntry` 的实现与 `ProfileModule` 仅由 composeApp 装配；main 依赖 profile-api 传递 `ProfileOrigin`，settings 保留入口点击结果，不依赖 profile 实现。个人信息页面从 `UserRepository.userFlow` 展示只读用户名与头像，更换图片的选择、保存状态和平台存储属于 `feature:profile`，不再放在邮件搜索 ViewModel 中。共享用户头像和默认图片由 `core:theme/UserAvatar` 提供，搜索头像按钮只调用宿主导航；搜索结果的发件人头像不再重复宣告「个人信息」。
+`ProfileEntry` 的实现与 `ProfileModule` 仅由 composeApp 装配；main 依赖 profile-api 传递 `ProfileOrigin`，settings 保留入口点击结果，不依赖 profile 实现。个人信息页面从 `UserRepository.userFlow` 展示账号资料。头像与账号编辑由 `feature:profile` 管理，导航条目作用域的 `ProfileViewModel` 保留编辑草稿、邮箱步骤和请求，旋转后继续使用。编辑状态仅保存在内存中，关闭表单或切换账号时丢弃。邮箱修改通过当前会话分步验证密码、发送验证码和提交邮箱更新，底部主按钮随当前步骤更新文案。认证服务在发送时复核密码，验证码按目标地址和会话校验；通行密钥仍关联固定用户 ID。共享用户头像和默认图片由 `core:theme/UserAvatar` 提供，搜索头像按钮只调用宿主导航；搜索结果的发件人头像不再重复宣告「个人信息」。
+
+通行密钥管理由 profile 实现，目的地和管理操作契约由 profile-api 提供。设置页发出打开页面的结果；组合根装配导航，将现有认证客户端与平台凭据提供方接入。登录 Feature 继续负责使用通行密钥登录。
 
 认证账号在登录后和进入个人资料页时从认证服务读取用户名、已验证邮箱和头像版本，保留私有文件缓存供离线使用。换头像复用系统选图入口，缩放为 512 像素以内的 JPEG。服务端按会话中的账号校验并保存，客户端收到成功响应后才提交新路径和版本。演示账号继续使用设备本地头像。已有设备本地头像在服务端无头像时继续可见，用户主动更换时上传。
 
-`UserRepository` 在同一 mutex 中校验账号、认证来源和资料快照，原子更新服务端资料字段，同时保留设备锁和搜索历史。邮箱变更要求当前密码和新邮箱验证码，验证后使用新邮箱登录。头像使用唯一文件名，缓存提交成功后回收旧文件，失败或取消时清理未提交副本。保存期间拒绝重复操作，Profile MVI 状态保持在内存。
+`UserRepository` 在同一 mutex 中校验账号、认证来源和资料快照，原子更新服务端资料字段，同时保留设备锁和搜索历史。邮箱变更完成后，使用新邮箱发起密码或通行密钥登录。头像使用唯一文件名，缓存提交成功后回收旧文件，失败或取消时清理未提交副本。保存期间拒绝重复操作，Profile MVI 状态保持在内存。
 
 ## 6. 数据与资源规则
 

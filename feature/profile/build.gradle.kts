@@ -17,11 +17,13 @@ kotlin {
       implementation(kmp.androidx.test.espresso)
       implementation(kmp.androidx.test.ext.junit)
       implementation(kmp.robolectric)
+      implementation(kmp.roborazzi)
       implementation(kmp.jetbrains.compose.ui.test.junit4)
       implementation(kmp.jetbrains.kotlinx.coroutines.test)
     }
     commonMain.dependencies {
       implementation(projects.core.data)
+      implementation(projects.feature.loginApi)
       implementation(projects.core.theme)
       // NavEffect is part of profileNavEntry's public signature.
       api(projects.core.framework)
@@ -35,4 +37,5 @@ kotlin {
 // Robolectric API 37 accesses the JDK file descriptor bridge.
 tasks.withType<Test>().configureEach {
   jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+  systemProperty("notes.screenshots.candidates", providers.gradleProperty("notes.screenshots.candidates").orElse("false").get())
 }

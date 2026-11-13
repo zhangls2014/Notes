@@ -7,4 +7,7 @@ interface ProfileEntry {
   // 跨模块 Native @Composable 抽象方法不声明默认参数。
   @Composable
   fun Screen(onBack: () -> Unit)
+
+  @Composable
+  fun PasskeyScreen(management: PasskeyManagement, onBack: () -> Unit)
 }

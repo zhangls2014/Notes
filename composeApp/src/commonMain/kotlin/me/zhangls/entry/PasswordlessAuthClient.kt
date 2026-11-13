@@ -34,6 +34,7 @@ import me.zhangls.login.api.PasswordlessAuth
 import me.zhangls.network.httpClient
 import me.zhangls.profile.api.AccountAvatar
 import me.zhangls.profile.api.AccountProfile
+import me.zhangls.profile.api.RegisteredPasskey
 
 internal fun configuredAuthEndpoint(): String? = passwordlessEndpoint(BuildKonfig.AUTH_BASE_URL)
 
@@ -74,6 +75,18 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
   suspend fun updateUsername(userId: String, username: String) {
     withAccountSession(userId) { access ->
       request(HttpMethod.Put, "me/username", fields("account" to username), access)
+    }
+  }
+
+  suspend fun verifyEmailChangePassword(userId: String, password: String): Boolean {
+    return try {
+      withAccountSession(userId) { access ->
+        post("me/email/password", fields("password" to password), access)
+      }
+      true
+    } catch (failure: AuthHttpException) {
+      if (failure.status != 403 || failure.code != "invalid_credentials") throw failure
+      false
     }
   }
 
@@ -126,7 +139,9 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
   suspend fun listPasskeys(): List<RegisteredPasskey> {
     val user = users.getUser() ?: throw AuthHttpException(401, "invalid_session")
     return withAccountSession(user.id) { access ->
-      json.decodeFromString<PasskeyList>(request(HttpMethod.Get, "passkeys", accessToken = access)).passkeys
+      json.decodeFromString<PasskeyList>(request(HttpMethod.Get, "passkeys", accessToken = access)).passkeys.map {
+        RegisteredPasskey(it.id, it.createdAt, it.provider, it.deviceBrand)
+      }
     }
   }
 
@@ -243,7 +258,10 @@ internal class PasswordlessAuthClient(private val endpoint: String, private val 
     }
     if (!response.status.isSuccess()) {
       val status = response.status.value
-      val code = if (status == 401 || (path == "signup/code" && status == 409)) {
+      val readsErrorCode = status == 401 ||
+        (path == "me/email/password" && status == 403) ||
+        (path == "signup/code" && status == 409)
+      val code = if (readsErrorCode) {
         val errorBody = response.bodyAsText()
         runCatching { json.decodeFromString<AuthError>(errorBody).error }.getOrNull()
       } else {
@@ -284,7 +302,7 @@ private class AuthError(val error: String)
 internal class AuthHttpException(val status: Int, val code: String? = null) : Exception("Authentication request failed ($status)")
 
 @Serializable
-internal class RegisteredPasskey(
+private class PasskeyResponse(
   val id: String,
   val createdAt: String,
   val provider: String? = null,
@@ -292,7 +310,7 @@ internal class RegisteredPasskey(
 )
 
 @Serializable
-private class PasskeyList(val passkeys: List<RegisteredPasskey>)
+private class PasskeyList(val passkeys: List<PasskeyResponse>)
 
 @Serializable
 private class PasskeyOptions(val requestId: String, val publicKey: JsonObject)

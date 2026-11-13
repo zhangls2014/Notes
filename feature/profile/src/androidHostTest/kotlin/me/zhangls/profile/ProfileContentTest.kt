@@ -3,8 +3,13 @@ package me.zhangls.profile
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.autofill.FillableData
+import androidx.compose.ui.autofill.createFromText
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
@@ -17,13 +22,18 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.unit.dp
 import me.zhangls.data.model.UserModel
 import me.zhangls.profile.mvi.AvatarSaveStatus
+import me.zhangls.profile.mvi.ProfileEdit
+import me.zhangls.profile.mvi.ProfileField
+import me.zhangls.profile.mvi.ProfileIntent
 import me.zhangls.profile.mvi.ProfileState
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,32 +69,91 @@ class ProfileContentTest {
 
   @Test
   @Config(qualifiers = "en-rUS-w400dp-h800dp-mdpi")
-  fun changingEmailRequiresSendingCodeWithPasswordBeforeSaving() {
-    val requests = mutableListOf<String>()
+  fun emailFieldsAppearOnlyAfterThePreviousStepSucceeds() {
+    var edit by mutableStateOf(ProfileEdit(ProfileField.Email, "account"))
     compose.setContent {
       ComposeAppTheme {
-        ProfileIdentityEditor(
-          field = ProfileField.Email,
-          username = "xander",
-          onCancel = {},
-          onSaveUsername = { error("Unexpected username update") },
-          onSendCode = { email, password ->
-            check(password == "example password")
-            requests += "send:$email"
-          },
-          onSaveEmail = { email, code -> requests += "save:$email:$code" },
-        )
+        ProfileIdentityEditor(edit) { intent ->
+          when (intent) {
+            is ProfileIntent.UpdatePassword -> edit = edit.copy(password = intent.value)
+            is ProfileIntent.UpdateEmail -> edit = edit.copy(email = intent.value, sentEmail = null)
+            ProfileIntent.ConfirmEdit -> {
+              edit = if (!edit.passwordVerified) edit.copy(passwordVerified = true)
+              else edit.copy(sentEmail = edit.email)
+            }
+            else -> error("Unexpected intent")
+          }
+        }
       }
     }
-    compose.onNodeWithText("Confirm change").assertIsNotEnabled()
-    compose.onNode(hasSetTextAction() and hasText("Current password")).performTextInput("example password")
-    compose.onNode(hasSetTextAction() and hasText("New email")).performTextInput("new@example.com")
-    compose.onNodeWithText("Send code").performClick()
-    compose.onNode(hasSetTextAction() and hasText("Email verification code")).performTextInput("123456")
-    compose.onNodeWithText("Confirm change").performClick()
-    compose.runOnIdle {
-      assertEquals(listOf("send:new@example.com", "save:new@example.com:123456"), requests)
+    compose.onNodeWithText("New email").assertDoesNotExist()
+    compose.onNodeWithText("Email verification code").assertDoesNotExist()
+    compose.onNodeWithText("Verify password").assertIsNotEnabled()
+    compose.onNodeWithText("Confirm change").assertDoesNotExist()
+    val password = compose.onNodeWithText("Current password")
+    assertEquals(ContentType.Password, password.fetchSemanticsNode().config.getOrNull(SemanticsProperties.ContentType))
+    password.performSemanticsAction(SemanticsActions.OnFillData) {
+      it(checkNotNull(FillableData.createFromText("example password")))
     }
+    compose.runOnIdle { assertEquals("example password", edit.password) }
+    compose.onNodeWithText("Verify password").performClick()
+    compose.onNodeWithText("Verify password").assertDoesNotExist()
+    password.assertIsNotEnabled()
+    assertEquals(null, password.fetchSemanticsNode().config.getOrNull(SemanticsProperties.ContentType))
+    compose.onNodeWithText("Email verification code").assertDoesNotExist()
+    val sendCode = compose.onNodeWithText("Send verification code").assertIsNotEnabled()
+    compose.onNode(hasSetTextAction() and hasText("New email")).performTextInput("new@example.com")
+    sendCode.performClick()
+    sendCode.assertDoesNotExist()
+    compose.onNodeWithText("Confirm change").assertIsDisplayed()
+    compose.onNodeWithText("Email verification code").assertIsDisplayed()
+    compose.onNodeWithText("The new email takes effect after verification.").assertDoesNotExist()
+    compose.onNodeWithText("To resend the code", substring = true).assertDoesNotExist()
+    compose.onNode(hasSetTextAction() and hasText("New email")).performTextInput("2")
+    compose.onNodeWithText("Email verification code").assertDoesNotExist()
+  }
+
+  @Test
+  @Config(qualifiers = "en-rUS-w400dp-h800dp-mdpi")
+  fun closingEditorSlidesUpBeforeLeavingComposition() {
+    var edit by mutableStateOf<ProfileEdit?>(ProfileEdit(ProfileField.Username, "account", "Ada"))
+    compose.setContent {
+      ComposeAppTheme {
+        AnimatedProfileIdentityEditor(edit) { intent ->
+          if (intent == ProfileIntent.CloseEdit) edit = null
+        }
+      }
+    }
+    val title = compose.onNodeWithText("Change username")
+    val openedTop = title.fetchSemanticsNode().positionInRoot.y
+    compose.mainClock.autoAdvance = false
+    try {
+      compose.onNodeWithText("Cancel").performClick()
+      compose.mainClock.advanceTimeBy(176)
+      assertTrue(title.fetchSemanticsNode().positionInRoot.y < openedTop)
+      compose.mainClock.advanceTimeBy(250)
+      title.assertDoesNotExist()
+    } finally {
+      compose.mainClock.autoAdvance = true
+    }
+  }
+
+  @Test fun profileRowsStayInPlaceAndDisableEditingDuringSubmission() {
+    val user = UserModel("account", "Ada", authOrigin = "https://example.test", email = "ada@example.test")
+    state = ProfileState(user = user)
+    compose.setContent {
+      ComposeAppTheme {
+        ProfileContent(state, onBack = {}, onChangeAvatar = {}, onEditUsername = {}, onEditEmail = {})
+      }
+    }
+    val username = compose.onNodeWithText("Username").assertHasClickAction().assertIsEnabled()
+    val initialBounds = username.fetchSemanticsNode().boundsInRoot
+    compose.runOnIdle { state = state.copy(edit = ProfileEdit(ProfileField.Email, user.id, busy = true)) }
+    username.assertHasClickAction().assertIsNotEnabled()
+    assertEquals(initialBounds, username.fetchSemanticsNode().boundsInRoot)
+    compose.onNodeWithText("Email").assertHasClickAction().assertIsNotEnabled()
+    compose.runOnIdle { state = state.copy(edit = null) }
+    username.assertIsEnabled()
   }
 
   @Test fun savingDisablesChangeAndStatusIsAnnouncedWithRetryAvailable() {

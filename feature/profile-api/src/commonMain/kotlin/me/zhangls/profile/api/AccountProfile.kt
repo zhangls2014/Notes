@@ -6,6 +6,7 @@ class AccountAvatar(val revision: String, val jpeg: ByteArray)
 
 interface AccountProfileRemote {
   suspend fun updateUsername(userId: String, username: String)
+  suspend fun verifyEmailChangePassword(userId: String, password: String): Boolean
   suspend fun sendEmailChangeCode(userId: String, email: String, password: String)
   suspend fun changeEmail(userId: String, email: String, code: String)
   suspend fun getProfile(userId: String): AccountProfile

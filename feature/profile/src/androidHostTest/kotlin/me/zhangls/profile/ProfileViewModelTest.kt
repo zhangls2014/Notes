@@ -17,7 +17,12 @@ import kotlinx.coroutines.withTimeout
 import me.zhangls.data.model.AuthTokens
 import me.zhangls.data.model.UserModel
 import me.zhangls.data.repository.UserRepository
+import me.zhangls.profile.api.AccountAvatar
+import me.zhangls.profile.api.AccountProfile
+import me.zhangls.profile.api.AccountProfileRemote
 import me.zhangls.profile.mvi.AvatarSaveStatus
+import me.zhangls.profile.mvi.ProfileEditError
+import me.zhangls.profile.mvi.ProfileField
 import me.zhangls.profile.mvi.ProfileIntent
 import me.zhangls.profile.mvi.ProfileViewModel
 import org.junit.After
@@ -89,6 +94,52 @@ class ProfileViewModelTest {
     withTimeout(5.seconds) { viewModel.state.first { it.saveStatus == AvatarSaveStatus.Saved } }
     assertEquals("new", viewModel.state.value.user?.avatar)
     assertEquals(2, storage.saves)
+  }
+
+  @Test fun emailEditRejectsIncorrectPasswordAndIgnoresDuplicateConfirmation() = runBlocking {
+    val verification = CompletableDeferred<Boolean>()
+    val attempts = mutableListOf<String>()
+    val deliveries = mutableListOf<String>()
+    val remote = object : AccountProfileRemote {
+      override suspend fun getProfile(userId: String) = AccountProfile(userId, "Ada", null)
+      override suspend fun getAvatar(userId: String): AccountAvatar = error("Unexpected avatar request")
+      override suspend fun updateAvatar(userId: String, jpeg: ByteArray): AccountAvatar = error("Unexpected upload")
+      override suspend fun updateUsername(userId: String, username: String): Unit = error("Unexpected rename")
+      override suspend fun changeEmail(userId: String, email: String, code: String): Unit = error("Unexpected save")
+
+      override suspend fun verifyEmailChangePassword(userId: String, password: String): Boolean {
+        attempts += password
+        return password != "wrong" && verification.await()
+      }
+
+      override suspend fun sendEmailChangeCode(userId: String, email: String, password: String) {
+        assertEquals("correct", password)
+        deliveries += email
+      }
+    }
+    users.userFlow.value = UserModel("remote", "Ada", authOrigin = "https://example.test")
+    viewModel = ProfileViewModel(savedState, users, AvatarUpdater(users, storage, dispatcher, remote))
+    viewModelStore.put("profile", viewModel)
+    viewModel.sendIntent(ProfileIntent.OpenEdit(ProfileField.Email))
+    viewModel.sendIntent(ProfileIntent.UpdatePassword("wrong"))
+    viewModel.sendIntent(ProfileIntent.ConfirmEdit)
+    val rejected = withTimeout(5.seconds) { viewModel.state.first { it.edit?.error == ProfileEditError.IncorrectPassword } }
+    assertEquals(false, rejected.edit?.passwordVerified)
+    viewModel.sendIntent(ProfileIntent.UpdatePassword("correct"))
+    viewModel.sendIntent(ProfileIntent.ConfirmEdit)
+    viewModel.sendIntent(ProfileIntent.ConfirmEdit)
+    assertEquals(true, viewModel.state.value.edit?.busy)
+    assertEquals(listOf("wrong", "correct"), attempts)
+    verification.complete(true)
+    withTimeout(5.seconds) { viewModel.state.first { it.edit?.passwordVerified == true } }
+    viewModel.sendIntent(ProfileIntent.UpdatePassword("replacement"))
+    viewModel.sendIntent(ProfileIntent.UpdateEmail("new@EXAMPLE.COM"))
+    viewModel.sendIntent(ProfileIntent.ConfirmEdit)
+    withTimeout(5.seconds) { viewModel.state.first { it.edit?.codeRequested == true } }
+    assertEquals(listOf("new@example.com"), deliveries)
+    assertTrue(savedState.keys().isEmpty())
+    viewModel.sendIntent(ProfileIntent.CloseEdit)
+    assertEquals(null, viewModel.state.value.edit)
   }
 
   private class Storage : AvatarStorage {

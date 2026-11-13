@@ -71,6 +71,10 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
       assert.equal(access, expired);
       assert.equal(account, "new_name");
     },
+    async verifyEmailChangePassword(access: string, password: string) {
+      assert.equal(access, expired);
+      if (password !== "current password") throw new RequestError(403, "invalid_credentials");
+    },
     async sendEmailChangeCode(access, email, password) {
       assert.equal(access, expired);
       assert.equal(email, "new@example.com");
@@ -165,6 +169,9 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
   assert.deepEqual(await badOrigin.json(), { error: "invalid_passkey" });
   assert.deepEqual(registrationFailures, [[badOrigin.headers.get("X-Request-Id"), "origin_mismatch"]]);
   assert.equal((await edit("PUT", "/me/username", { account: "New_Name" })).status, 204);
+  const passwordCheck = (password: string) => edit("POST", "/me/email/password", { password });
+  assert.equal((await passwordCheck("wrong")).status, 403);
+  assert.equal((await passwordCheck("current password")).status, 204);
   assert.equal((await edit("POST", "/me/email/code", { email: "new@example.com", password: "current password" })).status, 204);
   assert.equal((await edit("PUT", "/me/email", { email: "new@example.com", code: "123456" })).status, 204);
   assert.deepEqual(await (await fetch(base + "/me", { headers: authenticated })).json(), profile);

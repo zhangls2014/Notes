@@ -122,6 +122,9 @@ class AvatarUpdaterTest {
   private fun remote(failUpload: Boolean = false) = object : AccountProfileRemote {
     override suspend fun updateUsername(userId: String, username: String): Unit = error("Unexpected username change")
 
+    override suspend fun verifyEmailChangePassword(userId: String, password: String): Boolean =
+      error("Unexpected password verification")
+
     override suspend fun sendEmailChangeCode(userId: String, email: String, password: String): Unit =
       error("Unexpected email change")
 

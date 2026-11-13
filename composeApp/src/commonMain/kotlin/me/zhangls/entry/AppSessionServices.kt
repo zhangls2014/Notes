@@ -15,6 +15,9 @@ internal class AppSessionServices(
 
   override suspend fun updateUsername(userId: String, username: String) = checkNotNull(auth).updateUsername(userId, username)
 
+  override suspend fun verifyEmailChangePassword(userId: String, password: String): Boolean =
+    checkNotNull(auth).verifyEmailChangePassword(userId, password)
+
   override suspend fun sendEmailChangeCode(userId: String, email: String, password: String) =
     checkNotNull(auth).sendEmailChangeCode(userId, email, password)
 

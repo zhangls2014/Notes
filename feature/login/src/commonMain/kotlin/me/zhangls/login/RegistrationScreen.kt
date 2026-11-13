@@ -16,8 +16,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,6 +42,7 @@ import me.zhangls.login.mvi.RegistrationViewModel
 import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.ContainedLoadingIndicator
+import me.zhangls.theme.component.AccountTextField
 import me.zhangls.theme.component.RoundedAutofillHighlight
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Visibility
@@ -164,11 +163,6 @@ private fun ClearFocusWhileRegistering(busy: Boolean) {
   }
 }
 
-/** 与登录页输入框一致的描边颜色：未聚焦时用更浅的分隔线色。 */
-@Composable
-private fun signupFieldColors() =
-  OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant)
-
 @Composable
 private fun VerifyEmailForm(
   email: String,
@@ -187,17 +181,13 @@ private fun VerifyEmailForm(
   val labelInset = with(LocalDensity.current) { labelLineHeight.toDp() / 2 }
   RoundedAutofillHighlight(MaterialTheme.shapes.large) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      OutlinedTextField(
+      AccountTextField(
         value = email,
         onValueChange = onEmailChange,
         label = { Text(stringResource(Res.string.signup_email)) },
-        textStyle = MaterialTheme.typography.bodyLarge,
-        shape = MaterialTheme.shapes.large,
-        colors = signupFieldColors(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         modifier = Modifier.weight(1f),
         enabled = enabled,
-        singleLine = true,
       )
       FilledTonalButton(
         onClick = onSend,
@@ -213,17 +203,13 @@ private fun VerifyEmailForm(
         )
       }
     }
-    OutlinedTextField(
+    AccountTextField(
       value = code,
       onValueChange = onCodeChange,
       label = { Text(stringResource(Res.string.signup_code)) },
-      textStyle = MaterialTheme.typography.bodyLarge,
-      shape = MaterialTheme.shapes.large,
-      colors = signupFieldColors(),
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
       modifier = Modifier.fillMaxWidth(),
       enabled = enabled,
-      singleLine = true,
     )
   }
   Button(
@@ -254,26 +240,19 @@ private fun SignupCredentials(
   val usernameMessage = if (username.isEmpty()) usernameHint else accountError.text().ifEmpty { usernameHint }
   val passwordMessage = if (password.isEmpty()) passwordHint else passwordError.text().ifEmpty { passwordHint }
   Text(stringResource(Res.string.signup_credentials), style = MaterialTheme.typography.titleLarge)
-  OutlinedTextField(
+  AccountTextField(
     value = username,
     onValueChange = onUsernameChange,
     label = { Text(stringResource(Res.string.signup_username)) },
-    textStyle = MaterialTheme.typography.bodyLarge,
-    shape = MaterialTheme.shapes.large,
-    colors = signupFieldColors(),
     isError = accountError != null && username.isNotEmpty(),
     supportingText = { Text(usernameMessage) },
     modifier = Modifier.fillMaxWidth(),
     enabled = enabled,
-    singleLine = true,
   )
-  OutlinedTextField(
+  AccountTextField(
     value = password,
     onValueChange = onPasswordChange,
     label = { Text(stringResource(Res.string.login_label_password)) },
-    textStyle = MaterialTheme.typography.bodyLarge,
-    shape = MaterialTheme.shapes.large,
-    colors = signupFieldColors(),
     isError = passwordError != null && password.isNotEmpty(),
     supportingText = { Text(passwordMessage) },
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -290,7 +269,6 @@ private fun SignupCredentials(
     },
     modifier = Modifier.fillMaxWidth(),
     enabled = enabled,
-    singleLine = true,
   )
   Button(
     onClick = onCreate,

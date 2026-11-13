@@ -21,9 +21,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -39,6 +36,7 @@ import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import me.zhangls.profile.mvi.AvatarSaveStatus
+import me.zhangls.profile.mvi.ProfileField
 import me.zhangls.profile.mvi.ProfileIntent
 import me.zhangls.profile.mvi.ProfileState
 import me.zhangls.profile.mvi.ProfileViewModel
@@ -73,26 +71,15 @@ internal fun ProfileScreen(onBack: () -> Unit, viewModel: ProfileViewModel = koi
     selectionMode = FilePickerSelectionMode.Single,
     onResult = { viewModel.sendIntent(ProfileIntent.ChangeAvatar(it.firstOrNull())) },
   )
-  var edit by remember(state.user?.id) { mutableStateOf<ProfileField?>(null) }
-  val user = state.user
+  val canEdit = state.user?.authOrigin != null
   ProfileContent(
     state,
-    onBack = { if (edit == null) onBack() else edit = null },
+    onBack = { if (state.edit == null) onBack() else viewModel.sendIntent(ProfileIntent.CloseEdit) },
     onChangeAvatar = { picker.launch() },
-    onEditUsername = { edit = ProfileField.Username }.takeIf { user?.authOrigin != null },
-    onEditEmail = { edit = ProfileField.Email }.takeIf { user?.authOrigin != null },
+    onEditUsername = { viewModel.sendIntent(ProfileIntent.OpenEdit(ProfileField.Username)) }.takeIf { canEdit },
+    onEditEmail = { viewModel.sendIntent(ProfileIntent.OpenEdit(ProfileField.Email)) }.takeIf { canEdit },
   ) {
-    val field = edit
-    if (field != null && user?.authOrigin != null) {
-      ProfileIdentityEditor(
-        field = field,
-        username = user.nickname,
-        onCancel = { edit = null },
-        onSaveUsername = viewModel::updateUsername,
-        onSendCode = viewModel::sendEmailChangeCode,
-        onSaveEmail = viewModel::changeEmail,
-      )
-    }
+    AnimatedProfileIdentityEditor(state.edit, viewModel::sendIntent)
   }
 }
 
@@ -185,6 +172,7 @@ private fun ProfileFields(state: ProfileState, onEditUsername: (() -> Unit)?, on
       value = state.user?.nickname.orEmpty(),
       icon = Icons.Rounded.AccountCircle,
       onEdit = onEditUsername,
+      enabled = state.edit?.busy != true,
     )
     if (state.user?.authOrigin != null) {
       ProfileFieldRow(
@@ -192,19 +180,28 @@ private fun ProfileFields(state: ProfileState, onEditUsername: (() -> Unit)?, on
         value = state.user.email ?: stringResource(Res.string.profile_email_unavailable),
         icon = Icons.Rounded.Mail,
         onEdit = onEditEmail,
+        enabled = state.edit?.busy != true,
       )
     }
   }
 }
 
 @Composable
-private fun ProfileFieldRow(label: String, value: String, icon: ImageVector, onEdit: (() -> Unit)?) {
+private fun ProfileFieldRow(
+  label: String,
+  value: String,
+  icon: ImageVector,
+  onEdit: (() -> Unit)?,
+  enabled: Boolean,
+) {
   val shape = MaterialTheme.shapes.large
   val color = MaterialTheme.colorScheme.surfaceContainerLow
   if (onEdit == null) {
     Surface(shape = shape, color = color) { ProfileFieldContent(label, value, icon, editable = false) }
   } else {
-    Surface(onClick = onEdit, shape = shape, color = color) { ProfileFieldContent(label, value, icon, editable = true) }
+    Surface(onClick = onEdit, enabled = enabled, shape = shape, color = color) {
+      ProfileFieldContent(label, value, icon, editable = true)
+    }
   }
 }
 

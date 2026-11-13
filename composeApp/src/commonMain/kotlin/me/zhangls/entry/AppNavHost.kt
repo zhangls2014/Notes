@@ -46,15 +46,17 @@ import me.zhangls.login.api.LoginDestination
 import me.zhangls.login.api.LoginResult
 import me.zhangls.login.loginNavEntry
 import me.zhangls.main.api.HomeDestination
-import me.zhangls.main.api.PasskeyManagementDestination
 import me.zhangls.main.api.SettingsDestination
 import me.zhangls.main.mainNavEntries
 import me.zhangls.navigation.PaneWindowInsets
+import me.zhangls.profile.api.PasskeyManagementDestination
 import me.zhangls.profile.api.ProfileDestination
+import me.zhangls.profile.api.ProfileEntry
 import me.zhangls.profile.profileNavEntry
 import me.zhangls.theme.layout.LocalPaneScaffoldDirective
 import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 import me.zhangls.theme.layout.ProvideModalViewport
+import org.koin.compose.koinInject
 
 /**
  * @author zhangls
@@ -225,12 +227,10 @@ fun AppNavHost(
           val passkeyProvider = LocalPasskeyProvider.current
           val onBack = { navHandler(NavEffect.Popup) }
           if (authClient != null) {
-            PasskeyManagementScreen(
-              listPasskeys = remember(authClient) { authClient::listPasskeys },
-              addPasskey = passkeyProvider?.let { provider -> { authClient.addPasskey(provider) } },
-              revokePasskey = authClient::revokePasskey,
-              onBack = onBack,
-            )
+            val management = remember(authClient, passkeyProvider) {
+              AccountPasskeyManagement(authClient, passkeyProvider)
+            }
+            koinInject<ProfileEntry>().PasskeyScreen(management, onBack)
           } else {
             LaunchedEffect(Unit) { onBack() }
           }

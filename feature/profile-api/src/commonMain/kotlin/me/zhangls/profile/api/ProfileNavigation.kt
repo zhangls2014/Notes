@@ -7,6 +7,7 @@ import me.zhangls.framework.nav.registerDestination
 
 object ProfileNavigation : NavigationContribution {
   override val navModule = SerializersModule {
+    registerDestination(PasskeyManagementDestination::class, PasskeyManagementDestination.serializer())
     registerDestination(ProfileDestination::class, ProfileDestination.serializer())
   }
   override val deepLinkMatchers: List<DeepLinkMatcher> = emptyList()

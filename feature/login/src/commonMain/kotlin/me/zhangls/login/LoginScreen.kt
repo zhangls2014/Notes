@@ -24,8 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -79,6 +77,7 @@ import me.zhangls.login.mvi.LoginViewModel
 import me.zhangls.preference.DarkThemePreference
 import me.zhangls.preference.LanguagePreference
 import me.zhangls.preference.ui.SelectIconButton
+import me.zhangls.theme.component.AccountTextField
 import me.zhangls.theme.component.ContainedLoadingIndicator
 import me.zhangls.theme.component.RoundedAutofillHighlight
 import me.zhangls.theme.icon.AccountCircle
@@ -402,18 +401,14 @@ private fun AccountInput(
   val focusManager = LocalFocusManager.current
   val inputError = accountError.text()
 
-  OutlinedTextField(
+  AccountTextField(
     enabled = enabled,
     value = account,
     onValueChange = { onAccountChange(it) },
-    singleLine = true,
     isError = inputError.isNotEmpty(),
-    textStyle = MaterialTheme.typography.bodyLarge,
-    shape = MaterialTheme.shapes.large,
     label = {
       Text(stringResource(if (usesEmail) Res.string.login_label_email else Res.string.login_label_account))
     },
-    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
     modifier = modifier
       .padding(horizontal = 32.dp)
       .fillMaxWidth(),
@@ -454,16 +449,12 @@ private fun PasswordInput(
 ) {
   val inputError = passwordError.text()
 
-  OutlinedTextField(
+  AccountTextField(
     enabled = enabled,
     value = password,
     onValueChange = { onPasswordChange(it) },
-    singleLine = true,
     isError = inputError.isNotEmpty(),
-    textStyle = MaterialTheme.typography.bodyLarge,
-    shape = MaterialTheme.shapes.large,
     label = { Text(text = stringResource(Res.string.login_label_password)) },
-    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
     modifier = modifier
       .padding(horizontal = 32.dp)
       .fillMaxWidth(),

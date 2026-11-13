@@ -133,6 +133,13 @@ export function createAuthHttpServer(
           send(response, 204);
           return;
         }
+        case "POST " + api + "/me/email/password": {
+          const access = bearer(request);
+          const input = await body(request);
+          await service.verifyEmailChangePassword(access, readPassword(input.password));
+          send(response, 204);
+          return;
+        }
         case "POST " + api + "/me/email/code": {
           const access = bearer(request);
           const input = await body(request);

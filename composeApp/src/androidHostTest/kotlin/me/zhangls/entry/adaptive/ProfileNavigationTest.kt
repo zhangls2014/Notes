@@ -1,9 +1,12 @@
 package me.zhangls.entry.adaptive
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.Posture
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.Modifier
@@ -17,9 +20,10 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -29,6 +33,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.printToString
@@ -55,6 +60,7 @@ import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -70,7 +76,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [37], qualifiers = "en-rUS-w400dp-h800dp-mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ProfileNavigationTest {
-  private val compose = createComposeRule()
+  private val compose = createAndroidComposeRule<ProfileNavigationActivity>()
 
   @get:Rule val rules = drainMainLooperAfter(compose)
   private lateinit var composeView: android.view.View
@@ -97,6 +103,7 @@ class ProfileNavigationTest {
   }
 
   @After fun stop() {
+    ProfileNavigationActivity.restoredContent = null
     stopKoin()
   }
 
@@ -106,22 +113,29 @@ class ProfileNavigationTest {
     height: Int = 800,
     passkeyAuth: PasswordlessAuthClient? = null,
   ) {
-    restoration.setContent {
-      composeView = androidx.compose.ui.platform.LocalView.current
-      ProvideWindowAdaptiveInfo(
-        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, height),
-        Posture(),
-      ) {
-        ComposeAppTheme {
-          CompositionLocalProvider(
-            LocalPasswordlessAuth provides passkeyAuth,
-            LocalPasskeyManagementAvailable provides (passkeyAuth != null),
-          ) {
-            AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
-          }
+    restoration.setContent { HostContent(width, height, passkeyAuth) }
+    awaitHome()
+  }
+
+  @Composable
+  private fun HostContent(width: Int, height: Int, passkeyAuth: PasswordlessAuthClient? = null) {
+    composeView = androidx.compose.ui.platform.LocalView.current
+    ProvideWindowAdaptiveInfo(
+      WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(width, height),
+      Posture(),
+    ) {
+      ComposeAppTheme {
+        CompositionLocalProvider(
+          LocalPasswordlessAuth provides passkeyAuth,
+          LocalPasskeyManagementAvailable provides (passkeyAuth != null),
+        ) {
+          AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
         }
       }
     }
+  }
+
+  private fun awaitHome() {
     try {
       compose.waitUntil(10_000) {
         compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().isNotEmpty()
@@ -176,6 +190,28 @@ class ProfileNavigationTest {
     compose.onNodeWithText("Personal information").assertHasClickAction()
     compose.onNodeWithText("Change avatar").assertDoesNotExist()
     compose.onNodeWithContentDescription("Settings").assertIsSelected()
+  }
+
+  @Test fun profileEditorKeepsUsernameDraftWhenActivityIsRecreated() {
+    val endpoint = configuredAuthEndpoint()
+    assumeNotNull(endpoint)
+    users.userFlow.value = UserModel("test-account", "Ada Lovelace", authOrigin = endpoint)
+    var landscape = false
+    ProfileNavigationActivity.restoredContent = {
+      HostContent(if (landscape) 800 else 400, if (landscape) 400 else 800)
+    }
+    compose.activityRule.scenario.recreate()
+    awaitHome()
+    compose.onNodeWithText("Settings").performClick()
+    compose.onNodeWithText("Personal information").performClick()
+    assertProfile()
+    compose.onNodeWithText("Username").performClick()
+    compose.onNode(hasSetTextAction() and hasText("Username")).performScrollTo().performTextReplacement("new_name")
+    landscape = true
+    RuntimeEnvironment.setQualifiers("en-rUS-w800dp-h400dp-land-mdpi")
+    compose.activityRule.scenario.recreate()
+    compose.onNodeWithText("Change username").performScrollTo().assertIsDisplayed()
+    compose.onNode(hasSetTextAction() and hasText("new_name")).performScrollTo().assertIsDisplayed()
   }
 
   @Test
@@ -321,5 +357,16 @@ class ProfileNavigationTest {
     } finally {
       compose.mainClock.autoAdvance = true
     }
+  }
+}
+
+class ProfileNavigationActivity : ComponentActivity() {
+  override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    super.onCreate(savedInstanceState)
+    restoredContent?.let { setContent(content = it) }
+  }
+
+  companion object {
+    var restoredContent: (@Composable () -> Unit)? = null
   }
 }

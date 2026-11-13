@@ -58,6 +58,8 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 
 ## 模块与依赖硬规则
 
+- 新增页面前先明确业务归属、状态所有者、入口及依赖方向。优先复用匹配的 Feature；独立业务职责无法合理落入现有模块时，可新建同级 API/实现模块。将归属和理由写入设计或实施计划。
+
 - Feature 使用同级 API/实现模块：`:feature:<name>-api` 与 `:feature:<name>`。实现必须依赖自身 API。
 - Feature 实现不得依赖其他 Feature 实现；允许依赖对方 `-api`。Feature API 不得依赖任何 Feature 实现。
 - 只有 `:composeApp` 依赖全部 Feature 实现并完成 Koin、导航和应用装配；Core 不得依赖 Feature。
@@ -74,6 +76,8 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - `core:model` 只放跨数据层和 UI 基础模块使用的稳定值类型，不含 Compose。
 
 ### UI 与设置边界
+
+- 账号表单复用 `core:theme` 的共享描边输入框，成对底部操作遵循 [表单风格](docs/architecture.md#表单风格)。
 
 - 页面默认要求内容延伸至底部安全区域，实现 Edge-to-Edge；滚动视口不得因底部安全区提前截断。底部安全距离放入可滚动内容内部，保证末项滚到底后完整可见、可操作；固定底部控件仍须避让手势区域，已消费的 Insets 不重复计算。
 
@@ -95,6 +99,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - `core:navigation` 只拥有导航显示、预测返回转场、设备圆角和窗格安全区；不得依赖 Feature、持有应用返回栈或决定登录与目的地策略。
 - 登录拦截、根返回栈、Deep Link 恢复和 SceneStrategy 装配属于 `composeApp/AppNavHost.kt`。
 - Feature 的 MVI 类型统一放在 `mvi/`：`Intent`、`Action`、`State`、`Reducer`、`ViewModel`。
+- 页面级业务状态和请求由导航条目作用域的 ViewModel 管理，覆盖旋转和宿主重建；细则见 [页面状态](docs/architecture.md#页面状态)。
 - `MviViewModel.savedKey` 默认 `null` 是安全约束。只有小型、可序列化且不含密码、token、大对象的状态才可显式启用跨进程恢复。
 
 ## 工作约束

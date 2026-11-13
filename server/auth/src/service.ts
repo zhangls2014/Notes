@@ -157,6 +157,15 @@ export function createAuthService(config: {
     return Boolean(result.rowCount);
   }
 
+  async function checkCurrentPassword(userId: string, password: string) {
+    const { rows: [user] } = await database.query<{ password_hash: Buffer }>(
+      "SELECT password_hash FROM auth_users WHERE id = $1", [userId],
+    );
+    if (!await verifyPassword(password, user?.password_hash ?? null)) {
+      throw new RequestError(403, "invalid_credentials");
+    }
+  }
+
   return {
     async sendSignupCode(email: string, ip: string) {
       if (!await withinLimit("signup-ip", ip, 20, 15) || !await withinLimit("signup-email", email, 5, 15)) {
@@ -203,6 +212,14 @@ export function createAuthService(config: {
       }
     },
 
+    async verifyEmailChangePassword(accessToken: string, password: string) {
+      const session = await requireSession(accessToken);
+      if (!await withinLimit("email-change-password", session.id, 5, 15)) {
+        throw new RequestError(429, "try_later");
+      }
+      await checkCurrentPassword(session.id, password);
+    },
+
     async sendEmailChangeCode(accessToken: string, email: string, password: string) {
       const session = await requireSession(accessToken);
       if (email === session.email) throw new RequestError(400, "email_unchanged");
@@ -210,12 +227,7 @@ export function createAuthService(config: {
         !await withinLimit("email-change-email", email, 5, 15)) {
         throw new RequestError(429, "try_later");
       }
-      const { rows: [user] } = await database.query<{ password_hash: Buffer }>(
-        "SELECT password_hash FROM auth_users WHERE id = $1", [session.id],
-      );
-      if (!await verifyPassword(password, user?.password_hash ?? null)) {
-        throw new RequestError(403, "invalid_credentials");
-      }
+      await checkCurrentPassword(session.id, password);
       if (!await emailIsRegistered(email)) await emailCodes.send(emailChangeScope(session), email);
     },
 

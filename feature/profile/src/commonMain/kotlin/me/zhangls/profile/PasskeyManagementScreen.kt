@@ -1,4 +1,4 @@
-package me.zhangls.entry
+package me.zhangls.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,22 +32,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
-import me.zhangls.login.api.PasskeyAlreadyExistsException
-import me.zhangls.login.api.PasskeyCreationTimedOutException
-import me.zhangls.login.api.PasskeyCreationUnavailableException
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.GroupedDropdownMenu
 import me.zhangls.theme.icon.Icons
@@ -55,79 +50,37 @@ import me.zhangls.theme.icon.MoreVert
 import me.zhangls.theme.icon.Passkey
 import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.layout.contentWidth
-import notes.composeapp.generated.resources.Res
-import notes.composeapp.generated.resources.auth_passkey_add
-import notes.composeapp.generated.resources.auth_passkey_add_error
-import notes.composeapp.generated.resources.auth_passkey_already_exists
-import notes.composeapp.generated.resources.auth_passkey_brand_apple
-import notes.composeapp.generated.resources.auth_passkey_brand_unknown
-import notes.composeapp.generated.resources.auth_passkey_brand_xiaomi
-import notes.composeapp.generated.resources.auth_passkey_cancel
-import notes.composeapp.generated.resources.auth_passkey_created
-import notes.composeapp.generated.resources.auth_passkey_device
-import notes.composeapp.generated.resources.auth_passkey_empty
-import notes.composeapp.generated.resources.auth_passkey_error
-import notes.composeapp.generated.resources.auth_passkey_manage
-import notes.composeapp.generated.resources.auth_passkey_more
-import notes.composeapp.generated.resources.auth_passkey_no_service
-import notes.composeapp.generated.resources.auth_passkey_provider_google
-import notes.composeapp.generated.resources.auth_passkey_provider_unknown
-import notes.composeapp.generated.resources.auth_passkey_recent
-import notes.composeapp.generated.resources.auth_passkey_remove
-import notes.composeapp.generated.resources.auth_passkey_remove_body
-import notes.composeapp.generated.resources.auth_passkey_remove_error
-import notes.composeapp.generated.resources.auth_passkey_remove_title
-import notes.composeapp.generated.resources.auth_passkey_retry
-import notes.composeapp.generated.resources.auth_passkey_timeout
+import me.zhangls.profile.api.PasskeyManagement
+import me.zhangls.profile.api.RegisteredPasskey
+import me.zhangls.profile.mvi.PasskeyManagementViewModel
+import notes.feature.profile.generated.resources.Res
+import notes.feature.profile.generated.resources.auth_passkey_add
+import notes.feature.profile.generated.resources.auth_passkey_brand_apple
+import notes.feature.profile.generated.resources.auth_passkey_brand_unknown
+import notes.feature.profile.generated.resources.auth_passkey_brand_xiaomi
+import notes.feature.profile.generated.resources.auth_passkey_cancel
+import notes.feature.profile.generated.resources.auth_passkey_created
+import notes.feature.profile.generated.resources.auth_passkey_device
+import notes.feature.profile.generated.resources.auth_passkey_empty
+import notes.feature.profile.generated.resources.auth_passkey_error
+import notes.feature.profile.generated.resources.auth_passkey_manage
+import notes.feature.profile.generated.resources.auth_passkey_more
+import notes.feature.profile.generated.resources.auth_passkey_provider_google
+import notes.feature.profile.generated.resources.auth_passkey_provider_unknown
+import notes.feature.profile.generated.resources.auth_passkey_remove
+import notes.feature.profile.generated.resources.auth_passkey_remove_body
+import notes.feature.profile.generated.resources.auth_passkey_remove_title
+import notes.feature.profile.generated.resources.auth_passkey_retry
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun PasskeyManagementScreen(
-  listPasskeys: suspend () -> List<RegisteredPasskey>,
-  addPasskey: (suspend () -> Boolean)?,
-  revokePasskey: suspend (String) -> Unit,
+  management: PasskeyManagement,
   onBack: () -> Unit,
 ) {
-  val scope = rememberCoroutineScope()
-  var passkeys by remember { mutableStateOf<List<RegisteredPasskey>?>(null) }
-  var error by remember { mutableStateOf<StringResource?>(null) }
-  var busy by remember { mutableStateOf(false) }
-  var pendingRevocation by remember { mutableStateOf<RegisteredPasskey?>(null) }
-
-  fun submit(failureMessage: StringResource, operation: suspend () -> Boolean = { true }) {
-    if (busy) return
-    busy = true
-    error = null
-    scope.launch {
-      var failedAction = failureMessage
-      try {
-        if (operation()) {
-          failedAction = Res.string.auth_passkey_error
-          passkeys = listPasskeys()
-        }
-      } catch (cancelled: CancellationException) {
-        throw cancelled
-      } catch (_: PasskeyAlreadyExistsException) {
-        error = Res.string.auth_passkey_already_exists
-      } catch (_: PasskeyCreationUnavailableException) {
-        error = Res.string.auth_passkey_no_service
-      } catch (_: PasskeyCreationTimedOutException) {
-        error = Res.string.auth_passkey_timeout
-      } catch (failure: Exception) {
-        val httpFailure = failure as? AuthHttpException
-        error = when {
-          httpFailure?.status == 403 || httpFailure?.code == "invalid_session" ->
-            Res.string.auth_passkey_recent
-          else -> failedAction
-        }
-      } finally {
-        busy = false
-      }
-    }
-  }
-
-  LaunchedEffect(listPasskeys) { submit(Res.string.auth_passkey_error) }
+  val viewModel = viewModel { PasskeyManagementViewModel(management) }
+  val state by viewModel.state.collectAsStateWithLifecycle()
 
   val safePadding = WindowInsets.safeDrawing.asPaddingValues()
   val layoutDirection = LocalLayoutDirection.current
@@ -139,7 +92,7 @@ internal fun PasskeyManagementScreen(
     contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical),
     topBar = { CenteredTopAppBar(title = stringResource(Res.string.auth_passkey_manage), navigate = onBack) },
     bottomBar = {
-      if (addPasskey != null) {
+      if (management.canAdd) {
         Surface {
           Box(
             modifier = Modifier.fillMaxWidth()
@@ -148,9 +101,9 @@ internal fun PasskeyManagementScreen(
             contentAlignment = Alignment.Center,
           ) {
             Button(
-              onClick = { submit(Res.string.auth_passkey_add_error, addPasskey) },
+              onClick = { viewModel.add(management::add) },
               modifier = Modifier.contentWidth(ContentWidth.Form),
-              enabled = !busy,
+              enabled = !state.busy,
             ) {
               Text(stringResource(Res.string.auth_passkey_add))
             }
@@ -166,8 +119,8 @@ internal fun PasskeyManagementScreen(
         .padding(horizontal = horizontalPadding),
       contentAlignment = Alignment.TopCenter,
     ) {
-      val currentError = error
-      val currentPasskeys = passkeys
+      val currentError = state.error
+      val currentPasskeys = state.passkeys
       LazyColumn(
         modifier = Modifier.contentWidth(ContentWidth.Form),
         contentPadding = PaddingValues(
@@ -182,7 +135,7 @@ internal fun PasskeyManagementScreen(
               Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 Text(stringResource(currentError), color = MaterialTheme.colorScheme.onErrorContainer)
                 if (currentError == Res.string.auth_passkey_error) {
-                  TextButton(onClick = { submit(Res.string.auth_passkey_error) }, enabled = !busy) {
+                  TextButton(onClick = viewModel::reload, enabled = !state.busy) {
                     Text(stringResource(Res.string.auth_passkey_retry))
                   }
                 }
@@ -210,31 +163,24 @@ internal fun PasskeyManagementScreen(
           }
         }
         items(currentPasskeys.orEmpty(), key = { it.id }) { passkey ->
-          PasskeyRow(passkey, enabled = !busy, onRevoke = { pendingRevocation = passkey })
+          PasskeyRow(passkey, enabled = !state.busy, onRevoke = { viewModel.requestRevocation(passkey) })
         }
       }
     }
   }
 
-  pendingRevocation?.let { passkey ->
+  if (state.pendingRevocation != null) {
     AlertDialog(
-      onDismissRequest = { pendingRevocation = null },
+      onDismissRequest = viewModel::dismissRevocation,
       title = { Text(stringResource(Res.string.auth_passkey_remove_title)) },
       text = { Text(stringResource(Res.string.auth_passkey_remove_body)) },
       confirmButton = {
-        TextButton(onClick = {
-          pendingRevocation = null
-          submit(Res.string.auth_passkey_remove_error) {
-            revokePasskey(passkey.id)
-            passkeys = passkeys?.filterNot { it.id == passkey.id }
-            true
-          }
-        }) {
+        TextButton(onClick = viewModel::confirmRevocation) {
           Text(stringResource(Res.string.auth_passkey_remove), color = MaterialTheme.colorScheme.error)
         }
       },
       dismissButton = {
-        TextButton(onClick = { pendingRevocation = null }) { Text(stringResource(Res.string.auth_passkey_cancel)) }
+        TextButton(onClick = viewModel::dismissRevocation) { Text(stringResource(Res.string.auth_passkey_cancel)) }
       },
     )
   }

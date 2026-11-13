@@ -220,6 +220,24 @@ paths:
           description: Login username updated
         default:
           $ref: '#/components/responses/Error'
+  /v1/auth/me/email/password:
+    post:
+      operationId: verifyEmailChangePassword
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, format: password, writeOnly: true }
+      responses:
+        '204':
+          description: Current password verified
+        default:
+          $ref: '#/components/responses/Error'
   /v1/auth/me/email/code:
     post:
       operationId: sendEmailChangeCode

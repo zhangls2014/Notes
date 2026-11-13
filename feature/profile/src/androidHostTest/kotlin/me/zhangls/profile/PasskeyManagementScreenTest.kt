@@ -1,9 +1,13 @@
-package me.zhangls.entry
+package me.zhangls.profile
 
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasContentDescription
-import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -14,11 +18,15 @@ import kotlin.test.assertEquals
 import me.zhangls.login.api.PasskeyAlreadyExistsException
 import me.zhangls.login.api.PasskeyCreationTimedOutException
 import me.zhangls.login.api.PasskeyCreationUnavailableException
+import me.zhangls.profile.api.PasskeyManagement
+import me.zhangls.profile.api.RegisteredPasskey
 import me.zhangls.theme.ComposeAppTheme
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -26,7 +34,29 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [37], qualifiers = "en-rUS-w400dp-h800dp-mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class PasskeyManagementScreenTest {
-  @get:Rule val compose = createComposeRule()
+  @get:Rule val compose = createAndroidComposeRule<PasskeyManagementTestActivity>()
+
+  @After fun clearRestoredContent() {
+    PasskeyManagementTestActivity.restoredContent = null
+  }
+
+  @Test fun rotationKeepsLoadedPasskeysAndDoesNotFetchAgain() {
+    var requests = 0
+    val listPasskeys: suspend () -> List<RegisteredPasskey> = {
+      requests++
+      listOf(RegisteredPasskey("id", "2026-11-13T00:00:00Z", deviceBrand = "Xiaomi"))
+    }
+    PasskeyManagementTestActivity.restoredContent = {
+      TestContent(listPasskeys, {}, { false })
+    }
+    compose.activityRule.scenario.recreate()
+    compose.onNodeWithText("Creation device: Xiaomi").assertIsDisplayed()
+    assertEquals(1, requests)
+    RuntimeEnvironment.setQualifiers("en-rUS-w800dp-h400dp-land-mdpi")
+    compose.activityRule.scenario.recreate()
+    compose.onNodeWithText("Creation device: Xiaomi").assertIsDisplayed()
+    assertEquals(1, requests)
+  }
 
   @Test fun explainsWhyDuplicateCreationWasBlocked() {
     launch { throw PasskeyAlreadyExistsException() }
@@ -124,15 +154,25 @@ class PasskeyManagementScreenTest {
     revoke: suspend (String) -> Unit = {},
     add: suspend () -> Boolean,
   ) {
-    compose.setContent {
-      ComposeAppTheme {
-        PasskeyManagementScreen(
-          listPasskeys = listPasskeys,
-          addPasskey = add,
-          revokePasskey = revoke,
-          onBack = {},
-        )
-      }
+    compose.setContent { TestContent(listPasskeys, revoke, add) }
+  }
+
+  @Composable
+  private fun TestContent(
+    listPasskeys: suspend () -> List<RegisteredPasskey>,
+    revokeOperation: suspend (String) -> Unit,
+    addOperation: suspend () -> Boolean,
+  ) {
+    ComposeAppTheme {
+      PasskeyManagementScreen(
+        management = object : PasskeyManagement {
+          override val canAdd = true
+          override suspend fun list() = listPasskeys()
+          override suspend fun add() = addOperation()
+          override suspend fun revoke(id: String) = revokeOperation(id)
+        },
+        onBack = {},
+      )
     }
   }
 
@@ -140,5 +180,16 @@ class PasskeyManagementScreenTest {
     val button = compose.onNodeWithText("Add passkey")
     button.performClick()
     button.assertIsEnabled()
+  }
+}
+
+class PasskeyManagementTestActivity : ComponentActivity() {
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    restoredContent?.let { setContent(content = it) }
+  }
+
+  companion object {
+    var restoredContent: (@Composable () -> Unit)? = null
   }
 }

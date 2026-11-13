@@ -33,6 +33,10 @@ node --input-type=module -e 'import sharp from "sharp"; console.log(sharp.versio
 
 - [ ] 有授权测试库时，按下一节初始化并配置 `NOTES_AUTH_TEST_DATABASE_URL` 后重跑 `npm test`，确认 PostgreSQL 用例实际执行。使用同一份测试库运行测试和清理，不把生产库用作测试库。服务依赖和接口以 [package.json](../server/auth/package.json) 与 [OpenAPI](../server/auth/openapi.yaml) 为准。
 
+上线支持分步修改邮箱的客户端前，认证服务需先提供
+`POST /v1/auth/me/email/password`。此接口在当前会话中校验密码并限制请求频率；
+已有发码和邮箱提交接口继续兼容旧客户端。接口细节见 [OpenAPI](../server/auth/openapi.yaml)。
+
 ## 2. 一次性初始化 PostgreSQL 空库
 
 本地 PostgreSQL 示例使用独立角色 `notes_auth` 作为数据库 owner 和服务运行角色。已有托管库时由数据库管理员在对应实例创建空库和角色，并按供应商要求配置连接证书和网络访问。

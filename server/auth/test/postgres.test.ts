@@ -25,12 +25,16 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     const password = randomBytes(32).toString("base64url");
     const codeKey = randomBytes(32).toString("hex");
     const issuedChallenges: string[] = [];
+    let emailChangeCode: string | undefined;
     const userId = randomUUID();
     t.after(async () => {
       try {
+        await database.query("DELETE FROM auth_email_codes WHERE email = $1", [newEmail]);
         await database.query("DELETE FROM auth_challenges WHERE id = ANY($1::uuid[])", [issuedChallenges]);
         for (const [kind, key] of [
           ["password-ip", testId], ["password-account", account], ["password-account", email], ["password-account", newEmail], ["registration", userId], ["authentication", testId], ["avatar-account", userId],
+          ["email-change-password", userId], ["email-change-account", userId],
+          ["email-change-email", newEmail], ["email-change-verify", userId],
         ] as const) {
           if (!key) continue;
           const bucket = kind + ":" + rateLimitDigest(codeKey, kind, key).toString("base64url");
@@ -44,7 +48,11 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
       }
     });
     const service = createAuthService({
-      database, rpId, origins: [origin, androidOrigin], codeKey, async sendEmail() { assert.fail("Unexpected email"); },
+      database, rpId, origins: [origin, androidOrigin], codeKey,
+      async sendEmail(recipient, _subject, text) {
+        assert.equal(recipient, newEmail);
+        emailChangeCode = text.match(/\b[0-9]{6}\b/)?.[0];
+      },
     });
     await database.query("INSERT INTO auth_users (id, account, email, password_hash) VALUES ($1, $2, $3, $4)",
       [userId, account, email, await hashPassword(password)]);
@@ -138,7 +146,16 @@ test("PostgreSQL password and Passkey sign-in share an account and enforce expir
     await assert.rejects(service.refreshSession(renewed.refreshToken), { message: "invalid_session" });
 
     const stale = await authenticationOptions();
-    await database.query("UPDATE auth_users SET email = $1 WHERE id = $2", [newEmail, userId]);
+    const passkeyLogin = await authenticationOptions();
+    const passkeyAccess = (await service.authenticatePasskey(
+      passkeyLogin.requestId, assertion(passkeyLogin.publicKey.challenge, origin),
+    )).accessToken;
+    await assert.rejects(service.verifyEmailChangePassword(passkeyAccess, "wrong"), { message: "invalid_credentials" });
+    await service.verifyEmailChangePassword(passkeyAccess, password);
+    assert.equal(emailChangeCode, undefined);
+    await service.sendEmailChangeCode(passkeyAccess, newEmail, password);
+    assert.ok(emailChangeCode);
+    await service.changeEmail(passkeyAccess, newEmail, emailChangeCode);
     await assert.rejects(service.authenticatePasskey(stale.requestId,
       assertion(stale.publicKey.challenge, origin)), { message: "invalid_passkey" });
     await assert.rejects(service.authenticationOptions(email, testId), { message: "invalid_passkey" });

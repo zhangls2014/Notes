@@ -1,6 +1,7 @@
 package me.zhangls.profile.mvi
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import me.zhangls.data.model.UserModel
 import me.zhangls.framework.mvi.MviState
 
@@ -11,4 +12,5 @@ internal enum class AvatarSaveStatus { Idle, Saving, Saved, Failed }
 internal data class ProfileState(
   val user: UserModel? = null,
   val saveStatus: AvatarSaveStatus = AvatarSaveStatus.Idle,
+  @Transient val edit: ProfileEdit? = null,
 ) : MviState

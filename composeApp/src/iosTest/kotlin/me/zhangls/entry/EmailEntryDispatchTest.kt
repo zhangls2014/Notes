@@ -2,8 +2,12 @@ package me.zhangls.entry
 
 import androidx.compose.runtime.AbstractApplier
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composition
 import androidx.compose.runtime.Recomposer
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.OpenSourcePage
@@ -12,7 +16,9 @@ import me.zhangls.email.api.EmailEntry
 import me.zhangls.login.LoginEntryImpl
 import me.zhangls.login.api.LoginEntry
 import me.zhangls.profile.ProfileEntryImpl
+import me.zhangls.profile.api.PasskeyManagement
 import me.zhangls.profile.api.ProfileEntry
+import me.zhangls.profile.api.RegisteredPasskey
 import me.zhangls.settings.SettingsEntryImpl
 import me.zhangls.settings.api.SettingsEntry
 import kotlin.coroutines.EmptyCoroutineContext
@@ -69,6 +75,36 @@ class EmailEntryDispatchTest {
     } finally {
       composition.dispose()
       recomposer.cancel()
+    }
+  }
+
+  @Test
+  fun passkeyManagementDispatchesIntoProfileEntry() {
+    val profile: ProfileEntry = ProfileEntryImpl()
+    val management = object : PasskeyManagement {
+      override val canAdd = false
+      override suspend fun list() = emptyList<RegisteredPasskey>()
+      override suspend fun add() = false
+      override suspend fun revoke(id: String) = Unit
+    }
+    val owner = object : ViewModelStoreOwner {
+      override val viewModelStore = ViewModelStore()
+    }
+    val recomposer = Recomposer(EmptyCoroutineContext)
+    val composition = Composition(NoOpApplier(), recomposer)
+    try {
+      val error = assertFailsWith<IllegalStateException> {
+        composition.setContent {
+          CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+            profile.PasskeyScreen(management, onBack = {})
+          }
+        }
+      }
+      assertTrue(error.message.orEmpty().contains("LocalLifecycleOwner"), error.message)
+    } finally {
+      composition.dispose()
+      recomposer.cancel()
+      owner.viewModelStore.clear()
     }
   }
 

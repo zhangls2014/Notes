@@ -4,6 +4,30 @@
     "date": null,
     "changes": [
       {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The passkey management page keeps its list and pending actions when you rotate the screen.",
+          "zh": "旋转屏幕时，通行密钥管理页会保留列表和待确认的操作。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android"],
+        "text": {
+          "en": "Use your password manager to fill the current password when changing your email. The autofill highlight matches the rounded field.",
+          "zh": "修改邮箱时可通过密码管理器自动填充当前密码，填充高亮与输入框圆角对齐。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Personal information keeps edits when you rotate the screen. Account fields match sign-in. Edit forms slide open and closed, and the new email and verification code fields animate into view. The button shows the next step.",
+          "zh": "个人信息页在旋转屏幕时保留编辑进度，输入框与登录页风格一致，编辑表单滑动展开和收起，修改邮箱时，新邮箱和验证码输入框逐步展开，底部按钮会显示当前步骤。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
