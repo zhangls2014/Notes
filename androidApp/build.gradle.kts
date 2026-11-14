@@ -1,4 +1,7 @@
 import java.net.URI
+import me.zhangls.convention.localBuildProperties
+import me.zhangls.convention.notesServiceProperty
+import me.zhangls.convention.requiredSetting
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -54,12 +57,21 @@ kotlin {
   }
 }
 
+val localSigning = localBuildProperties("signing.properties")
+val localDirectory = rootProject.layout.projectDirectory.dir(".local")
+
 fun signingProperty(
   gradleProperty: String,
   environmentVariable: String,
-): Provider<String> = providers
+): String = providers
   .gradleProperty(gradleProperty)
   .orElse(providers.environmentVariable(environmentVariable))
+  .orElse(localSigning.map { settings ->
+    settings.getProperty(gradleProperty)?.let { value ->
+      if (gradleProperty == "notes.signing.path") localDirectory.file(value).asFile.absolutePath else value
+    }
+  })
+  .requiredSetting(gradleProperty, "signing.properties")
 
 val signingPath = signingProperty("notes.signing.path", "NOTES_SIGNING_PATH")
 val signingStorePassword = signingProperty(
@@ -72,13 +84,10 @@ val signingKeyPassword = signingProperty(
   "NOTES_SIGNING_KEY_PASSWORD",
 )
 
-val notesSiteOrigin = providers.gradleProperty("notes.siteBaseUrl")
-  .orElse(providers.environmentVariable("NOTES_SITE_BASE_URL"))
-  .orElse(providers.gradleProperty("notes.defaultSiteBaseUrl"))
-  .map { origin ->
-    require(Regex("https://[A-Za-z0-9.-]+/?").matches(origin)) { "Invalid Notes website origin" }
-    requireNotNull(URI.create(origin).host) { "Invalid Notes website host" }.lowercase()
-  }
+val notesSiteOrigin = notesServiceProperty("notes.siteBaseUrl", "NOTES_SITE_BASE_URL")
+  .requiredSetting("notes.siteBaseUrl", "server.properties")
+require(Regex("https://[A-Za-z0-9.-]+/?").matches(notesSiteOrigin)) { "Invalid Notes website origin" }
+val notesSiteHost = requireNotNull(URI.create(notesSiteOrigin).host) { "Invalid Notes website host" }.lowercase()
 
 android {
   namespace = "me.zhangls.notes"
@@ -92,7 +101,7 @@ android {
 
   defaultConfig {
     applicationId = "me.zhangls.notes"
-    manifestPlaceholders["notesSiteHost"] = notesSiteOrigin.get()
+    manifestPlaceholders["notesSiteHost"] = notesSiteHost
     minSdk = kmp.versions.android.minSdk.get().toInt()
     targetSdk = kmp.versions.android.targetSdk.get().toInt()
     versionCode = 7
@@ -107,10 +116,10 @@ android {
 
   signingConfigs {
     create("release") {
-      storeFile = file(signingPath.get())
-      storePassword = signingStorePassword.get()
-      keyAlias = signingKeyAlias.get()
-      keyPassword = signingKeyPassword.get()
+      storeFile = file(signingPath)
+      storePassword = signingStorePassword
+      keyAlias = signingKeyAlias
+      keyPassword = signingKeyPassword
     }
   }
 

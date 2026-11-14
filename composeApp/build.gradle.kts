@@ -1,4 +1,6 @@
 import java.net.URI
+import me.zhangls.convention.notesServiceProperty
+import me.zhangls.convention.requiredSetting
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
@@ -107,22 +109,16 @@ fun validateHttpsOrigin(value: String, setting: String): URI {
 buildkonfig {
   packageName = "me.zhangls.entry"
   defaultConfigs {
-    val siteBaseUrl = providers.gradleProperty("notes.siteBaseUrl")
-      .orElse(providers.environmentVariable("NOTES_SITE_BASE_URL"))
-      .orElse(providers.gradleProperty("notes.defaultSiteBaseUrl"))
-      .get()
+    val siteBaseUrl = notesServiceProperty("notes.siteBaseUrl", "NOTES_SITE_BASE_URL")
+      .requiredSetting("notes.siteBaseUrl", "server.properties")
     val siteOrigin = validateHttpsOrigin(siteBaseUrl, "Notes website")
     buildConfigField(STRING, "SITE_BASE_URL", siteBaseUrl.trimEnd('/'))
-    val apkBaseUrl = providers.gradleProperty("notes.apkBaseUrl")
-      .orElse(providers.environmentVariable("NOTES_APK_BASE_URL"))
-      .orElse(providers.gradleProperty("notes.defaultApkBaseUrl"))
-      .get()
+    val apkBaseUrl = notesServiceProperty("notes.apkBaseUrl", "NOTES_APK_BASE_URL")
+      .requiredSetting("notes.apkBaseUrl", "server.properties")
     validateHttpsOrigin(apkBaseUrl, "Notes APK downloads")
     buildConfigField(STRING, "APK_BASE_URL", apkBaseUrl.trimEnd('/'))
-    val authBaseUrl = providers.gradleProperty("notes.authBaseUrl")
-      .orElse(providers.environmentVariable("NOTES_AUTH_BASE_URL"))
-      .orElse(providers.gradleProperty("notes.defaultAuthBaseUrl"))
-      .get()
+    val authBaseUrl = notesServiceProperty("notes.authBaseUrl", "NOTES_AUTH_BASE_URL")
+      .requiredSetting("notes.authBaseUrl", "server.properties")
     val authOrigin = authBaseUrl.takeIf(String::isNotEmpty)?.let { validateHttpsOrigin(it, "Notes authentication") }
     buildConfigField(STRING, "AUTH_BASE_URL", authBaseUrl)
     val passkeysEnabled = providers.gradleProperty("notes.authPasskeysEnabled")

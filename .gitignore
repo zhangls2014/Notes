@@ -1,6 +1,7 @@
 *.iml
 .gradle
 /local.properties
+/.local/
 # .idea 的忽略规则统一由 .idea/.gitignore 管理（含 Gradle 同步推导的本机文件）
 **/.kotlin/
 .DS_Store

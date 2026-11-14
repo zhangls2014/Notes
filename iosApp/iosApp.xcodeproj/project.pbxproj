@@ -153,7 +153,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\nexport NOTES_XCODE_SITE_HOST=\"$NOTES_SITE_HOST\"\nexport NOTES_XCODE_PASSKEY_RP_ID=\"$NOTES_PASSKEY_RP_ID\"\nexport NOTES_SITE_BASE_URL=${NOTES_SITE_BASE_URL-https://$NOTES_SITE_HOST}\nexport NOTES_AUTH_BASE_URL=${NOTES_AUTH_BASE_URL-https://$NOTES_PASSKEY_RP_ID}\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\nexport NOTES_XCODE_SITE_HOST=\"$NOTES_SITE_HOST\"\nexport NOTES_XCODE_PASSKEY_RP_ID=\"$NOTES_PASSKEY_RP_ID\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

@@ -130,21 +130,36 @@ export PATH="$PATH:$ANDROID_HOME/platform-tools"
 ANDROID_HOME="$HOME/Library/Android/sdk" ./gradlew :androidApp:assembleDebug
 ```
 
-Debug 和 Release 共用正式签名，签名信息保存在用户级 `~/.gradle/gradle.properties`，供所有 worktree 使用：
+项目本机配置统一放在仓库根目录的 `.local/`，整个目录由 Git 忽略。每个 checkout 或
+worktree 单独准备需要的文件；目录权限为 `0700`，文件为 `0600`。
+
+- `server.properties`：应用构建使用的三个 HTTPS 服务地址。
+- `signing.properties` 和 `signing.jks`：Debug 和 Release 共用的 Android 正式签名配置与签名库。
+- `production-access.local.md`：生产源站和访问记录，只供人工运维参考，构建不读取。
+
+`.local/server.properties` 示例（将示例域名替换为实际应用服务地址）：
 
 ```properties
-notes.signing.path=/absolute/path/to/your.jks
+notes.authBaseUrl=https://auth.example.com
+notes.siteBaseUrl=https://notes.example.com
+notes.apkBaseUrl=https://downloads.example.com
+```
+
+`.local/signing.properties` 示例，文件中的签名库路径相对于 `.local/`：
+
+```properties
+notes.signing.path=signing.jks
 notes.signing.storePassword=***
 notes.signing.keyAlias=***
 notes.signing.keyPassword=***
 ```
 
-CI 可分别使用 `NOTES_SIGNING_PATH`、`NOTES_SIGNING_STORE_PASSWORD`、
-`NOTES_SIGNING_KEY_ALIAS` 和 `NOTES_SIGNING_KEY_PASSWORD` 环境变量。
-优先级为 Gradle 属性、环境变量，不再从 `local.properties` 读取签名信息。
-Debug 和 Release 始终使用正式签名配置，构建前必须补全上述配置；
-缺失或无效的签名配置会导致构建失败。Android Studio 仍可能生成被 Git 忽略的
-`local.properties`，无需把它复制到新 worktree，也不要提交凭据。
+读取顺序为 Gradle 属性、环境变量、`.local/` 文件。自动构建可通过
+`NOTES_AUTH_BASE_URL`、`NOTES_SITE_BASE_URL`、`NOTES_APK_BASE_URL` 提供服务地址，
+Android 签名对应 `NOTES_SIGNING_PATH`（建议用绝对路径）、`NOTES_SIGNING_STORE_PASSWORD`、
+`NOTES_SIGNING_KEY_ALIAS` 和 `NOTES_SIGNING_KEY_PASSWORD`。
+缺少必需值时 Gradle 会报出缺失字段。官网和认证地址的域名须与平台关联配置一致；
+Android Studio 生成的 SDK 用 `local.properties` 仍留在原位置。
 
 ## 构建与运行
 
