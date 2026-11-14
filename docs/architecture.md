@@ -184,7 +184,7 @@ Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏�
 
 关于应用的「开源软件声明」进入 About 所属的全屏 `OnlineNoticesDestination`，许可证与 NOTICE 使用独立的 `OnlineNoticeDetailDestination`，保存校验过的声明片段 ID 或 HTTP(S) 项目地址。组合根用相同的场景键装配列表与详情，并复用窗口和铰链策略。宽窗保留列表并替换所选详情，窄窗用全屏详情，返回恢复列表位置。Android 通过 `AndroidView` 嵌入系统 WebView，iOS 通过 `UIKitView` 嵌入 WKWebView。两栏从注入的 `NotesWebsite` 加载在线网页，详情链接由原生导航接管，项目来源复用详情窗格。状态栏随应用窗口，底部安全距离放在可滚动内容内。旧版声明目的地仅用于解码历史导航状态。
 
-About 将组合中解析的语言、系统与应用叠加字号、深浅色和 Material 配色附在启动 URL 上。站内链接保留这些参数。每端生成列表和固定详情页各一份，详情页按片段 ID 显示相应的上游许可和 NOTICE。生成规则见[声明维护指南](../web/open-source/README.md)，发布和版本归档见[网站部署](notes-web-deployment.md)。
+About 将组合中解析的语言、系统与应用叠加字号、深浅色和 Material 配色附在启动 URL 上。站内链接保留这些参数。每端生成列表和固定详情页各一份，详情页按片段 ID 显示相应的上游许可和 NOTICE。生成规则见[声明维护指南](../web/open-source/README.md)，固定声明的发布流程见[网站部署](notes-web-deployment.md)。
 
 关于页面入口仅接收导航参数；`AboutAppInfo` 只描述版本号和构建号。
 

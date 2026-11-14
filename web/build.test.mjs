@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { runInNewContext } from 'node:vm'
 import { buildSite, validatePublishedBuilds } from './build.mjs'
 
 test('public history is bilingual, ordered and excludes unpublished records', () => {
@@ -45,7 +46,7 @@ test('a manifest must refer to a published release and an approved artifact host
   assert.throws(() => validatePublishedBuilds([release], [{ ...build, artifactUrl: 'https://example.com/Notes.apk' }]))
 })
 
-test('release history links to each archived build of the matching version', () => {
+test('release history and the notice index link to shared notices', () => {
   const releases = ['1.1.0', '1.2.0', '1.3.0'].map(version => ({
     version, date: '2026-11-01',
     changes: [{ type: 'added', platforms: ['android', 'ios'], text: { zh: '新增', en: 'Added' } }],
@@ -68,12 +69,37 @@ test('release history links to each archived build of the matching version', () 
       artifactUrl: 'https://apps.apple.com/app/id123',
     },
   ]
-  const html = buildSite(releases, builds).get('releases/index.html')
-  const article = version => html.split(`<article id="v${version}">`)[1].split('</article>')[0]
-  assert.match(article('1.1.0'), /href="\/open-source\/android-prd-full\/1\.1\.0\/4\/android\.html"/)
-  assert.doesNotMatch(article('1.1.0'), /open-source\/.*\/1\.2\.0\//)
-  assert.match(article('1.2.0'), /href="\/open-source\/android-prd-full\/1\.2\.0\/5\/android\.html"/)
-  assert.match(article('1.2.0'), /href="\/open-source\/android-prd-mainland\/1\.2\.0\/5\/android\.html"/)
-  assert.match(article('1.2.0'), /href="\/open-source\/ios-app-store\/1\.2\.0\/6\/ios\.html"/)
-  assert.doesNotMatch(article('1.3.0'), /href="\/open-source\//)
+  const site = buildSite(releases, builds)
+  const html = site.get('releases/index.html')
+  assert.deepEqual([...html.matchAll(/href="(\/open-source\/[^"]*)"/g)].map(match => match[1]), ['/open-source/'])
+  const index = site.get('open-source/index.html')
+  assert.match(index, /href="\/open-source\/android\.html"/)
+  assert.match(index, /href="\/open-source\/ios\.html"/)
+  assert.doesNotMatch(index, /1\.2\.0|android-prd|ios-app-store/)
+  assert.equal(index, buildSite(releases, []).get('open-source/index.html'))
+  assert.ok(site.has('downloads/android/android-prd-full/5/index.html'))
+  assert.ok(site.has('updates/v1/ios-app-store.json'))
+})
+
+test('only previously published notice URLs forward to the current page', () => {
+  const site = buildSite([], [])
+  const legacyPaths = [...site.keys()].filter(path => /^open-source\/[^/]+\//.test(path))
+  assert.deepEqual(legacyPaths.sort(), [
+    'open-source/android-prd-full/1.1.2/5/android-licenses.html',
+    'open-source/android-prd-full/1.1.2/5/android.html',
+    'open-source/android-prd-mainland/1.1.2/5/android-licenses.html',
+    'open-source/android-prd-mainland/1.1.2/5/android.html',
+  ])
+  for (const path of legacyPaths) {
+    const target = '/open-source/' + path.split('/').at(-1)
+    const html = site.get(path)
+    assert.ok(html.includes(`href="${target}"`))
+    const suffix = '?lang=zh&fontScale=2#license-apache-2.0'
+    let redirected
+    runInNewContext(html.match(/<script>(.*?)<\/script>/s)[1], {
+      location: { search: '?lang=zh&fontScale=2', hash: '#license-apache-2.0',
+        replace: url => { redirected = url } },
+    })
+    assert.equal(redirected, target + suffix)
+  }
 })

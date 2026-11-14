@@ -209,45 +209,43 @@ const releaseControls = `<script>
     window.history.replaceState(null, '', current)
     filter()
   })
-  for (const link of document.querySelectorAll('[data-notice-link]')) {
-    const target = new URL(link.href)
-    for (const key of ['theme', 'fontScale', ...colors]) {
-      if (query.has(key)) target.searchParams.set(key, query.get(key))
-    }
-    link.href = target.href
-  }
 }
 </script>`
 
-function releasePage(releases, builds) {
+function releasePage(releases) {
   return page('Release notes', `<h1>${history}</h1>
 <div class="release-platform"><label for="platform">${bilingual('平台', 'Platform')}</label>
 <select id="platform"><option value="android">Android</option><option value="ios">iOS</option></select></div>
-${releases.map(release => releaseCard(release, builds)).join('')}
+${releases.map(releaseCard).join('')}
 <p id="release-empty"${releases.length ? ' hidden' : ''}>${bilingual('暂无已发布记录。', 'No published release notes yet.')}</p>`,
   releaseStyles, releaseControls)
 }
 
-function releaseCard({ version, date, changes }, builds) {
+function releaseCard({ version, date, changes }) {
   const groups = Object.entries(labels).map(([type, label]) => {
     const entries = changes.filter(change => change.type === type)
     if (!entries.length) return ''
     return `<section><h3>${bilingual(label.zh, label.en)}</h3><ul>${entries.map(change =>
       `<li data-release-change data-platforms="${change.platforms.join(' ')}">${bilingual(escape(change.text.zh), escape(change.text.en))}</li>`).join('')}</ul></section>`
   }).join('')
-  const archivedBuilds = builds.filter(build => build.version === version)
-  const noticeSection = archivedBuilds.length
-    ? `<section><h3>${notices}</h3><ul>${archivedBuilds.map(build =>
-      `<li data-platforms="${channels[build.channel]}">${noticeLink(build, `${build.channel} (${build.build})`)}</li>`
-    ).join('')}</ul></section>`
-    : ''
   return `<article id="v${version}"><h2><a href="#v${version}">${version}</a></h2>
-<time datetime="${date}">${date}</time>${groups}${noticeSection}</article>`
+<time datetime="${date}">${date}</time>${groups}</article>`
 }
 
-const archive = entry => `open-source/${entry.channel}/${entry.version}/${entry.build}`
-const noticeLink = (entry, label) =>
-  `<a data-notice-link href="/${archive(entry)}/${channels[entry.channel]}.html">${label}</a>`
+function addLegacyNoticeRedirects(files) {
+  // Only the notice URLs published before switching to fixed platform paths.
+  for (const channel of ['android-prd-full', 'android-prd-mainland']) {
+    for (const file of ['android.html', 'android-licenses.html']) {
+      const target = `/open-source/${file}`
+      files.set(`open-source/${channel}/1.1.2/5/${file}`, `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Open-source notices · Notes</title></head>
+<body><a href="${target}">Open-source notices</a>
+<script>location.replace(${JSON.stringify(target)} + location.search + location.hash)</script></body></html>
+`)
+    }
+  }
+}
+
 const download = entry => `downloads/android/${entry.channel}/${entry.build}/`
 
 export function buildSite(releases, builds, origins = defaultOrigins) {
@@ -259,14 +257,15 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
   files.set('index.html', page('Notes', `<h1>Notes</h1><p>${bilingual('适用于 Android 和 iOS。', 'Available for Android and iOS.')}</p>`))
   const published = releases.filter(release => release.date !== null)
     .sort((a, b) => compareNumbers(b.version, a.version))
-  files.set('releases/index.html', releasePage(published, builds))
+  files.set('releases/index.html', releasePage(published))
   const empty = `<p>${bilingual('暂无已发布构建。', 'No published builds yet.')}</p>`
   files.set('downloads/index.html', page('Downloads', `<h1>${downloads}</h1>${current.size ?
     `<ul>${[...current.values()].map(entry => `<li><a href="${channels[entry.channel] === 'android' ?
       `/${download(entry)}` : escape(entry.artifactUrl)}">${entry.channel} · ${entry.version}</a></li>`).join('')}</ul>` : empty}`))
-  files.set('open-source/index.html', page('Open-source notices', `<h1>${notices}</h1>${builds.length ?
-    `<ul>${[...builds].reverse().map(entry =>
-      `<li>${noticeLink(entry, `${entry.channel} · ${entry.version} (${entry.build})`)}</li>`).join('')}</ul>` : empty}`))
+  files.set('open-source/index.html', page('Open-source notices', `<h1>${notices}</h1>
+<ul>${Object.entries(platforms).map(([platform, label]) =>
+    `<li><a data-notice-link href="/open-source/${platform}.html">${label}</a></li>`).join('')}</ul>`))
+  addLegacyNoticeRedirects(files)
   for (const entry of builds) {
     if (channels[entry.channel] !== 'android') continue
     files.set(`${download(entry)}index.html`, page('Android download', `<h1>Notes ${entry.version}</h1>
@@ -311,15 +310,6 @@ async function main() {
   for (const platform of new Set(Object.values(channels))) {
     for (const file of [`${platform}.html`, `${platform}-licenses.html`]) {
       files.set(`open-source/${file}`, await readFile(join(webRoot, 'open-source', file)))
-    }
-  }
-  for (const entry of builds) {
-    const platform = channels[entry.channel]
-    for (const file of [`${platform}.html`, `${platform}-licenses.html`]) {
-      const input = join(webRoot, 'notice-archives', entry.channel, entry.version, entry.build, file)
-      const html = await readFile(input)
-      requireValue(html.length > 0 && html.length <= 25 * 1024 * 1024, `Invalid Pages asset: ${input}`)
-      files.set(`${archive(entry)}/${file}`, html)
     }
   }
   for (const [path, content] of files) {

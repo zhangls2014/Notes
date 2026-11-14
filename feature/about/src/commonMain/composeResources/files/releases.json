@@ -7,6 +7,14 @@
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
+          "en": "All app versions share the latest online open-source software notices for their platform.",
+          "zh": "所有应用版本共用各自平台的最新在线开源软件声明。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
           "en": "View published release notes in the app with Android and iOS filters.",
           "zh": "在应用内查看官网更新日志，可切换 Android 和 iOS。"
         }

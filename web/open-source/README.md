@@ -57,8 +57,9 @@ Regenerate both platforms whenever distributed dependencies change. Preserve lic
 text and attribution; update the generator instead of manually editing its HTML output.
 Commit generated HTML files in this directory. The website build copies all four pages
 to `web/dist/open-source/`. Keep list and detail files together so relative links work.
-The app opens its platform list online. Follow the [release workflow](../../docs/notes-web-deployment.md#发布新构建)
-for versioned archives.
+The app opens its fixed platform list online. All app versions share the current
+notices for their platform. The [release workflow](../../docs/notes-web-deployment.md#发布新构建)
+does not create version or build archives.
 
 ## Preview
 
