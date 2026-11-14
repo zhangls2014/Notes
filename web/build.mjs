@@ -250,6 +250,11 @@ async function main() {
     apkOrigin: process.env.NOTES_APK_BASE_URL ?? defaultOrigins.apkOrigin,
   })
   addAssociations(files)
+  for (const platform of new Set(Object.values(channels))) {
+    for (const file of [`${platform}.html`, `${platform}-licenses.html`]) {
+      files.set(`open-source/${file}`, await readFile(join(webRoot, 'open-source', file)))
+    }
+  }
   for (const entry of builds) {
     const platform = channels[entry.channel]
     for (const file of [`${platform}.html`, `${platform}-licenses.html`]) {

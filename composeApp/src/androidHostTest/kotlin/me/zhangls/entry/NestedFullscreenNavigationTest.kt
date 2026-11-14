@@ -26,7 +26,7 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.api.AboutDestination
-import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -62,7 +62,7 @@ class NestedFullscreenNavigationTest {
         NavEntry(key) {
           val tag = when (key) {
             AboutDestination -> "about"
-            is OpenSourceNoticesDestination -> "notices"
+            ReleaseHistoryDestination -> "history"
             else -> "base"
           }
           Box(Modifier.fillMaxSize().testTag(tag).background(if (key == AboutDestination) Color.Blue else Color.Red))
@@ -90,10 +90,10 @@ class NestedFullscreenNavigationTest {
   @Test fun predictiveReturnRevealsTheFullSizePreviousFullscreenPage() {
     launch()
     compose.onNodeWithTag("about").assertIsDisplayed()
-    compose.runOnIdle { stack.add(OpenSourceNoticesDestination()) }
+    compose.runOnIdle { stack.add(ReleaseHistoryDestination) }
     compose.mainClock.advanceTimeBy(2000)
     compose.waitForIdle()
-    compose.onNodeWithTag("notices").assertIsDisplayed().assertWidthIsEqualTo(800.dp)
+    compose.onNodeWithTag("history").assertIsDisplayed().assertWidthIsEqualTo(800.dp)
     val dispatcher = checkNotNull(view.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher
     compose.mainClock.autoAdvance = false
     try {
@@ -108,7 +108,7 @@ class NestedFullscreenNavigationTest {
       compose.mainClock.advanceTimeBy(1500)
       compose.waitForIdle()
       assertEquals(800f, compose.onNodeWithTag("about").fetchSemanticsNode().boundsInRoot.width, 0.5f)
-      assertEquals(680f, compose.onNodeWithTag("notices").fetchSemanticsNode().boundsInRoot.width, 0.5f)
+      assertEquals(680f, compose.onNodeWithTag("history").fetchSemanticsNode().boundsInRoot.width, 0.5f)
       compose.waitUntil(5000) {
         compose.runOnIdle { view.invalidate() }
         compose.mainClock.advanceTimeByFrame()
@@ -118,7 +118,7 @@ class NestedFullscreenNavigationTest {
       compose.runOnIdle { dispatcher.dispatchOnBackCancelled() }
       compose.mainClock.advanceTimeBy(2000)
       compose.waitForIdle()
-      compose.onNodeWithTag("notices").assertWidthIsEqualTo(800.dp)
+      compose.onNodeWithTag("history").assertWidthIsEqualTo(800.dp)
       assertEquals(3, stack.size)
     } finally {
       compose.mainClock.autoAdvance = true

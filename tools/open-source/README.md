@@ -2,12 +2,7 @@
 
 This directory contains dependency export and static notice generation tools only.
 Use English, lowercase hyphenated script names. Generated dependency inventories and
-HTML in `web/open-source/` are the only checked-in webpage source used for packaging.
-The generator updates this directory only. Do not copy generated pages into `src/`.
-Gradle Sync tasks prepare each platform's list and fixed detail page under
-`feature/about/build/generated/open-source/<platform>Main/composeResources/files/open-source/`.
-Compose Resources consumes these task outputs through `customDirectory`; build outputs
-are ignored by Git. Temporary Gradle reports belong in `build/`.
+HTML in `web/open-source/` are the checked-in source for website builds. Temporary Gradle reports belong in `build/`.
 Keep upstream license and NOTICE text verbatim. Never infer an unknown license.
 
 The Android inventory uses the production full release runtime configuration; iOS
@@ -70,11 +65,8 @@ fixtures: 10 font-scale inputs × 4 themes × 3 origins × 4 palettes per page, 
 8 language selection and link-retention cases per page. At four files this is 1,920 appearance/navigation and 32 language cases. These tests do not verify
 browser rendering or native font metrics. No Python or Node packages are required.
 
-Ordinary builds copy HTML without invoking Python or refreshing dependencies. Gradle
-tracks source HTML as inputs and reuses unchanged Sync outputs. Each Sync destination
-is owned by its task; stale generated files are removed during synchronization.
-When moving resources between source sets, validate packages without historical
-shared-resource outputs. This migration check is separate from normal regeneration.
+The website build copies the four pages to `web/dist/open-source/`. Compare the
+website output with the generated source and check both platform detail links.
 
 The inline CSS shares the app's Expressive shape/type hierarchy. Component action
 links use primary-container colors, unchanged capsule corners in resting/pressed states and
@@ -97,7 +89,7 @@ category labels; keep navigation off declaration detail pages.
 
 For category changes, add regression coverage for namespace boundaries, both
 platforms, complete/unique component placement and empty categories, then run
-the Python and Node commands above and both platform notice resource Sync tasks.
+the Python and Node commands above and the website build.
 
 ## Project series and shared actions
 
@@ -114,4 +106,4 @@ Do not change inventories or infer licenses while grouping presentation data.
 
 Validate shared repository actions, distinct repositories in one Maven group,
 notice deduplication and full text retention, module disclosure, category links,
-and platform isolation using the Python/Node tests and platform resource Sync.
+and platform isolation using the Python/Node tests and the website build.

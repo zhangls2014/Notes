@@ -25,7 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import com.github.takahirom.roborazzi.captureRoboImage
+import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutAppInfo
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -85,7 +87,7 @@ class AboutUiTest(private val scenario: Scenario) {
             if (historyVisible) {
               entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
             } else {
-              entry.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = { historyVisible = true })
+              entry.Screen(onBack = {}, onOpenReleaseHistory = { historyVisible = true }, onOpenNotices = {})
             }
           }
         }
@@ -142,15 +144,16 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("View update history").performScrollTo().assertIsDisplayed()
   }
 
-  @Test fun noticesAreAlwaysAvailableOffline() {
+  @Test fun noticesOpenAnInAppPage() {
     var opened = false
+    val about: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     compose.setContent {
       ComposeAppTheme {
-        koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = { opened = true }, onOpenReleaseHistory = {})
+        about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = { opened = true })
       }
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo().assertIsEnabled().performClick()
-    assertTrue(opened)
+    compose.runOnIdle { assertTrue(opened) }
   }
 
   @Test fun installedVersionExpandsUpdatesWithoutBuildNumber() {

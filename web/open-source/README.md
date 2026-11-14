@@ -49,50 +49,30 @@ all appearance parameters. App launches supply validated RGB hex colors:
 Material color scheme, including Android dynamic colors; do not recreate palettes
 from a preference flag. Only six-digit RGB hex values are accepted and retained in
 local links. Missing/invalid values keep the standalone light/dark fallback palettes.
-These HTML files are the only checked-in webpage source. Bundled copies must remain byte-identical.
+These HTML files are the only checked-in webpage source. Website copies must remain byte-identical.
 Git attributes preserve upstream text and source HTML line endings. Retain
 upstream whitespace in license/NOTICE text instead of applying code formatting.
 
 Regenerate both platforms whenever distributed dependencies change. Preserve license
 text and attribution; update the generator instead of manually editing its HTML output.
-Commit generated HTML files in this directory. Do not keep packaged copies under `src/`.
-Gradle automatically syncs the Android list and fixed detail file into
-`feature/about/build/generated/open-source/androidMain/composeResources/files/open-source/`
-and the corresponding iOS files into
-`feature/about/build/generated/open-source/iosMain/composeResources/files/open-source/`.
-These ignored outputs are Compose Resources inputs, with their Sync task dependencies
-provided through `customDirectory`. Each app contains only its own platform's two pages.
-For published builds, archive the exact bundled files on the public site following the [release workflow](../../docs/notes-web-deployment.md#发布新构建).
+Commit generated HTML files in this directory. The website build copies all four pages
+to `web/dist/open-source/`. Keep list and detail files together so relative links work.
+The app opens its platform list online. Follow the [release workflow](../../docs/notes-web-deployment.md#发布新构建)
+for versioned archives.
 
-## Preview and package
+## Preview
 
 Generate using [the tooling instructions](../../tools/open-source/README.md), then
-preview with `python3 -m http.server 8842 --bind 127.0.0.1 --directory web/open-source`.
-Open `/android.html` and `/ios.html`. Keep each platform's list and detail files together in its
-packaged resource directory so relative links work.
-Every page inlines its own styling and requires no external assets.
-
-The application build includes these resources through Compose Resources. The About
-entry works offline; external project sources still require a network connection.
-Each installed app retains the declarations shipped with that version.
+run `node web/build.mjs` and serve `web/dist`. Open `/open-source/android.html` or
+`/open-source/ios.html`.
 
 UI text supports Simplified Chinese and English. App launch language overrides
 browser language; standalone unsupported languages fall back to English. Local
 links retain language, while upstream license/NOTICE bodies remain verbatim.
-Wide app windows retain the component list beside license/NOTICE or external
-project content using the root Navigation 3 scene policy. External project views
-are separate from bundled notice views. Narrow project links use the system browser.
-
-The list fills the viewport until a detail is opened, then root scenes adapt.
-
 List and detail pages omit the app-authored footer disclaimer; upstream license
 and NOTICE text remains complete and unchanged.
 
 NOTICE detail bodies omit the app-authored heading; upstream text is unchanged.
-Native license detail bars use the localized generic “License” title. Bundled
-web views have no loading indicator; project source views retain theirs.
 
 Lists and details use equal top/bottom outer padding: 24px normally and 16px at
-400px or less. First/last content margins cannot add outer whitespace. Detail
-bars use a right-side close action when the list is visible, otherwise a back
-action; closing details restores the full-width list and its reading position.
+400px or less. First/last content margins cannot add outer whitespace.

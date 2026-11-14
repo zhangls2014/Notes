@@ -18,7 +18,7 @@ import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
-import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.AboutDestination
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -44,7 +44,7 @@ class FullscreenAndroidViewTouchTest {
     compose.setContent {
       val entries = listOf(
         NavEntry<NavKey>(HomeDestination) { Box(Modifier.fillMaxSize()) },
-        NavEntry<NavKey>(OpenSourceNoticesDestination()) {
+        NavEntry<NavKey>(AboutDestination) {
           AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->

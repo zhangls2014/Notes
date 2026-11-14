@@ -51,7 +51,7 @@ class AboutWideScrollTest {
     compose.setContent {
       view = LocalView.current
       ComposeAppTheme {
-        koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = {})
+        koinInject<AboutEntry>().Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = {})
       }
     }
     compose.runOnIdle {
@@ -81,7 +81,7 @@ class AboutWideScrollTest {
     compose.setContent {
       Box(Modifier.requiredSize(1000.dp, 400.dp).testTag("about-window")) {
         ComposeAppTheme {
-          koinInject<AboutEntry>().Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = {})
+          koinInject<AboutEntry>().Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = {})
         }
       }
     }

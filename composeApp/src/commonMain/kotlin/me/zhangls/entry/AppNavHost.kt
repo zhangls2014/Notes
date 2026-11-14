@@ -31,8 +31,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
-import me.zhangls.about.api.OpenSourceNoticesDestination
-import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.OnlineNoticeDetailDestination
+import me.zhangls.about.api.OnlineNoticesDestination
 import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.emailNavEntry
@@ -40,7 +40,8 @@ import me.zhangls.entry.panes.PANE_CLOSE_DURATION_MILLIS
 import me.zhangls.entry.panes.emailPaneMetadata
 import me.zhangls.entry.panes.favoritesEmailListMetadata
 import me.zhangls.entry.panes.homeEmailListMetadata
-import me.zhangls.entry.panes.noticesPaneMetadata
+import me.zhangls.entry.panes.noticesDetailMetadata
+import me.zhangls.entry.panes.noticesListMetadata
 import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.entry.panes.rememberListDetailPaneController
 import me.zhangls.framework.deeplink.DeepLinkDestination
@@ -130,7 +131,6 @@ fun AppNavHost(
   }
 
   val paneController = rememberListDetailPaneController()
-  val embedProject = rememberUpdatedState(paneController.canSplitHorizontally)
   var homeDraftVisible by rememberHomeDraftVisibility()
   KeepHomeDraftVisible(
     backStack = backStack,
@@ -143,7 +143,7 @@ fun AppNavHost(
   var closeJob by remember { mutableStateOf<Job?>(null) }
   val paneNavigation = rememberUpdatedState<(NavEffect) -> Unit> { effect ->
     val detail = backStack.lastOrNull()
-    if (shouldAnimateDetailClose(effect, detail, embedProject.value)) {
+    if (shouldAnimateDetailClose(effect, detail, paneController.canSplitHorizontally)) {
       if (!detailClosing) {
         detailClosing = true
         closingRoot = navigationState.selectedRoot
@@ -246,10 +246,7 @@ fun AppNavHost(
           closeDetail = { paneNavigation.value(emailDetailCloseEffect(it)) },
         ) { effect -> paneNavigation.value(effect) }
         profileNavEntry { effect -> navHandler(effect) }
-        aboutNavEntry(
-          paneMetadata = ::noticesPaneMetadata,
-          embedProject = { embedProject.value },
-        ) { effect -> paneNavigation.value(effect) }
+        aboutNavEntry(noticesListMetadata, noticesDetailMetadata) { effect -> paneNavigation.value(effect) }
 
         loginNavEntry(onNavigate = { navHandler(it) }) { result, destination ->
           if (result == LoginResult.Success && !accountNavigationManagedByApp) {
@@ -279,7 +276,7 @@ fun AppNavHost(
         entries = entriesByRoot.getValue(navigationState.selectedRoot).toImmutableList(),
         fullscreenEntryCount = backStack.takeLastWhile {
           it is ProfileDestination || it is PasskeyManagementDestination || it is AboutDestination ||
-            it is ReleaseHistoryDestination || it is OpenSourceNoticesDestination
+            it is ReleaseHistoryDestination || it is OnlineNoticesDestination || it is OnlineNoticeDetailDestination
         }.size,
         displayKey = navigationState.selectedRoot,
         contentAlpha = readAlpha,
@@ -296,7 +293,6 @@ private fun shouldAnimateDetailClose(effect: NavEffect, detail: NavKey?, expande
   effect == NavEffect.Popup && expanded && detail.isAnimatedPaneDetail()
 
 private fun NavKey?.isAnimatedPaneDetail(): Boolean = when (this) {
-  is OpenSourceNoticesDestination -> projectUrl != null || page == OpenSourcePage.LICENSES
-  is EmailDetailDestination -> true
+  is EmailDetailDestination, is OnlineNoticeDetailDestination -> true
   else -> false
 }

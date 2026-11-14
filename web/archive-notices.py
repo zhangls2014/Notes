@@ -1,4 +1,4 @@
-"""Copy or verify notice archives against a signed Android APK or iOS IPA."""
+"""Copy or verify notice archives from generated HTML or a legacy APK or IPA."""
 
 import argparse
 import re
@@ -15,7 +15,7 @@ CHANNELS = {
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("package", type=Path)
+    parser.add_argument("source", type=Path, help="Generated HTML directory or legacy signed APK/IPA")
     parser.add_argument("channel", choices=CHANNELS)
     parser.add_argument("version")
     parser.add_argument("build")
@@ -27,19 +27,24 @@ def main():
     build_pattern = r"[1-9]\d*" if platform == "android" else r"[1-9]\d*(?:\.\d+){0,2}"
     if not re.fullmatch(version_pattern, args.version) or not re.fullmatch(build_pattern, args.build):
         parser.error("Invalid release version or build number")
-    expected_suffix = ".apk" if platform == "android" else ".ipa"
-    if args.package.suffix.lower() != expected_suffix:
-        parser.error(f"Expected a {expected_suffix} for {args.channel}")
-
     destination = Path(__file__).resolve().parent / "notice-archives" / args.channel / args.version / args.build
-    pages = {}
-    with ZipFile(args.package) as package:
-        for filename in (f"{platform}.html", f"{platform}-licenses.html"):
-            suffix = f"/notes.feature.about.generated.resources/files/open-source/{filename}"
-            entries = [name for name in package.namelist() if name.endswith(suffix)]
-            if len(entries) != 1:
-                parser.error(f"Expected one packaged resource ending in {suffix}, found {len(entries)}")
-            pages[destination / filename] = package.read(entries[0])
+    filenames = (f"{platform}.html", f"{platform}-licenses.html")
+    if args.source.is_dir():
+        pages = {destination / name: (args.source / name).read_bytes() for name in filenames}
+    else:
+        expected_suffix = ".apk" if platform == "android" else ".ipa"
+        if args.source.suffix.lower() != expected_suffix:
+            parser.error(f"Expected an HTML directory or {expected_suffix} for {args.channel}")
+        pages = {}
+        with ZipFile(args.source) as package:
+            for filename in filenames:
+                suffix = f"/notes.feature.about.generated.resources/files/open-source/{filename}"
+                entries = [name for name in package.namelist() if name.endswith(suffix)]
+                if len(entries) != 1:
+                    parser.error(f"Expected one packaged resource ending in {suffix}, found {len(entries)}")
+                pages[destination / filename] = package.read(entries[0])
+    if not all(pages.values()):
+        parser.error("Notice pages must be nonempty")
 
     for path, content in pages.items():
         if args.verify or path.exists():

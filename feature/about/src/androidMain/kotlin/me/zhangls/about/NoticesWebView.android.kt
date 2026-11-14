@@ -1,100 +1,138 @@
 package me.zhangls.about
 
-import android.graphics.Color
-import android.net.Uri
+import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.view.View
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 import androidx.compose.ui.viewinterop.AndroidView
-import me.zhangls.about.api.OpenSourcePage
-import notes.feature.about.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-private const val WEB_TEXT_ZOOM_PERCENT = 100
-
-private class ScrollRestoration(var loading: Boolean = true, var pendingY: Int = 0)
-
-@OptIn(ExperimentalResourceApi::class)
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 internal actual fun NoticesWebView(
-  page: OpenSourcePage,
-  anchor: String?,
-  appearance: NoticesAppearance,
-  onNavigate: (OpenSourcePage, String?) -> Unit,
-  onExternalLink: (String) -> Unit,
-  onError: () -> Unit,
-  modifier: Modifier,
+  url: String,
+  state: NoticesWebState,
+  projectPage: Boolean,
+  onOpenDetail: (OnlineNoticeDetailDestination, Double) -> Unit,
+  initialScroll: Double,
   bottomInset: Dp,
+  modifier: Modifier,
 ) {
-  val libraries = Res.getUri("files/open-source/android.html")
-  val currentSelection = rememberUpdatedState(LocalNoticesLink(page, anchor))
-  val navigate = rememberUpdatedState(onNavigate)
-  val external = rememberUpdatedState(onExternalLink)
-  val failed = rememberUpdatedState(onError)
+  val backgroundColor = MaterialTheme.colorScheme.surface.toArgb()
+  val openDetail = rememberUpdatedState(onOpenDetail)
   val inset = rememberUpdatedState(bottomInset.value)
-  val savedY = rememberSaveable { mutableIntStateOf(0) }
-  val restoration = remember { ScrollRestoration() }
-  val uri = Uri.parse(noticesPageUri(libraries, page, anchor)).buildUpon()
-    .apply { appearance.noticesAppearanceParameters().forEach { (name, value) -> appendQueryParameter(name, value) } }
-    .build().toString()
   AndroidView(
     modifier = modifier,
     factory = { context ->
-      WebView(context).apply {
-        setBackgroundColor(Color.TRANSPARENT)
+      val webView = try {
+        WebView(context)
+      } catch (_: RuntimeException) {
+        state.fail()
+        return@AndroidView View(context)
+      }
+      webView.apply {
+        setBackgroundColor(backgroundColor)
         settings.javaScriptEnabled = true
         settings.allowFileAccess = false
         settings.allowContentAccess = false
-        settings.blockNetworkLoads = true
-        settings.textZoom = WEB_TEXT_ZOOM_PERCENT
-        setOnScrollChangeListener { _, _, y, _, _ ->
-          if (!restoration.loading) savedY.intValue = y
-        }
+        settings.setSupportMultipleWindows(true)
+        var restoreScroll = initialScroll
         webViewClient = object : WebViewClient() {
-          override fun onPageFinished(view: WebView, url: String) {
-            view.applyBottomContentInset(inset.value)
-            if (restoration.loading && restoration.pendingY > 0) view.scrollTo(0, restoration.pendingY)
-            restoration.loading = false
-          }
-
           override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val target = request.url.toString()
-            val local = localNoticesLink(target, libraries)
-            if (local != null && local == currentSelection.value) return false
-            if (local != null) {
-              navigate.value(local.page, local.anchor)
-            } else if (request.isForMainFrame && isExternalNoticesLink(target)) {
-              external.value(target)
+            val link = noticesLink(target, url, projectPage)
+            if (link == NoticesLink.InPage) return false
+            if (request.isForMainFrame) {
+              when (link) {
+                is NoticesLink.Detail -> openDetail.value(
+                  OnlineNoticeDetailDestination(anchor = link.anchor), view.scrollY.toDouble(),
+                )
+                is NoticesLink.Project -> if (request.hasGesture() && !request.isRedirect) {
+                  openDetail.value(OnlineNoticeDetailDestination(projectUrl = link.url), view.scrollY.toDouble())
+                }
+                else -> Unit
+              }
             }
             return true
           }
 
+          override fun onPageStarted(view: WebView, target: String, favicon: Bitmap?) {
+            if (noticesLink(target, url, projectPage) != NoticesLink.InPage) {
+              view.stopLoading()
+              state.fail()
+            } else {
+              state.loading = true
+            }
+          }
+
+          override fun onPageFinished(view: WebView, url: String) {
+            if (!state.failed) {
+              if (!projectPage) view.applyNoticesInset(inset.value)
+              if (restoreScroll > 0) {
+                view.postVisualStateCallback(0L, object : WebView.VisualStateCallback() {
+                  override fun onComplete(requestId: Long) {
+                    if (view.isAttachedToWindow) view.scrollTo(0, restoreScroll.toInt())
+                    restoreScroll = 0.0
+                  }
+                })
+              }
+              state.loading = false
+            }
+          }
+
           override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
-            if (request.isForMainFrame) failed.value()
+            if (request.isForMainFrame) state.fail()
+          }
+
+          override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+            if (request.isForMainFrame) state.fail()
+          }
+
+          override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+            state.fail()
+            return true
           }
         }
+        if (noticesLink(url, url, projectPage) == NoticesLink.InPage) loadUrl(url) else state.fail()
       }
     },
-    update = { view ->
-      view.applyBottomContentInset(inset.value)
-      if (view.tag != uri) {
-        restoration.pendingY = savedY.intValue
-        restoration.loading = true
-        view.tag = uri
-        view.loadUrl(uri)
+    update = {
+      it.setBackgroundColor(backgroundColor)
+      if (it is WebView && !state.loading && !state.failed) {
+        if (projectPage) it.setPadding(0, 0, (bottomInset.value * it.resources.displayMetrics.density).toInt(), 0)
+        else it.applyNoticesInset(inset.value)
       }
     },
-    onRelease = { view ->
-      view.stopLoading()
-      view.destroy()
-    },
+    onRelease = { if (it is WebView) it.destroy() },
+  )
+}
+
+private fun WebView.applyNoticesInset(bottom: Float) {
+  evaluateJavascript(
+    """
+    (() => {
+      if (!document.body) return;
+      let spacer = document.getElementById('notes-safe-area-spacer');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.id = 'notes-safe-area-spacer';
+        spacer.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(spacer);
+      }
+      spacer.style.height = '${bottom}px';
+    })();
+    """.trimIndent(),
+    null,
   )
 }

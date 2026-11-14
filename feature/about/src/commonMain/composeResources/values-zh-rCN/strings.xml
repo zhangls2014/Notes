@@ -1,7 +1,6 @@
 <resources>
   <string name="about_open_source_notices">开源软件声明</string>
   <string name="about_notices_description">第三方开源库与许可证</string>
-  <string name="about_notices_open_failed">无法打开开源软件声明，请重试</string>
   <string name="about_title">关于应用</string>
   <string name="about_brand_description">应用信息与版本更新</string>
   <string name="about_version_information">版本信息</string>
@@ -21,12 +20,6 @@
   <string name="about_unknown">未知</string>
   <string name="about_expanded">版本信息已展开</string>
   <string name="about_collapsed">版本信息已收起</string>
-  <string name="about_project_source">项目来源</string>
-  <string name="about_project_open_browser">在浏览器打开</string>
-  <string name="about_project_load_failed">无法加载此网页，你可以在浏览器中打开。</string>
-  <string name="about_copyright_notices">版权与附加声明</string>
-  <string name="about_license">许可证</string>
-  <string name="about_close_detail">关闭详情</string>
   <string name="about_release_history">更新日志</string>
   <string name="about_release_unreleased">未发布</string>
   <string name="about_release_added">新增</string>
@@ -42,4 +35,9 @@
   <string name="about_release_switch_single">切换为单列</string>
   <string name="about_release_dialog_title">%1$s 版本更新</string>
   <string name="about_release_dialog_dismiss">知道了</string>
+  <string name="about_notices_load_failed">无法加载开源软件声明。</string>
+  <string name="about_notice_detail">许可证与声明</string>
+  <string name="about_close_notice_detail">关闭详情</string>
+  <string name="about_project_source">项目来源</string>
+  <string name="about_project_load_failed">无法加载项目网页。</string>
 </resources>

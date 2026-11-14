@@ -11,6 +11,7 @@ import androidx.navigation3.runtime.serialization.NavBackStackSerializer
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.PolymorphicSerializer
+import me.zhangls.about.api.OpenSourceNoticesDestination
 import me.zhangls.login.api.LoginDestination
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
@@ -46,6 +47,8 @@ internal fun rememberAppNavigationState(
         NavBackStack<NavKey>().apply {
           if (root == initialRoot) addAll(initialStack)
         }
+      }.also { stack ->
+        remember(stack) { stack.removeAll { it is OpenSourceNoticesDestination } }
       }
     }
   }

@@ -4,6 +4,22 @@
     "date": null,
     "changes": [
       {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The web view uses the app theme's background while open-source notices and project pages load. Fast loads no longer flash the progress bar.",
+          "zh": "开源软件声明和项目来源加载期间，网页视图使用当前应用主题的背景色，快速加载完成时不显示进度条。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Read online open-source software notices in the app, with the list and selected licenses, notices, or project sources side by side on wide screens. Project sources open inside the app.",
+          "zh": "可在应用内在线查看开源软件声明，宽屏可并排查看列表与所选许可证、NOTICE 或项目来源，项目来源在应用内打开。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {

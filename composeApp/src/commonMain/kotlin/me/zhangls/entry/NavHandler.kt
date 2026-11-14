@@ -4,7 +4,8 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.about.api.AboutDestination
-import me.zhangls.about.api.OpenSourceNoticesDestination
+import me.zhangls.about.api.OnlineNoticeDetailDestination
+import me.zhangls.about.api.OnlineNoticesDestination
 import me.zhangls.about.api.ReleaseHistoryDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
@@ -92,8 +93,8 @@ internal class NavHandler(private val state: AppNavigationState, private val isL
       while (backStack.size > 1) backStack.removeLastOrNull()
     } else if (destination.isHomeEmailDetail() && backStack.lastOrNull().isHomeEmailDetail()) {
       backStack[backStack.lastIndex] = destination
-    } else if (destination.isNoticesDetail() && backStack.lastOrNull().isNoticesDetail()) {
-      backStack[backStack.lastIndex] = destination
+    } else if (destination is OnlineNoticeDetailDestination && backStack.lastOrNull() is OnlineNoticeDetailDestination) {
+      if (backStack.last() != destination) backStack[backStack.lastIndex] = destination
     } else if (backStack.lastOrNull() != destination) {
       backStack.add(destination)
     }
@@ -118,17 +119,14 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
     ProfileOrigin.Settings -> SettingsDestination
   }
 
-  AboutDestination, PasskeyManagementDestination, ReleaseHistoryDestination, is OpenSourceNoticesDestination ->
-    SettingsDestination
+  AboutDestination, PasskeyManagementDestination, ReleaseHistoryDestination,
+  OnlineNoticesDestination, is OnlineNoticeDetailDestination -> SettingsDestination
 
   else -> HomeDestination
 }
 
 private fun Destination.guardedByLogin(isLogin: Boolean): Destination =
   if (this is RequireLogin && !isLogin) LoginDestination(redirectTo = this) else this
-
-private fun NavKey?.isNoticesDetail(): Boolean = this is OpenSourceNoticesDestination &&
-  (page == me.zhangls.about.api.OpenSourcePage.LICENSES || projectUrl != null)
 
 private fun Any?.isHomeEmailDetail(): Boolean = this is EmailDetailDestination && scene == EmailListScene.Home
 

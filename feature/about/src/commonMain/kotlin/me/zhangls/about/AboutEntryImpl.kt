@@ -1,9 +1,9 @@
 package me.zhangls.about
 
 import androidx.compose.runtime.Composable
-import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
-import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.NotesWebsite
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 
 class AboutEntryImpl(private val site: NotesWebsite) : AboutEntry {
   @Composable
@@ -12,28 +12,21 @@ class AboutEntryImpl(private val site: NotesWebsite) : AboutEntry {
   }
 
   @Composable
-  override fun ProjectScreen(url: String, onBack: () -> Unit) {
-    ExternalProjectScreen(url, onBack)
+  override fun Screen(onBack: () -> Unit, onOpenReleaseHistory: () -> Unit, onOpenNotices: () -> Unit) {
+    AboutScreen(onBack, onOpenNotices, onOpenReleaseHistory)
   }
 
   @Composable
-  override fun Screen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenReleaseHistory: () -> Unit) {
-    AboutScreen(onBack, onOpenSource, onOpenReleaseHistory)
+  override fun OnlineNoticesScreen(
+    detail: OnlineNoticeDetailDestination?,
+    onBack: () -> Unit,
+    onOpenDetail: (OnlineNoticeDetailDestination) -> Unit,
+  ) {
+    OnlineNoticesPage(site, detail, onBack, onOpenDetail)
   }
 
   @Composable
   override fun ReleaseHistoryScreen(onBack: () -> Unit) {
     me.zhangls.about.ReleaseHistoryScreen(onBack, site)
-  }
-
-  @Composable
-  override fun NoticesScreen(
-    page: OpenSourcePage,
-    anchor: String?,
-    onBack: () -> Unit,
-    onNavigate: (OpenSourcePage, String?) -> Unit,
-    onExternalLink: (String) -> Unit,
-  ) {
-    OpenSourceNoticesScreen(page, anchor, onBack, onNavigate, onExternalLink, site)
   }
 }

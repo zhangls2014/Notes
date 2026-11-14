@@ -11,6 +11,16 @@ data object AboutDestination : Destination
 data object ReleaseHistoryDestination : Destination
 
 @Serializable
+data object OnlineNoticesDestination : Destination
+
+@Serializable
+data class OnlineNoticeDetailDestination(
+  val anchor: String? = null,
+  val projectUrl: String? = null,
+) : Destination
+
+// Retained to decode navigation state saved before notices moved to the browser.
+@Serializable
 enum class OpenSourcePage { LIBRARIES, LICENSES }
 
 @Serializable

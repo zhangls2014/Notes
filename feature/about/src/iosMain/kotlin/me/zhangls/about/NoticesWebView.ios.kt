@@ -1,162 +1,167 @@
 package me.zhangls.about
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.unit.Dp
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.useContents
-import me.zhangls.about.api.OpenSourcePage
-import notes.feature.about.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import kotlinx.cinterop.ObjCSignatureOverride
 import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
+import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSError
 import platform.Foundation.NSURL
-import platform.Foundation.NSURLComponents
+import platform.Foundation.NSURLRequest
 import platform.Foundation.NSURLErrorCancelled
-import platform.Foundation.NSURLQueryItem
 import platform.UIKit.UIColor
 import platform.UIKit.UIEdgeInsetsMake
-import platform.UIKit.UIScrollView
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
-import platform.UIKit.UIScrollViewDelegateProtocol
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKNavigationActionPolicy
 import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKNavigationResponse
+import platform.WebKit.WKNavigationResponsePolicy
+import platform.WebKit.WKNavigationTypeLinkActivated
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
-@OptIn(ExperimentalResourceApi::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 @Composable
 internal actual fun NoticesWebView(
-  page: OpenSourcePage,
-  anchor: String?,
-  appearance: NoticesAppearance,
-  onNavigate: (OpenSourcePage, String?) -> Unit,
-  onExternalLink: (String) -> Unit,
-  onError: () -> Unit,
-  modifier: Modifier,
+  url: String,
+  state: NoticesWebState,
+  projectPage: Boolean,
+  onOpenDetail: (OnlineNoticeDetailDestination, Double) -> Unit,
+  initialScroll: Double,
   bottomInset: Dp,
+  modifier: Modifier,
 ) {
-  val libraries = Res.getUri("files/open-source/ios.html")
-  val currentSelection = rememberUpdatedState(LocalNoticesLink(page, anchor))
-  val navigate = rememberUpdatedState(onNavigate)
-  val external = rememberUpdatedState(onExternalLink)
-  val failed = rememberUpdatedState(onError)
-  val savedY = rememberSaveable { mutableDoubleStateOf(0.0) }
-  val browser = remember(libraries) {
-    IosNoticesBrowser(libraries, onScroll = { savedY.doubleValue = it }) { target ->
-      val local = localNoticesLink(target, libraries)
-      if (local != null && local == currentSelection.value) {
-        true
-      } else {
-        if (local != null) {
-          navigate.value(local.page, local.anchor)
-        } else if (isExternalNoticesLink(target)) {
-          external.value(target)
+  val surface = MaterialTheme.colorScheme.surface.convert(ColorSpaces.Srgb)
+  val surfaceColor = remember(surface) {
+    UIColor(
+      red = surface.red.toDouble(),
+      green = surface.green.toDouble(),
+      blue = surface.blue.toDouble(),
+      alpha = surface.alpha.toDouble(),
+    )
+  }
+  val openDetail = rememberUpdatedState(onOpenDetail)
+  val delegate = remember(state) {
+    object : NSObject(), WKNavigationDelegateProtocol {
+      @ObjCSignatureOverride
+      override fun webView(webView: WKWebView, didStartProvisionalNavigation: WKNavigation?) {
+        state.loading = true
+      }
+
+      private var restoreScroll = initialScroll
+
+      @ObjCSignatureOverride
+      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+        if (restoreScroll > 0) {
+          webView.scrollView.setContentOffset(CGPointMake(0.0, restoreScroll), animated = false)
+          restoreScroll = 0.0
         }
-        false
+        state.loading = false
+      }
+
+      @ObjCSignatureOverride
+      override fun webView(webView: WKWebView, didFailProvisionalNavigation: WKNavigation?, withError: NSError) {
+        if (withError.code != NSURLErrorCancelled) state.fail()
+      }
+
+      @ObjCSignatureOverride
+      override fun webView(webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError) {
+        if (withError.code != NSURLErrorCancelled) state.fail()
+      }
+
+      override fun webViewWebContentProcessDidTerminate(webView: WKWebView) {
+        state.fail()
+      }
+
+      override fun webView(
+        webView: WKWebView,
+        decidePolicyForNavigationResponse: WKNavigationResponse,
+        decisionHandler: (WKNavigationResponsePolicy) -> Unit,
+      ) {
+        val response = decidePolicyForNavigationResponse
+        val status = (response.response as? NSHTTPURLResponse)?.statusCode
+        if (response.isForMainFrame() && status != null && status >= 400) {
+          decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyCancel)
+          state.fail()
+        } else {
+          decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+        }
+      }
+
+      override fun webView(
+        webView: WKWebView,
+        decidePolicyForNavigationAction: WKNavigationAction,
+        decisionHandler: (WKNavigationActionPolicy) -> Unit,
+      ) {
+        val action = decidePolicyForNavigationAction
+        val target = action.request.URL?.absoluteString.orEmpty()
+        val link = noticesLink(target, url, projectPage)
+        val mainFrame = action.targetFrame?.isMainFrame() != false
+        if (link == NoticesLink.InPage && action.targetFrame != null) {
+          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
+        } else {
+          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+          if (mainFrame && action.navigationType == WKNavigationTypeLinkActivated) {
+            when (link) {
+              NoticesLink.InPage -> webView.loadRequest(action.request)
+              is NoticesLink.Detail -> openDetail.value(
+                OnlineNoticeDetailDestination(anchor = link.anchor), webView.scrollView.contentOffset.useContents { y },
+              )
+              is NoticesLink.Project -> openDetail.value(
+                OnlineNoticeDetailDestination(projectUrl = link.url), webView.scrollView.contentOffset.useContents { y },
+              )
+              NoticesLink.Blocked -> Unit
+            }
+          }
+        }
       }
     }
   }
-  browser.onError = { failed.value() }
-  val components = NSURLComponents(string = noticesPageUri(libraries, page, anchor))
-  components.queryItems = appearance.noticesAppearanceParameters().map { (name, value) ->
-    NSURLQueryItem(name = name, value = value)
-  }
-  val url = requireNotNull(components.URL)
   UIKitView(
-    factory = { browser.view },
     modifier = modifier,
-    update = {
-      browser.view.scrollView.contentInset = UIEdgeInsetsMake(0.0, 0.0, bottomInset.value.toDouble(), 0.0)
-      browser.load(url, savedY.doubleValue)
+    factory = {
+      WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = WKWebViewConfiguration()).apply {
+        opaque = false
+        applyNoticesBackground(surfaceColor)
+        scrollView.contentInsetAdjustmentBehavior =
+          UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
+        navigationDelegate = delegate
+        val requestUrl = NSURL.URLWithString(url)
+        if (requestUrl != null && noticesLink(url, url, projectPage) == NoticesLink.InPage) {
+          loadRequest(NSURLRequest(uRL = requestUrl))
+        } else {
+          state.fail()
+        }
+      }
     },
-    onRelease = { browser.close() },
+    update = { view ->
+      view.applyNoticesBackground(surfaceColor)
+      val inset = UIEdgeInsetsMake(0.0, 0.0, bottomInset.value.toDouble(), 0.0)
+      view.scrollView.contentInset = inset
+      view.scrollView.scrollIndicatorInsets = inset
+    },
+    onRelease = {
+      it.navigationDelegate = null
+      it.stopLoading()
+    },
   )
 }
 
-@OptIn(ExperimentalForeignApi::class)
-private class IosNoticesBrowser(
-  libraries: String,
-  private val onScroll: (Double) -> Unit,
-  private val allowNavigation: (String) -> Boolean,
-) {
-  val view = WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = WKWebViewConfiguration())
-  private val directory = requireNotNull(NSURL.URLWithString(libraries)?.URLByDeletingLastPathComponent)
-  private var loadedUrl: String? = null
-  private var loading = true
-  private var pendingY = 0.0
-  var onError: () -> Unit = {}
-  private val delegate = object : NSObject(), WKNavigationDelegateProtocol {
-    override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-      if (loading && pendingY > 0.0) {
-        webView.scrollView.setContentOffset(CGPointMake(0.0, pendingY), animated = false)
-      }
-      loading = false
-    }
-
-    override fun webView(
-      webView: WKWebView,
-      decidePolicyForNavigationAction: WKNavigationAction,
-      decisionHandler: (WKNavigationActionPolicy) -> Unit,
-    ) {
-      val target = decidePolicyForNavigationAction.request.URL?.absoluteString.orEmpty()
-      val allowed = allowNavigation(target)
-      decisionHandler(
-        if (allowed) {
-          WKNavigationActionPolicy.WKNavigationActionPolicyAllow
-        } else {
-          WKNavigationActionPolicy.WKNavigationActionPolicyCancel
-        },
-      )
-    }
-
-    @ObjCSignatureOverride
-    override fun webView(webView: WKWebView, didFailProvisionalNavigation: WKNavigation?, withError: NSError) {
-      if (withError.code != NSURLErrorCancelled) onError()
-    }
-
-    @ObjCSignatureOverride
-    override fun webView(webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError) {
-      if (withError.code != NSURLErrorCancelled) onError()
-    }
-  }
-  private val scrollDelegate = object : NSObject(), UIScrollViewDelegateProtocol {
-    override fun scrollViewDidScroll(scrollView: UIScrollView) {
-      if (!loading) onScroll(scrollView.contentOffset.useContents { y })
-    }
-  }
-
-  init {
-    view.scrollView.contentInsetAdjustmentBehavior =
-      UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
-    view.opaque = false
-    view.backgroundColor = UIColor.clearColor
-    view.navigationDelegate = delegate
-    view.scrollView.delegate = scrollDelegate
-  }
-
-  fun load(url: NSURL, savedY: Double) {
-    if (loadedUrl != url.absoluteString) {
-      pendingY = savedY
-      loading = true
-      loadedUrl = url.absoluteString
-      view.loadFileURL(url, allowingReadAccessToURL = directory)
-    }
-  }
-
-  fun close() {
-    view.stopLoading()
-    view.navigationDelegate = null
-    view.scrollView.delegate = null
-  }
+private fun WKWebView.applyNoticesBackground(color: UIColor) {
+  backgroundColor = color
+  scrollView.backgroundColor = color
+  underPageBackgroundColor = color
 }

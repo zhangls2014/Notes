@@ -37,8 +37,6 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
 import me.zhangls.about.api.AboutDestination
-import me.zhangls.entry.panes.noticesPaneMetadata
-import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.main.api.HomeDestination
 import me.zhangls.navigation.PAGE_EXIT_FADE_DURATION
 import me.zhangls.navigation.PREDICTIVE_MOTION_DURATION
@@ -74,40 +72,6 @@ class LayeredNavDisplayTest {
 
   @Test fun ordinaryReturnKeepsNavigationOnThePageTimeline() {
     assertLayeredReturn(AboutDestination, commitWithGesture = false)
-  }
-
-  @Test
-  @Config(qualifiers = "en-rUS-w1000dp-h800dp-mdpi")
-  fun noticesOverlayShowsListAndDetailTogether() {
-    val list = me.zhangls.about.api.OpenSourceNoticesDestination()
-    val detail = me.zhangls.about.api.OpenSourceNoticesDestination(me.zhangls.about.api.OpenSourcePage.LICENSES)
-    compose.setContent {
-      ProvideWindowAdaptiveInfo(WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(1000, 800), Posture()) {
-        ComposeAppTheme {
-          val entries = listOf(
-            NavEntry<NavKey>(HomeDestination) { Box(Modifier.fillMaxSize()) },
-            NavEntry<NavKey>(list, metadata = noticesPaneMetadata(list)) {
-              Box(Modifier.fillMaxSize().testTag("notices-list"))
-            },
-            NavEntry<NavKey>(detail, metadata = noticesPaneMetadata(detail)) {
-              Box(Modifier.fillMaxSize().testTag("notices-detail"))
-            },
-          )
-          LayeredNavDisplay(
-            entries = entries.toImmutableList(),
-            fullscreenEntryCount = 2,
-            displayKey = HomeDestination,
-            contentAlpha = { 1f },
-            selected = HomeDestination,
-            onSelectTab = {},
-            sceneStrategies = rememberAppSceneStrategies<NavKey>().toImmutableList(),
-            onBack = {},
-          )
-        }
-      }
-    }
-    compose.onNodeWithTag("notices-list").assertIsDisplayed()
-    compose.onNodeWithTag("notices-detail").assertIsDisplayed()
   }
 
   private fun assertLayeredReturn(destination: NavKey, commitWithGesture: Boolean = true) {

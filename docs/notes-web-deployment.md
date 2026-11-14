@@ -36,7 +36,7 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 当前生产环境由曼谷服务器的 Nginx 托管官网和 APK。官网目录为 `/var/www/notes-site`，APK 目录为 `/var/www/notes-downloads`，下载域名使用独立的 Let's Encrypt 证书。下文的 R2 和 Pages 是托管替代方案。现有生产环境先投放并从公网验证 APK，再更新官网页面与更新清单。若客户端变更依赖新的认证规则，须先部署并验证认证服务。
 
 1. 按 [版本规则](app-releases.md) 准备版本、构建号与发布日期，完成依赖清单和两端安装包构建。Android 用 `apksigner verify --print-certs` 核对签名和包的渠道，iOS 核对商店版本和签名标识。
-2. 从每个正式分发包提取并校验两份声明 HTML。例如，`python3 web/archive-notices.py Notes.apk android-prd-full 1.1.2 5`。iOS 使用导出的 IPA 和 `ios-app-store`。用相同参数追加 `--verify` 可与仓库中的归档逐字节核对。历史归档持续随网站部署，网页历史的每个版本按渠道和构建号链接到已登记的声明归档。
+2. 用构建对应的已生成声明创建版本归档，例如 `python3 web/archive-notices.py web/open-source android-prd-full 1.1.3 6`。对 iOS 使用 `ios-app-store` 和对应版本、构建号。用相同参数追加 `--verify` 核对字节一致。历史版本仍可用含内置声明的 APK 或 IPA 作为输入，脚本拒绝覆盖内容不同的归档。网站构建同时发布当前四个页面与已登记的历史归档。应用入口使用官网的固定平台路径，访问的是官网当前发布的声明。
 3. 将 Android APK 放入 `downloads.zhangls.me` 对应的下载目录或 R2 bucket，公开路径为 `/<channel>/<build>/<filename>.apk`。文件名只使用字母、数字、点、下划线和连字符。从公网下载并与原包核对 SHA-256，验证实机覆盖安装。iOS 验证 App Store 目标地区的正式版本可获取。
 4. 对已可获取的渠道，在 [发布构建清单](../web/published-builds.json) 末尾追加 `channel`、`version`、字符串 `build` 和 `artifactUrl`。Android 填 R2 的 APK 地址，iOS 填 `https://apps.apple.com/…` 商店地址。沿用已公布的归档和记录。各渠道最新条目分别决定线上清单，尚未发布过的渠道暂时没有清单。
 5. 验收预览中的中英文历史、平台筛选、版本锚点、构建归档和下载地址。获授权后部署生产并验证 JSON、下载及 App 内检查结果。若新渠道地址不可用，先修复资源或用授权的新生产发布恢复该渠道的上一份清单。
@@ -45,4 +45,4 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 - 网站预览和正式域名的内容及关联文件分别记录。
 - 登录验证包括密码、Passkey 注册和登录、会话刷新、退出、断网与限流。使用实机和正式签名等效环境。
-- 更新验证包括最新版本、可更新、超时及重试，包内历史和开源声明离线可用。按仓库测试指南记录 Android 宿主测试、构建、iOS 编译和设备结果。
+- 更新验证包括最新版本、可更新、超时及重试，包内历史离线可用，开源声明在系统浏览器中在线可用。按仓库测试指南记录 Android 宿主测试、构建、iOS 编译和设备结果。

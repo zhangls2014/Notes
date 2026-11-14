@@ -78,9 +78,11 @@ docs/
 - [登录凭据存储验证](testing/secure-token-storage.md)：迁移回归、平台安全存储验收和 Keychain 测试环境限制。
 - [iOS Launch Screen](testing/ios-launch-screen.md)：Android 图标资源映射、系统启动页配置与验证。
 - [iOS Toast 无障碍验证](testing/ios-toast-accessibility.md)：原生字体回归、播报与 Dynamic Type 设备验收。
-- [待验收与已知限制](testing/pending-acceptance.md)：集中跟踪设备验收、截图采集问题和当前升级验证缺口。 开源声明页面的剩余设备步骤见[验收计划](superpowers/plans/2026-10-28-open-source-notices.md)。
+- [待验收与已知限制](testing/pending-acceptance.md)：集中跟踪设备验收、截图采集问题和当前升级验证缺口。
 
 ## 决策与调查证据
+
+- [2026-11-14 KMP 应用内网页浏览](audits/2026-11-14-kmp-browser.md)：平台 WebView、第三方组件对比和双端原型验收范围。
 
 - [2026-11-12 应用依赖升级](audits/2026-11-12-dependency-upgrade.md)：四组正式版升级、Kotlin 与 KSP 保留依据、双端开源声明及回归结果。
 - [2026-10-30 依赖升级方案](audits/2026-10-30-dependency-upgrade.md)：7 组升级、Navigation3 宿主截图调查与 Android 原生对照、共同失败及 iOS 环境缺口。

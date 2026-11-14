@@ -22,8 +22,7 @@ Android API 37 / Robolectric Native Graphics：注入 40px 底部 Insets 后，�
 最终执行：About 页面、宽屏空白区滚动及导航宿主测试 31 项通过，About 模块测试 19 项通过，无失败或跳过；About detekt、Android DevFull Debug 构建和 iOS 模拟器 Kotlin 编译通过。未更新正式截图基线，未执行视觉基线 verify、Android/iOS 设备手势及安全区验收；编译结果不代替平台行为验收，后续事项见 [待验收清单](pending-acceptance.md#关于应用底部绘制与返回滚动2026-10-30)。
 
 ```bash
-./gradlew :composeApp:testAndroidHostTest --tests '*AboutNoticesNavigationTest*' \
-  --tests '*AboutWideScrollTest*' --tests '*AboutUiTest*' \
+./gradlew :composeApp:testAndroidHostTest --tests '*AboutWideScrollTest*' --tests '*AboutUiTest*' \
   :feature:about:testAndroidHostTest :feature:about:detekt \
   :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
 ```

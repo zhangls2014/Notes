@@ -1,7 +1,6 @@
 <resources>
   <string name="about_open_source_notices">Open-source software notices</string>
   <string name="about_notices_description">Third-party libraries and licenses</string>
-  <string name="about_notices_open_failed">Unable to open the notices. Please try again.</string>
   <string name="about_title">About app</string>
   <string name="about_brand_description">App information and updates</string>
   <string name="about_version_information">Version information</string>
@@ -21,12 +20,6 @@
   <string name="about_unknown">Unknown</string>
   <string name="about_expanded">Version information expanded</string>
   <string name="about_collapsed">Version information collapsed</string>
-  <string name="about_project_source">Project source</string>
-  <string name="about_project_open_browser">Open in browser</string>
-  <string name="about_project_load_failed">Unable to load this page. You can open it in your browser.</string>
-  <string name="about_copyright_notices">Copyright and notices</string>
-  <string name="about_license">License</string>
-  <string name="about_close_detail">Close detail</string>
   <string name="about_release_history">Release notes</string>
   <string name="about_release_unreleased">Unreleased</string>
   <string name="about_release_added">Added</string>
@@ -42,4 +35,9 @@
   <string name="about_release_switch_single">Switch to single column</string>
   <string name="about_release_dialog_title">What’s new in %1$s</string>
   <string name="about_release_dialog_dismiss">Got it</string>
+  <string name="about_notices_load_failed">Could not load the notices.</string>
+  <string name="about_notice_detail">License and notices</string>
+  <string name="about_close_notice_detail">Close details</string>
+  <string name="about_project_source">Project source</string>
+  <string name="about_project_load_failed">Could not load the project page.</string>
 </resources>

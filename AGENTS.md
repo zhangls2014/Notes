@@ -88,7 +88,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - Android 和 iOS 的 Release 使用蓝底黄星启动图标，Debug 使用无文字的紫底黄星图标。导出 PNG 或 WebP 时，逐档保留原图标的画布尺寸、留白、内容尺寸和位置。每个显式新增的 `applicationId` 或 Bundle ID 必须同时配置能与现有安装区分的中英文应用名称。命名、共享 SVG 和生成方案见 [Android 启动图标与应用名称](docs/android-app-identity.md) 与 [iOS 启动图标与应用名称](docs/ios-app-identity.md)。
 - 窗口事实只在 `composeApp` 调用 `rememberWindowAdaptiveInfo()` 读取，通过 `LocalWindowAdaptiveInfo` 下发。
 - `PaneScaffoldDirective` 只在组合根从同一窗口事实计算，通过 `LocalPaneScaffoldDirective` 下发，并统一使用 `HingePolicy.AlwaysAvoid`。Feature 不直接调用 `currentWindowAdaptiveInfo*()`，不维护第二套断点。
-- 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold`、开源声明与邮件列表—详情 SceneStrategy，以及历史更新在全开状态下手动启用的铰链分列，消费 `LocalPaneScaffoldDirective`。历史更新允许读取统一姿态判断全开切换入口，未启用分列时不读取排除区。其他单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。已有详情时，同一铰链几何在半开和全开之间必须保持窗格稳定。首页与开源声明在未选详情时，半开姿态优先保持物理分栏，全开姿态按需展开。
+- 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold`、邮件与在线声明的列表—详情 SceneStrategy，以及历史更新在全开状态下手动启用的铰链分列，消费 `LocalPaneScaffoldDirective`。历史更新允许读取统一姿态判断全开切换入口，未启用分列时不读取排除区。其他单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。已有详情时，同一铰链几何在半开和全开之间必须保持窗格稳定。首页与在线声明在未选详情时，半开姿态优先保持物理分栏，全开姿态按需展开。
 - 登录页保留左右分栏，不在窗格内避让横向铰链，不因横向折痕缩减内容高度。
 - Feature 不用导航方位、设备名称等派生值反推窗口宽度或姿态。
 - 内容宽度统一使用 `core:theme` 的 `ContentWidth` 和 `Modifier.contentWidth()`，不要在 Feature 中复制裸 `widthIn` 常量。
@@ -114,7 +114,7 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 - 每个独立需求合入 `master` 前，必须把设计、计划、实现、测试和文档等过程提交整理为一个最终提交。若 `master` 已前进，先将该最终提交 rebase 到最新 `master`，再仅以 fast-forward 方式合入；不得在 `master` 保留需求分支的多个过程提交或 merge commit，主线历史必须保持线性、干净。
 - Compose Resources 格式化占位符必须带位置，例如 `%1$s`；不要使用 `%s`。
 - 依赖版本只在 `gradle/kmp.versions.toml` 维护。
-- 新增、移除或升级随应用分发的第三方依赖时，必须在同一需求及提交中同步开源软件声明。按 `tools/open-source/README.md` 导出 Android/iOS 实际依赖、刷新 `web/open-source/` 清单与生成页面，保留上游 LICENSE/NOTICE 并运行生成器测试及资源打包验证；不得只改依赖配置，或手工修改生成 HTML。测试工具及构建插件是否纳入以该指南的分发范围为准。
+- 新增、移除或升级随应用分发的第三方依赖时，必须在同一需求及提交中同步开源软件声明。按 `tools/open-source/README.md` 导出 Android/iOS 实际依赖、刷新 `web/open-source/` 清单与生成页面，保留上游 LICENSE/NOTICE 并运行生成器测试及网站构建验证；不得只改依赖配置，或手工修改生成 HTML。测试工具及构建插件是否纳入以该指南的分发范围为准。
 - 依赖和工具链升级遵循 [升级规范](docs/dependency-upgrades.md)：以官方支持范围和最高测试版本为上限，范围内最新兼容正式版优先，必要预览版注明原因；项目实测不得扩大升级上限。
 - 同一仓库目录下不要并发执行两个 Gradle 构建，避免守护进程地址注册表锁冲突。
 - 修改架构时同步更新 [docs/architecture.md](docs/architecture.md)；一次性调查报告放入 `docs/audits/` 并注明日期和状态。文档保留与清理遵循 [文档规则](docs/README.md#保留与清理规则)；需求结束后提炼有效约束、决策理由与未验收事项，再按授权清理过程记录。

@@ -11,7 +11,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
-import me.zhangls.about.api.OpenSourcePage
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.email.EmailEntryImpl
 import me.zhangls.email.api.EmailEntry
 import me.zhangls.login.LoginEntryImpl
@@ -123,21 +123,13 @@ class EmailEntryDispatchTest {
         { settings.Screen {} },
         { profile.Screen(onBack = {}) },
         {
-          about.NoticesScreen(
-            page = OpenSourcePage.LIBRARIES,
-            anchor = null,
-            onBack = {},
-            onNavigate = { _, _ -> },
-            onExternalLink = {},
-          )
-        },
-        { about.ProjectScreen("https://example.com", onBack = {}) },
-        {
           me.zhangls.theme.layout.ProvideWindowAdaptiveInfo(androidx.window.core.layout.WindowSizeClass(840, 900)) {
             about.ReleaseHistoryScreen(onBack = {})
           }
         },
-        { about.Screen(onBack = {}, onOpenSource = {}, onOpenReleaseHistory = {}) },
+        { about.OnlineNoticesScreen(detail = null, onBack = {}, onOpenDetail = {}) },
+        { about.OnlineNoticesScreen(detail = OnlineNoticeDetailDestination("license-MIT"), onBack = {}, onOpenDetail = {}) },
+        { about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

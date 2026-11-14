@@ -71,17 +71,9 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 ### 网页打开能力回归
 
-所有声明网页的字号、深色模式与主题色由同一套参数传递；`AboutAppInfoTest` 检查实际 Material 颜色到网页配色的映射，`NoticesAppearanceTest` 检查两端参数，`AboutNoticesWebViewTest` 检查缓存 Entry 直接消费主题更新，以及系统字号与应用倍率叠加后的 URL 参数；版本信息由测试注入的 `AppInfo` 提供。网页脚本测试同时检查有效／无效配色、站内保留与外链排除。
-Expressive 网页验收覆盖静止／按下／取消与释放跳转、三个操作链接、浅深色和代表性色板、320／800px 宽度及 1／1.5／2 倍字号。浏览器应实测按钮圆角、48px 最小目标、状态层、28px 容器和无横向溢出；DOM 参数测试不能替代这些效果检查。原生夹具需核对实际启动页面与配置，并等待浏览器动画和渲染帧完成后采样，不能将宿主固定延迟等同于页面已经完成动画。临时原生夹具的候选截图与测量记录放入 `build/reports/open-source-expressive/`，不更新正式基线；Android WebView 加载 iOS HTML 的结果不算 iOS WKWebView 验收。
+运行 `./gradlew :composeApp:testAndroidHostTest --tests '*AboutUiTest.noticesOpen*' --tests '*AppSceneStrategiesTest*' --tests '*NavBackStackSerializationTest*'`，检查 About 的应用内声明入口、按需分栏和导航序列化。运行 `./gradlew :feature:about:testAndroidHostTest :feature:about:iosSimulatorArm64Test` 检查官网来源、平台声明路径及项目来源分流。运行 `./gradlew :composeApp:iosSimulatorArm64Test` 验证跨模块 About Entry 与 iOS 浏览器异常处理。
 
-声明页的真实入口、WebView 挂载与预测返回使用 `*AboutNoticesNavigationTest*`；连续全屏页的下层尺寸与暴露区域像素使用 `*NestedFullscreenNavigationTest*`。Android 原生资源、链接分流和阅读位置使用 `*AboutNoticesWebViewTest*`，与参数化的 About 布局用例分别运行。
-平台资源隔离同时检查 Gradle Sync 各自只复制两份页面、Android 原生资产目录不含 iOS 页面，以及新构建的 APK／iOS App 的实际文件清单。网页的唯一入库源位于 `web/open-source/`，构建副本位于 About 模块的 `build/generated/open-source/`；校验源 HTML 变更能自动触发同步及打包，未变更时复制任务为 `UP-TO-DATE`，并确认配置缓存可复用。源集迁移时使用没有旧资源残留的构建输出，避免增量拷贝误带历史共享网页。
-
-运行 `./gradlew :composeApp:testAndroidHostTest --tests '*BrowserUriHandlerTest*'` 验证 HTTP/HTTPS 分流、其他协议委托、无效 URL、失败异常契约与 Android Custom Tabs Intent。`./gradlew :composeApp:iosSimulatorArm64Test` 同时覆盖共享分流与 iOS 未附着窗口时拒绝展示的行为。自动测试不访问网络，不证明真实浏览器界面的展示、关闭或浏览历史；设备关闭条件见 [待验收清单](pending-acceptance.md#系统应用内浏览器)。
-
-开源声明入口与嵌入页面运行 `./gradlew :composeApp:testAndroidHostTest --tests '*About*Test*' --tests '*NavBackStackSerializationTest*'`，覆盖入口离线可用、包内文件读取、缓存条目的外观更新、站内/外链分流、非声明文件阻断、阅读位置恢复及导航序列化。`./gradlew :feature:about:testAndroidHostTest :feature:about:iosSimulatorArm64Test` 验证两份确切本地文件 URI 的路由边界；`./gradlew :composeApp:iosSimulatorArm64Test` 同时执行共享外观模型与新增真实 Entry 调用回归。
-
-网页生成器运行 `python3 -m unittest discover -s tools/open-source -p 'test_*.py'`，校验预览文件与包内副本一致；依赖和页面刷新步骤见[声明工具](../../tools/open-source/README.md)。`node tools/open-source/test-font-scale.mjs` 覆盖四页在 HTTP 预览、Android/iOS 文件来源下的字号、主题、站内参数保留与外链排除。DOM 夹具不证明真实 WebView 配色或布局；本地文件实际显示、锚点定位、深浅色与字号、外链打开、关闭返回和阅读位置仍需双端设备验收。
+运行 `python3 -m unittest discover -s tools/open-source -p 'test_*.py'`、`node tools/open-source/test-font-scale.mjs` 和 `node --test web/build.test.mjs` 检查生成器、网页参数及网站构建。检查新构建的 APK／iOS App 资源清单，确认移除了声明 HTML。双端仍需设备验收实际 WebView 展示、许可证和 NOTICE 锚点、项目链接、关闭返回及加载首帧，见[待验收清单](pending-acceptance.md#系统应用内浏览器)。
 
 ## 验证证据与交付记录
 

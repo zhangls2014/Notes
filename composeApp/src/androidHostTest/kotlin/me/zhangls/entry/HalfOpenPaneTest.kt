@@ -19,14 +19,11 @@ import androidx.navigation3.runtime.NavKey
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
-import me.zhangls.about.api.OpenSourceNoticesDestination
-import me.zhangls.about.api.OpenSourcePage
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.entry.panes.emailPaneMetadata
 import me.zhangls.entry.panes.favoritesEmailListMetadata
 import me.zhangls.entry.panes.homeEmailListMetadata
-import me.zhangls.entry.panes.noticesPaneMetadata
 import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
@@ -49,21 +46,17 @@ class HalfOpenPaneTest {
 
   @get:Rule val rules = drainMainLooperAfter(compose)
 
-  @Test fun homeBookKeepsItsPhysicalPartitions() = assertSplit(notices = false, vertical = true)
+  @Test fun homeBookKeepsItsPhysicalPartitions() = assertSplit(vertical = true)
 
-  @Test fun homeTabletopKeepsItsSplit() = assertSplit(notices = false, vertical = false)
-
-  @Test fun noticesBookKeepsItsPhysicalPartitions() = assertSplit(notices = true, vertical = true)
-
-  @Test fun noticesTabletopKeepsItsSplit() = assertSplit(notices = true, vertical = false)
+  @Test fun homeTabletopKeepsItsSplit() = assertSplit(vertical = false)
 
   @Test fun favoritesBookKeepsItsPhysicalPartitions() =
-    assertSplit(notices = false, vertical = true, emailScene = EmailListScene.Favorites)
+    assertSplit(vertical = true, emailScene = EmailListScene.Favorites)
 
   @Test fun favoritesTabletopKeepsItsSplit() =
-    assertSplit(notices = false, vertical = false, emailScene = EmailListScene.Favorites)
+    assertSplit(vertical = false, emailScene = EmailListScene.Favorites)
 
-  private fun assertSplit(notices: Boolean, vertical: Boolean, emailScene: EmailListScene = EmailListScene.Home) {
+  private fun assertSplit(vertical: Boolean, emailScene: EmailListScene = EmailListScene.Home) {
     val selected = mutableStateOf(false)
     val closing = mutableStateOf(false)
     val flat = mutableStateOf(false)
@@ -77,13 +70,11 @@ class HalfOpenPaneTest {
       ) {
         ComposeAppTheme {
           val list: NavKey = when {
-            notices -> OpenSourceNoticesDestination()
             emailScene == EmailListScene.Favorites -> FavoritesDestination
             else -> HomeDestination
           }
-          val detail = detailEntry(notices, emailScene) { detailX = it }
+          val detail = detailEntry(emailScene) { detailX = it }
           val metadata = when (list) {
-            is OpenSourceNoticesDestination -> noticesPaneMetadata(list)
             FavoritesDestination -> favoritesEmailListMetadata
             else -> homeEmailListMetadata
           }
@@ -106,7 +97,7 @@ class HalfOpenPaneTest {
       assertTrue("Half-open list must occupy one physical partition: $listBounds", listBounds.width > 0f)
       assertTrue("Half-open must retain a split: $listBounds", listBounds.width < 1000f || listBounds.height < 1000f)
     }
-    assertPlaceholder(notices)
+    compose.onAllNodesWithText("Select an email to read").assertCountEquals(1)
     val partition = listBounds
     compose.runOnIdle { assertEquals(if (vertical) 410f else 360f, partition.width) }
     assertDetailMoves({ selected.value = true }) { detailX }
@@ -126,21 +117,14 @@ class HalfOpenPaneTest {
       closing.value = false
     }
     compose.runOnIdle { assertEquals(partition, listBounds) }
-    assertPlaceholder(notices)
+    compose.onAllNodesWithText("Select an email to read").assertCountEquals(1)
   }
 
-  private fun detailEntry(notices: Boolean, emailScene: EmailListScene, onPosition: (Float) -> Unit): NavEntry<NavKey> {
-    val notice = OpenSourceNoticesDestination(OpenSourcePage.LICENSES, "license-MIT")
+  private fun detailEntry(emailScene: EmailListScene, onPosition: (Float) -> Unit): NavEntry<NavKey> {
     val email = EmailDetailDestination(1L, emailScene)
-    val key: NavKey = if (notices) notice else email
-    val metadata = if (notices) noticesPaneMetadata(notice) else emailPaneMetadata(email)
-    return NavEntry(key, metadata = metadata) {
+    return NavEntry(email, metadata = emailPaneMetadata(email)) {
       Box(Modifier.fillMaxSize().onGloballyPositioned { onPosition(it.positionInRoot().x) })
     }
-  }
-
-  private fun assertPlaceholder(notices: Boolean) {
-    compose.onAllNodesWithText("Select an email to read").assertCountEquals(if (notices) 0 else 1)
   }
 
   private fun assertDetailMoves(change: () -> Unit, readPosition: () -> Float) {

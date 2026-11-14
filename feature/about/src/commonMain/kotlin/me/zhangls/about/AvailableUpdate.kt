@@ -80,17 +80,6 @@ internal fun availableUpdate(
   return manifest.takeIf { newer }
 }
 
-internal fun AppInfo.onlineNoticesPath(): String? {
-  val channel = getUpdateChannel() ?: return null
-  val version = getVersionName()
-  val build = getBuildNumber()
-  return if (build != null && versionPattern.matches(version) && buildPattern.matches(build)) {
-    "/open-source/$channel/$version/$build/$releasePlatform.html"
-  } else {
-    null
-  }
-}
-
 private fun compareBuilds(left: String, right: String): Int {
   require(buildPattern.matches(left) && buildPattern.matches(right))
   return compareNumbers(left, right)
