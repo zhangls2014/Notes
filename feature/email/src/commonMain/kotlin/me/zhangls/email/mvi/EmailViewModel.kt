@@ -61,7 +61,7 @@ internal class EmailViewModel(
 
   fun getEmail(emailId: Long): Flow<EmailModel?> = emailsRepository.getEmail(emailId)
     .flowOn(ioDispatcher)
-    .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
+    .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED), replay = 1)
 
   private var allAccountsJob: Job? = null
 

@@ -9,6 +9,7 @@ import androidx.compose.material3.adaptive.HingeInfo
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -128,6 +129,32 @@ class AppSceneStrategiesTest {
     compose.runOnIdle { assertEquals(keys.takeLast(1), scene.entries.map { it.contentKey }) }
     compose.runOnIdle { width.intValue = 900 }
     compose.runOnIdle { assertEquals(keys, scene.entries.map { it.contentKey }) }
+  }
+
+  @Test fun onlineNoticesKeepTheSameSceneIdentityWhenTheHingeArrives() {
+    val posture = mutableStateOf(Posture())
+    val entries = listOf(
+      NavEntry<NavKey>(OnlineNoticesDestination, metadata = noticesListMetadata) {},
+      NavEntry<NavKey>(OnlineNoticeDetailDestination("license-MIT"), metadata = noticesDetailMetadata) {},
+    )
+    lateinit var scene: Scene<NavKey>
+    compose.setContent {
+      ProvideWindowAdaptiveInfo(
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(900, 800),
+        posture.value,
+      ) {
+        scene = rememberSceneState(entries, rememberAppSceneStrategies(), onBack = {}).currentScene
+      }
+    }
+    val before = compose.runOnIdle {
+      val identity = scene::class to scene.key
+      posture.value = Posture(
+        false,
+        listOf(HingeInfo(Rect(445f, 0f, 455f, 800f), true, true, false, false)),
+      )
+      identity
+    }
+    compose.runOnIdle { assertEquals(before, scene::class to scene.key) }
   }
 
   private fun assertScene(

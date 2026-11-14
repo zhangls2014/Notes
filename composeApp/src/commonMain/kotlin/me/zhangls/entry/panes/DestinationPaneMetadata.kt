@@ -7,11 +7,12 @@ import me.zhangls.email.api.EmailListScene
 import me.zhangls.main.EmailDetailPlaceholder
 
 private const val NoticesSceneKey = "online-notices"
+internal val noticesSceneKeys = setOf<Any>(NoticesSceneKey)
 internal val noticesListMetadata = listPaneMetadata(NoticesSceneKey) {}
 internal val noticesDetailMetadata = detailPaneMetadata(NoticesSceneKey)
 
 internal val destinationPaneInsets = mapOf<Set<Any>, WindowInsetsSides>(
-  setOf<Any>(NoticesSceneKey) to (WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+  noticesSceneKeys to (WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
   EmailListScene.entries.toSet() to (WindowInsetsSides.Vertical + WindowInsetsSides.Horizontal),
 )
 

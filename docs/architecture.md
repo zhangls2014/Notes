@@ -276,7 +276,7 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 - 搜索锚点以空查询输入框的首次自然测量宽度为基准，不复制 Material 默认宽度常量。基准仅保存在当前 UI 实例，密度、字号、布局方向或提示文本变化时重测；窗口变窄时服从父约束，不覆盖基准。停靠展开沿用锚点宽度，全屏展开沿用库的动画约束；测量输入框不绘制、不参与焦点或无障碍语义，也不修改真实查询。
 - `AppShell` 根据统一窗口尺寸选择导航形态：宽度 ≥600dp 且高度 <480dp 优先使用折叠 Rail，为内容保留纵向空间；其余沿用库策略，并在高度充足的 ExtraLarge（≥1600dp）窗口展开 Rail。窄窗口保留底栏，不比较尺寸档位下限来推断横竖屏；折叠状态变化不切换底栏/侧栏，避免相同几何下内容窗格移动。
 - `AppShell` 消费导航套件占用的系统内边距；Feature 不接收导航方位参数，外壳不另算铰链安全区域。
-- 列表—详情场景的安全区策略由 `AppNavHost` 按唯一窗口事实选择：没有平台报告的铰链时，`SafeAreaSceneStrategy` 先预留并消费整个场景剩余的 `WindowInsets.safeDrawing`，再采用库默认的列表首选宽度（通常 360dp，ExtraLarge 为 412dp），详情占剩余宽度。收藏页详情空态也采用相同分配策略；首页未选择邮件时列表全宽，选择后才采用分栏宽度。有铰链时不预扣全局安全区，仍按 directive 的物理排除区域分区；NavEntry 装饰器通过 `PaneWindowInsets` 消费窗格外的空间，各窗格的标准 `Scaffold` 仅避让实际相交的系统安全区。铰链几何优先于首选宽度，单页场景不增加包装。
+- 列表—详情场景复用 `SafeAreaSceneStrategy`。开源声明位于全屏导航层，窗口报告铰链前后保留同一个安全区包装，实际预留空间与消费值同步更新。无铰链时，场景按目的地配置预留并消费剩余的 `WindowInsets.safeDrawing`，使用库默认的列表首选宽度（通常 360dp，ExtraLarge 为 412dp），详情占剩余宽度。有铰链时，场景级预留归零，按 directive 的物理排除区域分区；NavEntry 装饰器通过 `PaneWindowInsets` 消费窗格外的空间，各窗格的标准 `Scaffold` 仅避让实际相交的系统安全区。铰链几何优先于首选宽度，普通单页由自身组件处理安全区。
 - 可读宽度统一用 `ContentWidth.Form`、`Article`、`Prose` 和 `Modifier.contentWidth()`。
 - Nav3 SceneStrategy 消费组合根提供的 directive，负责列表—详情分区；无铰链时仅场景整体预留系统安全区，不增加铰链安全带包装。
 - 登录页只按 `maxHorizontalPartitions` 决定左侧品牌区与右侧表单区是否同时展开。横向铰链不触发上下重排：宽度足够时仍左右分栏，宽度不足时使用单列表单。

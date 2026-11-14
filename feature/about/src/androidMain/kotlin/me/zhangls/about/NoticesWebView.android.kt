@@ -9,14 +9,15 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
-import me.zhangls.about.api.OnlineNoticeDetailDestination
 import androidx.compose.ui.viewinterop.AndroidView
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -29,11 +30,12 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
 ) {
-  val backgroundColor = MaterialTheme.colorScheme.surface.toArgb()
+  val surface = MaterialTheme.colorScheme.surface
+  val backgroundColor = surface.toArgb()
   val openDetail = rememberUpdatedState(onOpenDetail)
   val inset = rememberUpdatedState(bottomInset.value)
   AndroidView(
-    modifier = modifier,
+    modifier = modifier.background(surface),
     factory = { context ->
       val webView = try {
         WebView(context)
@@ -42,12 +44,15 @@ internal actual fun NoticesWebView(
         return@AndroidView View(context)
       }
       webView.apply {
+        // Keep the themed container visible until Chromium can draw the new document.
+        visibility = View.INVISIBLE
         setBackgroundColor(backgroundColor)
         settings.javaScriptEnabled = true
         settings.allowFileAccess = false
         settings.allowContentAccess = false
         settings.setSupportMultipleWindows(true)
         var restoreScroll = initialScroll
+        var pageGeneration = 0L
         webViewClient = object : WebViewClient() {
           override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val target = request.url.toString()
@@ -68,6 +73,7 @@ internal actual fun NoticesWebView(
           }
 
           override fun onPageStarted(view: WebView, target: String, favicon: Bitmap?) {
+            pageGeneration++
             if (noticesLink(target, url, projectPage) != NoticesLink.InPage) {
               view.stopLoading()
               state.fail()
@@ -79,15 +85,21 @@ internal actual fun NoticesWebView(
           override fun onPageFinished(view: WebView, url: String) {
             if (!state.failed) {
               if (!projectPage) view.applyNoticesInset(inset.value)
-              if (restoreScroll > 0) {
-                view.postVisualStateCallback(0L, object : WebView.VisualStateCallback() {
+              if (view.visibility == View.INVISIBLE) {
+                view.postVisualStateCallback(pageGeneration, object : WebView.VisualStateCallback() {
                   override fun onComplete(requestId: Long) {
-                    if (view.isAttachedToWindow) view.scrollTo(0, restoreScroll.toInt())
-                    restoreScroll = 0.0
+                    if (requestId != pageGeneration || !view.isAttachedToWindow || state.failed) return
+                    if (restoreScroll > 0) {
+                      view.scrollTo(0, restoreScroll.toInt())
+                      restoreScroll = 0.0
+                    }
+                    view.visibility = View.VISIBLE
+                    state.loading = false
                   }
                 })
+              } else {
+                state.loading = false
               }
-              state.loading = false
             }
           }
 

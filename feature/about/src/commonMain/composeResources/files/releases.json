@@ -5,6 +5,30 @@
     "changes": [
       {
         "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "Open-source notices show the app theme's background until the web content is ready to draw after rotation.",
+          "zh": "旋转屏幕后，开源软件声明在网页可绘制前显示应用主题背景，避免短暂黑块。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Mail details retain the subject, close button, and message when the page resumes after screen rotation.",
+          "zh": "修复旋转屏幕后邮件详情的标题、关闭按钮和正文丢失的问题。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "The open-source notices title bar stays clear of the status bar after screen rotation.",
+          "zh": "修复旋转屏幕后开源软件声明标题栏与状态栏重叠的问题。"
+        }
+      },
+      {
+        "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {
           "en": "The web view uses the app theme's background while open-source notices and project pages load. Fast loads no longer flash the progress bar.",

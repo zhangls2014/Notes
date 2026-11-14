@@ -5,19 +5,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.runBlocking
 import me.zhangls.data.repository.EmailsRepository
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.email.api.EmailDetailDestination
@@ -50,6 +57,7 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class HomeEmailToolbarTest {
   private val compose = createComposeRule()
+  private val emails = AdaptiveEmails()
 
   @get:Rule val rules = drainMainLooperAfter(compose)
 
@@ -57,7 +65,7 @@ class HomeEmailToolbarTest {
     initKoin {
       modules(
         module {
-          single<EmailsRepository> { AdaptiveEmails() }
+          single<EmailsRepository> { emails }
           single<UserRepository> { AdaptiveUsers() }
         },
       )
@@ -71,6 +79,29 @@ class HomeEmailToolbarTest {
   @Test fun detailUsesCloseBesideListAndBackWhenWindowNarrows() = assertToolbar(EmailListScene.Home)
 
   @Test fun favoritesDetailUsesCloseBesideListAndBackWhenWindowNarrows() = assertToolbar(EmailListScene.Favorites)
+
+  @Test fun detailReceivesCurrentMessageAfterCollectionRestarts() {
+    val resumed = mutableStateOf(true)
+    val detail = EmailDetailDestination(1L, EmailListScene.Home)
+    compose.setContent {
+      val owner = rememberLifecycleOwner(
+        maxLifecycle = if (resumed.value) Lifecycle.State.RESUMED else Lifecycle.State.CREATED,
+      )
+      CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+        ComposeAppTheme {
+          val provider = entryProvider<NavKey> { emailNavEntry(paneMetadata = ::emailPaneMetadata) {} }
+          provider(detail).Content()
+        }
+      }
+    }
+
+    compose.waitUntil(5_000) { compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().size == 2 }
+    compose.runOnIdle { resumed.value = false }
+    compose.waitForIdle()
+    runBlocking { emails.deleteEmails(setOf(1L)) }
+    compose.runOnIdle { resumed.value = true }
+    compose.waitUntil(5_000) { compose.onAllNodesWithText("Adaptive review").fetchSemanticsNodes().isEmpty() }
+  }
 
   @OptIn(androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class)
   private fun assertToolbar(scene: EmailListScene) {

@@ -17,7 +17,7 @@ import androidx.navigation3.scene.SceneStrategyScope
 /** Reserve the shared safe area before the delegate lays out its panes. */
 class SafeAreaSceneStrategy<T : Any>(
   private val delegate: SceneStrategy<T>,
-  private val insetSides: WindowInsetsSides = WindowInsetsSides.Horizontal + WindowInsetsSides.Vertical,
+  private val insetSides: WindowInsetsSides? = WindowInsetsSides.Horizontal + WindowInsetsSides.Vertical,
 ) : SceneStrategy<T> {
   override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): Scene<T>? {
     val scene = with(delegate) { calculateScene(entries) } ?: return null
@@ -25,10 +25,12 @@ class SafeAreaSceneStrategy<T : Any>(
   }
 }
 
-private data class SafeAreaScene<T : Any>(val delegate: Scene<T>, val insetSides: WindowInsetsSides) :
+private data class SafeAreaScene<T : Any>(val delegate: Scene<T>, val insetSides: WindowInsetsSides?) :
   Scene<T> by delegate {
   override val content: @Composable () -> Unit = {
-    Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(insetSides))) {
+    // Keep the padding node attached as the scene switches to physical pane coordinates.
+    val insets = if (insetSides == null) WindowInsets(0, 0, 0, 0) else WindowInsets.safeDrawing.only(insetSides)
+    Box(Modifier.fillMaxSize().windowInsetsPadding(insets)) {
       delegate.content()
     }
   }

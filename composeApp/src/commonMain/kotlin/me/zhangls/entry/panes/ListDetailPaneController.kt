@@ -91,7 +91,11 @@ internal fun <T : Any> rememberListDetailSceneStrategies(
         keepPhysicalSplit = paneController.keepPhysicalSplit,
         sceneKeys = sceneKeys,
       )
-      if (paneController.hasHinge) strategy else SafeAreaSceneStrategy(strategy, insetSides)
+      if (sceneKeys == noticesSceneKeys || !paneController.hasHinge) {
+        SafeAreaSceneStrategy(strategy, insetSides.takeUnless { paneController.hasHinge })
+      } else {
+        strategy
+      }
     }
 
     onDemandStrategies + listOf(paneStrategy, SinglePaneSceneStrategy())
