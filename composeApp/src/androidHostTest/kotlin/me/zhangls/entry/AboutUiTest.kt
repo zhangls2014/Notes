@@ -1,5 +1,6 @@
 package me.zhangls.entry
 
+import android.app.DownloadManager
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +31,19 @@ import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
 import com.github.takahirom.roborazzi.captureRoboImage
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngineBase
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.callContext
+import io.ktor.client.request.HttpRequestData
+import io.ktor.client.request.HttpResponseData
+import io.ktor.http.Headers
+import io.ktor.http.HttpProtocolVersion
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.CompletableDeferred
 import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.NotesWebsite
@@ -45,10 +59,15 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.compose.koinInject
 import org.koin.core.context.stopKoin
+import org.koin.core.qualifier.named
+import org.koin.mp.KoinPlatform
 import org.robolectric.ParameterizedRobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadow.api.Shadow
+import org.robolectric.shadows.ShadowDownloadManager
 
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w1000dp-h1200dp-mdpi")
@@ -82,8 +101,8 @@ class AboutUiTest(private val scenario: Scenario) {
 
   private lateinit var rootView: View
 
-  private fun launch(info: AboutAppInfo) {
-    provideAboutAppInfo(info)
+  private fun launch(info: AboutAppInfo, channel: String? = null) {
+    provideAboutAppInfo(info, channel)
     compose.setContent {
       rootView = LocalView.current.rootView
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
@@ -102,6 +121,140 @@ class AboutUiTest(private val scenario: Scenario) {
           }
         }
       }
+    }
+  }
+
+  @Test fun globalDisplaysPublishedNotesAndDisablesDownload() {
+    verifyUpdateOffer("global")
+  }
+
+  @Test fun mainlandDisplaysPublishedNotesAndEnablesDownload() {
+    verifyUpdateOffer("mainland")
+  }
+
+  @Test fun mainlandSwitchesDownloadOnlyAfterConfirmingNewerBuild() {
+    verifyUpdateOffer("mainland", publishNewerBuild = true)
+  }
+
+  @Test fun mainlandDoesNotPromptToInstallSupersededBuild() {
+    verifyUpdateOffer("mainland", publishNewerBuild = true, finishOlderBuild = true)
+  }
+
+  private fun verifyUpdateOffer(
+    flavor: String,
+    publishNewerBuild: Boolean = false,
+    finishOlderBuild: Boolean = false,
+  ) {
+    val channel = "android-prd-$flavor"
+    val site = NotesWebsite("https://website.example.test", "https://downloads.example.test")
+    val updateUrl = if (flavor == "global") {
+      "${site.origin}/releases/#v2.0.0"
+    } else {
+      "${site.origin}/downloads/android/$channel/2/"
+    }
+    val respond = CompletableDeferred<Unit>()
+    val publishedBuild = java.util.concurrent.atomic.AtomicInteger(2)
+    val engine = object : HttpClientEngineBase("AboutUpdateUiTest") {
+      override val config = HttpClientEngineConfig()
+
+      @OptIn(InternalAPI::class)
+      override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val body = when (data.url.toString()) {
+          "${site.origin}/updates/v1/$channel.json" -> {
+            respond.await()
+            val build = publishedBuild.get()
+            val url = if (build == 2) updateUrl else "${site.origin}/downloads/android/$channel/$build/"
+            """{"channel":"$channel","version":"$build.0.0","build":"$build","updateUrl":"$url"}"""
+          }
+          "${site.origin}/releases/published.json" ->
+            """[{"version":"2.0.0","date":"2026-11-14","changes":[{"type":"added","platforms":["android"],"text":{"en":"Published update details","zh":"新版内容"}}]}]"""
+          else -> error("Unexpected update request: ${data.url}")
+        }
+        return HttpResponseData(
+          HttpStatusCode.OK, GMTDate(), Headers.Empty, HttpProtocolVersion.HTTP_1_1,
+          ByteReadChannel(body), callContext(),
+        )
+      }
+    }
+    try {
+      HttpClient(engine).use { client ->
+        KoinPlatform.getKoin().declare(site)
+        KoinPlatform.getKoin().declare(client, qualifier = named("publicUpdates"))
+        launch(AboutAppInfo("1.0.0", "1"), flavor)
+        compose.onNodeWithText("Check").performScrollTo().assertIsEnabled().performClick()
+        compose.onNodeWithText("Check").assertIsNotEnabled()
+        compose.onNodeWithText("Notes 2.0.0 is available.").assertDoesNotExist()
+        respond.complete(Unit)
+        compose.waitUntil(timeoutMillis = 10_000) {
+          compose.onAllNodes(hasText("Published update details", substring = true)).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Published update details", substring = true).performScrollTo().assertIsDisplayed()
+        if (flavor == "global") {
+          compose.onNodeWithText("Not supported").assertIsNotEnabled()
+        } else {
+          compose.onNodeWithText("Download in background").assertIsEnabled().performClick()
+          val manager = RuntimeEnvironment.getApplication().getSystemService(DownloadManager::class.java)
+          val downloads = Shadow.extract<ShadowDownloadManager>(manager)
+          compose.waitUntil(timeoutMillis = 5_000) { downloads.requestCount == 1 }
+          val request = Shadow.extract<ShadowDownloadManager.ShadowRequest>(downloads.getRequest(0L))
+          assertEquals("${site.apkOrigin}/$channel/2/Notes-2.0.0-mainland.apk", request.uri.toString())
+          compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodes(hasText("Notes 2.0.0 is available.")).fetchSemanticsNodes().isEmpty()
+          }
+          val downloading = compose.onNodeWithText("Downloading in the background…")
+          downloading.assertDoesNotExist()
+          compose.onNodeWithText("Check").assertIsEnabled().performClick()
+          compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodes(hasText("Downloading in the background…")).fetchSemanticsNodes().isNotEmpty()
+          }
+          downloading.assertIsDisplayed()
+          compose.onNodeWithText("Got it").performClick()
+          downloading.assertDoesNotExist()
+          compose.onNodeWithText("Check").assertIsEnabled().performClick()
+          compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodes(hasText("Downloading in the background…")).fetchSemanticsNodes().isNotEmpty()
+          }
+          downloading.assertIsDisplayed()
+          compose.onNodeWithText("Got it").performClick()
+          assertEquals(1, downloads.requestCount)
+          if (publishNewerBuild) {
+            publishedBuild.set(3)
+            compose.onNodeWithText("Check").performClick()
+            compose.waitUntil(timeoutMillis = 5_000) {
+              compose.onAllNodes(hasText("Notes 3.0.0 is available.")).fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithText("An earlier version is still downloading.", substring = true).assertExists()
+            assertEquals(1, downloads.requestCount)
+            if (finishOlderBuild) {
+              request.status = DownloadManager.STATUS_SUCCESSFUL
+              compose.onNodeWithText("Got it").performClick()
+              compose.onNodeWithText("Check").performClick()
+              compose.waitUntil(timeoutMillis = 5_000) {
+                compose.onAllNodes(hasText("Notes 3.0.0 is available.")).fetchSemanticsNodes().isNotEmpty()
+              }
+              compose.onNodeWithText("Notes 2.0.0 is ready to install.").assertDoesNotExist()
+              return
+            }
+            compose.onNodeWithText("Download in background").performClick()
+            compose.waitUntil(timeoutMillis = 5_000) { downloads.getRequest(1L) != null && downloads.requestCount == 1 }
+            val replacement = Shadow.extract<ShadowDownloadManager.ShadowRequest>(downloads.getRequest(1L))
+            assertEquals("${site.apkOrigin}/$channel/3/Notes-3.0.0-mainland.apk", replacement.uri.toString())
+            replacement.status = DownloadManager.STATUS_SUCCESSFUL
+            compose.waitUntil(timeoutMillis = 5_000) {
+              compose.onAllNodes(hasText("Notes 3.0.0 is ready to install.")).fetchSemanticsNodes().isNotEmpty()
+            }
+            return
+          }
+          request.status = DownloadManager.STATUS_SUCCESSFUL
+          compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodes(hasText("Install")).fetchSemanticsNodes().isNotEmpty()
+          }
+          compose.onNodeWithText("Notes 2.0.0 is ready to install.").assertIsDisplayed()
+          compose.onNodeWithText("Install").assertIsEnabled()
+        }
+      }
+    } finally {
+      engine.close()
     }
   }
 
@@ -195,9 +348,9 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Build number").assertDoesNotExist()
     compose.onNodeWithText("Check for updates").performScrollTo().assertIsDisplayed()
     assertTrue(compose.onAllNodes(hasText("Check for updates") and hasClickAction()).fetchSemanticsNodes().isEmpty())
-    compose.onNodeWithText("Unavailable").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
+    compose.onNodeWithText("Not supported").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
     val versionRowRight = compose.onNodeWithText("Version").getUnclippedBoundsInRoot().right.value
-    val badgeTextRight = compose.onNodeWithText("Unavailable").getUnclippedBoundsInRoot().right.value
+    val badgeTextRight = compose.onNodeWithText("Not supported").getUnclippedBoundsInRoot().right.value
     org.junit.Assert.assertEquals(
       "Update status aligns to the row's trailing inset",
       versionRowRight - 16f,
@@ -206,7 +359,7 @@ class AboutUiTest(private val scenario: Scenario) {
     )
     val titleBounds = compose.onNodeWithText("Check for updates").getUnclippedBoundsInRoot()
     val detailBounds = compose.onNodeWithText("New versions and release notes").getUnclippedBoundsInRoot()
-    val badgeBounds = compose.onNodeWithText("Unavailable").getUnclippedBoundsInRoot()
+    val badgeBounds = compose.onNodeWithText("Not supported").getUnclippedBoundsInRoot()
     org.junit.Assert.assertEquals(
       "Update status is centered beside the title and description",
       (titleBounds.top.value + detailBounds.bottom.value) / 2f,

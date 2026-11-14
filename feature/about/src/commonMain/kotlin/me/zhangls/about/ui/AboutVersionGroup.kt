@@ -1,5 +1,10 @@
 package me.zhangls.about.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +44,7 @@ import notes.feature.about.generated.resources.about_collapsed
 import notes.feature.about.generated.resources.about_expanded
 import notes.feature.about.generated.resources.about_unknown
 import notes.feature.about.generated.resources.about_update_check
+import notes.feature.about.generated.resources.about_update_checking
 import notes.feature.about.generated.resources.about_update_description
 import notes.feature.about.generated.resources.about_update_unavailable
 import notes.feature.about.generated.resources.about_version
@@ -54,6 +61,7 @@ internal fun AboutVersionGroup(
   onToggleVersionInfo: () -> Unit,
   onOpenReleaseHistory: () -> Unit,
   canCheckForUpdates: Boolean,
+  checking: Boolean,
   onCheckForUpdates: () -> Unit,
 ) {
   val outer = MaterialTheme.shapes.extraLarge
@@ -86,13 +94,17 @@ internal fun AboutVersionGroup(
       title = stringResource(Res.string.about_check_updates),
       detail = stringResource(Res.string.about_update_description),
       icon = Icons.Rounded.Refresh,
+      iconModifier = if (checking) Modifier.rotatingRefreshIcon() else Modifier,
       shape = outer.copy(topStart = inner.topStart, topEnd = inner.topEnd),
       trailing = {
         val action = if (canCheckForUpdates) Res.string.about_update_check else Res.string.about_update_unavailable
+        val checkingLabel = stringResource(Res.string.about_update_checking)
         FilledTonalButton(
           onClick = onCheckForUpdates,
-          enabled = canCheckForUpdates,
-          modifier = Modifier.widthIn(max = 120.dp),
+          enabled = canCheckForUpdates && !checking,
+          modifier = Modifier.widthIn(max = 120.dp).semantics {
+            if (checking) stateDescription = checkingLabel
+          },
           contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         ) {
           Text(stringResource(action), textAlign = TextAlign.Center)
@@ -103,12 +115,24 @@ internal fun AboutVersionGroup(
 }
 
 @Composable
+private fun Modifier.rotatingRefreshIcon(): Modifier {
+  val rotation by rememberInfiniteTransition(label = "updateCheck").animateFloat(
+    initialValue = 0f,
+    targetValue = 360f,
+    animationSpec = infiniteRepeatable(tween(durationMillis = 1000, easing = LinearEasing)),
+    label = "refreshRotation",
+  )
+  return rotate(rotation)
+}
+
+@Composable
 internal fun AboutInfoRow(
   title: String,
   detail: String,
   icon: ImageVector,
   shape: Shape,
   modifier: Modifier = Modifier,
+  iconModifier: Modifier = Modifier,
   trailing: @Composable () -> Unit = {},
 ) {
   Surface(modifier = modifier, shape = shape, color = MaterialTheme.colorScheme.surfaceContainerLow) {
@@ -117,7 +141,7 @@ internal fun AboutInfoRow(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+      Icon(icon, contentDescription = null, modifier = iconModifier, tint = MaterialTheme.colorScheme.onSurfaceVariant)
       Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(title, style = MaterialTheme.typography.titleMedium)
         Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

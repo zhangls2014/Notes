@@ -24,7 +24,7 @@ Android API 37 / Robolectric Native Graphics：注入 40px 底部 Insets 后，�
 ```bash
 ./gradlew :composeApp:testAndroidHostTest --tests '*AboutWideScrollTest*' --tests '*AboutUiTest*' \
   :feature:about:testAndroidHostTest :feature:about:detekt \
-  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevGlobalDebug
 ```
 
 ## 写信展开时窗口收窄（2026-10-29）
@@ -47,7 +47,7 @@ iOS `EmailEntryDispatchTest` 两项真实实现分派测试通过；Android DevF
   --tests '*AdaptiveUiTest.foldingWithOpenDraftKeepsHomeAndDraftContent*' \
   :feature:email:testAndroidHostTest \
   :composeApp:iosSimulatorArm64Test --tests '*EmailEntryDispatchTest*' \
-  :androidApp:assembleDevFullDebug
+  :androidApp:assembleDevGlobalDebug
 ```
 
 ## 全屏次级页面与导航显隐（2026-10-26）
@@ -87,7 +87,7 @@ iOS `EmailEntryDispatchTest` 两项真实实现分派测试通过；Android DevF
   --tests '*NavBackStackSerializationTest*' --tests '*AppSceneStrategiesTest*' \
   :core:navigation:testAndroidHostTest --tests '*PageMotionGeometryTest*' \
   --tests '*DeviceCornerShapeTest*' --tests '*DeviceCornerOpacityTest*' --tests '*BackdropMotionTest*' \
-  :feature:main:testAndroidHostTest :androidApp:assembleDevFullDebug :composeApp:compileKotlinIosSimulatorArm64
+  :feature:main:testAndroidHostTest :androidApp:assembleDevGlobalDebug :composeApp:compileKotlinIosSimulatorArm64
 
 # Native 像素用例分别执行，联合稳定性另行跟踪
 ./gradlew :core:navigation:testAndroidHostTest --tests '*PageMotionNavigationTest*'
@@ -106,7 +106,7 @@ minSdk 保持 28，MainActivity 保留 `android:windowSoftInputMode="adjustResiz
 JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
   ./gradlew :composeApp:testAndroidHostTest \
   --tests '*AdaptiveUiTest.*Ime*' --tests '*AdaptiveUiTest.*Keyboard*' \
-  :androidApp:assembleDevFullDebug :androidApp:lintDevFullDebug \
+  :androidApp:assembleDevGlobalDebug :androidApp:lintDevGlobalDebug \
   :composeApp:compileKotlinIosSimulatorArm64
 ```
 
@@ -129,7 +129,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 
 ```bash
 ./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' \
-  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevGlobalDebug
 ```
 
 ## 预测返回取消时圆角与缩放同步恢复（2026-10-25）
@@ -152,7 +152,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 
 ```bash
 ./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' \
-  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevGlobalDebug
 ```
 
 ## 搜索结果导航后返回与旋转恢复（2026-10-02）
@@ -168,7 +168,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 ```bash
 ./gradlew :composeApp:testAndroidHostTest \
   --tests '*AdaptiveUiTest.*Search*' --tests '*AdaptiveUiTest.search*' \
-  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevFullDebug
+  :composeApp:compileKotlinIosSimulatorArm64 :androidApp:assembleDevGlobalDebug
 ```
 
 ## 首页新建邮件按钮状态恢复（2026-10-02）
@@ -210,7 +210,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
   --tests '*LoginSubmissionTest*' \
   --tests '*LoginLoadingAccessibilityTest*' \
   :composeApp:compileKotlinIosSimulatorArm64 \
-  :androidApp:assembleDebug :androidApp:lintDevFullDebug
+  :androidApp:assembleDebug :androidApp:lintDevGlobalDebug
 ```
 
 最终命令（一个 Gradle 进程顺序装配检查，不并发启动构建）：
@@ -218,7 +218,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 ```bash
 ./gradlew :androidApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64 \
   :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*' --tests '*ExpressiveThemeTest*' \
-  :androidApp:lintDevFullDebug \
+  :androidApp:lintDevGlobalDebug \
   -Proborazzi.test.record=true -Pnotes.screenshots.candidates=true
 ```
 

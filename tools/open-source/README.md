@@ -5,7 +5,7 @@ Use English, lowercase hyphenated script names. Generated dependency inventories
 HTML in `web/open-source/` are the checked-in source for website builds. Temporary Gradle reports belong in `build/`.
 Keep upstream license and NOTICE text verbatim. Never infer an unknown license.
 
-The Android inventory uses the production full release runtime configuration; iOS
+The Android inventory uses the production global release runtime configuration; iOS
 uses the device ARM64 compilation. Test and build plugin dependencies are excluded.
 
 ## Regenerate
@@ -23,7 +23,7 @@ node tools/open-source/test-font-scale.mjs
 
 Export uses the resolved component graph (including BOM/metadata modules), not an
 APK size or native link audit. Android sources are `:androidApp`'s
-`prdFullReleaseRuntimeClasspath`; iOS sources are `:composeApp`'s
+`prdGlobalReleaseRuntimeClasspath`; iOS sources are `:composeApp`'s
 `iosArm64CompileKlibraries`. The current debug-only LeakCanary dependency is
 intentionally excluded. Revisit configuration selection if flavor dependencies diverge.
 

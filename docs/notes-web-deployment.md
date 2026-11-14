@@ -7,12 +7,12 @@
 | 客户端认证 | Gradle 属性 `notes.authBaseUrl` 或环境变量 `NOTES_AUTH_BASE_URL` |
 | 客户端官网和 Android App Links | Gradle 属性 `notes.siteBaseUrl` 或环境变量 `NOTES_SITE_BASE_URL` |
 | 网站生成的更新清单 | 环境变量 `NOTES_SITE_BASE_URL` |
-| 网站接受的 Android APK 下载来源 | 环境变量 `NOTES_APK_BASE_URL` |
+| mainland 客户端和网站生成器使用的 APK 来源 | Gradle 属性 `notes.apkBaseUrl` 或环境变量 `NOTES_APK_BASE_URL`（网站只读取环境变量） |
 | 独立部署的已发布构建清单 | 环境变量 `NOTES_PUBLISHED_BUILDS_FILE` 指向该环境的 JSON 文件 |
 
 Gradle 属性优先于同用途的环境变量。正式默认值在 [Gradle 配置](../gradle.properties) 和 [网站构建入口](../web/build.mjs)。
-官网和认证配置均使用不带路径、端口或凭据的 HTTPS origin，构建时校验。更换 APK 来源时，发布清单中的 `artifactUrl` 须指向该来源；
-生成器继续校验来源、渠道、构建号和文件名。
+客户端官网、APK 和认证配置均使用不带路径、端口或凭据的 HTTPS origin，构建时校验。更换 APK 来源时，发布清单中的 `artifactUrl` 须指向该来源；
+网站与安装包必须配置同一下载来源。生成器会校验来源、渠道、构建号和文件名。
 
 Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关联域名，并在
 未设置 URL 环境变量时为共享框架派生 HTTPS 地址。若用 Gradle 属性、环境变量或预构建框架
@@ -37,8 +37,8 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 1. 按 [版本规则](app-releases.md) 准备版本、构建号与发布日期，完成依赖清单和两端安装包构建。Android 用 `apksigner verify --print-certs` 核对签名和包的渠道，iOS 核对商店版本和签名标识。
 2. 确认当前开源声明已按[维护指南](../web/open-source/README.md)更新。官网和应用按平台使用固定地址，所有版本共用最新声明；发布流程无需创建构建归档。
-3. 将 Android APK 放入 `downloads.zhangls.me` 对应的下载目录或 R2 bucket，公开路径为 `/<channel>/<build>/<filename>.apk`。文件名只使用字母、数字、点、下划线和连字符。从公网下载并与原包核对 SHA-256，验证实机覆盖安装。iOS 验证 App Store 目标地区的正式版本可获取。
-4. 对已可获取的渠道，在 [发布构建清单](../web/published-builds.json) 末尾追加 `channel`、`version`、字符串 `build` 和 `artifactUrl`。Android 填 R2 的 APK 地址，iOS 填 `https://apps.apple.com/…` 商店地址。保留已公布的构建记录。各渠道最新条目分别决定线上清单，尚未发布过的渠道暂时没有清单。
+3. 将 mainland 正式 APK 放入下载源的 `/android-prd-mainland/<build>/Notes-<version>-mainland.apk`。从公网下载并与原包核对 SHA-256，验证实机覆盖安装。global 暂只公告版本，不分发 APK；iOS 验证 App Store 目标地区的正式版本可获取。
+4. 在 [发布构建记录](../web/published-builds.json) 末尾追加 `channel`、`version` 和字符串 `build`。mainland 另填符合上一步约定的 `artifactUrl`，iOS 填 `https://apps.apple.com/…`；global 不填 `artifactUrl`。保留旧 APK 链接和发布记录；新 global 记录继续使用原 full 的递增构建序列。官网只发布 `android-prd-global.json`，新 global 版本登记前从最后一条旧发布记录生成。使用全新输出目录构建，避免保留旧清单；本地可用 `NOTES_WEB_OUTPUT_DIR` 指定空目录。
 5. 验收预览中的中英文历史、平台筛选、版本锚点、固定声明入口、旧声明链接跳转和下载地址。获授权后部署生产并验证 JSON、下载及 App 内检查结果。若新渠道地址不可用，先修复资源或用授权的新生产发布恢复该渠道的上一份清单。
 
 ## 验收记录

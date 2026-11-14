@@ -7,7 +7,7 @@ gradle.projectsEvaluated {
     root.tasks.register('exportNoticeDependencies') {
         doLast {
             def inventories = [:]
-            [android: [':androidApp', 'prdFullReleaseRuntimeClasspath'],
+            [android: [':androidApp', 'prdGlobalReleaseRuntimeClasspath'],
              ios: [':composeApp', 'iosArm64CompileKlibraries']].each { platform, source ->
                 def configuration = root.project(source[0]).configurations.getByName(source[1])
                 def components = configuration.incoming.resolutionResult.allComponents

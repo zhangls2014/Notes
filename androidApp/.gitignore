@@ -1,6 +1,8 @@
 /build
 /release
 /devMainland
-/devFull
+/devGlobal
 /prdMainland
+/prdGlobal
+/devFull
 /prdFull

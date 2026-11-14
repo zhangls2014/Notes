@@ -87,7 +87,7 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 ## 构建与静态检查
 
 ```bash
-./gradlew :androidApp:assembleDebug :androidApp:lintDevFullDebug
+./gradlew :androidApp:assembleDebug :androidApp:lintDevGlobalDebug
 
 # 按修改模块运行 detekt，例如个人信息和关于应用
 ./gradlew :feature:profile:detekt :feature:about:detekt
@@ -108,8 +108,8 @@ KMP 的普通 `:<module>:detekt` 延迟读取全部已注册源集，扫描各�
 ./gradlew detektMainAndroid detektHostTestAndroid --continue
 
 # Android 宿主的代表性 Debug 变体
-./gradlew :androidApp:detektDevFullDebug :androidApp:detektDevFullDebugUnitTest --continue
-./gradlew :androidApp:detektDevFullDebugAndroidTest --continue
+./gradlew :androidApp:detektDevGlobalDebug :androidApp:detektDevGlobalDebugUnitTest --continue
+./gradlew :androidApp:detektDevGlobalDebugAndroidTest --continue
 
 # Baseline Profile 测试模块
 ./gradlew :android:baselineprofile:detektDevBenchmarkRelease --continue

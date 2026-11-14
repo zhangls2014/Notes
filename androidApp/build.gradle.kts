@@ -95,8 +95,8 @@ android {
     manifestPlaceholders["notesSiteHost"] = notesSiteOrigin.get()
     minSdk = kmp.versions.android.minSdk.get().toInt()
     targetSdk = kmp.versions.android.targetSdk.get().toInt()
-    versionCode = 5
-    versionName = "1.1.2"
+    versionCode = 7
+    versionName = "1.1.4"
 
     ndk {
       abiFilters.add("arm64-v8a")
@@ -136,7 +136,7 @@ android {
   }
 
   flavorDimensions.add("environment")
-  flavorDimensions.add("language")
+  flavorDimensions.add("region")
   productFlavors {
     create("dev") {
       dimension = "environment"
@@ -147,23 +147,19 @@ android {
     }
 
     create("mainland") {
-      dimension = "language"
+      dimension = "region"
+      manifestPlaceholders["notesUpdateChannel"] = "mainland"
     }
 
-    create("full") {
-      dimension = "language"
+    create("global") {
+      dimension = "region"
+      manifestPlaceholders["notesUpdateChannel"] = "global"
     }
   }
 }
 
 androidComponents {
   onVariants { variant ->
-    val channel = when (variant.name) {
-      "prdFullRelease" -> "android-prd-full"
-      "prdMainlandRelease" -> "android-prd-mainland"
-      else -> ""
-    }
-    variant.manifestPlaceholders.put("notesUpdateChannel", channel)
     val flavorLabel = variant.flavorName?.replaceFirstChar { it.titlecase() }
     variant.outputs.forEach { output ->
       output.outputFileName.set(

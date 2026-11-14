@@ -195,7 +195,7 @@ About 将组合中解析的语言、系统与应用叠加字号、深浅色和 M
 
 在 `androidApp/NotesApp.onCreate` 与 `iosApp/iOSApp.init` 中先初始化 Koin，再执行启动数据任务。启动任务 `InitData` 通过构造函数接收 Repository 和平台 `AppInfo`，由组合根解析并在应用级协程中执行；它本身不从全局容器查找依赖，也不持有协程作用域。Android `Context` 只在平台入口传给 Koin，`AndroidAppInfo` 和 `AndroidSystemToast` 仅保存 application context；ViewModel 不依赖平台 `Context`。
 
-关于应用页面同样复用组合根的 `AppInfo`。宿主将版本名称与原始字符串构建号映射为 `AboutAppInfo`，通过 `AboutEntry` 传入 Feature；缺失值显示本地化“未知”。iOS 构建号展示保留 `CFBundleVersion` 原值，启动初始化的数值版本语义不变。共享品牌图标与名称由 `core:theme` 的 `AppIcon` / `appName` 提供，不向 Feature 暴露内部生成资源。设置页只发送 `SettingsResult.OpenAbout`，经 main 的宿主回调交给根导航。About 不要求登录，不带窗格标注；外壳隐藏导航套件，返回后保留设置 Tab 和滚动位置。页面按 `ContentWidth.Form` 单栏居中，滚动视口覆盖工具栏下方的全部可用宽度，左右留白与中间内容共用同一滚动状态；更新入口当前为“即将推出”的展示项，不注册点击或发起网络请求。
+关于应用页面同样复用组合根的 `AppInfo`。宿主将版本名称与原始字符串构建号映射为 `AboutAppInfo`，通过 `AboutEntry` 传入 Feature；缺失值显示本地化“未知”。iOS 构建号展示保留 `CFBundleVersion` 原值，启动初始化的数值版本语义不变。共享品牌图标与名称由 `core:theme` 的 `AppIcon` / `appName` 提供，不向 Feature 暴露内部生成资源。设置页只发送 `SettingsResult.OpenAbout`，经 main 的宿主回调交给根导航。About 不要求登录，不带窗格标注；外壳隐藏导航套件，返回后保留设置 Tab 和滚动位置。页面按 `ContentWidth.Form` 单栏居中，滚动视口覆盖工具栏下方的全部可用宽度，左右留白与中间内容共用同一滚动状态。手动更新由页面作用域的 AboutViewModel 管理；检查和新版内容使用匿名客户端，安装交接由 About 的 Android 实现负责。渠道与发布约定见 [手动检查更新](app-releases.md#手动检查更新)。
 
 应用组合根通过内部平台 `rememberSystemToast()` 装配 `SystemToast`。Android 使用 Koin 的 application-context 单例；iOS 每个 Compose 宿主创建并持有自己的 `IosSystemToast`，组合销毁时取消显示任务、关闭额外窗口。iOS Toast 从实际宿主视图的 `windowScene` 创建触摸穿透窗口，不枚举全局场景或读取主屏幕；根视图布局回调根据当前 bounds 与 safeAreaInsets 重新定位标签，支持窗口缩放与旋转。后台或未附着到场景的宿主不显示 Toast。全局 Toast 事件仍沿用应用的 SharedFlow 机制，多个活跃宿主可各自在自身窗口呈现；它不携带某个业务窗口的目标标识。
 
@@ -337,7 +337,7 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 - `AppDataStore` 只负责普通资料/设置的 JSON 序列化，不存储登录凭据。`UserModel` 不含 Token；`UserRepository.login(user, tokens)` 串行协调资料与凭据，`getTokens()` 仅供组合根网络适配使用，Token 不进入 UI State。
 - `core:data/impl/security/SecureTokenStore` 是内部契约：Android 用 Keystore AES/GCM 和随机 IV 加密整组账号凭据，经 `AtomicFile` 写入 `noBackupFilesDir`；iOS 用 Generic Password Keychain，`WhenUnlockedThisDeviceOnly`，不启用同步。永久密钥失效或损坏密文会清除凭据；临时访问失败不回退明文。登录态 Flow 保留最近状态并执行可取消重试；请求级 getTokens 仍抛出失败，不使用旧凭据兜底。
 - 旧 `user` JSON 首次访问时迁移，安全写入并读回确认后才移除明文 Token。退出先清除旧明文字段，再清除凭据并删除资料；账号与凭据不匹配时不公开登录态。认证客户端按请求读取当前凭据，通过组合根注入 `core:network` 创建的 HTTP 客户端。会话刷新、错误码解析与认证地址由 Notes 认证代码管理。认证端点未配置时，演示构建继续使用本地模拟会话。启用认证端点的构建使用 Notes 认证服务；第三方 Ktor 客户端不读取真实会话令牌。
-- 应用组合根直接注册 `NetworkModule`，并把构建提供的官网和认证 origin 分别注入 `NotesWebsite` 和 `AuthenticationConfig`。根导航用官网配置校验深链来源，账号会话和认证请求共用认证配置。「关于应用」使用独立的匿名客户端检查更新。
+- 应用组合根直接注册 `NetworkModule`，并把构建提供的官网、APK 下载和认证 origin 分别注入 `NotesWebsite` 和 `AuthenticationConfig`。根导航用官网配置校验深链来源，账号会话和认证请求共用认证配置。「关于应用」使用独立的匿名客户端检查更新。
 - `composeApp` 的 `AccountSession` 管理账号会话与按需刷新。`core:data` 继续负责平台安全存储和凭据的条件更新。普通请求可并行执行。服务端返回 `401 invalid_session` 时，暂停新请求并等待在途请求完成，再轮换凭据，避免旧 Token 在写入提交前失效。同一批旧 Token 请求共享刷新结果，只在同一会话内重发一次。轮换前将操作 ID 与原凭据一起原子写入安全存储。断线后沿用该 ID，在五分钟内可向服务端取回同一次结果。`403` 保留业务流程自己的处理，超时和连接失败不自动重发。认证失败诊断保留 HTTP 状态、业务码和 `X-Request-Id`，不记录请求正文或凭据。
 - 生物识别解锁设置随本机会话资料保存，旧资料和新登录默认关闭。设置入口通过 `SettingsResult` 请求根层验证；Android 与 iOS 宿主发起系统设备验证，支持设备锁屏凭据回退。启动时组合根等待本进程首次确认会话；有锁定会话时仅显示解锁页，导航、待处理深链和更新提示等验证成功再恢复。授权只保留在进程内，退出会话时清除。保护范围是应用内访问，Room 和 Token 存储沿用现有机制。
 - 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。所有 Android 和 iOS 构建默认连接 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey，认证配置独立于应用更新渠道。Passkey 入口还要求平台支持，实际使用需要签名应用与认证域名建立关联。注册发码时拒绝已注册邮箱。用户使用已验证邮箱和密码或 Passkey 登录。Passkey 登录挑战绑定当前邮箱和账户 UUID，凭据及本地数据仍以稳定的账户 UUID 标识，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。

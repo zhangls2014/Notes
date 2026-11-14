@@ -2,7 +2,9 @@ package me.zhangls.about
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import kotlinx.io.IOException
 import kotlinx.serialization.Serializable
@@ -10,11 +12,18 @@ import kotlinx.serialization.json.Json
 import me.zhangls.about.api.NotesWebsite
 import me.zhangls.framework.AppInfo
 
-private const val IOS_CHANNEL = "ios-app-store"
-private val androidChannels = setOf("android-prd-full", "android-prd-mainland")
+internal const val MAINLAND_UPDATE_CHANNEL = "android-prd-mainland"
+internal const val GLOBAL_UPDATE_CHANNEL = "android-prd-global"
+internal val androidUpdateChannels = setOf(GLOBAL_UPDATE_CHANNEL, MAINLAND_UPDATE_CHANNEL)
+
+internal fun publishedAndroidChannel(region: String?): String? = when (region) {
+  "mainland", MAINLAND_UPDATE_CHANNEL -> MAINLAND_UPDATE_CHANNEL
+  "global", GLOBAL_UPDATE_CHANNEL -> GLOBAL_UPDATE_CHANNEL
+  else -> null
+}
+
 private val versionPattern = Regex("""(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)""")
-private val buildPattern = Regex("""[1-9]\d*(\.\d+){0,2}""")
-private val appStoreUrl = Regex("""https://apps\.apple\.com/(?:[a-z]{2}/)?app/(?:[\w-]+/)?id\d+""")
+private val buildPattern = Regex("""[1-9]\d*""")
 private val updateJson = Json { ignoreUnknownKeys = true }
 
 @Serializable
@@ -31,19 +40,12 @@ internal suspend fun checkAvailableUpdate(
   channel: String,
   site: NotesWebsite,
 ): UpdateManifest? {
-  require(channel == IOS_CHANNEL || channel in androidChannels)
-  val body = try {
-    val response = client.get("${site.origin}/updates/v1/$channel.json")
-    if (!response.status.isSuccess()) throw UpdateCheckException(UpdateFailure.Http, response.status.value)
-    response.bodyAsText()
-  } catch (_: IOException) {
-    throw UpdateCheckException(UpdateFailure.Transport)
-  }
+  require(channel in androidUpdateChannels)
+  val body = fetchManifest(client, "${site.origin}/updates/v1/$channel.json")
   return try {
     availableUpdate(
       updateJson.decodeFromString<UpdateManifest>(body),
       channel,
-      appInfo.getVersionName(),
       requireNotNull(appInfo.getBuildNumber()),
       site,
     )
@@ -52,45 +54,42 @@ internal suspend fun checkAvailableUpdate(
   }
 }
 
+private suspend fun fetchManifest(client: HttpClient, url: String): String = try {
+  val response = client.get(url) { header(HttpHeaders.CacheControl, "no-cache") }
+  if (!response.status.isSuccess()) throw UpdateCheckException(UpdateFailure.Http, response.status.value)
+  response.bodyAsText()
+} catch (_: IOException) {
+  throw UpdateCheckException(UpdateFailure.Transport)
+}
+
 internal fun availableUpdate(
   manifest: UpdateManifest,
   channel: String,
-  currentVersion: String,
   currentBuild: String,
   site: NotesWebsite,
 ): UpdateManifest? {
-  require(manifest.channel == channel && versionPattern.matches(manifest.version))
-  val newer = when (channel) {
-    in androidChannels -> {
-      val expectedUrl = "${site.origin}/downloads/android/$channel/${manifest.build}/"
-      require(manifest.updateUrl == expectedUrl)
-      require('.' !in manifest.build && '.' !in currentBuild)
-      compareBuilds(manifest.build, currentBuild) > 0
-    }
-
-    IOS_CHANNEL -> {
-      require(appStoreUrl.matches(manifest.updateUrl) && versionPattern.matches(currentVersion))
-      val buildOrder = compareBuilds(manifest.build, currentBuild)
-      val versionOrder = compareNumbers(manifest.version, currentVersion)
-      versionOrder > 0 || (versionOrder == 0 && buildOrder > 0)
-    }
-
-    else -> error("Unknown release channel")
+  require(channel in androidUpdateChannels && manifest.channel == channel)
+  require(versionPattern.matches(manifest.version))
+  require(buildPattern.matches(manifest.build) && buildPattern.matches(currentBuild))
+  val expectedUrl = if (channel == MAINLAND_UPDATE_CHANNEL) {
+    "${site.origin}/downloads/android/$channel/${manifest.build}/"
+  } else {
+    "${site.origin}/releases/#v${manifest.version}"
   }
-  return manifest.takeIf { newer }
+  require(manifest.updateUrl == expectedUrl)
+  return manifest.takeIf { requireNotNull(it.build.toIntOrNull()) > requireNotNull(currentBuild.toIntOrNull()) }
 }
 
-private fun compareBuilds(left: String, right: String): Int {
-  require(buildPattern.matches(left) && buildPattern.matches(right))
-  return compareNumbers(left, right)
-}
-
-private fun compareNumbers(left: String, right: String): Int {
-  val a = left.split('.').map { requireNotNull(it.toIntOrNull()) }
-  val b = right.split('.').map { requireNotNull(it.toIntOrNull()) }
-  for (index in 0 until maxOf(a.size, b.size)) {
-    val order = a.getOrElse(index) { 0 }.compareTo(b.getOrElse(index) { 0 })
-    if (order != 0) return order
+internal suspend fun loadPublishedUpdateNotes(client: HttpClient, site: NotesWebsite, version: String): AppRelease? =
+  try {
+    val response = client.get("${site.origin}/releases/published.json")
+    if (response.status.isSuccess()) {
+      parseReleases(response.bodyAsText()).forPlatform("android").find { it.version == version && it.date != null }
+    } else {
+      null
+    }
+  } catch (_: IOException) {
+    null
+  } catch (_: IllegalArgumentException) {
+    null
   }
-  return 0
-}

@@ -179,7 +179,7 @@ Debug 和 Release 始终使用正式签名配置，构建前必须补全上述�
 ./gradlew :composeApp:iosSimulatorArm64Test :core:data:iosSimulatorArm64Test
 
 # Android 静态检查
-./gradlew :androidApp:lintDevFullDebug
+./gradlew :androidApp:lintDevGlobalDebug
 ```
 
 KMP 约定插件通过 `withHostTest {}` 为共享模块启用 `testAndroidHostTest`，可在宿主 JVM 运行 `commonTest` 与 `androidHostTest`；`iosTest` 仍通过 iOS target 执行。按修改范围选择模块，不依赖统一的根 `test` task。源码分布、导航定向回归与检查命令见 [测试指南](docs/testing/README.md)，更多硬约束和 OOM 参数见 [AGENTS.md](AGENTS.md)。

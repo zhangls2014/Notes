@@ -1,8 +1,60 @@
 [
   {
-    "version": "1.1.3",
+    "version": "1.1.5",
     "date": null,
     "changes": [
+      {
+        "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "Checking during a background download shows its status or lets you switch to a newer update.",
+          "zh": "后台下载期间再次检查，可查看下载状态或切换到更新的版本。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android"],
+        "text": {
+          "en": "The mainland edition prompts you to install the update when the background download finishes.",
+          "zh": "中国大陆版在后台下载完成后会弹窗提示安装。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android"],
+        "text": {
+          "en": "Update checks are available in development builds of both Android editions.",
+          "zh": "Android 的 mainland 和 global 开发构建均可检查更新。"
+        }
+      }
+    ]
+  },
+  {
+    "version": "1.1.4",
+    "date": "2026-11-14",
+    "changes": [
+      {
+        "type": "improved",
+        "platforms": ["android"],
+        "text": {
+          "en": "The mainland edition downloads updates in the background and lets you choose when to install them.",
+          "zh": "中国大陆版支持在后台下载更新，下载完成后可按需安装。"
+        }
+      }
+    ]
+  },
+  {
+    "version": "1.1.3",
+    "date": "2026-11-14",
+    "changes": [
+      {
+        "type": "added",
+        "platforms": ["android"],
+        "text": {
+          "en": "Check for updates in About and see what’s new. The mainland edition can download and install updates.",
+          "zh": "可在关于应用中检查更新并查看新版内容，中国大陆版支持下载安装。"
+        }
+      },
       {
         "type": "improved",
         "platforms": ["android", "ios"],

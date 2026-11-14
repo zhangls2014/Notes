@@ -42,7 +42,7 @@ import org.koin.plugin.module.dsl.startKoin
 @ComponentScan("me.zhangls.entry")
 class NotesModule {
   @Single
-  fun notesWebsite(): NotesWebsite = NotesWebsite(BuildKonfig.SITE_BASE_URL)
+  fun notesWebsite(): NotesWebsite = NotesWebsite(BuildKonfig.SITE_BASE_URL, BuildKonfig.APK_BASE_URL)
 
   @Single
   fun authenticationConfig(): AuthenticationConfig =

@@ -48,13 +48,13 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenRel
   val releases by viewModel.releases.collectAsStateWithLifecycle()
   val updateStatus by viewModel.updateStatus.collectAsStateWithLifecycle()
   val checkForUpdates = { viewModel.sendIntent(AboutIntent.CheckForUpdates) }
-  if (updateStatus != UpdateStatus.Idle) {
-    UpdateCheckDialog(
-      updateStatus,
-      onDismiss = { viewModel.sendIntent(AboutIntent.DismissUpdateResult) },
-      onRetry = checkForUpdates,
-    )
-  }
+  val checking = updateStatus == UpdateStatus.Checking
+  UpdateCheckDialog(
+    updateStatus,
+    onDismiss = { viewModel.sendIntent(AboutIntent.DismissUpdateResult) },
+    onRetry = checkForUpdates,
+    onUpdateAction = { viewModel.sendIntent(AboutIntent.UpdateAction) },
+  )
   val layoutDirection = LocalLayoutDirection.current
   Scaffold(topBar = {
     CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBack)
@@ -86,7 +86,8 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenRel
           expanded = state.isVersionInfoExpanded,
           onToggleVersionInfo = { viewModel.sendIntent(AboutIntent.ToggleVersionInfo) },
           onOpenReleaseHistory = onOpenReleaseHistory,
-          canCheckForUpdates = viewModel.updateChannel != null,
+          canCheckForUpdates = viewModel.canCheckForUpdates,
+          checking = checking,
           onCheckForUpdates = checkForUpdates,
         )
         val noticesShape = MaterialTheme.shapes.extraLarge

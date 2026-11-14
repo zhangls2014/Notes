@@ -15,7 +15,8 @@ function httpsOrigin(value) {
   return url.origin
 }
 const channels = {
-  'android-prd-full': 'android',
+  'android-prd-full': 'android', // Historical APK links only.
+  'android-prd-global': 'android',
   'android-prd-mainland': 'android',
   'ios-app-store': 'ios',
 }
@@ -89,17 +90,23 @@ export function validatePublishedBuilds(releases, builds, downloadOrigin = defau
     const key = `${channel}/${build}`
     requireValue(!seen.has(key), `Duplicate build: ${key}`)
     seen.add(key)
-    const last = previous.get(channel)
+    const releaseChannel = channel === 'android-prd-full' ? 'android-prd-global' : channel
+    const last = previous.get(releaseChannel)
     requireValue(!last || (compareNumbers(version, last.version) >= 0 && compareNumbers(build, last.build) > 0),
       `Builds must be appended in release order: ${key}`)
-    previous.set(channel, entry)
+    previous.set(releaseChannel, entry)
 
+    if (channel === 'android-prd-global') {
+      requireValue(artifactUrl === undefined, 'Global builds do not distribute APKs')
+      continue
+    }
     const url = new URL(artifactUrl)
     const validArtifact = android
       ? url.origin === apkOrigin &&
         url.pathname.startsWith(`/${channel}/${build}/`) &&
         /^[\w.-]+\.apk$/.test(url.pathname.split('/').at(-1)) &&
-        url.pathname.split('/').length === 4
+        url.pathname.split('/').length === 4 &&
+        (channel !== 'android-prd-mainland' || url.pathname === `/${channel}/${build}/Notes-${version}-mainland.apk`)
       : url.origin === 'https://apps.apple.com' && /^\/(?:[a-z]{2}\/)?app\/(?:[\w-]+\/)?id\d+$/.test(url.pathname)
     requireValue(validArtifact && !url.username && !url.password && !url.search && !url.hash,
       `Invalid artifact URL for ${key}`)
@@ -253,27 +260,34 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
   validatePublishedBuilds(releases, builds, origins.apkOrigin)
   const files = new Map()
   const current = new Map()
-  for (const entry of builds) current.set(entry.channel, entry)
+  for (const entry of builds) {
+    const channel = entry.channel === 'android-prd-full' ? 'android-prd-global' : entry.channel
+    current.set(channel, entry)
+  }
+  const downloadable = [...current.values()].filter(entry => entry.artifactUrl)
   files.set('index.html', page('Notes', `<h1>Notes</h1><p>${bilingual('适用于 Android 和 iOS。', 'Available for Android and iOS.')}</p>`))
   const published = releases.filter(release => release.date !== null)
     .sort((a, b) => compareNumbers(b.version, a.version))
   files.set('releases/index.html', releasePage(published))
+  files.set('releases/published.json', JSON.stringify(published) + '\n')
   const empty = `<p>${bilingual('暂无已发布构建。', 'No published builds yet.')}</p>`
-  files.set('downloads/index.html', page('Downloads', `<h1>${downloads}</h1>${current.size ?
-    `<ul>${[...current.values()].map(entry => `<li><a href="${channels[entry.channel] === 'android' ?
+  files.set('downloads/index.html', page('Downloads', `<h1>${downloads}</h1>${downloadable.length ?
+    `<ul>${downloadable.map(entry => `<li><a href="${channels[entry.channel] === 'android' ?
       `/${download(entry)}` : escape(entry.artifactUrl)}">${entry.channel} · ${entry.version}</a></li>`).join('')}</ul>` : empty}`))
   files.set('open-source/index.html', page('Open-source notices', `<h1>${notices}</h1>
 <ul>${Object.entries(platforms).map(([platform, label]) =>
     `<li><a data-notice-link href="/open-source/${platform}.html">${label}</a></li>`).join('')}</ul>`))
   addLegacyNoticeRedirects(files)
   for (const entry of builds) {
-    if (channels[entry.channel] !== 'android') continue
+    if (channels[entry.channel] !== 'android' || !entry.artifactUrl) continue
     files.set(`${download(entry)}index.html`, page('Android download', `<h1>Notes ${entry.version}</h1>
 <p>${entry.channel} · ${entry.build}</p><a href="${escape(entry.artifactUrl)}">${bilingual('下载 APK', 'Download APK')}</a>
 <p><a href="/releases/#v${entry.version}">${history}</a></p>`))
   }
-  for (const { channel, version, build, artifactUrl } of current.values()) {
-    const updateUrl = channels[channel] === 'android' ? `${origin}/${download({ channel, build })}` : artifactUrl
+  for (const [channel, { version, build, artifactUrl }] of current) {
+    const updateUrl = channel === 'android-prd-global' ? `${origin}/releases/#v${version}`
+      : channel === 'android-prd-mainland' ? `${origin}/${download({ channel, build })}`
+      : artifactUrl
     files.set(`updates/v1/${channel}.json`, JSON.stringify({ channel, version, build, updateUrl }) + '\n')
   }
   files.set('404.html', page('Page not found', `<h1>${bilingual('找不到此页面', 'Page not found')}</h1>`))
@@ -313,7 +327,7 @@ async function main() {
     }
   }
   for (const [path, content] of files) {
-    const output = join(webRoot, 'dist', path)
+    const output = join(process.env.NOTES_WEB_OUTPUT_DIR ?? join(webRoot, 'dist'), path)
     await mkdir(dirname(output), { recursive: true })
     await writeFile(output, content)
   }

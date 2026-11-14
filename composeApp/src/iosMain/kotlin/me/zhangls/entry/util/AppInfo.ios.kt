@@ -9,10 +9,6 @@ class IosAppInfo : AppInfo {
   override fun getVersionName(): String =
     (NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String).orEmpty()
 
-  override fun getUpdateChannel(): String? =
-    (NSBundle.mainBundle.objectForInfoDictionaryKey("NotesUpdateChannel") as? String)
-      ?.takeIf { it == "ios-app-store" }
-
   override fun getVersionCode(): Long = getBuildNumber()?.toLongOrNull() ?: 0L
 
   override fun getBuildNumber(): String? = NSBundle.mainBundle.infoDictionary?.get("CFBundleVersion") as? String

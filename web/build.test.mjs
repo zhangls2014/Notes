@@ -18,6 +18,7 @@ test('public history is bilingual, ordered and excludes unpublished records', ()
   assert.match(html, /修复/)
   assert.match(html, /&lt;Fixed&gt;/)
   assert.doesNotMatch(html, /2\.0\.0/)
+  assert.deepEqual(JSON.parse(site.get('releases/published.json')).map(item => item.version), ['1.10.0', '1.9.0'])
 })
 
 test('a manifest must refer to a published release and an approved artifact host', () => {
@@ -30,15 +31,17 @@ test('a manifest must refer to a published release and an approved artifact host
     artifactUrl: 'https://downloads.zhangls.me/android-prd-full/5/Notes.apk',
   }
   const site = buildSite([release], [build])
-  assert.deepEqual(JSON.parse(site.get('updates/v1/android-prd-full.json')), {
-    channel: build.channel, version: build.version, build: build.build,
-    updateUrl: 'https://notes.zhangls.me/downloads/android/android-prd-full/5/',
+  assert.equal(site.has('updates/v1/android-prd-full.json'), false)
+  assert.deepEqual(JSON.parse(site.get('updates/v1/android-prd-global.json')), {
+    channel: 'android-prd-global', version: build.version, build: build.build,
+    updateUrl: 'https://notes.zhangls.me/releases/#v1.10.0',
   })
+  assert.deepEqual(JSON.parse(site.get('releases/published.json')), [release])
   const origins = { siteOrigin: 'https://site.example.test/', apkOrigin: 'https://apk.example.test/' }
   const custom = { ...build, artifactUrl: 'https://apk.example.test/android-prd-full/5/Notes.apk' }
   const customSite = buildSite([release], [custom], origins)
-  assert.equal(JSON.parse(customSite.get('updates/v1/android-prd-full.json')).updateUrl,
-    'https://site.example.test/downloads/android/android-prd-full/5/')
+  assert.equal(JSON.parse(customSite.get('updates/v1/android-prd-global.json')).updateUrl,
+    'https://site.example.test/releases/#v1.10.0')
   assert.match(customSite.get('downloads/android/android-prd-full/5/index.html'), /https:\/\/apk\.example\.test\//)
   assert.throws(() => buildSite([release], [build], origins))
   assert.throws(() => buildSite([release], [custom], { ...origins, siteOrigin: 'http://site.example.test' }))
@@ -62,7 +65,7 @@ test('release history and the notice index link to shared notices', () => {
     },
     {
       channel: 'android-prd-mainland', version: '1.2.0', build: '5',
-      artifactUrl: 'https://downloads.zhangls.me/android-prd-mainland/5/Notes.apk',
+      artifactUrl: 'https://downloads.zhangls.me/android-prd-mainland/5/Notes-1.2.0-mainland.apk',
     },
     {
       channel: 'ios-app-store', version: '1.2.0', build: '6',
@@ -102,4 +105,19 @@ test('only previously published notice URLs forward to the current page', () => 
     })
     assert.equal(redirected, target + suffix)
   }
+})
+
+test('global can announce a release without distributing an APK', () => {
+  const release = {
+    version: '1.2.0', date: '2026-11-01',
+    changes: [{ type: 'fixed', platforms: ['android'], text: { zh: '修复', en: 'Fixed' } }],
+  }
+  const build = { channel: 'android-prd-global', version: release.version, build: '6' }
+  const site = buildSite([release], [build])
+  assert.equal(JSON.parse(site.get('updates/v1/android-prd-global.json')).build, '6')
+  assert.equal(site.has('downloads/android/android-prd-global/6/index.html'), false)
+  assert.throws(() => buildSite([release], [{
+    ...build, channel: 'android-prd-mainland',
+    artifactUrl: 'https://downloads.zhangls.me/android-prd-mainland/6/wrong.apk',
+  }]))
 })

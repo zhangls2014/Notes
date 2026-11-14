@@ -32,13 +32,13 @@ Notes 是 Kotlin Multiplatform 应用，使用 Compose Multiplatform、Navigatio
 ./gradlew :composeApp:testAndroidHostTest --tests '*AdaptiveUiTest*'
 
 # Android lint；根 detekt 无源集，不作为有效检查；按模块运行 detekt
-./gradlew :androidApp:lintDevFullDebug
+./gradlew :androidApp:lintDevGlobalDebug
 ./gradlew :feature:profile:detekt
 
 # Kotlin 语义分析（需 JDK 25；KMP 的 Android compilation 使用编译 classpath）
 ./gradlew detektMainAndroid detektHostTestAndroid
-./gradlew :androidApp:detektDevFullDebug :androidApp:detektDevFullDebugUnitTest
-./gradlew :androidApp:detektDevFullDebugAndroidTest
+./gradlew :androidApp:detektDevGlobalDebug :androidApp:detektDevGlobalDebugUnitTest
+./gradlew :androidApp:detektDevGlobalDebugAndroidTest
 
 # 实验性 Fused Library
 ./gradlew :android:output:login:assemble
