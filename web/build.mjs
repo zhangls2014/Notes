@@ -107,7 +107,7 @@ export function validatePublishedBuilds(releases, builds, downloadOrigin = defau
 }
 
 const bilingual = (zh, en) => `<span lang="zh-Hans" data-lang="zh">${zh}</span><span lang="en" data-lang="en">${en}</span>`
-const history = bilingual('历史更新', 'Release history')
+const history = bilingual('更新日志', 'Release notes')
 const notices = bilingual('开源声明', 'Open-source notices')
 const downloads = bilingual('下载', 'Downloads')
 const styles = `
@@ -127,8 +127,7 @@ html[lang=en] [data-lang=zh], html[lang=zh-Hans] [data-lang=en] { display: none 
 const controls = `<script>
 const params = new URLSearchParams(location.search)
 const language = document.querySelector('#language')
-language.value = ['zh', 'en'].includes(params.get('lang'))
-  ? params.get('lang') : (navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en')
+language.value = /^zh(?:-|$)/i.test(params.get('lang') || navigator.language) ? 'zh' : 'en'
 function setLanguage() {
   document.documentElement.lang = language.value === 'zh' ? 'zh-Hans' : 'en'
   for (const link of document.querySelectorAll('nav a, [data-notice-link]')) {
@@ -144,26 +143,89 @@ language.addEventListener('change', () => {
   url.searchParams.set('lang', language.value)
   window.history.replaceState(null, '', url)
 })
-const platform = document.querySelector('#platform')
-platform?.addEventListener('change', () => {
-  for (const change of document.querySelectorAll('[data-platforms]')) {
-    change.hidden = platform.value !== 'all' && !change.dataset.platforms.split(' ').includes(platform.value)
-  }
-  for (const section of document.querySelectorAll('article section, article')) {
-    section.hidden = !section.querySelector('[data-platforms]:not([hidden])')
-  }
-})
 </script>`
 
-function page(title, body) {
+function page(title, body, pageStyles = '', pageScript = '') {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · Notes</title><style>${styles}</style></head><body>
+<title>${title} · Notes</title><style>${styles}${pageStyles}</style></head><body>
 <nav aria-label="Notes"><a href="/">Notes</a><a href="/downloads/">${downloads}</a>
 <a href="/releases/">${history}</a><a href="/open-source/">${notices}</a>
 <select id="language" aria-label="Language / 语言"><option value="zh">简体中文</option><option value="en">English</option></select></nav>
-<main>${body}</main>${controls}</body></html>
+<main>${body}</main>${controls}${pageScript}</body></html>
 `
+}
+
+const releaseStyles = `
+body { background: var(--bg, Canvas); color: var(--fg, CanvasText); padding: clamp(1rem, 4vw, 2rem); }
+html[data-theme=light] { color-scheme: light }
+html[data-theme=dark] { color-scheme: dark }
+html[data-embed] nav, html[data-embed] h1 { display: none }
+[hidden] { display: none !important }
+main { overflow-wrap: anywhere }
+.release-platform { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-block: 1rem }
+.release-platform select { min-height: 44px; max-width: 100%; background: var(--container, Field);
+  color: var(--on-container, FieldText); border: 1px solid var(--line, GrayText); border-radius: .5rem }
+article { background: var(--card, Canvas); border-color: var(--line, GrayText); padding: clamp(.75rem, 4vw, 1.5rem) }
+article ul { padding-inline-start: 1.35em }
+article a, nav a { color: var(--accent, LinkText) }
+article time { color: var(--muted, GrayText) }
+`
+
+const releaseControls = `<script>
+{
+  const root = document.documentElement
+  const url = new URL(location.href)
+  const query = url.searchParams
+  const theme = query.get('theme')
+  const scale = Number(query.get('fontScale'))
+  if (theme === 'light' || theme === 'dark') root.dataset.theme = theme
+  if (Number.isFinite(scale) && scale > 0) root.style.fontSize = (scale * 100) + '%'
+  if (query.get('embed') === '1') root.dataset.embed = ''
+  const colors = ['bg', 'card', 'fg', 'muted', 'line', 'accent', 'container', 'on-container']
+  for (const key of colors) {
+    const value = query.get(key)
+    if (/^[a-f0-9]{6}$/i.test(value || '')) root.style.setProperty('--' + key, '#' + value)
+  }
+  const selector = document.querySelector('#platform')
+  const requestedPlatform = query.get('platform')
+  const appleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  selector.value = requestedPlatform === 'ios' || requestedPlatform === 'android'
+    ? requestedPlatform : appleMobile ? 'ios' : 'android'
+  const entries = document.querySelectorAll('[data-platforms]')
+  const sections = document.querySelectorAll('article section')
+  const articles = document.querySelectorAll('article')
+  function filter() {
+    for (const entry of entries) entry.hidden = !entry.dataset.platforms.split(' ').includes(selector.value)
+    for (const section of sections) section.hidden = !section.querySelector('[data-platforms]:not([hidden])')
+    for (const article of articles) article.hidden = !article.querySelector('[data-release-change]:not([hidden])')
+    document.querySelector('#release-empty').hidden = [...articles].some(article => !article.hidden)
+  }
+  filter()
+  selector.addEventListener('change', () => {
+    const current = new URL(location.href)
+    current.searchParams.set('platform', selector.value)
+    window.history.replaceState(null, '', current)
+    filter()
+  })
+  for (const link of document.querySelectorAll('[data-notice-link]')) {
+    const target = new URL(link.href)
+    for (const key of ['theme', 'fontScale', ...colors]) {
+      if (query.has(key)) target.searchParams.set(key, query.get(key))
+    }
+    link.href = target.href
+  }
+}
+</script>`
+
+function releasePage(releases, builds) {
+  return page('Release notes', `<h1>${history}</h1>
+<div class="release-platform"><label for="platform">${bilingual('平台', 'Platform')}</label>
+<select id="platform"><option value="android">Android</option><option value="ios">iOS</option></select></div>
+${releases.map(release => releaseCard(release, builds)).join('')}
+<p id="release-empty"${releases.length ? ' hidden' : ''}>${bilingual('暂无已发布记录。', 'No published release notes yet.')}</p>`,
+  releaseStyles, releaseControls)
 }
 
 function releaseCard({ version, date, changes }, builds) {
@@ -171,8 +233,7 @@ function releaseCard({ version, date, changes }, builds) {
     const entries = changes.filter(change => change.type === type)
     if (!entries.length) return ''
     return `<section><h3>${bilingual(label.zh, label.en)}</h3><ul>${entries.map(change =>
-      `<li data-platforms="${change.platforms.join(' ')}">${bilingual(escape(change.text.zh), escape(change.text.en))}
-      <small>${change.platforms.map(platform => platforms[platform]).join(' / ')}</small></li>`).join('')}</ul></section>`
+      `<li data-release-change data-platforms="${change.platforms.join(' ')}">${bilingual(escape(change.text.zh), escape(change.text.en))}</li>`).join('')}</ul></section>`
   }).join('')
   const archivedBuilds = builds.filter(build => build.version === version)
   const noticeSection = archivedBuilds.length
@@ -198,10 +259,7 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
   files.set('index.html', page('Notes', `<h1>Notes</h1><p>${bilingual('适用于 Android 和 iOS。', 'Available for Android and iOS.')}</p>`))
   const published = releases.filter(release => release.date !== null)
     .sort((a, b) => compareNumbers(b.version, a.version))
-  files.set('releases/index.html', page('Release history', `<h1>${history}</h1>
-<label for="platform">${bilingual('平台', 'Platform')}</label>
-<select id="platform"><option value="all">All / 全部</option><option value="android">Android</option><option value="ios">iOS</option></select>
-${published.map(release => releaseCard(release, builds)).join('') || `<p>${bilingual('暂无已发布记录。', 'No published release notes yet.')}</p>`}`))
+  files.set('releases/index.html', releasePage(published, builds))
   const empty = `<p>${bilingual('暂无已发布构建。', 'No published builds yet.')}</p>`
   files.set('downloads/index.html', page('Downloads', `<h1>${downloads}</h1>${current.size ?
     `<ul>${[...current.values()].map(entry => `<li><a href="${channels[entry.channel] === 'android' ?

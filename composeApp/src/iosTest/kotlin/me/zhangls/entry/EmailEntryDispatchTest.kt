@@ -122,11 +122,7 @@ class EmailEntryDispatchTest {
         { login.Screen(onLoginResult = {}) },
         { settings.Screen {} },
         { profile.Screen(onBack = {}) },
-        {
-          me.zhangls.theme.layout.ProvideWindowAdaptiveInfo(androidx.window.core.layout.WindowSizeClass(840, 900)) {
-            about.ReleaseHistoryScreen(onBack = {})
-          }
-        },
+        { about.ReleaseHistoryScreen(onBack = {}) },
         { about.OnlineNoticesScreen(detail = null, onBack = {}, onOpenDetail = {}) },
         { about.OnlineNoticesScreen(detail = OnlineNoticeDetailDestination("license-MIT"), onBack = {}, onOpenDetail = {}) },
         { about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = {}) },

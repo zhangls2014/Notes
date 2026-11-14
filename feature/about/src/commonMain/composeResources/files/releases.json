@@ -4,6 +4,14 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "View published release notes in the app with Android and iOS filters.",
+          "zh": "在应用内查看官网更新日志，可切换 Android 和 iOS。"
+        }
+      },
+      {
         "type": "fixed",
         "platforms": ["android"],
         "text": {

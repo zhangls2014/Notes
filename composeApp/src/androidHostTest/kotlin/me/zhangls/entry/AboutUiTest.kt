@@ -1,5 +1,9 @@
 package me.zhangls.entry
 
+import android.net.Uri
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.adaptive.Posture
@@ -8,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -32,6 +37,7 @@ import me.zhangls.about.api.AboutEntry
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -40,6 +46,7 @@ import org.junit.runner.RunWith
 import org.koin.compose.koinInject
 import org.koin.core.context.stopKoin
 import org.robolectric.ParameterizedRobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -73,9 +80,12 @@ class AboutUiTest(private val scenario: Scenario) {
     stopKoin()
   }
 
+  private lateinit var rootView: View
+
   private fun launch(info: AboutAppInfo) {
     provideAboutAppInfo(info)
     compose.setContent {
+      rootView = LocalView.current.rootView
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
         ProvideWindowAdaptiveInfo(
           WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(scenario.width, scenario.height),
@@ -95,28 +105,40 @@ class AboutUiTest(private val scenario: Scenario) {
     }
   }
 
-  @Test fun releaseHistoryPageOpensOfflineAndReturns() {
+  @Test fun releaseNotesLoadConfiguredWebsiteAndReturn() {
     launch(AboutAppInfo("1.1.0", "2"))
     compose.onNodeWithText("Release notes").assertDoesNotExist()
-    compose.onNodeWithText("View update history").assertDoesNotExist()
+    compose.onNodeWithText("View release notes").assertDoesNotExist()
     compose.onNodeWithText("Version").performScrollTo().performClick()
     compose.waitUntil(timeoutMillis = 10_000) {
       compose.onAllNodes(hasText("2026-10-30")).fetchSemanticsNodes().isNotEmpty()
     }
     assertReleaseChanges()
-    compose.onNodeWithText("View update history").performScrollTo().performClick()
+    compose.onNodeWithText("View release notes").performScrollTo().performClick()
     compose.onNodeWithText("Release notes").assertIsDisplayed()
     compose.onNodeWithText("About app").assertDoesNotExist()
-    compose.waitUntil(timeoutMillis = 10_000) {
-      compose.onAllNodes(hasText("1.1.2")).fetchSemanticsNodes().isNotEmpty()
+    compose.onNodeWithContentDescription("View in browser").assertDoesNotExist()
+    compose.runOnIdle {
+      val webView = requireNotNull(findWebView(rootView))
+      val url = Uri.parse(shadowOf(webView).lastLoadedUrl)
+      assertEquals(Uri.parse(BuildKonfig.SITE_BASE_URL).authority, url.authority)
+      assertEquals("/releases/", url.path)
+      assertEquals("android", url.getQueryParameter("platform"))
+      assertEquals("1", url.getQueryParameter("embed"))
+      assertEquals(scenario.fontScale.toString(), url.getQueryParameter("fontScale"))
+      assertEquals(if (scenario.dark) "dark" else "light", url.getQueryParameter("theme"))
     }
-    compose.onNodeWithContentDescription("View in browser").assertIsDisplayed()
-    compose.onNodeWithText("1.1.2").assertIsDisplayed()
     compose.onNodeWithContentDescription("Back").performClick()
     compose.onNodeWithText("Release notes").assertDoesNotExist()
     compose.onNodeWithText("Version").performScrollTo().performClick()
-    compose.onNodeWithText("View update history").assertDoesNotExist()
+    compose.onNodeWithText("View release notes").assertDoesNotExist()
     compose.onNodeWithText("Update contents").assertDoesNotExist()
+  }
+
+  private fun findWebView(view: View): WebView? = when (view) {
+    is WebView -> view
+    is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { findWebView(view.getChildAt(it)) }
+    else -> null
   }
 
   private fun assertReleaseChanges() {
@@ -141,7 +163,7 @@ class AboutUiTest(private val scenario: Scenario) {
     }
     compose.onNodeWithText("No release notes for this version.").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("View release notes offline from About app.", substring = true).assertDoesNotExist()
-    compose.onNodeWithText("View update history").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("View release notes").performScrollTo().assertIsDisplayed()
   }
 
   @Test fun noticesOpenAnInAppPage() {
