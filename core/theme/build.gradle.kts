@@ -1,3 +1,5 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 plugins {
   id("me.zhangls.kmp-library")
   id("me.zhangls.kmp-compose")
@@ -5,14 +7,17 @@ plugins {
 }
 
 kotlin {
+  wasmJs { browser() }
+
   sourceSets {
+    androidMain.dependencies { implementation(kmp.coil.network.ktor) }
+    iosMain.dependencies { implementation(kmp.coil.network.ktor) }
     commonTest {
       dependencies { implementation(kmp.kotlin.test) }
     }
     commonMain {
       dependencies {
         implementation(kmp.coil.compose)
-        implementation(kmp.coil.network.ktor)
         // 窗口形态：WindowAdaptiveInfo / Posture 出现在本模块的公开 API 里
         // （LocalWindowAdaptiveInfo、ProvideWindowAdaptiveInfo），故用 api 传播给消费方。
         // 消费方因此不必各自声明 adaptive，也就不再可能各自调 currentWindowAdaptiveInfo*。

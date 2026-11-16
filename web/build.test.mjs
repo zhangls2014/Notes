@@ -75,6 +75,7 @@ test('release history and the notice index link to shared notices', () => {
   const site = buildSite(releases, builds)
   const html = site.get('releases/index.html')
   assert.deepEqual([...html.matchAll(/href="(\/open-source\/[^"]*)"/g)].map(match => match[1]), ['/open-source/'])
+  assert.doesNotMatch(html, /href="\/downloads\//)
   const index = site.get('open-source/index.html')
   assert.match(index, /href="\/open-source\/android\.html"/)
   assert.match(index, /href="\/open-source\/ios\.html"/)

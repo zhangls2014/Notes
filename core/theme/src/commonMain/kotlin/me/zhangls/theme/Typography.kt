@@ -5,7 +5,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 
 /** Emphasize headings and actions while preserving the body scale for reading. */
-internal val AppTypography = Typography(fontFamily = FontFamily.Default).let { base ->
+internal val AppTypography = appTypography(FontFamily.Default)
+
+internal fun appTypography(fontFamily: FontFamily): Typography = Typography(fontFamily = fontFamily).let { base ->
   // The compatibility no-argument constructor aliases emphasized styles to regular ones.
   base.copy(
     displayLarge = base.displayLargeEmphasized,

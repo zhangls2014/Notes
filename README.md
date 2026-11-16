@@ -21,6 +21,7 @@ Notes/
 ├── androidApp                  # Android 应用入口
 ├── iosApp                      # iOS Xcode 工程
 ├── composeApp                  # 共享应用入口、根导航和 Koin 组合根
+├── web                         # Compose Multiplatform 官网与发布文件生成
 ├── core/
 │   ├── model                   # 稳定的跨层值类型
 │   ├── database                # Room entity、DAO、迁移和建库

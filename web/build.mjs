@@ -1,4 +1,4 @@
-import { mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -152,11 +152,11 @@ language.addEventListener('change', () => {
 })
 </script>`
 
-function page(title, body, pageStyles = '', pageScript = '') {
+function page(title, body, pageStyles = '', pageScript = '', { showDownloads = true } = {}) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Notes</title><style>${styles}${pageStyles}</style></head><body>
-<nav aria-label="Notes"><a href="/">Notes</a><a href="/downloads/">${downloads}</a>
+<nav aria-label="Notes"><a href="/">Notes</a>${showDownloads ? `<a href="/downloads/">${downloads}</a>` : ''}
 <a href="/releases/">${history}</a><a href="/open-source/">${notices}</a>
 <select id="language" aria-label="Language / 语言"><option value="zh">简体中文</option><option value="en">English</option></select></nav>
 <main>${body}</main>${controls}${pageScript}</body></html>
@@ -225,7 +225,7 @@ function releasePage(releases) {
 <select id="platform"><option value="android">Android</option><option value="ios">iOS</option></select></div>
 ${releases.map(releaseCard).join('')}
 <p id="release-empty"${releases.length ? ' hidden' : ''}>${bilingual('暂无已发布记录。', 'No published release notes yet.')}</p>`,
-  releaseStyles, releaseControls)
+  releaseStyles, releaseControls, { showDownloads: false })
 }
 
 function releaseCard({ version, date, changes }) {
@@ -291,7 +291,7 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
     files.set(`updates/v1/${channel}.json`, JSON.stringify({ channel, version, build, updateUrl }) + '\n')
   }
   files.set('404.html', page('Page not found', `<h1>${bilingual('找不到此页面', 'Page not found')}</h1>`))
-  files.set('_headers', '/updates/v1/*\n  Cache-Control: no-cache\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n')
+  files.set('_headers', '/releases/published.json\n  Cache-Control: no-cache\n/updates/v1/*\n  Cache-Control: no-cache\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n')
   return files
 }
 
@@ -326,8 +326,23 @@ async function main() {
       files.set(`open-source/${file}`, await readFile(join(webRoot, 'open-source', file)))
     }
   }
+  const outputDir = process.env.NOTES_WEB_OUTPUT_DIR ?? join(webRoot, 'dist')
+  if (process.argv[2] === '--wasm') {
+    const distribution = process.argv[3]
+    requireValue(distribution, 'Expected the Wasm distribution directory')
+    await readFile(join(distribution, 'notes.js'))
+    await cp(distribution, outputDir, { recursive: true })
+    const data = JSON.stringify({ builds }).replaceAll('<', '\\u003c')
+    for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
+      files.set(path, files.get(path)
+        .replace('</head>', '<link rel="icon" href="/composeResources/me.zhangls.web.resources/drawable/notes_icon.png"></head>')
+        .replace('<body>', '<body><div id="notes-app" style="position:fixed;inset:0;visibility:hidden"></div><div id="notes-fallback">')
+        .replace('</body>', `</div><script type="application/json" id="notes-data">${data}</script>
+<script src="/notes.js" defer></script></body>`))
+    }
+  }
   for (const [path, content] of files) {
-    const output = join(process.env.NOTES_WEB_OUTPUT_DIR ?? join(webRoot, 'dist'), path)
+    const output = join(outputDir, path)
     await mkdir(dirname(output), { recursive: true })
     await writeFile(output, content)
   }

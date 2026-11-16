@@ -21,10 +21,10 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 ## 站点预览与绑定
 
-1. 从仓库根目录运行 `node --test web/build.test.mjs` 和 `node web/build.mjs`。使用全新检出目录构建，再用 `python3 -m http.server 8842 --bind 127.0.0.1 --directory web/dist` 预览。
-2. 获得 GitHub 连接和发布授权后，在 Cloudflare Pages 选择 Git 集成并授权 `zhangls2014/Notes`。生产分支设为 `pages-production`，预览分支启用 `master` 与需求分支。Framework preset 设为 None，仓库根目录为构建根，构建命令为 `node web/build.mjs`，输出目录为 `web/dist`。使用 Node.js 24。
+1. 从仓库根目录运行 `node --test web/build.test.mjs` 和 `./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite`。使用全新检出目录构建，再用 `python3 -m http.server 8842 --bind 127.0.0.1 --directory web/dist` 预览。
+2. 获得 GitHub 连接和发布授权后，在 Cloudflare Pages 选择 Git 集成并授权 `zhangls2014/Notes`。生产分支设为 `pages-production`，预览分支启用 `master` 与需求分支。Framework preset 设为 None，仓库根目录为构建根，构建命令为 `./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite`，输出目录为 `web/dist`。构建环境须能运行仓库的 Gradle Wrapper。
 3. 在生产环境配置 `NOTES_ANDROID_SIGNING_SHA256` 为分发 APK 签名证书的 SHA-256 指纹（32 组用冒号分隔的十六进制字节），`NOTES_IOS_APP_ID` 为签名应用的完整 Application Identifier（前缀加 Bundle ID）。需要预览关联文件时在预览环境设置一对相符的值。构建会生成 `/.well-known/assetlinks.json` 和 `/.well-known/apple-app-site-association`。
-4. 验收 `pages.dev` 上的构建。确认现有 DNS 归属和流量，再在 Pages 的 Custom domains 绑定 `notes.zhangls.me`。在 DNS 托管方核对目标为项目的 `pages.dev` 地址，确认 TLS 有效。两个关联文件必须以 HTTPS 直接返回 200 和 JSON。用正式签名包验收 `/home`、`/email`，联网账号的邮件深链仍需 `accountId`。
+4. 验收 `pages.dev` 上的构建。确认现有 DNS 归属和流量，再在 Pages 的 Custom domains 绑定 `notes.zhangls.me`。在 DNS 托管方核对目标为项目的 `pages.dev` 地址，确认 TLS 有效。两个关联文件必须以 HTTPS 直接返回 200 和 JSON。确认 Wasm 文件的 MIME 类型为 `application/wasm`，并检查 `/releases/published.json` 仅包含已发布版本。用正式签名包验收 `/home`、`/email`，联网账号的邮件深链仍需 `accountId`。
 5. 经授权把生产分支快进到已验收的 `master` 提交，由 Pages 自动部署该提交。构建与域名操作见 [GitHub 集成](https://developers.cloudflare.com/pages/configuration/git-integration/github-integration/) 和 [自定义域名](https://developers.cloudflare.com/pages/configuration/custom-domains/)。
 
 ## 登录源站

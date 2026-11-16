@@ -4,6 +4,14 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The Notes website adapts to different window sizes and lets you set the language, appearance, and text size.",
+          "zh": "摘星官网适配不同窗口尺寸，并支持设置语言、深色模式和字体大小。"
+        }
+      },
+      {
         "type": "fixed",
         "platforms": ["android"],
         "text": {

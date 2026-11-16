@@ -35,6 +35,20 @@ dependencyResolutionManagement {
         includeGroupAndSubgroups("com.google")
       }
     }
+    ivy {
+      name = "Kotlin Wasm Node.js distributions"
+      url = uri("https://nodejs.org/dist")
+      patternLayout { artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]") }
+      metadataSources { artifact() }
+      content { includeModule("org.nodejs", "node") }
+    }
+    ivy {
+      name = "Kotlin Wasm Binaryen distributions"
+      url = uri("https://github.com/WebAssembly/binaryen/releases/download")
+      patternLayout { artifact("version_[revision]/binaryen-version_[revision]-[classifier].[ext]") }
+      metadataSources { artifact() }
+      content { includeModule("com.github.webassembly", "binaryen") }
+    }
     mavenCentral()
   }
 
@@ -47,6 +61,7 @@ dependencyResolutionManagement {
 
 include(":androidApp")
 include(":composeApp")
+include(":web")
 include(":core:model")
 include(":core:database")
 include(":core:data")

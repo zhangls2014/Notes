@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
 
 /** The resolved theme, including app overrides and system-following mode. */
@@ -19,6 +20,7 @@ fun ComposeAppTheme(
   dynamicScheme: ColorScheme? = null,
   // 应用字号是相对系统设置的倍率，标准字号始终跟随系统。
   fontScale: Float = 1F,
+  fontFamily: FontFamily? = null,
   content: @Composable () -> Unit,
 ) {
   val colorScheme = when {
@@ -43,7 +45,7 @@ fun ComposeAppTheme(
     MaterialExpressiveTheme(
       colorScheme = colorScheme,
       motionScheme = MotionScheme.expressive(),
-      typography = AppTypography,
+      typography = if (fontFamily == null) AppTypography else appTypography(fontFamily),
       shapes = AppShapes,
       content = { ProvideAlertDialogWindow(content) },
     )

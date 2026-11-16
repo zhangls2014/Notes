@@ -23,6 +23,7 @@ Gradle 中启用的模块：
 ```text
 :androidApp
 :composeApp
+:web
 
 :core:model
 :core:database
@@ -44,7 +45,7 @@ Gradle 中启用的模块：
 :android:output:login
 ```
 
-`settings.gradle.kts` 当前包含 24 个模块；`build-logic` 通过 `includeBuild` 提供约定插件，不计入这 24 个模块。`iosApp` 是 Xcode 工程，不是 Gradle 模块。
+`settings.gradle.kts` 当前包含 25 个模块；`build-logic` 通过 `includeBuild` 提供约定插件，不计入这 25 个模块。`iosApp` 是 Xcode 工程，不是 Gradle 模块。
 
 ## 2. 模块职责
 
@@ -55,6 +56,7 @@ Gradle 中启用的模块：
 | `androidApp` | Android `Application`、Activity、Manifest、平台初始化和 APK 输出 |
 | `iosApp` | iOS 应用入口和 Xcode 工程 |
 | `composeApp` | 共享应用入口、Koin 组合根、根返回栈、Deep Link、Feature 导航装配和启动数据初始化 |
+| `web` | Kotlin/Wasm 官网，复用 Core 设置模型和主题，装配 Web 导航与浏览器历史 |
 | `android:baselineprofile` | Android 基线配置文件生成 |
 | `android:output:login` | 登录能力的实验性 Fused Library 输出 |
 
@@ -413,4 +415,4 @@ Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配
 
 ## 官网、发布渠道与认证域
 
-Cloudflare Pages 从 `web/` 构建官网。公开历史从包内 `releases.json` 生成，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+Cloudflare Pages 从 `web/` 构建官网。官网在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据和 HTML 回退，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
