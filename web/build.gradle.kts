@@ -32,7 +32,10 @@ tasks.register<Exec>("buildSite") {
   dependsOn("wasmJsBrowserDistribution")
   workingDir = rootProject.projectDir
   val node = rootProject.extensions.getByType<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsEnvSpec>()
-  commandLine(node.executable.get(), "web/build.mjs", "--wasm", layout.buildDirectory.dir("dist/wasmJs/productionExecutable").get().asFile)
+  commandLine(
+    node.executable.get(), "web/build.mjs", "--wasm",
+    layout.buildDirectory.dir("dist/wasmJs/productionExecutable").get().asFile,
+  )
 }
 
 compose.resources {

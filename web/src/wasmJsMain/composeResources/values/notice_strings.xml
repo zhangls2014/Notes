@@ -1,0 +1,11 @@
+<resources>
+  <string name="notice_copyright">Copyright and notices</string>
+  <string name="notice_google_jetbrains">Google / JetBrains components</string>
+  <string name="notice_intro">Notes for %1$s uses the following open-source software. Thank you to the authors and contributors.</string>
+  <string name="notice_licenses">Licenses and copyright notices</string>
+  <string name="notice_not_found">Notice not found.</string>
+  <string name="notice_other_components">Other third-party components</string>
+  <string name="notice_project_source">Project source</string>
+  <string name="notice_scope">This page lists open-source components and license information for %1$s. Components may vary by version or distribution. License texts and notices are preserved in their original form.</string>
+  <string name="notice_title">Open-source software notices</string>
+</resources>

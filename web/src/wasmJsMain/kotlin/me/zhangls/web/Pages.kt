@@ -27,12 +27,29 @@ import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.StarFill
 import me.zhangls.theme.icon.ViewColumn
 import me.zhangls.web.resources.Res
+import me.zhangls.web.resources.adaptive_layout
+import me.zhangls.web.resources.adaptive_layout_description
+import me.zhangls.web.resources.android_global
+import me.zhangls.web.resources.android_mainland
+import me.zhangls.web.resources.download
+import me.zhangls.web.resources.download_android
+import me.zhangls.web.resources.downloads
+import me.zhangls.web.resources.downloads_empty
+import me.zhangls.web.resources.favorites_search
+import me.zhangls.web.resources.favorites_search_description
+import me.zhangls.web.resources.home_description
+import me.zhangls.web.resources.home_pitch
+import me.zhangls.web.resources.home_pitch_wide
 import me.zhangls.web.resources.mail_preview
+import me.zhangls.web.resources.mail_preview_description
+import me.zhangls.web.resources.release_added
+import me.zhangls.web.resources.release_fixed
+import me.zhangls.web.resources.release_improved
+import me.zhangls.web.resources.view_release_notes
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun HomePage(
-  chinese: Boolean,
   wide: Boolean,
   compactHeading: Boolean,
   onDownload: () -> Unit,
@@ -41,11 +58,7 @@ internal fun HomePage(
   val pitch: @Composable (Modifier) -> Unit = { modifier ->
     Column(modifier, verticalArrangement = Arrangement.spacedBy(20.dp)) {
       Text(
-        when {
-          chinese -> "随手收藏\n重要邮件"
-          wide -> "Keep important\nmail close"
-          else -> "Keep important mail close"
-        },
+        websiteString(if (wide) Res.string.home_pitch_wide else Res.string.home_pitch),
         style = when {
           wide -> MaterialTheme.typography.displayLarge
           compactHeading -> MaterialTheme.typography.headlineSmall
@@ -54,13 +67,12 @@ internal fun HomePage(
         fontWeight = FontWeight.Bold,
       )
       Text(
-        if (chinese) "适用于 Android 和 iOS 的邮件管理示例应用"
-        else "An email management sample app for Android and iOS.",
+        websiteString(Res.string.home_description),
         style = MaterialTheme.typography.bodyLarge,
       )
       FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = onDownload) { Text(if (chinese) "下载 Android" else "Download Android") }
-        TextButton(onClick = onReleases) { Text(if (chinese) "查看更新日志" else "Release notes") }
+        Button(onClick = onDownload) { Text(websiteString(Res.string.download_android)) }
+        TextButton(onClick = onReleases) { Text(websiteString(Res.string.view_release_notes)) }
       }
     }
   }
@@ -76,7 +88,7 @@ internal fun HomePage(
         )
         Image(
           painterResource(Res.drawable.mail_preview),
-          if (chinese) "摘星的邮件列表和详情并排显示" else "Notes with its email list and detail side by side",
+          websiteString(Res.string.mail_preview_description),
           Modifier.fillMaxWidth().padding(top = 30.dp).clip(MaterialTheme.shapes.large),
         )
       }
@@ -99,15 +111,15 @@ internal fun HomePage(
     Surface(first, color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.extraLarge) {
       Feature(
         Icons.Rounded.StarFill,
-        if (chinese) "收藏与搜索" else "Favorites and search",
-        if (chinese) "为重要邮件加星，并通过搜索快速找到。" else "Star important mail and find it quickly with search.",
+        websiteString(Res.string.favorites_search),
+        websiteString(Res.string.favorites_search_description),
       )
     }
     Surface(second, color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.extraLarge) {
       Feature(
         Icons.Rounded.ViewColumn,
-        if (chinese) "自适应布局" else "Adaptive layout",
-        if (chinese) "在不同窗口尺寸下浏览邮件列表与详情。" else "Browse lists and details across window sizes.",
+        websiteString(Res.string.adaptive_layout),
+        websiteString(Res.string.adaptive_layout_description),
       )
     }
   }
@@ -132,43 +144,31 @@ private fun Feature(icon: ImageVector, title: String, description: String) {
 }
 
 @Composable
-internal fun DownloadPage(chinese: Boolean, builds: List<PublishedBuild>, compactHeading: Boolean) {
+internal fun DownloadPage(builds: List<PublishedBuild>, compactHeading: Boolean) {
   Text(
-    if (chinese) "下载" else "Downloads",
+    websiteString(Res.string.downloads),
     style = if (compactHeading) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge,
   )
   val current = builds.associateBy { it.distributionChannel }.values.mapNotNull { build ->
-    build.download?.let { build to it }
+    build.artifactUrl?.let { build to it }
   }
   if (current.isEmpty()) {
-    Text(if (chinese) "暂无已发布构建。" else "No published builds yet.")
+    Text(websiteString(Res.string.downloads_empty))
   }
   current.forEach { (build, link) ->
     Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge,
       color = MaterialTheme.colorScheme.surfaceContainerLow) {
       Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(build.label(chinese), style = MaterialTheme.typography.titleLarge)
+        val channelLabel = when (build.distributionChannel) {
+          "android-prd-global" -> websiteString(Res.string.android_global)
+          "android-prd-mainland" -> websiteString(Res.string.android_mainland)
+          else -> "iOS"
+        }
+        Text(channelLabel, style = MaterialTheme.typography.titleLarge)
         Text(build.version)
         Button(onClick = { openPage(link) }) {
-          Text(if (chinese) "下载" else "Download")
+          Text(websiteString(Res.string.download))
         }
-      }
-    }
-  }
-}
-
-@Composable
-internal fun NoticesPage(
-  chinese: Boolean,
-  platform: String,
-  onOpen: (String) -> Unit,
-) {
-  Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge,
-    color = MaterialTheme.colorScheme.surfaceContainerLow) {
-    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-      Text(if (platform == "ios") "iOS" else "Android", style = MaterialTheme.typography.headlineMedium)
-      TextButton(onClick = { onOpen("/open-source/$platform.html") }) {
-        Text(if (chinese) "查看开源声明" else "View open-source notices")
       }
     }
   }
@@ -195,7 +195,11 @@ internal fun ReleaseCard(
         }
       }
       Text(release.date, color = MaterialTheme.colorScheme.onSurfaceVariant)
-      val headings = if (chinese) listOf("新增", "优化", "修复") else listOf("Added", "Improved", "Fixed")
+      val headings = listOf(
+        websiteString(Res.string.release_added),
+        websiteString(Res.string.release_improved),
+        websiteString(Res.string.release_fixed),
+      )
       listOf("added", "improved", "fixed").zip(headings).forEach { (type, label) ->
         val changes = release.changes.filter { it.type == type && platform in it.platforms }
         if (changes.isNotEmpty()) {

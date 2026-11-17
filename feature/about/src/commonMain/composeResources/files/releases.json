@@ -7,8 +7,32 @@
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
-          "en": "The Notes website adapts to different window sizes and lets you set the language, appearance, and text size.",
-          "zh": "摘星官网适配不同窗口尺寸，并支持设置语言、深色模式和字体大小。"
+          "en": "The Notes website keeps navigation items evenly spaced and steady when switching pages. In narrow windows, navigation moves to an adaptive left sidebar. The website lets you set the language, appearance, and text size. The open-source notices menu opens the selected platform directly. The release notes page includes the download link in its navigation.",
+          "zh": "摘星官网为导航项留出统一间距，切页时保持位置稳定，在较窄的窗口中使用宽度自适应的左侧栏。官网支持设置语言、深色模式和字体大小。开源声明菜单可直达所选平台，更新日志页保留下载入口。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The website navigation and browser tab use the same rounded Notes icon.",
+          "zh": "摘星官网的导航栏和浏览器标签页使用同一个圆角图标。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android"],
+        "text": {
+          "en": "The Notes website downloads the APK directly from its downloads page.",
+          "zh": "摘星官网的下载页可直接下载 APK。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Fixed blurry text that could appear when the Notes website first loaded.",
+          "zh": "修复摘星官网首次加载时文字可能发糊的问题。"
         }
       },
       {

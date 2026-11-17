@@ -1,0 +1,11 @@
+<resources>
+  <string name="notice_copyright">版权与附加声明</string>
+  <string name="notice_google_jetbrains">Google / JetBrains 组件</string>
+  <string name="notice_intro">摘星的 %1$s 版本使用了以下开源软件。感谢这些项目的作者与贡献者。</string>
+  <string name="notice_licenses">许可证与版权声明</string>
+  <string name="notice_not_found">未找到该声明。</string>
+  <string name="notice_other_components">其他第三方组件</string>
+  <string name="notice_project_source">项目来源</string>
+  <string name="notice_scope">本页汇总 %1$s 版本相关的开源组件与许可信息，不同版本或发行渠道包含的组件可能有所不同。许可证与附加声明保留上游原文。</string>
+  <string name="notice_title">开源软件声明</string>
+</resources>

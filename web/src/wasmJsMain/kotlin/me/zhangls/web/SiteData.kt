@@ -19,13 +19,4 @@ internal data class PublishedBuild(
   val artifactUrl: String? = null,
 ) {
   val distributionChannel: String get() = if (channel == "android-prd-full") "android-prd-global" else channel
-
-  val download: String?
-    get() = artifactUrl?.let { if (channel == "ios-app-store") it else "/downloads/android/$channel/$build/" }
-
-  fun label(chinese: Boolean): String = when (channel) {
-    "android-prd-full", "android-prd-global" -> if (chinese) "Android 国际版" else "Android Global"
-    "android-prd-mainland" -> if (chinese) "Android 中国大陆版" else "Android Mainland China"
-    else -> "iOS"
-  }
 }

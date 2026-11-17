@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { loadNoticeData } from './notice-data.mjs'
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 const defaultOrigins = {
@@ -152,11 +153,13 @@ language.addEventListener('change', () => {
 })
 </script>`
 
-function page(title, body, pageStyles = '', pageScript = '', { showDownloads = true } = {}) {
+const favicon = '<link rel="icon" type="image/svg+xml" href="/composeResources/me.zhangls.web.resources/drawable/notes_icon.svg">'
+
+function page(title, body, pageStyles = '', pageScript = '') {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · Notes</title><style>${styles}${pageStyles}</style></head><body>
-<nav aria-label="Notes"><a href="/">Notes</a>${showDownloads ? `<a href="/downloads/">${downloads}</a>` : ''}
+<title>${title} · Notes</title>${favicon}<style>${styles}${pageStyles}</style></head><body>
+<nav aria-label="Notes"><a href="/">Notes</a><a href="/downloads/">${downloads}</a>
 <a href="/releases/">${history}</a><a href="/open-source/">${notices}</a>
 <select id="language" aria-label="Language / 语言"><option value="zh">简体中文</option><option value="en">English</option></select></nav>
 <main>${body}</main>${controls}${pageScript}</body></html>
@@ -225,7 +228,7 @@ function releasePage(releases) {
 <select id="platform"><option value="android">Android</option><option value="ios">iOS</option></select></div>
 ${releases.map(releaseCard).join('')}
 <p id="release-empty"${releases.length ? ' hidden' : ''}>${bilingual('暂无已发布记录。', 'No published release notes yet.')}</p>`,
-  releaseStyles, releaseControls, { showDownloads: false })
+  releaseStyles, releaseControls)
 }
 
 function releaseCard({ version, date, changes }) {
@@ -239,21 +242,14 @@ function releaseCard({ version, date, changes }) {
 <time datetime="${date}">${date}</time>${groups}</article>`
 }
 
-function addLegacyNoticeRedirects(files) {
-  // Only the notice URLs published before switching to fixed platform paths.
-  for (const channel of ['android-prd-full', 'android-prd-mainland']) {
-    for (const file of ['android.html', 'android-licenses.html']) {
-      const target = `/open-source/${file}`
-      files.set(`open-source/${channel}/1.1.2/5/${file}`, `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Open-source notices · Notes</title></head>
-<body><a href="${target}">Open-source notices</a>
-<script>location.replace(${JSON.stringify(target)} + location.search + location.hash)</script></body></html>
-`)
-    }
-  }
+function composeDocument(title, content = '', marker = '') {
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>${title}</title>${favicon}
+<script src="/notes.js" defer></script></head>
+<body><main id="notes-app" style="position:fixed;inset:0"${marker}></main>${content}</body></html>
+`
 }
-
-const download = entry => `downloads/android/${entry.channel}/${entry.build}/`
 
 export function buildSite(releases, builds, origins = defaultOrigins) {
   const origin = httpsOrigin(origins.siteOrigin)
@@ -272,25 +268,18 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
   files.set('releases/published.json', JSON.stringify(published) + '\n')
   const empty = `<p>${bilingual('暂无已发布构建。', 'No published builds yet.')}</p>`
   files.set('downloads/index.html', page('Downloads', `<h1>${downloads}</h1>${downloadable.length ?
-    `<ul>${downloadable.map(entry => `<li><a href="${channels[entry.channel] === 'android' ?
-      `/${download(entry)}` : escape(entry.artifactUrl)}">${entry.channel} · ${entry.version}</a></li>`).join('')}</ul>` : empty}`))
+    `<ul>${downloadable.map(entry => `<li><a href="${escape(entry.artifactUrl)}">${entry.channel} · ${entry.version}</a></li>`).join('')}</ul>` : empty}`))
   files.set('open-source/index.html', page('Open-source notices', `<h1>${notices}</h1>
 <ul>${Object.entries(platforms).map(([platform, label]) =>
     `<li><a data-notice-link href="/open-source/${platform}.html">${label}</a></li>`).join('')}</ul>`))
-  addLegacyNoticeRedirects(files)
-  for (const entry of builds) {
-    if (channels[entry.channel] !== 'android' || !entry.artifactUrl) continue
-    files.set(`${download(entry)}index.html`, page('Android download', `<h1>Notes ${entry.version}</h1>
-<p>${entry.channel} · ${entry.build}</p><a href="${escape(entry.artifactUrl)}">${bilingual('下载 APK', 'Download APK')}</a>
-<p><a href="/releases/#v${entry.version}">${history}</a></p>`))
-  }
   for (const [channel, { version, build, artifactUrl }] of current) {
+    // Installed mainland clients validate the v1 path but download from the configured APK origin.
     const updateUrl = channel === 'android-prd-global' ? `${origin}/releases/#v${version}`
-      : channel === 'android-prd-mainland' ? `${origin}/${download({ channel, build })}`
+      : channel === 'android-prd-mainland' ? `${origin}/downloads/android/${channel}/${build}/`
       : artifactUrl
     files.set(`updates/v1/${channel}.json`, JSON.stringify({ channel, version, build, updateUrl }) + '\n')
   }
-  files.set('404.html', page('Page not found', `<h1>${bilingual('找不到此页面', 'Page not found')}</h1>`))
+  files.set('404.html', composeDocument('404 · Notes', '', ' data-not-found'))
   files.set('_headers', '/releases/published.json\n  Cache-Control: no-cache\n/updates/v1/*\n  Cache-Control: no-cache\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n')
   return files
 }
@@ -312,6 +301,18 @@ function addAssociations(files) {
   }
 }
 
+export async function buildNoticeFiles() {
+  const files = new Map()
+  for (const [platform, { categories, declarations }] of Object.entries(await loadNoticeData())) {
+    for (const [filename, data] of [[platform, { categories }], [platform + '-licenses', { declarations }]]) {
+      const payload = JSON.stringify(data).replaceAll('<', '\\u003c')
+      files.set(`open-source/${filename}.html`, composeDocument('Open-source notices · Notes',
+        `<script type="application/json" id="notes-notice-data">${payload}</script>`))
+    }
+  }
+  return files
+}
+
 async function main() {
   const releases = JSON.parse(await readFile(join(webRoot,
     '../feature/about/src/commonMain/composeResources/files/releases.json'), 'utf8'))
@@ -321,25 +322,18 @@ async function main() {
     apkOrigin: process.env.NOTES_APK_BASE_URL ?? defaultOrigins.apkOrigin,
   })
   addAssociations(files)
-  for (const platform of new Set(Object.values(channels))) {
-    for (const file of [`${platform}.html`, `${platform}-licenses.html`]) {
-      files.set(`open-source/${file}`, await readFile(join(webRoot, 'open-source', file)))
-    }
-  }
+  for (const [path, content] of await buildNoticeFiles()) files.set(path, content)
   const outputDir = process.env.NOTES_WEB_OUTPUT_DIR ?? join(webRoot, 'dist')
-  if (process.argv[2] === '--wasm') {
-    const distribution = process.argv[3]
-    requireValue(distribution, 'Expected the Wasm distribution directory')
-    await readFile(join(distribution, 'notes.js'))
-    await cp(distribution, outputDir, { recursive: true })
-    const data = JSON.stringify({ builds }).replaceAll('<', '\\u003c')
-    for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
-      files.set(path, files.get(path)
-        .replace('</head>', '<link rel="icon" href="/composeResources/me.zhangls.web.resources/drawable/notes_icon.png"></head>')
-        .replace('<body>', '<body><div id="notes-app" style="position:fixed;inset:0;visibility:hidden"></div><div id="notes-fallback">')
-        .replace('</body>', `</div><script type="application/json" id="notes-data">${data}</script>
+  const distribution = process.argv[3]
+  requireValue(process.argv[2] === '--wasm' && distribution, 'Expected the Wasm distribution directory')
+  await readFile(join(distribution, 'notes.js'))
+  await cp(distribution, outputDir, { recursive: true })
+  const data = JSON.stringify({ builds }).replaceAll('<', '\\u003c')
+  for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
+    files.set(path, files.get(path)
+      .replace('<body>', '<body><div id="notes-app" style="position:fixed;inset:0;visibility:hidden"></div><div id="notes-fallback">')
+      .replace('</body>', `</div><script type="application/json" id="notes-data">${data}</script>
 <script src="/notes.js" defer></script></body>`))
-    }
   }
   for (const [path, content] of files) {
     const output = join(outputDir, path)

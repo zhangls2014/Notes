@@ -21,7 +21,7 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 ## 站点预览与绑定
 
-1. 从仓库根目录运行 `node --test web/build.test.mjs` 和 `./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite`。使用全新检出目录构建，再用 `python3 -m http.server 8842 --bind 127.0.0.1 --directory web/dist` 预览。
+1. 从仓库根目录运行 `node --test web/build.test.mjs` 和 `./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite`。使用全新检出目录构建，再用 `python3 web/preview.py --port 8842` 预览。访问不存在的路径，验证 Compose 的错误页及 HTTP 404 状态。
 2. 获得 GitHub 连接和发布授权后，在 Cloudflare Pages 选择 Git 集成并授权 `zhangls2014/Notes`。生产分支设为 `pages-production`，预览分支启用 `master` 与需求分支。Framework preset 设为 None，仓库根目录为构建根，构建命令为 `./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite`，输出目录为 `web/dist`。构建环境须能运行仓库的 Gradle Wrapper。
 3. 在生产环境配置 `NOTES_ANDROID_SIGNING_SHA256` 为分发 APK 签名证书的 SHA-256 指纹（32 组用冒号分隔的十六进制字节），`NOTES_IOS_APP_ID` 为签名应用的完整 Application Identifier（前缀加 Bundle ID）。需要预览关联文件时在预览环境设置一对相符的值。构建会生成 `/.well-known/assetlinks.json` 和 `/.well-known/apple-app-site-association`。
 4. 验收 `pages.dev` 上的构建。确认现有 DNS 归属和流量，再在 Pages 的 Custom domains 绑定 `notes.zhangls.me`。在 DNS 托管方核对目标为项目的 `pages.dev` 地址，确认 TLS 有效。两个关联文件必须以 HTTPS 直接返回 200 和 JSON。确认 Wasm 文件的 MIME 类型为 `application/wasm`，并检查 `/releases/published.json` 仅包含已发布版本。用正式签名包验收 `/home`、`/email`，联网账号的邮件深链仍需 `accountId`。
@@ -36,10 +36,12 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 当前生产环境由曼谷服务器的 Nginx 托管官网和 APK。官网目录为 `/var/www/notes-site`，APK 目录为 `/var/www/notes-downloads`，下载域名使用独立的 Let's Encrypt 证书。下文的 R2 和 Pages 是托管替代方案。现有生产环境先投放并从公网验证 APK，再更新官网页面与更新清单。若客户端变更依赖新的认证规则，须先部署并验证认证服务。
 
 1. 按 [版本规则](app-releases.md) 准备版本、构建号与发布日期，完成依赖清单和两端安装包构建。Android 用 `apksigner verify --print-certs` 核对签名和包的渠道，iOS 核对商店版本和签名标识。
-2. 确认当前开源声明已按[维护指南](../web/open-source/README.md)更新。官网和应用按平台使用固定地址，所有版本共用最新声明；发布流程无需创建构建归档。
+2. 确认当前开源声明已按[维护指南](../tools/open-source/README.md)更新。官网与应用打开相同固定地址的 Kotlin/Wasm 声明；发布前在支持该 Wasm 产物的浏览器和应用 WebView 验证列表、详情拦截和返回滚动位置。
 3. 将 mainland 正式 APK 放入下载源的 `/android-prd-mainland/<build>/Notes-<version>-mainland.apk`。从公网下载并与原包核对 SHA-256，验证实机覆盖安装。global 暂只公告版本，不分发 APK；iOS 验证 App Store 目标地区的正式版本可获取。
-4. 在 [发布构建记录](../web/published-builds.json) 末尾追加 `channel`、`version` 和字符串 `build`。mainland 另填符合上一步约定的 `artifactUrl`，iOS 填 `https://apps.apple.com/…`；global 不填 `artifactUrl`。保留旧 APK 链接和发布记录；新 global 记录继续使用原 full 的递增构建序列。官网只发布 `android-prd-global.json`，新 global 版本登记前从最后一条旧发布记录生成。使用全新输出目录构建，避免保留旧清单；本地可用 `NOTES_WEB_OUTPUT_DIR` 指定空目录。
-5. 验收预览中的中英文历史、平台筛选、版本锚点、固定声明入口、旧声明链接跳转和下载地址。获授权后部署生产并验证 JSON、下载及 App 内检查结果。若新渠道地址不可用，先修复资源或用授权的新生产发布恢复该渠道的上一份清单。
+4. 用新版本更新 [发布构建记录](../web/published-builds.json) 中相应渠道的 `channel`、`version` 和字符串 `build`。每个现行渠道只保留当前构建，构建号须继续递增。mainland 另填符合上一步约定的 `artifactUrl`，iOS 填 `https://apps.apple.com/…`；global 不填 `artifactUrl`。历史版本继续由更新日志记录，此步骤不删除已上传的 APK。使用全新输出目录构建，避免保留旧清单；本地可用 `NOTES_WEB_OUTPUT_DIR` 指定空目录。
+5. 验收预览中的中英文历史、平台筛选、版本锚点、固定声明入口和 APK 直达链接。产物应不含按构建号生成的 APK 下载页和按版本生成的声明跳转页。mainland v1 更新清单保留已安装客户端校验所需的旧路径字段；客户端从配置的 APK 源下载。获授权后部署生产并验证 JSON、下载及 App 内检查结果。若新渠道地址不可用，先修复资源或用授权的新生产发布恢复该渠道的上一份清单。
+
+Nginx 应将不存在的路径交给 `404.html`（例如 `error_page 404 /404.html;`），并保留 HTTP 404 状态。上线验收需用不存在的深层路径检查状态和页面渲染。
 
 ## 验收记录
 

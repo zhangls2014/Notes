@@ -1,8 +1,7 @@
 *.pdf binary
 
-# Preserve upstream license text and the HTML used as build inputs.
+# Preserve upstream license text byte for byte.
 web/open-source/licenses/*.txt -text
-web/open-source/*.html -text
 
 # Archived pages must match the bytes packaged in each signed release.
 web/notice-archives/**/*.html binary

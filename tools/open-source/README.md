@@ -1,8 +1,9 @@
 # Open-source notices tooling
 
-This directory contains dependency export and static notice generation tools only.
-Use English, lowercase hyphenated script names. Generated dependency inventories and
-HTML in `web/open-source/` are the checked-in source for website builds. Temporary Gradle reports belong in `build/`.
+This directory exports resolved application dependencies and refreshes the
+reviewed inventory. Use English, lowercase hyphenated script names. Temporary
+Gradle reports belong in `build/`; the inventory and reviewed upstream text live
+in [web/open-source](../../web/open-source/).
 Keep upstream license and NOTICE text verbatim. Never infer an unknown license.
 
 The Android inventory uses the production global release runtime configuration; iOS
@@ -18,7 +19,8 @@ processes against the same checkout concurrently.
   --no-configuration-cache --no-parallel
 python3 tools/open-source/generate.py --refresh
 python3 -m unittest discover -s tools/open-source -p 'test_*.py'
-node tools/open-source/test-font-scale.mjs
+node --test web/build.test.mjs
+./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite
 ```
 
 Export uses the resolved component graph (including BOM/metadata modules), not an
@@ -43,67 +45,8 @@ ARM64 package, and update preserved native licenses. `licenses/sources.json` rec
 upstream text sources; the SQLite file preserves the official copyright page's
 three paragraphs defining the public-domain dedication and deliverable boundary.
 
-For deterministic offline regeneration from the checked-in inventory:
-
-```bash
-python3 tools/open-source/generate.py
-```
-
-`dependencies.json` deduplicates preserved notice text by SHA-256. Component
-buttons link to the fixed <platform>-licenses.html page with a declaration
-fragment ID. Inert templates retain original text; only the selected license or series
-notice bundle is rendered. Missing or unknown IDs show an error. Exactly four HTML files are
-generated. Obsolete per-declaration pages are removed during regeneration.
-Android and iOS builds sync only their own two pages.
-
-Each page inlines styling and a small script applying app language, font scale,
-resolved theme and eight Material colors across local navigation. UI text supports
-Simplified Chinese and English; app URL language takes priority over browser
-language, unsupported languages fall back to English, and upstream texts remain
-verbatim. The Node test discovers all generated HTML and executes isolated DOM
-fixtures: 10 font-scale inputs × 4 themes × 3 origins × 4 palettes per page, plus
-8 language selection and link-retention cases per page. At four files this is 1,920 appearance/navigation and 32 language cases. These tests do not verify
-browser rendering or native font metrics. No Python or Node packages are required.
-
-The website build copies the four pages to `web/dist/open-source/`. Compare the
-website output with the generated source and check both platform detail links.
-
-The inline CSS shares the app's Expressive shape/type hierarchy. Component action
-links use primary-container colors, unchanged capsule corners in resting/pressed states and
-state layers; reduced-motion preferences disable these transitions. Passive pointer/keyboard
-listeners maintain press state without cancelling native scrolling or link navigation.
-
-## Component source categories
-
-List pages show “Google / JetBrains 组件” (“Google / JetBrains components”) first,
-then “其他第三方组件” (“Other third-party components”). Within each category,
-retain component order, coordinates and declaration access.
-Match the exact namespaces `androidx`, `com.google`, `org.jetbrains`, `io.ktor`
-and their dot-separated children, plus resource groups `google` and `jetbrains`.
-All other groups belong to the third-party category, including SQLite even when
-bundled by AndroidX. This is a presentation classification, not a license change.
-Empty categories are omitted; declaration detail pages remain unchanged.
-Below the list page introduction, native fragment links styled as existing buttons
-jump to each nonempty category. Reuse the wrapping actions layout and localized
-category labels; keep navigation off declaration detail pages.
-
-For category changes, add regression coverage for namespace boundaries, both
-platforms, complete/unique component placement and empty categories, then run
-the Python and Node commands above and the website build.
-
-## Project series and shared actions
-
-Group GitHub components by repository (case-insensitive owner/repository, ignoring
-trailing slash, `.git`, fragments and repository subpaths). For other project URLs,
-group by Maven group and URL without a fragment or trailing slash, so generic
-landing pages do not merge unrelated projects. Categories remain separate.
-Each series has one project-source action, one action per distinct license and
-at most one copyright/notices action. That action opens all distinct upstream
-texts for the series, each preserved verbatim in a separate text block.
-Names and full coordinates, including platform and version, are always visible
-above the shared actions without an additional module-list label.
-Do not change inventories or infer licenses while grouping presentation data.
-
-Validate shared repository actions, distinct repositories in one Maven group,
-notice deduplication and full text retention, module disclosure, category links,
-and platform isolation using the Python/Node tests and the website build.
+The website build works from the checked-in inventory without re-exporting Gradle
+dependencies or fetching upstream license metadata. It embeds validated list and
+detail data into the shared notice entry documents. Kotlin/Wasm composables lay out and draw the notice pages on Canvas in browsers and app WebViews that support the Wasm bundle. The website build does not add dependencies to the mobile inventories.
+Verify platform isolation, full text retention, and fixed detail links with the
+web tests. See the [website guide](../../web/README.md) for preview instructions.

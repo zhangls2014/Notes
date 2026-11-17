@@ -186,7 +186,7 @@ Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏�
 
 关于应用的「开源软件声明」进入 About 所属的全屏 `OnlineNoticesDestination`，许可证与 NOTICE 使用独立的 `OnlineNoticeDetailDestination`，保存校验过的声明片段 ID 或 HTTP(S) 项目地址。组合根用相同的场景键装配列表与详情，并复用窗口和铰链策略。宽窗保留列表并替换所选详情，窄窗用全屏详情，返回恢复列表位置。Android 通过 `AndroidView` 嵌入系统 WebView，iOS 通过 `UIKitView` 嵌入 WKWebView。两栏从注入的 `NotesWebsite` 加载在线网页，详情链接由原生导航接管，项目来源复用详情窗格。状态栏随应用窗口，底部安全距离放在可滚动内容内。旧版声明目的地仅用于解码历史导航状态。
 
-About 将组合中解析的语言、系统与应用叠加字号、深浅色和 Material 配色附在启动 URL 上。站内链接保留这些参数。每端生成列表和固定详情页各一份，详情页按片段 ID 显示相应的上游许可和 NOTICE。生成规则见[声明维护指南](../web/open-source/README.md)，固定声明的发布流程见[网站部署](notes-web-deployment.md)。
+About 将组合中解析的语言、系统与应用叠加字号、深浅色和 Material 配色附在启动 URL 上。站内链接保留这些参数。官网的 `:web` Compose 入口负责平台选择，并传递官网的外观参数。官网和应用的 WebView 共用 `:web` 的 Kotlin/Wasm Compose 声明列表和详情。声明由 Compose Canvas 布局和绘制，浏览器桥接负责链接激活和浏览器历史。网站构建保留固定地址及详情片段 ID，只嵌入声明数据与 Wasm 启动入口。已安装 App 读取原生 WebView 滚动位置，不能直接读取 Canvas 列表位置；上线前需要完成原生导航与滚动恢复验收。生成规则见[声明维护指南](../tools/open-source/README.md)，固定声明的发布流程见[网站部署](notes-web-deployment.md)。
 
 关于页面入口仅接收导航参数；`AboutAppInfo` 只描述版本号和构建号。
 
@@ -415,4 +415,4 @@ Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配
 
 ## 官网、发布渠道与认证域
 
-Cloudflare Pages 从 `web/` 构建官网。官网在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据和 HTML 回退，分发清单来自明确登记的已发布构建。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据和 HTML 回退，分发清单来自各现行渠道登记的当前构建。更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌页面隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。

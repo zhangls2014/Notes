@@ -73,7 +73,7 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 运行 `./gradlew :composeApp:testAndroidHostTest --tests '*AboutUiTest.noticesOpen*' --tests '*AppSceneStrategiesTest*' --tests '*NavBackStackSerializationTest*'`，检查 About 的应用内声明入口、按需分栏和导航序列化。运行 `./gradlew :feature:about:testAndroidHostTest :feature:about:iosSimulatorArm64Test` 检查官网来源、平台声明路径及项目来源分流。运行 `./gradlew :composeApp:iosSimulatorArm64Test` 验证跨模块 About Entry 与 iOS 浏览器异常处理。
 
-运行 `python3 -m unittest discover -s tools/open-source -p 'test_*.py'`、`node tools/open-source/test-font-scale.mjs` 和 `node --test web/build.test.mjs` 检查生成器、网页参数及网站构建。检查新构建的 APK／iOS App 资源清单，确认移除了声明 HTML。双端仍需设备验收实际 WebView 展示、许可证和 NOTICE 锚点、项目链接、关闭返回及加载首帧，见[待验收清单](pending-acceptance.md#系统应用内浏览器)。
+运行 `python3 -m unittest discover -s tools/open-source -p 'test_*.py'` 和 `node --test web/build.test.mjs` 检查清单、Compose 启动文档及声明数据，再运行 `:web:buildSite`。在支持 Wasm 的浏览器检查官网平台切换、详情直达、参数保留和返回，并同条件对比宽屏与窄屏的列表和详情。双端仍需设备验收实际 WebView 展示、许可证和 NOTICE 锚点、项目链接、关闭返回及加载首帧，见[待验收清单](pending-acceptance.md#系统应用内浏览器)。
 
 ## 验证证据与交付记录
 

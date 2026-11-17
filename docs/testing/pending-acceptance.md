@@ -137,6 +137,10 @@
 
 ## 系统应用内浏览器
 
+2026-11-17：Kotlin/Wasm 声明已切换到 Compose Canvas 布局与绘制。网站构建通过，干净产物不含 `notice.css`。Chrome 已验两端的官网菜单直达、Android 英文桌面列表、分类跳转及 Android 许可证详情直接访问。通过列表打开详情后返回的滚动恢复仍须复测。浏览器历史保存的是 Compose 列表位置；已安装 App 只读取原生 WebView 滚动位置，尚未做 Canvas 版的端到端验收。未部署。
+
+2026-11-16（先前的 Wasm DOM 实验）：Chrome 通过两平台的列表和详情、官网直达、分类跳转、详情锚点、外观参数及浏览器返回；人为延迟 Wasm 请求 500ms 后复跑也通过。Android API 37 独立 WebView 和 iOS 27.2 独立 WKWebView 的冷启动回调均早于声明内容出现。iOS 内容出现后能拦截详情链接，但按既有 `didFinishNavigation` 时机恢复列表会回到顶部。该结果不代表 Canvas 版本通过。
+
 - [ ] 在线声明 WebView 设备验收（2026-11-14）：在无 Chrome 的 Android 真机和 iOS 设备上从「关于应用」进入，验证声明列表、许可证与 NOTICE 锚点、连续替换详情、宽窄窗切换、半开折叠屏分栏、关闭详情后恢复列表位置、第三方项目链接和断网重试。核对深浅色、状态栏图标、Android 手势／三键导航及 iOS Home Indicator 下的末项可见性与可操作性。以下旧版声明记录保留为历史证据。
 
 - Expressive 网页（2026-10-28）：四页已使用 28px 标题／分组容器和 Filled Tonal 操作，按 维护者 最新要求，正常与按压保持同一胶囊圆角，不做圆角形变；主指针及 Enter 仅激活状态层，抬起、取消、移出、失焦或松键后清除；被动监听不阻止滚动／链接行为，Space 保留原生链接滚动，CSS 支持减少动态效果。新增传递实际 primaryContainer／onPrimaryContainer，保留字号、主题、分组、链接和许可证原文。Python 7 项、DOM 参数／交互 1,920 组、Android 宿主 13 项及 iOS 模拟器 46 项通过，双端编译／打包通过；About/API 静态检查通过，组合根保留 9 条既有告警，无新增。

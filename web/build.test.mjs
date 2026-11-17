@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
-import { runInNewContext } from 'node:vm'
-import { buildSite, validatePublishedBuilds } from './build.mjs'
+import { buildNoticeFiles, buildSite, validatePublishedBuilds } from './build.mjs'
+import { buildNoticeData } from './notice-data.mjs'
 
 test('public history is bilingual, ordered and excludes unpublished records', () => {
   const release = (version, date) => ({
@@ -42,7 +43,7 @@ test('a manifest must refer to a published release and an approved artifact host
   const customSite = buildSite([release], [custom], origins)
   assert.equal(JSON.parse(customSite.get('updates/v1/android-prd-global.json')).updateUrl,
     'https://site.example.test/releases/#v1.10.0')
-  assert.match(customSite.get('downloads/android/android-prd-full/5/index.html'), /https:\/\/apk\.example\.test\//)
+  assert.ok(customSite.get('downloads/index.html').includes(`href="${custom.artifactUrl}"`))
   assert.throws(() => buildSite([release], [build], origins))
   assert.throws(() => buildSite([release], [custom], { ...origins, siteOrigin: 'http://site.example.test' }))
   assert.throws(() => validatePublishedBuilds([{ ...release, date: null }], [build]))
@@ -75,36 +76,39 @@ test('release history and the notice index link to shared notices', () => {
   const site = buildSite(releases, builds)
   const html = site.get('releases/index.html')
   assert.deepEqual([...html.matchAll(/href="(\/open-source\/[^"]*)"/g)].map(match => match[1]), ['/open-source/'])
-  assert.doesNotMatch(html, /href="\/downloads\//)
+  assert.match(html, /href="\/downloads\/"/)
   const index = site.get('open-source/index.html')
   assert.match(index, /href="\/open-source\/android\.html"/)
   assert.match(index, /href="\/open-source\/ios\.html"/)
   assert.doesNotMatch(index, /1\.2\.0|android-prd|ios-app-store/)
   assert.equal(index, buildSite(releases, []).get('open-source/index.html'))
-  assert.ok(site.has('downloads/android/android-prd-full/5/index.html'))
+  const downloadLinks = [...site.get('downloads/index.html').matchAll(/<li><a href="([^"]+)"/g)]
+    .map(match => match[1])
+  assert.deepEqual(downloadLinks, builds.slice(1).map(build => build.artifactUrl))
+  assert.equal([...site.keys()].some(path => path.startsWith('downloads/android/')), false)
+  assert.equal(JSON.parse(site.get('updates/v1/android-prd-mainland.json')).updateUrl,
+    'https://notes.zhangls.me/downloads/android/android-prd-mainland/5/')
   assert.ok(site.has('updates/v1/ios-app-store.json'))
 })
 
-test('only previously published notice URLs forward to the current page', () => {
+test('the site does not generate versioned notice redirects', () => {
   const site = buildSite([], [])
   const legacyPaths = [...site.keys()].filter(path => /^open-source\/[^/]+\//.test(path))
-  assert.deepEqual(legacyPaths.sort(), [
-    'open-source/android-prd-full/1.1.2/5/android-licenses.html',
-    'open-source/android-prd-full/1.1.2/5/android.html',
-    'open-source/android-prd-mainland/1.1.2/5/android-licenses.html',
-    'open-source/android-prd-mainland/1.1.2/5/android.html',
-  ])
-  for (const path of legacyPaths) {
-    const target = '/open-source/' + path.split('/').at(-1)
-    const html = site.get(path)
-    assert.ok(html.includes(`href="${target}"`))
-    const suffix = '?lang=zh&fontScale=2#license-apache-2.0'
-    let redirected
-    runInNewContext(html.match(/<script>(.*?)<\/script>/s)[1], {
-      location: { search: '?lang=zh&fontScale=2', hash: '#license-apache-2.0',
-        replace: url => { redirected = url } },
-    })
-    assert.equal(redirected, target + suffix)
+  assert.deepEqual(legacyPaths, [])
+})
+
+test('the 404 document starts the shared Compose app without static page UI', () => {
+  const html = buildSite([], []).get('404.html')
+  assert.match(html, /<main id="notes-app"[^>]*data-not-found/)
+  assert.match(html, /<script src="\/notes\.js" defer><\/script>/)
+  assert.doesNotMatch(html, /<(nav|h1|style)\b/)
+})
+
+test('every website document links to the shared SVG icon', async () => {
+  const htmlFiles = [...buildSite([], []), ...await buildNoticeFiles()].filter(([path]) => path.endsWith('.html'))
+  for (const [path, html] of htmlFiles) {
+    assert.match(html, /<link rel="icon" type="image\/svg\+xml" href="\/composeResources\/me\.zhangls\.web\.resources\/drawable\/notes_icon\.svg">/,
+      path + ' must use the shared SVG')
   }
 })
 
@@ -121,4 +125,68 @@ test('global can announce a release without distributing an APK', () => {
     ...build, channel: 'android-prd-mainland',
     artifactUrl: 'https://downloads.zhangls.me/android-prd-mainland/6/wrong.apk',
   }]))
+})
+
+test('published notice payloads include every platform component and its declarations', async () => {
+  const files = await buildNoticeFiles()
+  const inventory = JSON.parse(await readFile(new URL('./open-source/dependencies.json', import.meta.url), 'utf8'))
+  assert.equal(files.size, 4)
+  for (const platform of ['android', 'ios']) {
+    const payload = path => JSON.parse(files.get(path).match(/id="notes-notice-data">(.*?)<\/script>/s)[1])
+    const data = {
+      ...payload(`open-source/${platform}.html`),
+      ...payload(`open-source/${platform}-licenses.html`),
+    }
+    const projects = data.categories.flatMap(category => category.projects)
+    assert.deepEqual(projects.flatMap(project => project.modules.map(module => module.coordinate)).sort(),
+      inventory[platform].map(module => module.coordinate).sort())
+    for (const project of projects) {
+      for (const id of project.declarations) {
+        assert.ok(data.declarations[id].length > 0)
+      }
+    }
+    assert.deepEqual(new Set(Object.values(data.declarations).flat()),
+      new Set([
+        ...await Promise.all([...new Set(inventory[platform].flatMap(module => module.licenses))]
+          .map(async id => (await readFile(new URL('./open-source/licenses/' + id + '.txt', import.meta.url), 'utf8')).replace(/\r\n?/g, '\n'))),
+        ...inventory[platform].flatMap(module => module.notices.map(key => inventory.noticeTexts[key])),
+      ]))
+  }
+})
+
+test('notice projects group repository aliases and keep unrelated namespaces separate', async () => {
+  const module = (coordinate, url, notices = []) => ({ coordinate, name: coordinate, url, notices, licenses: ['MIT'] })
+  const aliases = [
+    module('androidx.core:core:1', 'https://github.com/Example/Core.git', ['a']),
+    module('androidx.core:ktx:1', 'https://github.com/example/core/tree/main', ['a', 'b']),
+  ]
+  const others = [
+    module('androidxother:ui:1', 'https://github.com/Example/Core'),
+    module('example:ui:1', 'https://example.test/ui'),
+    module('example:util:1', 'https://example.test/util'),
+  ]
+  const { android, ios } = await buildNoticeData(
+    { android: [...aliases, ...others], ios: [], noticeTexts: { a: '© A', b: '© B' } },
+    async () => 'MIT text',
+  )
+  assert.deepEqual(android.categories.map(category => category.projects.length), [1, 3])
+  const [series] = android.categories[0].projects
+  assert.equal(series.modules.length, 2)
+  assert.deepEqual(series.declarations, ['license-MIT', 'notice-3452112adf48fb98'])
+  assert.deepEqual(android.declarations[series.declarations[1]], ['© A', '© B'])
+  assert.deepEqual(ios, { categories: [], declarations: {} })
+})
+
+test('notice routes publish a Compose host and JSON without server-rendered page UI', async () => {
+  for (const [path, html] of await buildNoticeFiles()) {
+    const payload = html.match(/<script type="application\/json" id="notes-notice-data">(.*?)<\/script>/s)?.[1]
+    assert.ok(payload, path + ' must provide Compose notice data')
+    assert.match(html, /<main id="notes-app" style="position:fixed;inset:0"><\/main>/)
+    assert.doesNotMatch(html, /notice\.css|rel="stylesheet"/)
+    assert.match(html, /<script src="\/notes\.js" defer><\/script>/)
+    assert.doesNotMatch(html, /<(article|header|template|pre|h1)\b/)
+    const data = JSON.parse(payload)
+    assert.ok(path.endsWith('-licenses.html') ? Object.keys(data.declarations).length : data.categories.length)
+    assert.deepEqual(Object.keys(data), [path.endsWith('-licenses.html') ? 'declarations' : 'categories'])
+  }
 })

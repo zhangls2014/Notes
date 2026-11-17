@@ -67,6 +67,7 @@ internal fun OnlineNoticesPage(
     if (project != null) return@remember project
     val filename = if (anchor == null) "$releasePlatform.html" else "$releasePlatform-licenses.html"
     URLBuilder("${site.origin}/open-source/$filename").apply {
+      parameters.append("embed", "1")
       if (anchor != null && noticeAnchor.matches(anchor)) fragment = anchor
       appearance.noticesAppearanceParameters().forEach { (name, value) -> parameters.append(name, value) }
     }.buildString()
