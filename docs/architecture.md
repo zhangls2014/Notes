@@ -415,4 +415,4 @@ Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配
 
 ## 官网、发布渠道与认证域
 
-官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据和 HTML 回退，分发清单来自各现行渠道登记的当前构建。更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌页面隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据，分发清单来自各现行渠道登记的当前构建。各页面的 HTML 仅提供启动入口和所需的数据。首页、下载、更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌页面隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。

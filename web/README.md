@@ -1,14 +1,15 @@
 # Notes website
 
-- `build.mjs` generates the published release endpoint, distribution files and HTML fallback. `build.test.mjs` covers its public output and input validation.
+- `build.mjs` generates the published release endpoint, distribution files and HTML launch documents. `build.test.mjs` covers its public output and input validation.
 - `published-builds.json` records the current published build for each active distribution channel.
 - [`open-source/`](open-source/) contains the reviewed dependency inventories and upstream texts. The website and installed apps use the same fixed notice URLs and Compose components.
 - `dist/` is disposable build output and is ignored.
 
 The `:web` Gradle module owns the Compose website. Browser code lives in
 `src/wasmJsMain/kotlin/`, and website assets live in `src/wasmJsMain/composeResources/`.
-The release page fetches `/releases/published.json` on demand. The generator
-derives this endpoint and the HTML fallback from the mobile app’s `releases.json`.
+The HTML documents start Compose Wasm with an empty host. The release page
+fetches `/releases/published.json` on demand, which the generator derives from the
+mobile app’s `releases.json`.
 Compose uses a Material 3 top app bar when the viewport can fit the navigation
 labels and a compact navigation rail on the left at smaller widths. The
 navigation menu opens the corresponding notice list directly. The

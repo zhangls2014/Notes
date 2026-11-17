@@ -21,16 +21,9 @@ const channels = {
   'android-prd-mainland': 'android',
   'ios-app-store': 'ios',
 }
-const labels = {
-  added: { zh: '新增', en: 'Added' },
-  improved: { zh: '优化', en: 'Improved' },
-  fixed: { zh: '修复', en: 'Fixed' },
-}
-const platforms = { android: 'Android', ios: 'iOS' }
+const changeTypes = ['added', 'improved', 'fixed']
+const platforms = ['android', 'ios']
 const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-const escape = value => value.replace(/[&<>"']/g, char => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-})[char])
 const isText = value => typeof value === 'string' && value.trim().length > 0
 
 function requireValue(condition, message) {
@@ -61,10 +54,10 @@ function validateReleases(releases) {
     `Invalid release date for ${version}`)
     requireValue(Array.isArray(changes) && changes.length > 0, `Missing changes for ${version}`)
     for (const change of changes) {
-      requireValue(Object.hasOwn(labels, change.type) &&
+      requireValue(changeTypes.includes(change.type) &&
         Array.isArray(change.platforms) && change.platforms.length > 0 &&
         new Set(change.platforms).size === change.platforms.length &&
-        change.platforms.every(platform => Object.hasOwn(platforms, platform)) &&
+        change.platforms.every(platform => platforms.includes(platform)) &&
         isText(change.text?.zh) && isText(change.text?.en), `Invalid change for ${version}`)
     }
   }
@@ -114,133 +107,7 @@ export function validatePublishedBuilds(releases, builds, downloadOrigin = defau
   }
 }
 
-const bilingual = (zh, en) => `<span lang="zh-Hans" data-lang="zh">${zh}</span><span lang="en" data-lang="en">${en}</span>`
-const history = bilingual('更新日志', 'Release notes')
-const notices = bilingual('开源声明', 'Open-source notices')
-const downloads = bilingual('下载', 'Downloads')
-const styles = `
-:root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.55 }
-body { max-width: 54rem; margin: auto; padding: 1.25rem }
-nav { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem }
-nav a:first-child { font-weight: 700; margin-inline-end: auto }
-a { color: LinkText; text-underline-offset: .2em }
-article { border: 1px solid GrayText; border-radius: 1rem; margin-block: 1rem; padding: 1rem 1.25rem }
-h1 { margin-block: 2rem 1rem }
-h2, h3 { margin-block: .5rem }
-li + li { margin-top: .5rem }
-small { color: GrayText }
-select { font: inherit; padding: .4rem }
-html[lang=en] [data-lang=zh], html[lang=zh-Hans] [data-lang=en] { display: none }
-`
-const controls = `<script>
-const params = new URLSearchParams(location.search)
-const language = document.querySelector('#language')
-language.value = /^zh(?:-|$)/i.test(params.get('lang') || navigator.language) ? 'zh' : 'en'
-function setLanguage() {
-  document.documentElement.lang = language.value === 'zh' ? 'zh-Hans' : 'en'
-  for (const link of document.querySelectorAll('nav a, [data-notice-link]')) {
-    const url = new URL(link.href)
-    url.searchParams.set('lang', language.value)
-    link.href = url
-  }
-}
-setLanguage()
-language.addEventListener('change', () => {
-  setLanguage()
-  const url = new URL(location.href)
-  url.searchParams.set('lang', language.value)
-  window.history.replaceState(null, '', url)
-})
-</script>`
-
 const favicon = '<link rel="icon" type="image/svg+xml" href="/composeResources/me.zhangls.web.resources/drawable/notes_icon.svg">'
-
-function page(title, body, pageStyles = '', pageScript = '') {
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · Notes</title>${favicon}<style>${styles}${pageStyles}</style></head><body>
-<nav aria-label="Notes"><a href="/">Notes</a><a href="/downloads/">${downloads}</a>
-<a href="/releases/">${history}</a><a href="/open-source/">${notices}</a>
-<select id="language" aria-label="Language / 语言"><option value="zh">简体中文</option><option value="en">English</option></select></nav>
-<main>${body}</main>${controls}${pageScript}</body></html>
-`
-}
-
-const releaseStyles = `
-body { background: var(--bg, Canvas); color: var(--fg, CanvasText); padding: clamp(1rem, 4vw, 2rem); }
-html[data-theme=light] { color-scheme: light }
-html[data-theme=dark] { color-scheme: dark }
-html[data-embed] nav, html[data-embed] h1 { display: none }
-[hidden] { display: none !important }
-main { overflow-wrap: anywhere }
-.release-platform { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-block: 1rem }
-.release-platform select { min-height: 44px; max-width: 100%; background: var(--container, Field);
-  color: var(--on-container, FieldText); border: 1px solid var(--line, GrayText); border-radius: .5rem }
-article { background: var(--card, Canvas); border-color: var(--line, GrayText); padding: clamp(.75rem, 4vw, 1.5rem) }
-article ul { padding-inline-start: 1.35em }
-article a, nav a { color: var(--accent, LinkText) }
-article time { color: var(--muted, GrayText) }
-`
-
-const releaseControls = `<script>
-{
-  const root = document.documentElement
-  const url = new URL(location.href)
-  const query = url.searchParams
-  const theme = query.get('theme')
-  const scale = Number(query.get('fontScale'))
-  if (theme === 'light' || theme === 'dark') root.dataset.theme = theme
-  if (Number.isFinite(scale) && scale > 0) root.style.fontSize = (scale * 100) + '%'
-  if (query.get('embed') === '1') root.dataset.embed = ''
-  const colors = ['bg', 'card', 'fg', 'muted', 'line', 'accent', 'container', 'on-container']
-  for (const key of colors) {
-    const value = query.get(key)
-    if (/^[a-f0-9]{6}$/i.test(value || '')) root.style.setProperty('--' + key, '#' + value)
-  }
-  const selector = document.querySelector('#platform')
-  const requestedPlatform = query.get('platform')
-  const appleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  selector.value = requestedPlatform === 'ios' || requestedPlatform === 'android'
-    ? requestedPlatform : appleMobile ? 'ios' : 'android'
-  const entries = document.querySelectorAll('[data-platforms]')
-  const sections = document.querySelectorAll('article section')
-  const articles = document.querySelectorAll('article')
-  function filter() {
-    for (const entry of entries) entry.hidden = !entry.dataset.platforms.split(' ').includes(selector.value)
-    for (const section of sections) section.hidden = !section.querySelector('[data-platforms]:not([hidden])')
-    for (const article of articles) article.hidden = !article.querySelector('[data-release-change]:not([hidden])')
-    document.querySelector('#release-empty').hidden = [...articles].some(article => !article.hidden)
-  }
-  filter()
-  selector.addEventListener('change', () => {
-    const current = new URL(location.href)
-    current.searchParams.set('platform', selector.value)
-    window.history.replaceState(null, '', current)
-    filter()
-  })
-}
-</script>`
-
-function releasePage(releases) {
-  return page('Release notes', `<h1>${history}</h1>
-<div class="release-platform"><label for="platform">${bilingual('平台', 'Platform')}</label>
-<select id="platform"><option value="android">Android</option><option value="ios">iOS</option></select></div>
-${releases.map(releaseCard).join('')}
-<p id="release-empty"${releases.length ? ' hidden' : ''}>${bilingual('暂无已发布记录。', 'No published release notes yet.')}</p>`,
-  releaseStyles, releaseControls)
-}
-
-function releaseCard({ version, date, changes }) {
-  const groups = Object.entries(labels).map(([type, label]) => {
-    const entries = changes.filter(change => change.type === type)
-    if (!entries.length) return ''
-    return `<section><h3>${bilingual(label.zh, label.en)}</h3><ul>${entries.map(change =>
-      `<li data-release-change data-platforms="${change.platforms.join(' ')}">${bilingual(escape(change.text.zh), escape(change.text.en))}</li>`).join('')}</ul></section>`
-  }).join('')
-  return `<article id="v${version}"><h2><a href="#v${version}">${version}</a></h2>
-<time datetime="${date}">${date}</time>${groups}</article>`
-}
 
 function composeDocument(title, content = '', marker = '') {
   return `<!doctype html>
@@ -260,18 +127,15 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
     const channel = entry.channel === 'android-prd-full' ? 'android-prd-global' : entry.channel
     current.set(channel, entry)
   }
-  const downloadable = [...current.values()].filter(entry => entry.artifactUrl)
-  files.set('index.html', page('Notes', `<h1>Notes</h1><p>${bilingual('适用于 Android 和 iOS。', 'Available for Android and iOS.')}</p>`))
+  const siteData = JSON.stringify({ builds }).replaceAll('<', '\\u003c')
+  const content = `<script type="application/json" id="notes-data">${siteData}</script>`
+  files.set('index.html', composeDocument('Notes · Notes', content))
+  files.set('downloads/index.html', composeDocument('Downloads · Notes', content))
+  files.set('releases/index.html', composeDocument('Release notes · Notes', content))
+  files.set('open-source/index.html', composeDocument('Open-source notices · Notes', content))
   const published = releases.filter(release => release.date !== null)
     .sort((a, b) => compareNumbers(b.version, a.version))
-  files.set('releases/index.html', releasePage(published))
   files.set('releases/published.json', JSON.stringify(published) + '\n')
-  const empty = `<p>${bilingual('暂无已发布构建。', 'No published builds yet.')}</p>`
-  files.set('downloads/index.html', page('Downloads', `<h1>${downloads}</h1>${downloadable.length ?
-    `<ul>${downloadable.map(entry => `<li><a href="${escape(entry.artifactUrl)}">${entry.channel} · ${entry.version}</a></li>`).join('')}</ul>` : empty}`))
-  files.set('open-source/index.html', page('Open-source notices', `<h1>${notices}</h1>
-<ul>${Object.entries(platforms).map(([platform, label]) =>
-    `<li><a data-notice-link href="/open-source/${platform}.html">${label}</a></li>`).join('')}</ul>`))
   for (const [channel, { version, build, artifactUrl }] of current) {
     // Installed mainland clients validate the v1 path but download from the configured APK origin.
     const updateUrl = channel === 'android-prd-global' ? `${origin}/releases/#v${version}`
@@ -328,13 +192,6 @@ async function main() {
   requireValue(process.argv[2] === '--wasm' && distribution, 'Expected the Wasm distribution directory')
   await readFile(join(distribution, 'notes.js'))
   await cp(distribution, outputDir, { recursive: true })
-  const data = JSON.stringify({ builds }).replaceAll('<', '\\u003c')
-  for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
-    files.set(path, files.get(path)
-      .replace('<body>', '<body><div id="notes-app" style="position:fixed;inset:0;visibility:hidden"></div><div id="notes-fallback">')
-      .replace('</body>', `</div><script type="application/json" id="notes-data">${data}</script>
-<script src="/notes.js" defer></script></body>`))
-  }
   for (const [path, content] of files) {
     const output = join(outputDir, path)
     await mkdir(dirname(output), { recursive: true })

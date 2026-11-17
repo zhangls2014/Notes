@@ -37,6 +37,14 @@
       },
       {
         "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Fixed a brief flash of the simplified page when refreshing the Notes website.",
+          "zh": "修复刷新摘星官网时简版页面一闪而过的问题。"
+        }
+      },
+      {
+        "type": "fixed",
         "platforms": ["android"],
         "text": {
           "en": "Checking during a background download shows its status or lets you switch to a newer update.",

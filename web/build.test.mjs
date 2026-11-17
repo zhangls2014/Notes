@@ -8,18 +8,20 @@ test('public history is bilingual, ordered and excludes unpublished records', ()
   const release = (version, date) => ({
     version, date, changes: [{ type: 'fixed', platforms: ['android'], text: { zh: '修复', en: '<Fixed>' } }],
   })
-  const releases = [release('1.9.0', '2026-10-01'), release('1.10.0', '2026-11-01'), release('2.0.0', null)]
-  const site = buildSite(releases, [])
-  const html = site.get('releases/index.html')
-  assert.ok(html.indexOf('id="v1.10.0"') < html.indexOf('id="v1.9.0"'))
-  assert.match(html, /<title>Release notes/)
-  assert.match(html, /更新日志/)
-  assert.match(html, /<option value="android">Android<\/option><option value="ios">iOS<\/option>/)
-  assert.doesNotMatch(html, /<option value="all"/)
-  assert.match(html, /修复/)
-  assert.match(html, /&lt;Fixed&gt;/)
-  assert.doesNotMatch(html, /2\.0\.0/)
-  assert.deepEqual(JSON.parse(site.get('releases/published.json')).map(item => item.version), ['1.10.0', '1.9.0'])
+  const older = release('1.9.0', '2026-10-01')
+  const latest = release('1.10.0', '2026-11-01')
+  const site = buildSite([older, latest, release('2.0.0', null)], [])
+  assert.deepEqual(JSON.parse(site.get('releases/published.json')), [latest, older])
+})
+
+test('public routes start Compose with site data and no static page UI', () => {
+  const files = buildSite([], [])
+  for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
+    const html = files.get(path)
+    assert.match(html, /<body><main id="notes-app" style="position:fixed;inset:0"><\/main>/, path)
+    assert.match(html, /<script src="\/notes\.js" defer><\/script>/, path)
+    assert.match(html, /<script type="application\/json" id="notes-data">\{"builds":\[\]\}<\/script><\/body>/, path)
+  }
 })
 
 test('a manifest must refer to a published release and an approved artifact host', () => {
@@ -43,14 +45,13 @@ test('a manifest must refer to a published release and an approved artifact host
   const customSite = buildSite([release], [custom], origins)
   assert.equal(JSON.parse(customSite.get('updates/v1/android-prd-global.json')).updateUrl,
     'https://site.example.test/releases/#v1.10.0')
-  assert.ok(customSite.get('downloads/index.html').includes(`href="${custom.artifactUrl}"`))
   assert.throws(() => buildSite([release], [build], origins))
   assert.throws(() => buildSite([release], [custom], { ...origins, siteOrigin: 'http://site.example.test' }))
   assert.throws(() => validatePublishedBuilds([{ ...release, date: null }], [build]))
   assert.throws(() => validatePublishedBuilds([release], [{ ...build, artifactUrl: 'https://example.com/Notes.apk' }]))
 })
 
-test('release history and the notice index link to shared notices', () => {
+test('download data carries builds across public routes and keeps legacy update URLs', () => {
   const releases = ['1.1.0', '1.2.0', '1.3.0'].map(version => ({
     version, date: '2026-11-01',
     changes: [{ type: 'added', platforms: ['android', 'ios'], text: { zh: '新增', en: 'Added' } }],
@@ -74,17 +75,11 @@ test('release history and the notice index link to shared notices', () => {
     },
   ]
   const site = buildSite(releases, builds)
-  const html = site.get('releases/index.html')
-  assert.deepEqual([...html.matchAll(/href="(\/open-source\/[^"]*)"/g)].map(match => match[1]), ['/open-source/'])
-  assert.match(html, /href="\/downloads\/"/)
-  const index = site.get('open-source/index.html')
-  assert.match(index, /href="\/open-source\/android\.html"/)
-  assert.match(index, /href="\/open-source\/ios\.html"/)
-  assert.doesNotMatch(index, /1\.2\.0|android-prd|ios-app-store/)
-  assert.equal(index, buildSite(releases, []).get('open-source/index.html'))
-  const downloadLinks = [...site.get('downloads/index.html').matchAll(/<li><a href="([^"]+)"/g)]
-    .map(match => match[1])
-  assert.deepEqual(downloadLinks, builds.slice(1).map(build => build.artifactUrl))
+  for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
+    const data = site.get(path).match(/id="notes-data">(.*?)<\/script>/s)?.[1]
+    assert.ok(data, path)
+    assert.deepEqual(JSON.parse(data), { builds })
+  }
   assert.equal([...site.keys()].some(path => path.startsWith('downloads/android/')), false)
   assert.equal(JSON.parse(site.get('updates/v1/android-prd-mainland.json')).updateUrl,
     'https://notes.zhangls.me/downloads/android/android-prd-mainland/5/')

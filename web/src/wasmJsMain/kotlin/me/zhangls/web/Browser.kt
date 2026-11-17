@@ -52,25 +52,6 @@ internal fun onHistoryChange(callback: () -> Unit): Unit =
 internal fun onThemeChange(callback: () -> Unit): Unit =
   js("{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => callback()); }")
 
-internal fun hideFallback() {
-  if (revealComposeViewport()) {
-    // Removing the fallback scrollbar can change the viewport without a resize event.
-    requestViewportResize()
-  }
-}
-
-private fun revealComposeViewport(): Boolean =
-  js("""{
-    document.getElementById('notes-app').style.visibility = 'visible';
-    const fallback = document.getElementById('notes-fallback');
-    if (!fallback || fallback.hidden) return false;
-    fallback.hidden = true;
-    return true;
-  }""")
-
-private fun requestViewportResize(): Unit =
-  js("{ window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); }")
-
 // Compose Resources uses navigator.language for non-composable lookup. Override it only
 // while capturing the environment; the browser preference itself remains available.
 internal fun <T> withResourceLanguage(language: String, capture: () -> T): T {

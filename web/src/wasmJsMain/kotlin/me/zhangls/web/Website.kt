@@ -245,7 +245,6 @@ private fun Website(data: SiteData) {
     if (route.page == Page.NotFound) {
       document.title = "${resolvedStrings[Res.string.page_not_found]} · ${resolvedStrings[Res.string.app_name]}"
     }
-    hideFallback()
   }
 
   CompositionLocalProvider(LocalWebsiteStrings provides resolvedStrings) {
