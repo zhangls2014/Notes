@@ -32,6 +32,7 @@
   <string name="releases_failure">Could not load release notes.</string>
   <string name="releases_loading">Loading release notes…</string>
   <string name="retry">Retry</string>
+  <string name="misans_attribution">Font: Xiaomi MiSans</string>
   <string name="settings">Settings</string>
   <string name="system">System</string>
   <string name="text_large">Large</string>

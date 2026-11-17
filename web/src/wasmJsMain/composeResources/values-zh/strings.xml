@@ -32,6 +32,7 @@
   <string name="releases_failure">无法加载更新日志。</string>
   <string name="releases_loading">正在加载更新日志…</string>
   <string name="retry">重试</string>
+  <string name="misans_attribution">字体：小米 MiSans</string>
   <string name="settings">设置</string>
   <string name="system">跟随系统</string>
   <string name="text_large">大</string>

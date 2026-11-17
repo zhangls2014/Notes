@@ -4,6 +4,22 @@
     "date": null,
     "changes": [
       {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The website homepage preview is centered, and all three cards use the same corner radius.",
+          "zh": "摘星官网首页的预览截图居中显示，三个卡片采用统一圆角。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The Notes website now uses the Xiaomi MiSans font.",
+          "zh": "摘星官网改用小米 MiSans 字体。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {

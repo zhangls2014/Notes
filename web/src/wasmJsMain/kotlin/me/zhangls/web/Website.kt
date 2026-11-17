@@ -93,8 +93,9 @@ import me.zhangls.web.resources.language
 import me.zhangls.web.resources.language_english
 import me.zhangls.web.resources.language_simplified_chinese
 import me.zhangls.web.resources.light
+import me.zhangls.web.resources.misans_attribution
+import me.zhangls.web.resources.misans_regular
 import me.zhangls.web.resources.notes_icon
-import me.zhangls.web.resources.noto_sans_sc
 import me.zhangls.web.resources.open_source_notices
 import me.zhangls.web.resources.page_not_found
 import me.zhangls.web.resources.release_notes
@@ -248,7 +249,7 @@ private fun Website(data: SiteData) {
   }
 
   CompositionLocalProvider(LocalWebsiteStrings provides resolvedStrings) {
-    ComposeAppTheme(darkTheme = dark, fontScale = scale, fontFamily = FontFamily(Font(Res.font.noto_sans_sc))) {
+    ComposeAppTheme(darkTheme = dark, fontScale = scale, fontFamily = FontFamily(Font(Res.font.misans_regular))) {
       val base = MaterialTheme.colorScheme
       val scheme = base.copy(
         background = colors.background ?: base.background,
@@ -628,6 +629,14 @@ private fun SettingsMenu(
           websiteString(Res.string.text_large),
         )),
         onFont,
+      )
+      HorizontalDivider()
+      DropdownMenuItem(
+        text = { Text(websiteString(Res.string.misans_attribution)) },
+        onClick = {
+          expanded = false
+          openPage("/licenses/misans-license.pdf")
+        },
       )
     }
   }

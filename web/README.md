@@ -43,8 +43,8 @@ custom error page and its HTTP 404 response.
 Kotlin may warn about configuration on demand.
 See [deployment](../docs/notes-web-deployment.md).
 
-The bundled Noto Sans CJK SC font covers frequent Simplified Chinese characters
-and current public copy. It was subset from the [upstream Regular font](https://github.com/notofonts/noto-cjk/blob/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf)
-with HarfBuzz. The [font license](src/wasmJsMain/resources/licenses/noto-sans-cjk-OFL.txt)
-ships in the website distribution. Platform icons come from [Material Symbols Rounded](https://github.com/google/material-design-icons)
+The Compose website uses the unmodified MiSans Regular OTF from the [official
+MiSans download](https://hyperos.mi.com/font/details/sc). The Settings menu
+credits Xiaomi MiSans and links to the bundled [font license](src/wasmJsMain/resources/licenses/misans-license.pdf).
+Platform icons come from [Material Symbols Rounded](https://github.com/google/material-design-icons)
 and [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/apple.svg).
