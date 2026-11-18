@@ -51,7 +51,14 @@
   <string name="about_web_and_notices">Website and notices</string>
   <string name="about_storage">Storage</string>
   <string name="about_cache_management">Cache management</string>
-  <string name="about_cache_description">View locally cached resources and their size</string>
+  <string name="about_cache_description">View and clear locally cached resources</string>
+  <string name="about_cache_clear_resource">Delete %1$s</string>
+  <string name="about_cache_clear_title">Delete this resource?</string>
+  <string name="about_cache_clear_detail">The app can download this resource again when needed.</string>
+  <string name="about_cache_clear_cancel">Cancel</string>
+  <string name="about_cache_clear_confirm">Delete</string>
+  <string name="about_cache_clear_complete">Resource cleared</string>
+  <string name="about_cache_clear_incomplete">Could not clear this resource. Try again later.</string>
   <string name="about_cache_total">Known cache size</string>
   <string name="about_cache_empty">No cached files</string>
   <string name="about_cache_failed">Unable to read the cache list</string>

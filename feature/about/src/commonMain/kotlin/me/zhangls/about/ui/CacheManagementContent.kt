@@ -2,7 +2,6 @@ package me.zhangls.about.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -29,6 +28,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import me.zhangls.about.cacheFileAbsolutePath
 import me.zhangls.about.CachedFile
 import me.zhangls.about.WebAssetTransfer
 import me.zhangls.theme.icon.Code
@@ -38,6 +38,7 @@ import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Info
 import me.zhangls.theme.icon.Language
 import notes.feature.about.generated.resources.Res
+import notes.feature.about.generated.resources.about_cache_clear_resource
 import notes.feature.about.generated.resources.about_cache_engine_empty
 import notes.feature.about.generated.resources.about_cache_downloading
 import notes.feature.about.generated.resources.about_cache_verifying
@@ -78,38 +79,71 @@ internal fun CacheOverview(bytes: Long) {
 }
 
 @Composable
-internal fun CacheFileRow(file: CachedFile, index: Int, count: Int, transfer: WebAssetTransfer? = null) {
+internal fun CacheFileRow(
+  file: CachedFile,
+  index: Int,
+  count: Int,
+  transfer: WebAssetTransfer?,
+  onClear: ((CachedFile) -> Unit)?,
+  activeSwipe: String?,
+  onSwipe: (String) -> Unit,
+) {
+  val colors = MaterialTheme.colorScheme
+  val delete = onClear?.takeUnless { transfer?.active == true }
+  Surface(
+    modifier = Modifier.fillMaxWidth().testTag("cache-row/${file.relativePath}"),
+    shape = cacheSegmentShape(index, count),
+    color = colors.surfaceContainer,
+    contentColor = colors.onSurface,
+  ) {
+    val content: @Composable () -> Unit = {
+      Box(Modifier.fillMaxWidth().padding(14.dp)) {
+        CacheFileDetails(file, transfer)
+      }
+    }
+    if (delete == null) {
+      content()
+    } else {
+      CacheFileSwipeActions(
+        isActive = activeSwipe == file.relativePath,
+        onSwipe = { onSwipe(file.relativePath) },
+        label = stringResource(Res.string.about_cache_clear_resource, file.relativePath),
+        onDelete = { delete(file) },
+        content = content,
+      )
+    }
+  }
+}
+
+@Composable
+private fun CacheFileDetails(file: CachedFile, transfer: WebAssetTransfer?) {
   val colors = MaterialTheme.colorScheme
   val (name, icon) = when {
     file.site == null -> file.name to Icons.Rounded.Download
     file.name.endsWith(".wasm") -> stringResource(Res.string.about_cache_skiko_name) to Icons.Rounded.Code
     else -> stringResource(Res.string.about_cache_font_name) to Icons.Rounded.FormatSize
   }
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    shape = cacheSegmentShape(index, count),
-    color = colors.surfaceContainer,
-    contentColor = colors.onSurface,
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(12.dp),
+    verticalAlignment = if (file.site == null) Alignment.CenterVertically else Alignment.Top,
   ) {
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(14.dp)) {
-      // Reserve enough reading width for filenames before placing size in a separate column.
-      val inlineSize = transfer == null && maxWidth / LocalDensity.current.fontScale >= 300.dp
+    CacheIcon(icon, colors.surface, colors.primary, Modifier.align(Alignment.CenterVertically))
+    Column(Modifier.weight(1f)) {
       Row(
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = if (file.site == null) Alignment.CenterVertically else Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
       ) {
-        CacheIcon(icon, colors.surface, colors.primary)
-        Column(Modifier.weight(1f)) {
-          Text(name, style = MaterialTheme.typography.titleMedium)
-          Text(file.relativePath, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
-          if (transfer != null) {
-            CacheDownloadProgress(transfer)
-          } else if (!inlineSize) {
-            CacheFileSize(file.bytes, Modifier.padding(top = 6.dp))
-          }
-        }
-        if (inlineSize) CacheFileSize(file.bytes)
+        Text(name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+        CacheFileSize(file.bytes)
       }
+      Text(
+        cacheFileAbsolutePath(file.relativePath),
+        Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.bodySmall,
+        color = colors.onSurfaceVariant,
+      )
+      if (transfer != null) CacheDownloadProgress(transfer)
     }
   }
 }
@@ -143,13 +177,17 @@ internal fun BrowserCacheNote(sites: List<String>?) {
     else -> Res.string.about_cache_engine_note
   }
   Surface(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().testTag("cache-browser-note"),
     shape = MaterialTheme.shapes.large,
     color = colors.surfaceContainerHigh,
     contentColor = colors.onSurfaceVariant,
   ) {
-    Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-      Icon(Icons.Rounded.Info, contentDescription = null, modifier = Modifier.size(18.dp))
+    Row(
+      Modifier.padding(14.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      CacheIcon(Icons.Rounded.Info, colors.surface, colors.primary)
       Text(stringResource(message), style = MaterialTheme.typography.bodyMedium)
     }
   }
@@ -207,8 +245,13 @@ private fun cacheSegmentShape(index: Int, count: Int): Shape =
   if (count == 1) MaterialTheme.shapes.large else ListItemDefaults.segmentedShapes(index, count).shape
 
 @Composable
-private fun CacheIcon(icon: ImageVector, color: Color, contentColor: Color) {
-  Surface(Modifier.size(34.dp), shape = MaterialTheme.shapes.medium, color = color, contentColor = contentColor) {
+private fun CacheIcon(icon: ImageVector, color: Color, contentColor: Color, modifier: Modifier = Modifier) {
+  Surface(
+    modifier.size(34.dp).testTag("cache-item-icon"),
+    shape = MaterialTheme.shapes.medium,
+    color = color,
+    contentColor = contentColor,
+  ) {
     Box(contentAlignment = Alignment.Center) {
       Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
     }

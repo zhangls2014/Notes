@@ -1,6 +1,7 @@
 package me.zhangls.about
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -10,6 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
@@ -17,8 +21,12 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -40,6 +48,10 @@ import me.zhangls.theme.icon.Info
 import me.zhangls.theme.icon.Storage
 import me.zhangls.theme.layout.ContentWidth
 import notes.feature.about.generated.resources.Res
+import notes.feature.about.generated.resources.about_cache_clear_cancel
+import notes.feature.about.generated.resources.about_cache_clear_confirm
+import notes.feature.about.generated.resources.about_cache_clear_detail
+import notes.feature.about.generated.resources.about_cache_clear_title
 import notes.feature.about.generated.resources.about_cache_empty
 import notes.feature.about.generated.resources.about_cache_empty_detail
 import notes.feature.about.generated.resources.about_cache_engine
@@ -64,6 +76,26 @@ internal fun CacheManagementScreen(onBack: () -> Unit) {
     val viewModel = koinViewModel<CacheManagementViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val transfers by viewModel.transfers.collectAsStateWithLifecycle()
+    var activeSwipe by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedPath by rememberSaveable { mutableStateOf<String?>(null) }
+    val inventory = (state as? CacheManagementState.Loaded)?.inventory
+    val selected = selectedPath?.let { path ->
+      inventory?.let { cached ->
+        cached.webFiles.firstOrNull { it.relativePath == path }
+          ?: cached.webCheckpoints.firstOrNull { it.file.relativePath == path }?.file
+          ?: cached.updateFiles.firstOrNull { it.relativePath == path }
+      }
+    }
+    if (selected != null) {
+      CacheClearDialog(
+        file = selected,
+        onDismiss = { selectedPath = null },
+        onConfirm = {
+          selectedPath = null
+          viewModel.clear(selected)
+        },
+      )
+    }
     LazyColumn(
       modifier = Modifier.fillMaxSize().padding(
         PaddingValues(
@@ -94,19 +126,34 @@ internal fun CacheManagementScreen(onBack: () -> Unit) {
           }
         }
 
-        is CacheManagementState.Loaded -> cacheInventory(current.inventory, transfers.values.toList())
+        is CacheManagementState.Loaded -> cacheInventory(
+          current,
+          transfers.values.toList(),
+          activeSwipe,
+          onSwipe = { activeSwipe = it },
+        ) {
+          selectedPath = it.relativePath
+        }
       }
     }
   }
 }
 
-private fun LazyListScope.cacheInventory(inventory: CacheInventory, activeTransfers: List<WebAssetTransfer>) {
+private fun LazyListScope.cacheInventory(
+  state: CacheManagementState.Loaded,
+  activeTransfers: List<WebAssetTransfer>,
+  activeSwipe: String?,
+  onSwipe: (String) -> Unit,
+  onClear: (CachedFile) -> Unit,
+) {
+  val inventory = state.inventory
   val transfers = (activeTransfers + inventory.webCheckpoints)
     .distinctBy { it.file.site to it.file.name }
     .sortedBy { it.file.name }
   item { CacheContent { CacheOverview(inventory.knownBytes) } }
-  cacheFiles(Res.string.about_cache_web, inventory.webFiles, transfers)
-  cacheFiles(Res.string.about_cache_updates, inventory.updateFiles)
+  val clear = onClear.takeUnless { state.isClearing }
+  cacheFiles(Res.string.about_cache_web, inventory.webFiles, clear, activeSwipe, onSwipe, transfers)
+  cacheFiles(Res.string.about_cache_updates, inventory.updateFiles, clear, activeSwipe, onSwipe)
   if (transfers.isEmpty() && inventory.webFiles.isEmpty() && inventory.updateFiles.isEmpty()) {
     item {
       CacheContent(Modifier.padding(top = 20.dp)) {
@@ -129,10 +176,34 @@ private fun LazyListScope.cacheInventory(inventory: CacheInventory, activeTransf
   }
 }
 
+@Composable
+private fun CacheClearDialog(file: CachedFile, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text(stringResource(Res.string.about_cache_clear_title)) },
+    text = {
+      Column(Modifier.verticalScroll(rememberScrollState())) {
+        Text(file.name, style = MaterialTheme.typography.titleSmall)
+        Text(cacheFileAbsolutePath(file.relativePath), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(Res.string.about_cache_clear_detail), Modifier.padding(top = 12.dp))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) { Text(stringResource(Res.string.about_cache_clear_cancel)) }
+    },
+    confirmButton = {
+      TextButton(onClick = onConfirm) { Text(stringResource(Res.string.about_cache_clear_confirm)) }
+    },
+  )
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun LazyListScope.cacheFiles(
   title: StringResource,
   files: List<CachedFile>,
+  onClear: ((CachedFile) -> Unit)?,
+  activeSwipe: String?,
+  onSwipe: (String) -> Unit,
   transfers: List<WebAssetTransfer> = emptyList(),
 ) {
   val completed = files.filterNot { file ->
@@ -141,15 +212,31 @@ private fun LazyListScope.cacheFiles(
   val count = completed.size + transfers.size
   if (count == 0) return
   item { CacheHeading(title) }
-  itemsIndexed(transfers) { index, transfer ->
+  itemsIndexed(transfers, key = { _, transfer -> transfer.file.relativePath }) { index, transfer ->
     CacheContent(Modifier.padding(top = if (index == 0) 0.dp else ListItemDefaults.SegmentedGap)) {
-      CacheFileRow(transfer.file, index, count, transfer)
+      CacheFileRow(
+        transfer.file,
+        index,
+        count,
+        transfer,
+        onClear = onClear,
+        activeSwipe = activeSwipe,
+        onSwipe = onSwipe,
+      )
     }
   }
-  itemsIndexed(completed) { index, file ->
+  itemsIndexed(completed, key = { _, file -> file.relativePath }) { index, file ->
     val position = index + transfers.size
     CacheContent(Modifier.padding(top = if (position == 0) 0.dp else ListItemDefaults.SegmentedGap)) {
-      CacheFileRow(file, position, count)
+      CacheFileRow(
+        file,
+        position,
+        count,
+        transfer = null,
+        onClear = onClear,
+        activeSwipe = activeSwipe,
+        onSwipe = onSwipe,
+      )
     }
   }
 }

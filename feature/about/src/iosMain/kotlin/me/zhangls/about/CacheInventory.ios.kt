@@ -21,11 +21,22 @@ import kotlin.coroutines.resume
 
 internal actual fun listDownloadedUpdatePackages(): List<CachedFile> = emptyList()
 
+internal actual suspend fun clearUpdateCache(relativePath: String): Boolean = false
+
+private fun cacheRoot(): String = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true)
+  .filterIsInstance<String>().first()
+
+internal actual fun deleteCacheFile(relativePath: String): Boolean {
+  val manager = NSFileManager.defaultManager
+  val path = "${cacheRoot()}/$relativePath"
+  if (!manager.fileExistsAtPath(path)) return true
+  return manager.attributesOfItemAtPath(path, null)?.get(NSFileType) == NSFileTypeRegular &&
+    manager.removeItemAtPath(path, null)
+}
+
 internal actual fun listCacheDirectory(relativePath: String): List<CacheDiskEntry> {
   val manager = NSFileManager.defaultManager
-  val root = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true)
-    .filterIsInstance<String>().first()
-  val directory = "$root/$relativePath"
+  val directory = "${cacheRoot()}/$relativePath"
   if (!manager.fileExistsAtPath(directory)) return emptyList()
   val attributes = checkNotNull(manager.attributesOfItemAtPath(directory, null))
   if (attributes[NSFileType] != NSFileTypeDirectory) return emptyList()
@@ -48,3 +59,5 @@ internal actual suspend fun readWebEngineCacheSites(): List<String>? = withConte
     }
   }
 }
+
+internal actual fun cacheFileAbsolutePath(relativePath: String): String = "${cacheRoot()}/$relativePath"

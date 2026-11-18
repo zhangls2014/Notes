@@ -29,6 +29,7 @@ internal actual class UpdateInstaller(context: Context) {
   private val app = context.applicationContext
   private val downloads by lazy { app.getSystemService(DownloadManager::class.java) }
   private val downloadLock = Mutex()
+  private val handedOffPackages = mutableSetOf<File>()
 
   actual fun observeDownload(apkUrl: String) = flow {
     do {
@@ -78,13 +79,16 @@ internal actual class UpdateInstaller(context: Context) {
       )
       InstallResult.PermissionRequired
     } else {
-      val apk = withContext(Dispatchers.IO) { prepareApk(apkUrl, manifest) }
-      val uri = FileProvider.getUriForFile(app, "${app.packageName}.updates", apk)
-      app.startActivity(
-        Intent(Intent.ACTION_VIEW)
-          .setDataAndType(uri, "application/vnd.android.package-archive")
-          .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION),
-      )
+      downloadLock.withLock {
+        val apk = withContext(Dispatchers.IO) { prepareApk(apkUrl, manifest) }
+        val uri = FileProvider.getUriForFile(app, "${app.packageName}.updates", apk)
+        app.startActivity(
+          Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, "application/vnd.android.package-archive")
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION),
+        )
+        handedOffPackages += apk
+      }
       InstallResult.HandedOff
     }
   } catch (_: IOException) {
@@ -168,6 +172,23 @@ internal actual class UpdateInstaller(context: Context) {
       val name = Uri.parse(record.url).lastPathSegment ?: return@mapNotNull null
       CachedFile(name, file.length(), "${Environment.DIRECTORY_DOWNLOADS}/${file.name}")
     }
+
+  internal suspend fun clearCachedPackage(relativePath: String): Boolean = withContext(Dispatchers.IO) {
+    downloadLock.withLock {
+      val legacyName = relativePath.removePrefix("$APP_UPDATE_CACHE_DIRECTORY/")
+      if (legacyName != relativePath && cachedUpdateApk.matches(legacyName)) {
+        return@withLock deleteCacheFile(relativePath)
+      }
+      for (record in downloadRecords()) {
+        val file = updateDownloadFile(record.localUri) ?: continue
+        if (relativePath == "${Environment.DIRECTORY_DOWNLOADS}/${file.name}") {
+          return@withLock record.status == DownloadStatus.Ready &&
+            file !in handedOffPackages && downloads.remove(record.id) > 0
+        }
+      }
+      true
+    }
+  }
 
   private fun verifyApk(apk: File, manifest: UpdateManifest) {
     val flags = PackageManager.GET_META_DATA or PackageManager.GET_SIGNING_CERTIFICATES

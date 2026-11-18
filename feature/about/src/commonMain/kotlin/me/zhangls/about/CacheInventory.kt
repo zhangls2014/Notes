@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import me.zhangls.download.downloadCheckpoints
+import me.zhangls.download.downloadCheckpointFilename
 
 internal const val WEB_ASSET_CACHE_DIRECTORY = "notes-web-assets"
 internal const val APP_UPDATE_CACHE_DIRECTORY = "app-updates"
@@ -21,7 +22,7 @@ internal data class CacheInventory(
 }
 
 private val siteDirectory = Regex("([a-z0-9.-]+)-([0-9]+)")
-private val updateApk = Regex("Notes-[0-9]+\\.apk")
+internal val cachedUpdateApk = Regex("Notes-[0-9]+\\.apk")
 
 internal suspend fun readCacheInventory(): CacheInventory {
   val (webFiles, webCheckpoints, updateFiles) = withContext(Dispatchers.IO) {
@@ -48,7 +49,7 @@ internal suspend fun readCacheInventory(): CacheInventory {
       }
     }
     val updates = listCacheDirectory(APP_UPDATE_CACHE_DIRECTORY).mapNotNull { file ->
-      file.bytes?.takeIf { updateApk.matches(file.name) }
+      file.bytes?.takeIf { cachedUpdateApk.matches(file.name) }
         ?.let { CachedFile(file.name, it, "$APP_UPDATE_CACHE_DIRECTORY/${file.name}") }
     }
     Triple(
@@ -60,6 +61,30 @@ internal suspend fun readCacheInventory(): CacheInventory {
   return CacheInventory(webFiles, webCheckpoints, updateFiles, readWebEngineCacheSites())
 }
 
+internal fun clearWebsiteFiles(relativePath: String): Boolean {
+  val directory = relativePath.substringBeforeLast('/')
+  val site = directory.removePrefix("$WEB_ASSET_CACHE_DIRECTORY/")
+  val asset = relativePath.substringAfterLast('/')
+  if (directory == site || !siteDirectory.matches(site) || !isWebAssetCacheFilename(asset)) return false
+  val files = if (listCacheDirectory(WEB_ASSET_CACHE_DIRECTORY).any { it.name == site && it.bytes == null }) {
+    listCacheDirectory(directory)
+  } else {
+    emptyList()
+  }
+  var cleared = true
+  for (file in files) {
+    val belongsToAsset = file.name == asset || downloadCheckpointFilename(file.name) == asset
+    if (file.bytes != null && belongsToAsset && !deleteCacheFile("$directory/${file.name}")) {
+      cleared = false
+    }
+  }
+  return cleared
+}
+
+internal expect fun cacheFileAbsolutePath(relativePath: String): String
+
 internal expect fun listCacheDirectory(relativePath: String): List<CacheDiskEntry>
 internal expect fun listDownloadedUpdatePackages(): List<CachedFile>
+internal expect fun deleteCacheFile(relativePath: String): Boolean
+internal expect suspend fun clearUpdateCache(relativePath: String): Boolean
 internal expect suspend fun readWebEngineCacheSites(): List<String>?

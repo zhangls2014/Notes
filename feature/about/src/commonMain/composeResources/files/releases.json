@@ -31,8 +31,8 @@
         "type": "added",
         "platforms": ["android", "ios"],
         "text": {
-          "en": "About app groups related features and includes Cache management, with total space, file paths, and sizes in decimal units (KB, MB, and GB).",
-          "zh": "「关于应用」按用途分区，并新增「缓存管理」，可查看总占用、文件相对路径和分类明细，大小按十进制显示为 KB、MB 或 GB。"
+          "en": "About app groups related features and includes Cache management, with total space, file paths, and sizes in decimal units (KB, MB, and GB). Swipe left on a file to reveal its delete action while dragging. Swiping another file closes the previous action. Expanded actions survive theme changes and page recreation. File sizes align with names, with full file paths shown underneath.",
+          "zh": "「关于应用」按用途分区，并新增「缓存管理」，可查看总占用、文件完整路径和分类明细，大小按十进制显示为 KB、MB 或 GB。向左滑动文件项时即可看到删除操作，滑动另一项会自动收起上一项，切换主题和页面重建后保留展开状态。文件大小与名称居中对齐，完整路径在下方独立显示。"
         }
       },
       {

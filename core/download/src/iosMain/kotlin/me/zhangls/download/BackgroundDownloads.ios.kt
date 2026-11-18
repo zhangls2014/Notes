@@ -47,6 +47,9 @@ suspend fun prepareBackgroundDownloads(requests: List<DownloadRequest>) {
   withContext(Dispatchers.Main) { backgroundDownloads.prepare(requests) }
 }
 
+suspend fun hasActiveBackgroundDownload(relativePath: String): Boolean =
+  withContext(Dispatchers.Main) { backgroundDownloads.hasActiveDownload(relativePath) }
+
 /** Pass the UIKit background URLSession callback to the transfer owner. */
 fun handleDownloadSessionEvents(identifier: String, completion: () -> Unit) {
   if (identifier == sessionId) backgroundDownloads.handleEvents(completion) else completion()
@@ -170,6 +173,13 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
     session.getAllTasksWithCompletionHandler { tasks ->
       continuation.resume(tasks.orEmpty().filterIsInstance<NSURLSessionTask>())
     }
+  }
+
+  suspend fun hasActiveDownload(relativePath: String): Boolean {
+    val suffix = "/$relativePath"
+    return currentTasks().any { it.rangeTask()?.request?.destination?.endsWith(suffix) == true } ||
+      enqueued.any { (request, _) -> request.destination.endsWith(suffix) } ||
+      publishing.any { it.destination.endsWith(suffix) }
   }
 
   private fun enqueue(part: RangeTask) {

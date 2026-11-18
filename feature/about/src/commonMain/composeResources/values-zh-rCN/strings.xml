@@ -51,7 +51,14 @@
   <string name="about_web_and_notices">网站与声明</string>
   <string name="about_storage">存储</string>
   <string name="about_cache_management">缓存管理</string>
-  <string name="about_cache_description">查看本地缓存资源及占用</string>
+  <string name="about_cache_description">查看和清理本地缓存</string>
+  <string name="about_cache_clear_resource">删除 %1$s</string>
+  <string name="about_cache_clear_title">删除这项资源？</string>
+  <string name="about_cache_clear_detail">需要时可以重新下载这项资源。</string>
+  <string name="about_cache_clear_cancel">取消</string>
+  <string name="about_cache_clear_confirm">删除</string>
+  <string name="about_cache_clear_complete">资源已清除</string>
+  <string name="about_cache_clear_incomplete">无法清除这项资源，请稍后重试。</string>
   <string name="about_cache_total">已统计的缓存占用</string>
   <string name="about_cache_empty">暂无缓存文件</string>
   <string name="about_cache_failed">无法读取缓存明细</string>

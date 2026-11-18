@@ -12,6 +12,8 @@ import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.adaptive.Posture
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,9 +24,16 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.isEnabled
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -32,6 +41,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
@@ -110,19 +122,25 @@ class AboutUiTest(private val scenario: Scenario) {
 
   private lateinit var rootView: View
 
-  private fun launch(info: AboutAppInfo, channel: String? = null) {
+  private var darkTheme by mutableStateOf(scenario.dark)
+
+  private fun launch(
+    info: AboutAppInfo,
+    channel: String? = null,
+    restoration: StateRestorationTester? = null,
+  ) {
     provideAboutAppInfo(info, channel)
-    compose.setContent {
+    val content: @Composable () -> Unit = {
       rootView = LocalView.current.rootView
       Box(Modifier.requiredSize(scenario.width.dp, scenario.height.dp).testTag("about-page")) {
         ProvideWindowAdaptiveInfo(
           WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(scenario.width, scenario.height),
           Posture(),
         ) {
-          ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-            var historyVisible by remember { mutableStateOf(false) }
-            var websiteVisible by remember { mutableStateOf(false) }
-            var cacheVisible by remember { mutableStateOf(false) }
+          ComposeAppTheme(darkTheme = darkTheme, fontScale = scenario.fontScale) {
+            var historyVisible by rememberSaveable { mutableStateOf(false) }
+            var websiteVisible by rememberSaveable { mutableStateOf(false) }
+            var cacheVisible by rememberSaveable { mutableStateOf(false) }
             val entry = koinInject<AboutEntry>()
             when {
               cacheVisible -> entry.CacheManagementScreen(onBack = { cacheVisible = false })
@@ -140,6 +158,7 @@ class AboutUiTest(private val scenario: Scenario) {
         }
       }
     }
+    if (restoration == null) compose.setContent(content) else restoration.setContent(content)
   }
 
   @Test fun globalDisplaysPublishedNotesAndDisablesDownload() {
@@ -346,6 +365,13 @@ class AboutUiTest(private val scenario: Scenario) {
     val id = manager.enqueue(request)
     val shadow = Shadow.extract<ShadowDownloadManager>(manager)
     Shadow.extract<ShadowDownloadManager.ShadowRequest>(shadow.getRequest(id)).status = DownloadManager.STATUS_SUCCESSFUL
+    val activeName = "active-$originalApkName"
+    val activeFile = File(directory, activeName).apply { writeBytes(ByteArray(150)) }
+    val activeId = manager.enqueue(
+      DownloadManager.Request(Uri.parse("https://downloads.example.test/$activeName"))
+        .setDestinationInExternalFilesDir(app, Environment.DIRECTORY_DOWNLOADS, activeName),
+    )
+    Shadow.extract<ShadowDownloadManager.ShadowRequest>(shadow.getRequest(activeId)).status = DownloadManager.STATUS_RUNNING
 
     launch(AboutAppInfo("1.1.0", "2"))
     for (heading in listOf("Version information", "Website and notices", "Storage")) {
@@ -358,37 +384,153 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithTag("about-page").captureRoboImage("build/about-candidates/cache-management-${scenario.name}.png")
     val list = compose.onNodeWithTag("cache-inventory")
     val wasmPath = "notes-web-assets/website.example.test-443/$wasm"
-    list.performScrollToNode(hasText(wasmPath))
+    list.performScrollToNode(hasText("Skiko WebAssembly"))
     val wasmName = compose.onNodeWithText("Skiko WebAssembly")
     wasmName.assertIsDisplayed()
-    compose.onNodeWithText(wasmPath).assertIsDisplayed()
     val titleBounds = wasmName.getUnclippedBoundsInRoot()
     val sizeBounds = compose.onNodeWithText("1.0 KB").getUnclippedBoundsInRoot()
-    if (scenario.width == 320) {
-      assertTrue(sizeBounds.top >= titleBounds.bottom)
-    } else {
-      assertTrue(sizeBounds.left > titleBounds.left && sizeBounds.top < titleBounds.bottom)
-    }
+    assertEquals(
+      (titleBounds.top.value + titleBounds.bottom.value) / 2,
+      (sizeBounds.top.value + sizeBounds.bottom.value) / 2,
+      1f,
+    )
+    val wasmPathBounds = compose.onNodeWithText(wasmPath, substring = true).getUnclippedBoundsInRoot()
+    assertTrue(wasmPathBounds.top >= titleBounds.bottom)
+    assertTrue(wasmPathBounds.right >= sizeBounds.right)
+    compose.onNodeWithText(wasmPath, substring = true).performScrollTo().assertIsDisplayed()
     val fontPath = "notes-web-assets/website.example.test-443/$font"
-    list.performScrollToNode(hasText(fontPath))
+    list.performScrollToNode(hasText("MiSans font"))
     compose.onNodeWithText("MiSans font").assertIsDisplayed()
-    compose.onNodeWithText(fontPath).assertIsDisplayed()
+    compose.onNodeWithText(File(cache, fontPath).absolutePath).performScrollTo().assertIsDisplayed()
     list.performScrollToNode(hasText("Notes-42.apk"))
     val apkName = compose.onNodeWithText("Notes-42.apk").assertIsDisplayed()
-    val apkPath = compose.onNodeWithText("app-updates/Notes-42.apk").assertIsDisplayed()
+    val apkPath = compose.onNodeWithText("app-updates/Notes-42.apk", substring = true)
     if (scenario.width > 320) {
       val name = apkName.getUnclippedBoundsInRoot()
       val path = apkPath.getUnclippedBoundsInRoot()
       val size = compose.onNodeWithText("300 B").getUnclippedBoundsInRoot()
-      val nameCenter = (name.top.value + path.bottom.value) / 2
+      val nameCenter = (name.top.value + name.bottom.value) / 2
       val sizeCenter = (size.top.value + size.bottom.value) / 2
       assertEquals(nameCenter, sizeCenter, 1f)
+      assertTrue(path.top >= name.bottom)
     }
+    apkPath.performScrollTo().assertIsDisplayed()
     list.performScrollToNode(hasText(originalApkName))
     compose.onNodeWithText(originalApkName).assertIsDisplayed()
-    compose.onNodeWithText("Download/$downloadName").assertIsDisplayed()
+    compose.onNodeWithText(File(directory, downloadName).absolutePath).performScrollTo().assertIsDisplayed()
     list.performScrollToNode(hasText("Built-in browser cache"))
     compose.onNodeWithText("Built-in browser cache").assertIsDisplayed()
+
+    val fontRowTag = "cache-row/$fontPath"
+    list.performScrollToNode(hasTestTag(fontRowTag))
+    val fontRow = compose.onNodeWithTag(fontRowTag)
+    val fontIcon = compose.onNode(hasTestTag("cache-item-icon") and hasAnyAncestor(hasTestTag(fontRowTag)))
+    val rowBounds = fontRow.getUnclippedBoundsInRoot()
+    val iconBounds = fontIcon.getUnclippedBoundsInRoot()
+    assertEquals((rowBounds.top.value + rowBounds.bottom.value) / 2, (iconBounds.top.value + iconBounds.bottom.value) / 2, 1f)
+    val browserIcon = hasTestTag("cache-item-icon") and hasAnyAncestor(hasTestTag("cache-browser-note"))
+    list.performScrollToNode(browserIcon)
+    val browserNoteBounds = compose.onNodeWithTag("cache-browser-note").getUnclippedBoundsInRoot()
+    val browserIconBounds = compose.onNode(browserIcon).getUnclippedBoundsInRoot()
+    assertEquals(
+      (browserNoteBounds.top.value + browserNoteBounds.bottom.value) / 2,
+      (browserIconBounds.top.value + browserIconBounds.bottom.value) / 2,
+      1f,
+    )
+    assertEquals(
+      iconBounds.right.value - iconBounds.left.value,
+      browserIconBounds.right.value - browserIconBounds.left.value,
+      1f,
+    )
+    assertEquals(
+      iconBounds.bottom.value - iconBounds.top.value,
+      browserIconBounds.bottom.value - browserIconBounds.top.value,
+      1f,
+    )
+
+    val deleteFont = compose.onNodeWithContentDescription("Delete $fontPath")
+    list.performScrollToNode(hasTestTag(fontRowTag))
+    deleteFont.assertDoesNotExist()
+    fontRow.performTouchInput {
+      down(center)
+      moveTo(center.copy(x = center.x - 120.dp.toPx()))
+    }
+    deleteFont.assertIsDisplayed()
+    assertTrue(File(cache, fontPath).exists())
+    fontRow.performTouchInput { up() }
+    deleteFont.assertIsDisplayed()
+    assertTrue(File(cache, fontPath).exists())
+    val wasmRowTag = "cache-row/$wasmPath"
+    list.performScrollToNode(hasTestTag(wasmRowTag))
+    compose.onNodeWithTag(wasmRowTag).performTouchInput { swipeLeft() }
+    compose.onNodeWithContentDescription("Delete $wasmPath").assertIsDisplayed()
+    list.performScrollToNode(hasTestTag(fontRowTag))
+    deleteFont.assertDoesNotExist()
+    fontRow.performTouchInput { swipeLeft() }
+    list.performScrollToNode(hasTestTag(wasmRowTag))
+    compose.onNodeWithContentDescription("Delete $wasmPath").assertDoesNotExist()
+    list.performScrollToNode(hasTestTag(fontRowTag))
+    deleteFont.assertIsDisplayed()
+    fontRow.performTouchInput { swipeRight() }
+    deleteFont.assertDoesNotExist()
+    fontRow.performTouchInput { swipeLeft() }
+    deleteFont.performTouchInput { click() }
+    compose.onNode(hasText(fontPath, substring = true) and hasAnyAncestor(isDialog())).assertIsDisplayed()
+    compose.onNode(hasText("Delete") and hasAnyAncestor(isDialog())).performClick()
+    compose.waitUntil(5_000) { !File(cache, fontPath).exists() }
+    assertTrue(File(cache, wasmPath).exists())
+    assertTrue(File(cache, "$wasmPath.new").exists())
+    assertTrue(File(cache, "other/private.txt").exists())
+    assertTrue(shadow.getRequest(id) != null)
+
+    val packageRow = "cache-row/Download/$downloadName"
+    val clearPackage = "Delete Download/$downloadName"
+    list.performScrollToNode(hasTestTag(packageRow))
+    compose.onNodeWithTag(packageRow).performTouchInput { swipeLeft() }
+    compose.waitUntil(5_000) {
+      compose.onAllNodes(hasContentDescription(clearPackage) and isEnabled()).fetchSemanticsNodes().isNotEmpty()
+    }
+    compose.onNodeWithContentDescription(clearPackage).performClick()
+    compose.onNode(hasText("Delete") and hasAnyAncestor(isDialog())).performClick()
+    compose.waitUntil(5_000) { shadow.getRequest(id) == null }
+    assertTrue(File(cache, "app-updates/Notes-42.apk").exists())
+    list.performScrollToNode(hasText("1.3 KB"))
+    compose.onNodeWithText("1.3 KB").assertIsDisplayed()
+    assertTrue(shadow.getRequest(activeId) != null)
+    assertTrue(activeFile.exists())
+  }
+
+  @Test fun cacheSwipeRestoresOpenAndClosedPositionsAcrossThemeAndPageRecreation() {
+    val root = RuntimeEnvironment.getApplication().cacheDir
+    val path = "app-updates/Notes-42.apk"
+    File(root, path).apply {
+      parentFile?.mkdirs()
+      writeBytes(ByteArray(300))
+    }
+    val restoration = StateRestorationTester(compose)
+    launch(AboutAppInfo("1.1.0", "2"), restoration = restoration)
+    compose.onNodeWithText("Cache management").performScrollTo().performClick()
+    val rowTag = "cache-row/$path"
+    val list = compose.onNodeWithTag("cache-inventory")
+    compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag(rowTag)).fetchSemanticsNodes().isNotEmpty() }
+    list.performScrollToNode(hasTestTag(rowTag))
+    val row = compose.onNodeWithTag(rowTag)
+    val delete = compose.onNodeWithContentDescription("Delete $path")
+    row.performTouchInput { swipeLeft() }
+    delete.assertIsDisplayed()
+    compose.runOnIdle { darkTheme = !darkTheme }
+    delete.assertIsDisplayed()
+    restoration.emulateSavedInstanceStateRestore()
+    compose.waitUntil(5_000) {
+      compose.onAllNodes(hasContentDescription("Delete $path")).fetchSemanticsNodes().isNotEmpty()
+    }
+    delete.assertIsDisplayed()
+    row.performTouchInput { swipeRight() }
+    delete.assertDoesNotExist()
+    restoration.emulateSavedInstanceStateRestore()
+    compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag(rowTag)).fetchSemanticsNodes().isNotEmpty() }
+    delete.assertDoesNotExist()
+    assertTrue(File(root, path).exists())
   }
 
   @Test fun cacheManagementShowsSavedProgressBeforeDownloadStarts() {
@@ -397,6 +539,9 @@ class AboutUiTest(private val scenario: Scenario) {
     val checkpoint = File(root, "notes-web-assets/website.example.test-443/.$wasm.1048576.${"a".repeat(64)}.part")
     checkpoint.parentFile?.mkdirs()
     checkpoint.writeBytes(ByteArray(262_144))
+    val otherSiteCheckpoint = File(root, "notes-web-assets/other.example.test-443/${checkpoint.name}")
+    otherSiteCheckpoint.parentFile?.mkdirs()
+    otherSiteCheckpoint.writeBytes(ByteArray(524_288))
 
     launch(AboutAppInfo("1.1.0", "2"))
     compose.onNodeWithText("Cache management").performScrollTo().performClick()
@@ -405,6 +550,19 @@ class AboutUiTest(private val scenario: Scenario) {
     list.performScrollToNode(hasText("Waiting to resume · 25%"))
     compose.onNodeWithText("Waiting to resume · 25%").assertIsDisplayed()
     compose.onNodeWithText("No cached files").assertDoesNotExist()
+    val checkpointRow = "cache-row/notes-web-assets/website.example.test-443/$wasm"
+    val clearCheckpoint = "Delete notes-web-assets/website.example.test-443/$wasm"
+    list.performScrollToNode(hasTestTag(checkpointRow))
+    compose.onNodeWithTag(checkpointRow).performTouchInput { swipeLeft() }
+    compose.onNodeWithContentDescription(clearCheckpoint).performClick()
+    compose.onNodeWithText("Cancel").performClick()
+    assertTrue(checkpoint.exists())
+    compose.onNodeWithTag(checkpointRow).performTouchInput { swipeLeft() }
+    compose.onNodeWithContentDescription(clearCheckpoint).performClick()
+    compose.onNode(hasText("Delete") and hasAnyAncestor(isDialog())).performClick()
+    compose.waitUntil(5_000) { !checkpoint.exists() }
+    compose.onNodeWithText("Waiting to resume · 25%").assertDoesNotExist()
+    assertTrue(otherSiteCheckpoint.exists())
   }
 
   @Test fun websiteServesAnExactCachedAssetAndLeavesOtherRequestsOnline() {

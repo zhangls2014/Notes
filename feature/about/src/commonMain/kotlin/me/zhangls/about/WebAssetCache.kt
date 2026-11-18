@@ -90,6 +90,7 @@ internal expect fun webAssetDownloadPath(asset: CachedWebAsset): String?
 internal fun interface WebAssetDownloader {
   suspend fun download(request: DownloadRequest, onProgress: (Long) -> Unit)
   suspend fun prepare(requests: List<DownloadRequest>) = Unit
+  suspend fun hasActiveDownload(relativePath: String): Boolean = false
 }
 
 internal expect fun platformWebAssetDownloader(client: HttpClient): WebAssetDownloader
@@ -110,6 +111,9 @@ internal class WebAssetCache(
 ) {
   private val origin = site.origin.trimEnd('/')
   private val startupLock = Mutex()
+  private val assetLock = Mutex()
+  private val refreshingPaths = MutableStateFlow(emptySet<String>())
+  private val clearedPaths = mutableSetOf<String>()
   private var checked = false
   private val activeTransfers = MutableStateFlow<Map<String, WebAssetTransfer>>(emptyMap())
   val transfers = activeTransfers.asStateFlow()
@@ -123,19 +127,25 @@ internal class WebAssetCache(
     }
   }
 
+  suspend fun clear(relativePath: String): Boolean = withContext(Dispatchers.IO) {
+    assetLock.withLock {
+      if (relativePath in refreshingPaths.value || downloader.hasActiveDownload(relativePath)) {
+        return@withLock false
+      }
+      clearWebsiteFiles(relativePath).also { if (it) clearedPaths += relativePath }
+    }
+  }
+
   private suspend fun updateFromServer(): Boolean = coroutineScope {
     val manifest = readManifest() ?: return@coroutineScope false
-    val downloads = listOf(manifest.skiko, manifest.miSans).mapNotNull(::resourceDownload)
-    var complete = true
-    for (batch in downloads.chunked(3)) {
-      try {
-        downloader.prepare(batch.map { it.second })
-      } catch (cancelled: CancellationException) {
-        throw cancelled
-      } catch (_: Exception) {
-        // A standalone request can still pick up its own incomplete fragments.
-      }
-      val results = batch.map { (file, request) ->
+    val downloads = assetLock.withLock {
+      listOf(manifest.skiko, manifest.miSans).mapNotNull(::resourceDownload)
+        .filterNot { (file, _) -> file.relativePath in clearedPaths }
+        .also { assets -> refreshingPaths.value = assets.map { it.first.relativePath }.toSet() }
+    }
+    try {
+      prepareDownloads(downloads.map { it.second })
+      val results = downloads.map { (file, request) ->
         async {
           try {
             updateAsset(file, request)
@@ -145,12 +155,25 @@ internal class WebAssetCache(
           } catch (_: Exception) {
             // Keep the previously validated copy when a download or write fails.
             false
+          } finally {
+            refreshingPaths.update { it - file.relativePath }
           }
         }
       }.awaitAll()
-      complete = results.all { it } && complete
+      results.all { it }
+    } finally {
+      refreshingPaths.value = emptySet()
     }
-    complete
+  }
+
+  private suspend fun prepareDownloads(requests: List<DownloadRequest>) {
+    try {
+      downloader.prepare(requests)
+    } catch (cancelled: CancellationException) {
+      throw cancelled
+    } catch (_: Exception) {
+      // A standalone request can still pick up its own incomplete fragments.
+    }
   }
 
   private suspend fun readManifest(): WebAssetManifest? =

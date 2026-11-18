@@ -4,6 +4,8 @@ data class DownloadCheckpoint(val filename: String, val expectedBytes: Long, val
 
 private val checkpointName = Regex("""\.(.+)\.([1-9][0-9]*)\.([a-f0-9]{64})\.part(?:\.(full|[0-9]+))?""")
 
+fun downloadCheckpointFilename(name: String): String? = checkpointName.matchEntire(name)?.groupValues?.get(1)
+
 internal fun checkpointName(filename: String, size: Long, sha256: String): String =
   ".$filename.$size.$sha256.part"
 
