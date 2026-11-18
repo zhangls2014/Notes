@@ -115,10 +115,10 @@ const wasmName = /^[a-f0-9]{20}\.wasm$/
 const fontFingerprintLength = 20
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
 
-export function buildWebAssetManifest(skikoName, skiko, font, { legacy = false } = {}) {
+export function buildWebAssetManifest(skikoName, skiko, font) {
   requireValue(wasmName.test(skikoName), 'Expected the Webpack filename for Skiko Wasm')
   const fontHash = sha256(font)
-  const fingerprint = legacy ? fontHash : fontHash.slice(0, fontFingerprintLength)
+  const fingerprint = fontHash.slice(0, fontFingerprintLength)
   return {
     skiko: { path: `/${skikoName}`, size: skiko.length, sha256: sha256(skiko) },
     miSans: { path: `/web-assets/misans-${fingerprint}.otf`, size: font.length, sha256: fontHash },
@@ -134,11 +134,8 @@ async function addWebAssets(files, distribution, skikoPath) {
   requireValue(matches.filter(Boolean).length === 1, 'Expected exactly one published Skiko Wasm')
   const skikoName = names[matches.indexOf(true)]
   const manifest = buildWebAssetManifest(skikoName, skiko, font)
-  const legacy = buildWebAssetManifest(skikoName, skiko, font, { legacy: true })
-  for (const [name, version] of [['manifest-v2.json', manifest], ['manifest.json', legacy]]) {
-    files.set(`web-assets/${name}`, JSON.stringify(version) + '\n')
-    files.set(version.miSans.path.slice(1), font)
-  }
+  files.set('web-assets/manifest-v2.json', JSON.stringify(manifest) + '\n')
+  files.set(manifest.miSans.path.slice(1), font)
 
   const resourceDir = join(distribution, 'composeResources')
   const entries = await readdir(resourceDir, { recursive: true, withFileTypes: true })
@@ -189,7 +186,7 @@ function siteHeaders() {
     '/', '/index.html', '/404.html',
     '/downloads', '/downloads/*', '/releases', '/releases/*', '/open-source', '/open-source/*',
     '/notes.js', '/notes.js.map', '/composeResources/*', '/licenses/*',
-    '/web-assets/manifest.json', '/web-assets/manifest-v2.json', '/updates/v1/*',
+    '/web-assets/manifest-v2.json', '/updates/v1/*',
   ]
   const immutable = ['/assets/*', '/notes-*.js', '/notes-*.js.map', '/*.wasm', '/web-assets/misans-*.otf']
   return [

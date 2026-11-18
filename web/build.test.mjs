@@ -15,10 +15,6 @@ test('the app cache manifest identifies only Skiko and the content-versioned MiS
     skiko: { path: '/0123456789abcdef0123.wasm', size: skiko.length, sha256: digest(skiko) },
     miSans: { path: `/web-assets/misans-${digest(font).slice(0, 20)}.otf`, size: font.length, sha256: digest(font) },
   })
-  assert.deepEqual(buildWebAssetManifest('0123456789abcdef0123.wasm', skiko, font, { legacy: true }), {
-    skiko: { path: '/0123456789abcdef0123.wasm', size: skiko.length, sha256: digest(skiko) },
-    miSans: { path: `/web-assets/misans-${digest(font)}.otf`, size: font.length, sha256: digest(font) },
-  })
   assert.throws(() => buildWebAssetManifest('../skiko.wasm', skiko, font))
 })
 
