@@ -3,11 +3,21 @@ package me.zhangls.about.api
 import androidx.compose.runtime.Composable
 
 interface AboutEntry {
+  suspend fun refreshWebAssets()
+
   @Composable
   fun ReleaseNotesDialog(version: String, onDismiss: () -> Unit)
 
   @Composable
-  fun Screen(onBack: () -> Unit, onOpenReleaseHistory: () -> Unit, onOpenNotices: () -> Unit)
+  fun Screen(
+    onBack: () -> Unit,
+    onOpenReleaseHistory: () -> Unit,
+    onOpenNotices: () -> Unit,
+    onOpenWebsite: () -> Unit,
+  )
+
+  @Composable
+  fun OfficialWebsiteScreen(onBack: () -> Unit)
 
   @Composable
   fun OnlineNoticesScreen(

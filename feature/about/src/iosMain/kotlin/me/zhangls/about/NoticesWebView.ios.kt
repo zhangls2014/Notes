@@ -43,6 +43,7 @@ internal actual fun NoticesWebView(
   initialScroll: Double,
   bottomInset: Dp,
   modifier: Modifier,
+  allowSameOriginNavigation: Boolean,
 ) {
   val surface = MaterialTheme.colorScheme.surface.convert(ColorSpaces.Srgb)
   val surfaceColor = remember(surface) {
@@ -108,9 +109,10 @@ internal actual fun NoticesWebView(
       ) {
         val action = decidePolicyForNavigationAction
         val target = action.request.URL?.absoluteString.orEmpty()
-        val link = noticesLink(target, url, projectPage)
+        val link = noticesLink(target, url, projectPage, allowSameOriginNavigation)
         val mainFrame = action.targetFrame?.isMainFrame() != false
         if (link == NoticesLink.InPage && action.targetFrame != null) {
+          if (mainFrame) state.currentUrl = target
           decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
         } else {
           decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
@@ -130,17 +132,23 @@ internal actual fun NoticesWebView(
       }
     }
   }
+  val assetBridge = remember(state) { if (projectPage) null else WebAssetBridge(url) }
   UIKitView(
     modifier = modifier,
     factory = {
-      WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = WKWebViewConfiguration()).apply {
+      val configuration = WKWebViewConfiguration()
+      assetBridge?.install(configuration.userContentController)
+      WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = configuration).apply {
         opaque = false
         applyNoticesBackground(surfaceColor)
         scrollView.contentInsetAdjustmentBehavior =
           UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
         navigationDelegate = delegate
-        val requestUrl = NSURL.URLWithString(url)
-        if (requestUrl != null && noticesLink(url, url, projectPage) == NoticesLink.InPage) {
+        state.reload = { reload() }
+        val startUrl = state.currentUrl
+        val requestUrl = NSURL.URLWithString(startUrl)
+        val initialLink = noticesLink(startUrl, url, projectPage, allowSameOriginNavigation)
+        if (requestUrl != null && initialLink == NoticesLink.InPage) {
           loadRequest(NSURLRequest(uRL = requestUrl))
         } else {
           state.fail()
@@ -154,6 +162,8 @@ internal actual fun NoticesWebView(
       view.scrollView.scrollIndicatorInsets = inset
     },
     onRelease = {
+      state.reload = null
+      assetBridge?.close(it.configuration.userContentController)
       it.navigationDelegate = null
       it.stopLoading()
     },

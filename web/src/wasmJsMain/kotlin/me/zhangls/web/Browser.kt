@@ -15,6 +15,8 @@ internal suspend fun releaseJson(): String =
   checkNotNull(fetchReleaseJson().await<JsString?>()) { "Could not fetch release history" }.toString()
 
 internal fun siteData(): String? = js("document.getElementById('notes-data')?.textContent ?? null")
+internal fun resourcePathsJson(): String =
+  js("document.getElementById('notes-resource-paths')?.textContent ?? '{}'")
 internal fun path(): String = js("location.pathname")
 internal fun fragment(): String = js("location.hash")
 internal fun parameter(name: String): String? = js("new URLSearchParams(location.search).get(name)")

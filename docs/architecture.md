@@ -116,6 +116,12 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 
 共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，版本更新摘要展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
 
+「官方网站」进入 About 所属的全屏页面，从同一宿主配置加载官网首页，复用更新日志和在线声明的 WebView。官网导航保持可用，同一 HTTPS 来源的页面在应用内加载。
+
+应用冷启动时，组合根触发 About 在后台从同一官网来源检查 `/web-assets/manifest.json`。清单仅包含 Skiko Wasm 和 MiSans 字体，大小与 SHA-256 一致时复用缓存，下载通过校验后原子写入。WebView 只复用同一官网来源和精确版本的缓存文件，未命中时从 HTTPS 加载。网页、脚本、Notes Web Wasm 和业务数据继续通过 HTTPS 获取。iOS 仅接受官网主框架发出的这两类资源请求。
+
+WebView 使用平台的默认 HTTP 缓存。官网 HTML 和数据接口每次使用前重新验证，静态文件按内容生成地址并允许长期复用。原生刷新动作重新加载当前页面，仍按官网的 HTTP 缓存策略处理资源。配置及发布顺序见[官网缓存策略](notes-web-deployment.md#官网缓存策略)。
+
 About 的版本号展开区和首次启动提示从包内 `releases.json` 读取匹配安装版本的摘要。「查看更新日志」进入独立导航页面，通过宿主配置的官网加载 `/releases/`，复用在线声明的 WebView 和外观参数。维护规则见 [应用版本与更新记录](app-releases.md)。
 
 ## 3. 依赖规则
@@ -415,4 +421,4 @@ Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配
 
 ## 官网、发布渠道与认证域
 
-官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据，分发清单来自各现行渠道登记的当前构建。各页面的 HTML 仅提供启动入口和所需的数据。首页、下载、更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌页面隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据，分发清单来自各现行渠道登记的当前构建。各页面的 HTML 仅提供启动入口和所需的数据。首页、下载、更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌的更新日志和开源声明隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。

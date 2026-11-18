@@ -9,11 +9,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -24,6 +21,8 @@ import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_release_history
 import notes.feature.about.generated.resources.about_release_history_load_failed
 import notes.feature.about.generated.resources.about_update_retry
+import notes.feature.about.generated.resources.about_website
+import notes.feature.about.generated.resources.about_website_load_failed
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -36,16 +35,48 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit, site: NotesWebsite) {
       appearance.noticesAppearanceParameters().forEach { (name, value) -> parameters.append(name, value) }
     }.buildString()
   }
-  var attempt by remember { mutableIntStateOf(0) }
-  val state = remember(url, attempt) { NoticesWebState() }
+  AboutWebPage(
+    url = url,
+    title = stringResource(Res.string.about_release_history),
+    errorMessage = stringResource(Res.string.about_release_history_load_failed),
+    onBack = onBack,
+    allowSameOriginNavigation = false,
+  )
+}
+
+@Composable
+internal fun OfficialWebsiteScreen(onBack: () -> Unit, site: NotesWebsite) {
+  AboutWebPage(
+    url = "${site.origin.trimEnd('/')}/",
+    title = stringResource(Res.string.about_website),
+    errorMessage = stringResource(Res.string.about_website_load_failed),
+    onBack = onBack,
+    allowSameOriginNavigation = true,
+  )
+}
+
+@Composable
+private fun AboutWebPage(
+  url: String,
+  title: String,
+  errorMessage: String,
+  onBack: () -> Unit,
+  allowSameOriginNavigation: Boolean,
+) {
+  val session = remember(url) { NoticesWebSession(url) }
+  val state = session.state
   val openInBrowser = rememberOpenInBrowser()
   val direction = LocalLayoutDirection.current
   Scaffold(topBar = {
-    CenteredTopAppBar(title = stringResource(Res.string.about_release_history), navigate = onBack)
+    CenteredTopAppBar(
+      title = title,
+      navigate = onBack,
+      actions = { WebPageRefreshButton(onClick = session::refresh) },
+    )
   }) { padding ->
     Box(Modifier.fillMaxSize().padding(padding.webViewContentPadding(direction))) {
       if (state.failed) {
-        ReleaseHistoryError(onRetry = { attempt++ }, modifier = Modifier.align(Alignment.Center))
+        AboutWebPageError(errorMessage, onRetry = session::refresh, modifier = Modifier.align(Alignment.Center))
       } else {
         key(state) {
           NoticesWebView(
@@ -56,6 +87,7 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit, site: NotesWebsite) {
             initialScroll = 0.0,
             bottomInset = padding.calculateBottomPadding(),
             modifier = Modifier.fillMaxSize(),
+            allowSameOriginNavigation = allowSameOriginNavigation,
           )
         }
         if (state.loading) LinearProgressIndicator(Modifier.align(Alignment.TopCenter))
@@ -65,9 +97,9 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit, site: NotesWebsite) {
 }
 
 @Composable
-private fun ReleaseHistoryError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun AboutWebPageError(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
   Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-    Text(stringResource(Res.string.about_release_history_load_failed))
+    Text(message)
     TextButton(onClick = onRetry) { Text(stringResource(Res.string.about_update_retry)) }
   }
 }

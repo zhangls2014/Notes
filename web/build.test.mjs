@@ -1,8 +1,56 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 import { buildNoticeFiles, buildSite, validatePublishedBuilds } from './build.mjs'
 import { buildNoticeData } from './notice-data.mjs'
+
+test('the app cache manifest identifies only Skiko and the content-versioned MiSans', async () => {
+  const { buildWebAssetManifest } = await import('./build.mjs')
+  const skiko = Buffer.from('skiko')
+  const font = Buffer.from('misans')
+  const digest = bytes => createHash('sha256').update(bytes).digest('hex')
+  assert.deepEqual(buildWebAssetManifest('0123456789abcdef0123.wasm', skiko, font), {
+    skiko: { path: '/0123456789abcdef0123.wasm', size: skiko.length, sha256: digest(skiko) },
+    miSans: { path: `/web-assets/misans-${digest(font)}.otf`, size: font.length, sha256: digest(font) },
+  })
+  assert.throws(() => buildWebAssetManifest('../skiko.wasm', skiko, font))
+})
+
+test('content-versioned resources reuse unchanged URLs across site builds', async () => {
+  const { versionWebsiteAssets } = await import('./build.mjs')
+  const iconPath = 'composeResources/me.zhangls.web.resources/drawable/notes_icon.svg'
+  const fontPath = 'composeResources/me.zhangls.web.resources/font/misans_regular.otf'
+  const build = (script, icon) => {
+    const files = buildSite([], [])
+    const results = versionWebsiteAssets(
+      files,
+      Buffer.from(script),
+      Buffer.from('source map'),
+      new Map([
+        [iconPath, Buffer.from(icon)],
+        [fontPath, Buffer.from('font')],
+      ]),
+      '/web-assets/misans-test.otf',
+    )
+    return { files, ...results }
+  }
+  const first = build('one', 'icon')
+  const second = build('two', 'icon')
+  const third = build('two', 'changed icon')
+  assert.notEqual(first.script, second.script)
+  assert.equal(second.script, third.script)
+  assert.equal(first.paths[iconPath], second.paths[iconPath])
+  assert.notEqual(second.paths[iconPath], third.paths[iconPath])
+  assert.equal(third.paths[fontPath], '/web-assets/misans-test.otf')
+  assert.ok(third.files.get('index.html').includes(`src="${third.script}"`))
+  assert.ok(third.files.get('index.html').includes(`href="${third.paths[iconPath]}"`))
+  assert.ok(third.files.has(third.script.slice(1)))
+  assert.ok(third.files.has(third.paths[iconPath].slice(1)))
+  assert.match(third.files.get('_headers'), /\/\n  Cache-Control: no-cache/)
+  assert.match(third.files.get('_headers'), /\/assets\/\*\n  Cache-Control: public, max-age=31536000, immutable/)
+  assert.match(third.files.get('_headers'), /\/notes-\*\.js\n  Cache-Control: public, max-age=31536000, immutable/)
+})
 
 test('public history is bilingual, ordered and excludes unpublished records', () => {
   const release = (version, date) => ({

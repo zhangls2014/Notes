@@ -1,5 +1,6 @@
-import { cp, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { createHash } from 'node:crypto'
+import { cp, mkdir, readFile, readdir, realpath, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadNoticeData } from './notice-data.mjs'
 
@@ -107,7 +108,90 @@ export function validatePublishedBuilds(releases, builds, downloadOrigin = defau
   }
 }
 
-const favicon = '<link rel="icon" type="image/svg+xml" href="/composeResources/me.zhangls.web.resources/drawable/notes_icon.svg">'
+const faviconPath = 'composeResources/me.zhangls.web.resources/drawable/notes_icon.svg'
+const favicon = `<link rel="icon" type="image/svg+xml" href="/${faviconPath}">`
+const miSansPath = 'composeResources/me.zhangls.web.resources/font/misans_regular.otf'
+const wasmName = /^[a-f0-9]{20}\.wasm$/
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
+
+export function buildWebAssetManifest(skikoName, skiko, font) {
+  requireValue(wasmName.test(skikoName), 'Expected the Webpack filename for Skiko Wasm')
+  const fontHash = sha256(font)
+  return {
+    skiko: { path: `/${skikoName}`, size: skiko.length, sha256: sha256(skiko) },
+    miSans: { path: `/web-assets/misans-${fontHash}.otf`, size: font.length, sha256: fontHash },
+  }
+}
+
+async function addWebAssets(files, distribution, skikoPath) {
+  const skiko = await readFile(skikoPath)
+  const font = await readFile(join(distribution, miSansPath))
+  const names = (await readdir(distribution)).filter(name => wasmName.test(name))
+  const matches = await Promise.all(names.map(async name =>
+    (await readFile(join(distribution, name))).equals(skiko)))
+  requireValue(matches.filter(Boolean).length === 1, 'Expected exactly one published Skiko Wasm')
+  const manifest = buildWebAssetManifest(names[matches.indexOf(true)], skiko, font)
+  files.set('web-assets/manifest.json', JSON.stringify(manifest) + '\n')
+  files.set(manifest.miSans.path.slice(1), font)
+
+  const resourceDir = join(distribution, 'composeResources')
+  const entries = await readdir(resourceDir, { recursive: true, withFileTypes: true })
+  const resources = new Map(await Promise.all(entries.filter(entry => entry.isFile()).map(async entry => {
+    const path = join(entry.parentPath, entry.name)
+    return [relative(distribution, path).split(sep).join('/'), await readFile(path)]
+  })))
+  versionWebsiteAssets(
+    files,
+    await readFile(join(distribution, 'notes.js')),
+    await readFile(join(distribution, 'notes.js.map')),
+    resources,
+    manifest.miSans.path,
+  )
+}
+
+export function versionWebsiteAssets(files, scriptBytes, sourceMap, resources, fontPath) {
+  const mapName = `notes-${sha256(sourceMap)}.js.map`
+  const scriptText = scriptBytes.toString('utf8')
+    .replace(/^\/\/# sourceMappingURL=notes\.js\.map$/m, `//# sourceMappingURL=${mapName}`)
+  const script = `/notes-${sha256(scriptText)}.js`
+  files.set(mapName, sourceMap)
+  files.set(script.slice(1), scriptText)
+
+  const paths = {}
+  for (const [name, bytes] of resources) {
+    if (name === miSansPath) {
+      paths[name] = fontPath
+    } else {
+      const path = `assets/${sha256(bytes)}/${basename(name)}`
+      files.set(path, bytes)
+      paths[name] = `/${path}`
+    }
+  }
+  const mapping = JSON.stringify(paths).replaceAll('<', '\\u003c')
+  const metadata = `<script type="application/json" id="notes-resource-paths">${mapping}</script>`
+  for (const [name, html] of files) {
+    if (name.endsWith('.html')) {
+      const withIcon = paths[faviconPath] ? html.replace(`href="/${faviconPath}"`, `href="${paths[faviconPath]}"`) : html
+      files.set(name, withIcon.replace('<script src="/notes.js"', `${metadata}\n<script src="${script}"`))
+    }
+  }
+  return { script, paths }
+}
+
+function siteHeaders() {
+  const revalidate = [
+    '/', '/index.html', '/404.html',
+    '/downloads', '/downloads/*', '/releases', '/releases/*', '/open-source', '/open-source/*',
+    '/notes.js', '/notes.js.map', '/composeResources/*', '/licenses/*', '/web-assets/manifest.json', '/updates/v1/*',
+  ]
+  const immutable = ['/assets/*', '/notes-*.js', '/notes-*.js.map', '/*.wasm', '/web-assets/misans-*.otf']
+  return [
+    ...revalidate.map(path => `${path}\n  Cache-Control: no-cache`),
+    ...immutable.map(path => `${path}\n  Cache-Control: public, max-age=31536000, immutable`),
+    '/.well-known/apple-app-site-association\n  Content-Type: application/json',
+    '',
+  ].join('\n')
+}
 
 function composeDocument(title, content = '', marker = '') {
   return `<!doctype html>
@@ -144,7 +228,7 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
     files.set(`updates/v1/${channel}.json`, JSON.stringify({ channel, version, build, updateUrl }) + '\n')
   }
   files.set('404.html', composeDocument('404 · Notes', '', ' data-not-found'))
-  files.set('_headers', '/releases/published.json\n  Cache-Control: no-cache\n/updates/v1/*\n  Cache-Control: no-cache\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n')
+  files.set('_headers', siteHeaders())
   return files
 }
 
@@ -189,8 +273,10 @@ async function main() {
   for (const [path, content] of await buildNoticeFiles()) files.set(path, content)
   const outputDir = process.env.NOTES_WEB_OUTPUT_DIR ?? join(webRoot, 'dist')
   const distribution = process.argv[3]
-  requireValue(process.argv[2] === '--wasm' && distribution, 'Expected the Wasm distribution directory')
+  const skikoPath = process.argv[4]
+  requireValue(process.argv[2] === '--wasm' && distribution && skikoPath, 'Expected the Wasm distribution and Skiko')
   await readFile(join(distribution, 'notes.js'))
+  await addWebAssets(files, distribution, skikoPath)
   await cp(distribution, outputDir, { recursive: true })
   for (const [path, content] of files) {
     const output = join(outputDir, path)

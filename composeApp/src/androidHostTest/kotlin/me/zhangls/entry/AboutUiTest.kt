@@ -4,6 +4,8 @@ import android.app.DownloadManager
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
@@ -48,10 +50,12 @@ import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutAppInfo
 import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -68,6 +72,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowDownloadManager
+import java.io.File
 
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w1000dp-h1200dp-mdpi")
@@ -112,11 +117,17 @@ class AboutUiTest(private val scenario: Scenario) {
         ) {
           ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
             var historyVisible by remember { mutableStateOf(false) }
+            var websiteVisible by remember { mutableStateOf(false) }
             val entry = koinInject<AboutEntry>()
-            if (historyVisible) {
-              entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
-            } else {
-              entry.Screen(onBack = {}, onOpenReleaseHistory = { historyVisible = true }, onOpenNotices = {})
+            when {
+              historyVisible -> entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
+              websiteVisible -> entry.OfficialWebsiteScreen(onBack = { websiteVisible = false })
+              else -> entry.Screen(
+                onBack = {},
+                onOpenReleaseHistory = { historyVisible = true },
+                onOpenNotices = {},
+                onOpenWebsite = { websiteVisible = true },
+              )
             }
           }
         }
@@ -258,6 +269,83 @@ class AboutUiTest(private val scenario: Scenario) {
     }
   }
 
+  @Test fun officialWebsiteLoadsInWebViewAndReturnsToAbout() {
+    launch(AboutAppInfo("1.1.0", "2"))
+    compose.onNodeWithText("Official website").performScrollTo().performClick()
+    compose.onNodeWithText("About app").assertDoesNotExist()
+    compose.runOnIdle {
+      val webView = requireNotNull(findWebView(rootView))
+      val url = Uri.parse(shadowOf(webView).lastLoadedUrl)
+      assertEquals(Uri.parse(BuildKonfig.SITE_BASE_URL).authority, url.authority)
+      assertEquals("/", url.path)
+      assertEquals(null, url.getQueryParameter("embed"))
+    }
+    compose.onNodeWithContentDescription("Back").performClick()
+    compose.onNodeWithText("About app").assertIsDisplayed()
+  }
+
+  @Test fun websiteRefreshReloadsTheCurrentPageAndRetriesItAfterFailure() {
+    launch(AboutAppInfo("1.1.0", "2"))
+    compose.onNodeWithText("Official website").performScrollTo().performClick()
+    val refresh = compose.onNodeWithContentDescription("Refresh page").assertIsDisplayed()
+    val original = compose.runOnIdle { requireNotNull(findWebView(rootView)) }
+    val downloads = BuildKonfig.SITE_BASE_URL.trimEnd('/') + "/downloads/"
+    compose.runOnIdle { shadowOf(original).pushEntryToHistory(downloads) }
+
+    refresh.performClick()
+    compose.runOnIdle {
+      assertTrue(original === findWebView(rootView))
+      assertEquals(downloads, original.url)
+      assertEquals(1, shadowOf(original).reloadInvocations)
+      original.webViewClient.onPageStarted(original, downloads, null)
+      original.webViewClient.onRenderProcessGone(original, object : RenderProcessGoneDetail() {
+        override fun didCrash() = true
+        override fun rendererPriorityAtExit() = 0
+      })
+    }
+
+    compose.onNodeWithText("Unable to load the official website.").assertIsDisplayed()
+    refresh.performClick()
+    compose.runOnIdle {
+      val retried = requireNotNull(findWebView(rootView))
+      assertEquals(downloads, shadowOf(retried).lastLoadedUrl)
+    }
+  }
+
+  @Test fun websiteServesAnExactCachedAssetAndLeavesOtherRequestsOnline() {
+    launch(AboutAppInfo("1.1.0", "2"))
+    compose.onNodeWithText("Official website").performScrollTo().performClick()
+    compose.runOnIdle {
+      val webView = requireNotNull(findWebView(rootView))
+      val origin = BuildKonfig.SITE_BASE_URL.trimEnd('/')
+      val host = requireNotNull(Uri.parse(origin).host)
+      val filename = "0123456789abcdef0123.wasm"
+      val file = File(webView.context.cacheDir, "notes-web-assets/$host-443/$filename")
+      file.parentFile?.mkdirs()
+      file.writeText("cached Wasm")
+
+      val hit = requireNotNull(webView.webViewClient.shouldInterceptRequest(webView, resourceRequest("$origin/$filename")))
+      assertEquals("application/wasm", hit.mimeType)
+      assertEquals("cached Wasm", hit.data.bufferedReader().use { it.readText() })
+      for (url in listOf(
+        "$origin/abcdef0123456789abcd.wasm",
+        "$origin/notes.js",
+        "https://foreign.example.test/$filename",
+      )) {
+        assertNull(webView.webViewClient.shouldInterceptRequest(webView, resourceRequest(url)))
+      }
+    }
+  }
+
+  private fun resourceRequest(url: String): WebResourceRequest = object : WebResourceRequest {
+    override fun getUrl(): Uri = Uri.parse(url)
+    override fun isForMainFrame() = false
+    override fun isRedirect() = false
+    override fun hasGesture() = false
+    override fun getMethod() = "GET"
+    override fun getRequestHeaders() = emptyMap<String, String>()
+  }
+
   @Test fun releaseNotesLoadConfiguredWebsiteAndReturn() {
     launch(AboutAppInfo("1.1.0", "2"))
     compose.onNodeWithText("Release notes").assertDoesNotExist()
@@ -271,8 +359,10 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Release notes").assertIsDisplayed()
     compose.onNodeWithText("About app").assertDoesNotExist()
     compose.onNodeWithContentDescription("View in browser").assertDoesNotExist()
+    compose.onNodeWithContentDescription("Refresh page").assertIsDisplayed().performClick()
     compose.runOnIdle {
       val webView = requireNotNull(findWebView(rootView))
+      assertEquals(1, shadowOf(webView).reloadInvocations)
       val url = Uri.parse(shadowOf(webView).lastLoadedUrl)
       assertEquals(Uri.parse(BuildKonfig.SITE_BASE_URL).authority, url.authority)
       assertEquals("/releases/", url.path)
@@ -292,6 +382,30 @@ class AboutUiTest(private val scenario: Scenario) {
     is WebView -> view
     is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { findWebView(view.getChildAt(it)) }
     else -> null
+  }
+
+  @Test fun noticesListAndBothDetailTypesHaveWorkingRefreshActions() {
+    val origin = "https://website.example.test"
+    val about: AboutEntry = AboutEntryImpl(NotesWebsite(origin))
+    val detail = mutableStateOf<OnlineNoticeDetailDestination?>(null)
+    compose.setContent {
+      rootView = LocalView.current.rootView
+      ComposeAppTheme {
+        about.OnlineNoticesScreen(detail = detail.value, onBack = {}, onOpenDetail = {})
+      }
+    }
+    for (destination in listOf(
+      null,
+      OnlineNoticeDetailDestination(anchor = "license-MIT"),
+      OnlineNoticeDetailDestination(projectUrl = "https://project.example.test/"),
+    )) {
+      compose.runOnIdle { detail.value = destination }
+      compose.onNodeWithContentDescription("Refresh page").assertIsDisplayed().performClick()
+      compose.runOnIdle {
+        val webView = requireNotNull(findWebView(rootView))
+        assertEquals(1, shadowOf(webView).reloadInvocations)
+      }
+    }
   }
 
   private fun assertReleaseChanges() {
@@ -324,7 +438,7 @@ class AboutUiTest(private val scenario: Scenario) {
     val about: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     compose.setContent {
       ComposeAppTheme {
-        about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = { opened = true })
+        about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = { opened = true }, onOpenWebsite = {})
       }
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo().assertIsEnabled().performClick()

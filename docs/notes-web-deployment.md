@@ -43,6 +43,27 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 Nginx 应将不存在的路径交给 `404.html`（例如 `error_page 404 /404.html;`），并保留 HTTP 404 状态。上线验收需用不存在的深层路径检查状态和页面渲染。
 
+官网构建生成 `/web-assets/manifest.json`，记录 Skiko Wasm 和版本化 MiSans 的路径、字节数和 SHA-256。部署时先上传清单引用的资源，再更新 HTML、启动脚本和清单。保持清单可重新验证，避免客户端持续读到旧版本。上线后按清单验证两项资源的大小、SHA-256 和响应类型。未命中本地文件的客户端直接使用相同的 HTTPS 资源。
+
+### 官网缓存策略
+
+HTML、资源清单、公开更新记录以及其他固定地址用 `Cache-Control: no-cache`，允许客户端用 `ETag` 或 `Last-Modified` 校验后继续复用。构建按内容生成 JS、源映射、Wasm、MiSans 和 Compose 资源地址。同一个带指纹的地址始终提供同一份文件，响应使用 `public, max-age=31536000, immutable`。发布时先上传带指纹的文件，再切换 HTML 和清单。保留上一版 HTML 依赖的文件，供尚未刷新的页面完成加载。
+
+Cloudflare Pages 和本地预览使用构建产物中的 `_headers`。曼谷 Nginx 源站需要在 `http` 上下文定义以下规则，并在官网 HTTPS `server` 应用该响应头。若该站点的 `location` 已声明自己的 `add_header`，也须在该 `location` 添加相同的缓存头。404 响应使用 `no-cache`。
+
+```nginx
+map "$status:$uri" $notes_cache_control {
+    default "no-cache";
+    "~^(200|206|304):/([a-f0-9]{20}\.wasm|notes-[a-f0-9]{64}\.js(\.map)?|web-assets/misans-[a-f0-9]{64}\.otf|assets/[a-f0-9]{64}/[^/]+)$" "public, max-age=31536000, immutable";
+}
+```
+
+```nginx
+add_header Cache-Control $notes_cache_control always;
+```
+
+上线时验证首页和清单返回 `no-cache`，带指纹的资源返回 `immutable`。用首次请求返回的校验器再次请求 HTML，确认未变更时返回 304。部署新构建后，用同一个 WebView 再打开页面并检查网络请求，确认新 HTML 引用新版文件、未变化的文件继续命中缓存。
+
 ## 验收记录
 
 - 网站预览和正式域名的内容及关联文件分别记录。

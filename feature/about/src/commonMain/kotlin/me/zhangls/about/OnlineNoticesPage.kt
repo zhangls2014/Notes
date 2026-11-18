@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,7 +33,6 @@ import androidx.compose.ui.unit.Dp
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
-import kotlinx.coroutines.delay
 import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.theme.component.CenteredTopAppBar
@@ -42,13 +40,14 @@ import me.zhangls.theme.icon.Close
 import me.zhangls.theme.icon.Icons
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_close_notice_detail
-import notes.feature.about.generated.resources.about_project_load_failed
-import notes.feature.about.generated.resources.about_project_source
 import notes.feature.about.generated.resources.about_notice_detail
 import notes.feature.about.generated.resources.about_notices_load_failed
 import notes.feature.about.generated.resources.about_open_source_notices
+import notes.feature.about.generated.resources.about_project_load_failed
+import notes.feature.about.generated.resources.about_project_source
 import notes.feature.about.generated.resources.about_update_retry
 import org.jetbrains.compose.resources.stringResource
+import kotlinx.coroutines.delay
 
 private const val PROGRESS_DISPLAY_DELAY_MILLIS = 250L
 
@@ -72,8 +71,8 @@ internal fun OnlineNoticesPage(
       appearance.noticesAppearanceParameters().forEach { (name, value) -> parameters.append(name, value) }
     }.buildString()
   }
-  var attempt by remember { mutableIntStateOf(0) }
-  val state = remember(url, attempt) { NoticesWebState() }
+  val session = remember(url) { NoticesWebSession(url) }
+  val state = session.state
   var listScroll by rememberSaveable { mutableStateOf(0.0) }
   val listVisible = LocalListDetailSceneScope.current?.scaffoldTransitionScope?.scaffoldStateTransition
     ?.targetState?.get(ListDetailPaneScaffoldRole.List)
@@ -90,6 +89,7 @@ internal fun OnlineNoticesPage(
       ),
       navigate = onBack.takeUnless { showClose },
       actions = {
+        WebPageRefreshButton(onClick = session::refresh)
         if (showClose) {
           IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.about_close_notice_detail))
@@ -108,7 +108,7 @@ internal fun OnlineNoticesPage(
       if (state.failed) {
         Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
           Text(stringResource(if (project == null) Res.string.about_notices_load_failed else Res.string.about_project_load_failed))
-          TextButton(onClick = { attempt++ }) { Text(stringResource(Res.string.about_update_retry)) }
+          TextButton(onClick = session::refresh) { Text(stringResource(Res.string.about_update_retry)) }
         }
       } else {
         key(state) {
@@ -138,7 +138,21 @@ internal fun OnlineNoticesPage(
   }
 }
 
-internal class NoticesWebState {
+internal class NoticesWebSession(url: String) {
+  var state by mutableStateOf(NoticesWebState(url))
+    private set
+
+  fun refresh() {
+    if (state.failed) {
+      state = NoticesWebState(state.currentUrl)
+    } else {
+      state.reload?.invoke()
+    }
+  }
+}
+
+internal class NoticesWebState(var currentUrl: String) {
+  var reload: (() -> Unit)? = null
   var loading by mutableStateOf(true)
   var failed by mutableStateOf(false)
 
@@ -156,30 +170,47 @@ internal sealed interface NoticesLink {
 
 private val noticeAnchor = Regex("(?:license|notice)-[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*")
 
-internal fun noticesLink(target: String, initialUrl: String, projectPage: Boolean = false): NoticesLink {
-  val hasWebScheme = target.startsWith("https://", ignoreCase = true) || target.startsWith("http://", ignoreCase = true)
-  if (!hasWebScheme || target.any { it.isISOControl() || it == '\\' }) {
-    return NoticesLink.Blocked
-  }
-  val url = runCatching { Url(target) }.getOrNull() ?: return NoticesLink.Blocked
-  if (url.host.isBlank() || url.user != null || url.password != null) return NoticesLink.Blocked
-  if (projectPage) return NoticesLink.InPage
-  val initial = Url(initialUrl)
-  if (url.protocol == URLProtocol.HTTPS && url.host.equals(initial.host, ignoreCase = true) &&
-    url.port == initial.port
-  ) {
-    if (url.encodedPath == "/open-source/$releasePlatform-licenses.html") {
-      if (!noticeAnchor.matches(url.fragment)) return NoticesLink.Blocked
-      return if (url.encodedPath == initial.encodedPath && url.fragment == initial.fragment) {
-        NoticesLink.InPage
-      } else {
-        NoticesLink.Detail(url.fragment)
-      }
+internal fun noticesLink(
+  target: String,
+  initialUrl: String,
+  projectPage: Boolean = false,
+  allowSameOriginNavigation: Boolean = false,
+): NoticesLink {
+  val url = validatedWebUrl(target) ?: return NoticesLink.Blocked
+  return if (projectPage) {
+    NoticesLink.InPage
+  } else {
+    val initial = Url(initialUrl)
+    val isSameHttpsOrigin = url.protocol == URLProtocol.HTTPS &&
+      url.host.equals(initial.host, ignoreCase = true) && url.port == initial.port
+    when {
+      !isSameHttpsOrigin -> NoticesLink.Project(target)
+      allowSameOriginNavigation -> NoticesLink.InPage
+      else -> sameOriginNoticesLink(url, initial, target)
     }
-    if (url.encodedPath == initial.encodedPath) return NoticesLink.InPage
-    if (url.encodedPath == "/open-source/$releasePlatform.html") return NoticesLink.Blocked
   }
-  return NoticesLink.Project(target)
+}
+
+private fun validatedWebUrl(target: String): Url? {
+  val hasWebScheme = target.startsWith("https://", ignoreCase = true) || target.startsWith("http://", ignoreCase = true)
+  if (!hasWebScheme || target.any { it.isISOControl() || it == '\\' }) return null
+  return runCatching { Url(target) }.getOrNull()?.takeIf {
+    it.host.isNotBlank() && it.user == null && it.password == null
+  }
+}
+
+private fun sameOriginNoticesLink(url: Url, initial: Url, target: String): NoticesLink = when {
+  url.encodedPath == "/open-source/$releasePlatform-licenses.html" -> when {
+    !noticeAnchor.matches(url.fragment) -> NoticesLink.Blocked
+    url.encodedPath == initial.encodedPath && url.fragment == initial.fragment -> NoticesLink.InPage
+    else -> NoticesLink.Detail(url.fragment)
+  }
+
+  url.encodedPath == initial.encodedPath -> NoticesLink.InPage
+
+  url.encodedPath == "/open-source/$releasePlatform.html" -> NoticesLink.Blocked
+
+  else -> NoticesLink.Project(target)
 }
 
 @Composable
@@ -191,4 +222,5 @@ internal expect fun NoticesWebView(
   initialScroll: Double,
   bottomInset: Dp,
   modifier: Modifier,
+  allowSameOriginNavigation: Boolean = false,
 )

@@ -1,4 +1,8 @@
 <resources>
+  <string name="about_refresh_page">刷新页面</string>
+  <string name="about_website">官方网站</string>
+  <string name="about_website_description">访问摘星官网</string>
+  <string name="about_website_load_failed">无法加载官方网站。</string>
   <string name="about_open_source_notices">开源软件声明</string>
   <string name="about_notices_description">第三方开源库与许可证</string>
   <string name="about_title">关于应用</string>

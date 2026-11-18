@@ -32,17 +32,25 @@ import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.icon.Code
 import me.zhangls.theme.icon.Icons
+import me.zhangls.theme.icon.Language
 import me.zhangls.theme.layout.ContentWidth
 import notes.feature.about.generated.resources.Res
 import notes.feature.about.generated.resources.about_notices_description
 import notes.feature.about.generated.resources.about_open_source_notices
 import notes.feature.about.generated.resources.about_title
 import notes.feature.about.generated.resources.about_version_information
+import notes.feature.about.generated.resources.about_website
+import notes.feature.about.generated.resources.about_website_description
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenReleaseHistory: () -> Unit) {
+internal fun AboutScreen(
+  onBack: () -> Unit,
+  onOpenSource: () -> Unit,
+  onOpenReleaseHistory: () -> Unit,
+  onOpenWebsite: () -> Unit,
+) {
   val viewModel = koinViewModel<AboutViewModel>()
   val state by viewModel.state.collectAsStateWithLifecycle()
   val releases by viewModel.releases.collectAsStateWithLifecycle()
@@ -90,15 +98,29 @@ internal fun AboutScreen(onBack: () -> Unit, onOpenSource: () -> Unit, onOpenRel
           checking = checking,
           onCheckForUpdates = checkForUpdates,
         )
-        val noticesShape = MaterialTheme.shapes.extraLarge
-        AboutInfoRow(
-          title = stringResource(Res.string.about_open_source_notices),
-          detail = stringResource(Res.string.about_notices_description),
-          icon = Icons.Rounded.Code,
-          shape = noticesShape,
-          modifier = Modifier.clip(noticesShape).clickable(role = Role.Button, onClick = onOpenSource),
-        )
+        AboutLinks(onOpenWebsite, onOpenSource)
       }
     }
+  }
+}
+
+@Composable
+private fun AboutLinks(onOpenWebsite: () -> Unit, onOpenSource: () -> Unit) {
+  val linkShape = MaterialTheme.shapes.extraLarge
+  Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    AboutInfoRow(
+      title = stringResource(Res.string.about_website),
+      detail = stringResource(Res.string.about_website_description),
+      icon = Icons.Rounded.Language,
+      shape = linkShape,
+      modifier = Modifier.clip(linkShape).clickable(role = Role.Button, onClick = onOpenWebsite),
+    )
+    AboutInfoRow(
+      title = stringResource(Res.string.about_open_source_notices),
+      detail = stringResource(Res.string.about_notices_description),
+      icon = Icons.Rounded.Code,
+      shape = linkShape,
+      modifier = Modifier.clip(linkShape).clickable(role = Role.Button, onClick = onOpenSource),
+    )
   }
 }

@@ -61,6 +61,7 @@ fun App(
 ) {
   val viewModel: AppViewModel = koinViewModel()
   val aboutEntry: AboutEntry = koinInject()
+  LaunchedEffect(aboutEntry) { aboutEntry.refreshWebAssets() }
   val appInfo: AppInfo = koinInject()
   val version = remember(appInfo) { appInfo.getVersionName() }
   val systemToast = rememberSystemToast()

@@ -5,15 +5,30 @@ import me.zhangls.about.api.AboutEntry
 import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 
-class AboutEntryImpl(private val site: NotesWebsite) : AboutEntry {
+class AboutEntryImpl(
+  private val site: NotesWebsite,
+  private val updateWebAssets: suspend () -> Unit = {},
+) : AboutEntry {
+  override suspend fun refreshWebAssets() = updateWebAssets()
+
   @Composable
   override fun ReleaseNotesDialog(version: String, onDismiss: () -> Unit) {
     me.zhangls.about.ReleaseNotesDialog(version, onDismiss)
   }
 
   @Composable
-  override fun Screen(onBack: () -> Unit, onOpenReleaseHistory: () -> Unit, onOpenNotices: () -> Unit) {
-    AboutScreen(onBack, onOpenNotices, onOpenReleaseHistory)
+  override fun Screen(
+    onBack: () -> Unit,
+    onOpenReleaseHistory: () -> Unit,
+    onOpenNotices: () -> Unit,
+    onOpenWebsite: () -> Unit,
+  ) {
+    AboutScreen(onBack, onOpenNotices, onOpenReleaseHistory, onOpenWebsite)
+  }
+
+  @Composable
+  override fun OfficialWebsiteScreen(onBack: () -> Unit) {
+    me.zhangls.about.OfficialWebsiteScreen(onBack, site)
   }
 
   @Composable

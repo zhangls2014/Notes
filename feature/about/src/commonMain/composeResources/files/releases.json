@@ -4,6 +4,38 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The Notes website reuses cached static resources when you reopen or refresh a page.",
+          "zh": "重新打开或刷新摘星官网时，会复用未变化的静态资源缓存。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The app downloads and reuses two large Notes website resources in the background to speed up subsequent visits.",
+          "zh": "应用启动时在后台更新并缓存摘星官网的绘图库和字体，加快之后打开网页的速度。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Refresh any page opened in the app's web view.",
+          "zh": "所有应用内网页均支持通过右上角按钮刷新。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Browse the official Notes website from About app.",
+          "zh": "在「关于应用」中直接浏览摘星官网。"
+        }
+      },
+      {
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {

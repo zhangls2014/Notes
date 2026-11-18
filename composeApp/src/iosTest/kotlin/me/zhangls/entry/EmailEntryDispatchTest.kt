@@ -123,9 +123,10 @@ class EmailEntryDispatchTest {
         { settings.Screen {} },
         { profile.Screen(onBack = {}) },
         { about.ReleaseHistoryScreen(onBack = {}) },
+        { about.OfficialWebsiteScreen(onBack = {}) },
         { about.OnlineNoticesScreen(detail = null, onBack = {}, onOpenDetail = {}) },
         { about.OnlineNoticesScreen(detail = OnlineNoticeDetailDestination("license-MIT"), onBack = {}, onOpenDetail = {}) },
-        { about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = {}) },
+        { about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = {}, onOpenWebsite = {}) },
       )
       for (screen in screens) {
         val error = assertFailsWith<IllegalStateException> {

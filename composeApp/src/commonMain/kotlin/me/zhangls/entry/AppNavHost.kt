@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.zhangls.about.aboutNavEntry
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.about.api.OfficialWebsiteDestination
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.about.api.OnlineNoticesDestination
 import me.zhangls.about.api.ReleaseHistoryDestination
@@ -276,7 +277,8 @@ fun AppNavHost(
         entries = entriesByRoot.getValue(navigationState.selectedRoot).toImmutableList(),
         fullscreenEntryCount = backStack.takeLastWhile {
           it is ProfileDestination || it is PasskeyManagementDestination || it is AboutDestination ||
-            it is ReleaseHistoryDestination || it is OnlineNoticesDestination || it is OnlineNoticeDetailDestination
+            it is OfficialWebsiteDestination || it is ReleaseHistoryDestination ||
+            it is OnlineNoticesDestination || it is OnlineNoticeDetailDestination
         }.size,
         displayKey = navigationState.selectedRoot,
         contentAlpha = readAlpha,

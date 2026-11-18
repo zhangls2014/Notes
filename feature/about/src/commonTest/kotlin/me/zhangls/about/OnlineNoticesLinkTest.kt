@@ -5,6 +5,23 @@ import kotlin.test.assertEquals
 
 class OnlineNoticesLinkTest {
   @Test
+  fun websiteAllowsNavigationWithinItsConfiguredHttpsOrigin() {
+    val home = "https://website.example.test/"
+    val downloads = "${home}download/"
+    val notices = "${home}open-source/$releasePlatform-licenses.html#license-MIT"
+    val external = "https://downloads.example.test/notes.apk"
+    val otherPort = "https://website.example.test:8443/"
+    val insecure = "http://website.example.test/"
+
+    assertEquals(NoticesLink.InPage, noticesLink(downloads, home, allowSameOriginNavigation = true))
+    assertEquals(NoticesLink.InPage, noticesLink(notices, home, allowSameOriginNavigation = true))
+    assertEquals(NoticesLink.Project(external), noticesLink(external, home, allowSameOriginNavigation = true))
+    assertEquals(NoticesLink.Project(otherPort), noticesLink(otherPort, home, allowSameOriginNavigation = true))
+    assertEquals(NoticesLink.Project(insecure), noticesLink(insecure, home, allowSameOriginNavigation = true))
+    assertEquals(NoticesLink.Blocked, noticesLink("file:///etc/hosts", home, allowSameOriginNavigation = true))
+  }
+
+  @Test
   fun onlyPlatformNoticesOnTheConfiguredHttpsOriginCanLoadInTheView() {
     val origin = "https://website.example.test"
     val list = "$origin/open-source/$releasePlatform.html"

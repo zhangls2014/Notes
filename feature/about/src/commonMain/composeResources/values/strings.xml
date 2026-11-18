@@ -1,4 +1,8 @@
 <resources>
+  <string name="about_refresh_page">Refresh page</string>
+  <string name="about_website">Official website</string>
+  <string name="about_website_description">Visit the Notes website</string>
+  <string name="about_website_load_failed">Unable to load the official website.</string>
   <string name="about_open_source_notices">Open-source software notices</string>
   <string name="about_notices_description">Third-party libraries and licenses</string>
   <string name="about_title">About app</string>

@@ -35,6 +35,7 @@ tasks.register<Exec>("buildSite") {
   commandLine(
     node.executable.get(), "web/build.mjs", "--wasm",
     layout.buildDirectory.dir("dist/wasmJs/productionExecutable").get().asFile,
+    layout.buildDirectory.file("compose/skiko-runtime-processed-wasmjs/skiko.wasm").get().asFile,
   )
 }
 

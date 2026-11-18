@@ -10,6 +10,7 @@ object AboutNavigation : NavigationContribution {
     registerDestination(AboutDestination::class, AboutDestination.serializer())
     registerDestination(OnlineNoticeDetailDestination::class, OnlineNoticeDetailDestination.serializer())
     registerDestination(OnlineNoticesDestination::class, OnlineNoticesDestination.serializer())
+    registerDestination(OfficialWebsiteDestination::class, OfficialWebsiteDestination.serializer())
     registerDestination(ReleaseHistoryDestination::class, ReleaseHistoryDestination.serializer())
     registerDestination(OpenSourceNoticesDestination::class, OpenSourceNoticesDestination.serializer())
   }

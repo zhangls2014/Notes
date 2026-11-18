@@ -153,7 +153,8 @@ private val siteJson = Json { ignoreUnknownKeys = true }
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-  configureWebResources { resourcePathMapping { "/$it" } }
+  val resourcePaths = siteJson.decodeFromString<Map<String, String>>(resourcePathsJson())
+  configureWebResources { resourcePathMapping { resourcePaths[it] ?: "/$it" } }
   val data = siteData()?.let { siteJson.decodeFromString<SiteData>(it) } ?: SiteData(emptyList())
   val container = checkNotNull(document.getElementById("notes-app"))
   ComposeViewport(container) {

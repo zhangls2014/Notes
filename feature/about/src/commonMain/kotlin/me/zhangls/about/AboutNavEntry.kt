@@ -4,6 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutEntry
+import me.zhangls.about.api.OfficialWebsiteDestination
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.about.api.OnlineNoticesDestination
 import me.zhangls.about.api.ReleaseHistoryDestination
@@ -21,6 +22,7 @@ fun EntryProviderScope<NavKey>.aboutNavEntry(
       onBack = { effect(NavEffect.Popup) },
       onOpenReleaseHistory = { effect(NavEffect.Navigate(ReleaseHistoryDestination)) },
       onOpenNotices = { effect(NavEffect.Navigate(OnlineNoticesDestination)) },
+      onOpenWebsite = { effect(NavEffect.Navigate(OfficialWebsiteDestination)) },
     )
   }
   entry<OnlineNoticesDestination>(metadata = listMetadata) {
@@ -36,6 +38,9 @@ fun EntryProviderScope<NavKey>.aboutNavEntry(
       onBack = { effect(NavEffect.Popup) },
       onOpenDetail = openDetail,
     )
+  }
+  entry<OfficialWebsiteDestination> {
+    koinInject<AboutEntry>().OfficialWebsiteScreen(onBack = { effect(NavEffect.Popup) })
   }
   entry<ReleaseHistoryDestination> {
     koinInject<AboutEntry>().ReleaseHistoryScreen(onBack = { effect(NavEffect.Popup) })

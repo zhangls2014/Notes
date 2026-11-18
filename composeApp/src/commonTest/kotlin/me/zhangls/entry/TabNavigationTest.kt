@@ -3,6 +3,7 @@ package me.zhangls.entry
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.about.api.OfficialWebsiteDestination
 import me.zhangls.email.api.EmailDetailDestination
 import me.zhangls.email.api.EmailListScene
 import me.zhangls.framework.nav.NavEffect
@@ -22,6 +23,13 @@ class TabNavigationTest {
     val state = navigationState(NavBackStack<NavKey>(SettingsDestination))
     val handler = NavHandler(state) { false }
     handler(NavEffect.Navigate(AboutDestination))
+    assertEquals(listOf<NavKey>(SettingsDestination, AboutDestination), state.backStack.toList())
+    handler(NavEffect.Navigate(OfficialWebsiteDestination))
+    assertEquals(
+      listOf<NavKey>(SettingsDestination, AboutDestination, OfficialWebsiteDestination),
+      state.backStack.toList(),
+    )
+    handler(NavEffect.Popup)
     assertEquals(listOf<NavKey>(SettingsDestination, AboutDestination), state.backStack.toList())
     handler(NavEffect.Popup)
     assertEquals(listOf<NavKey>(SettingsDestination), state.backStack.toList())

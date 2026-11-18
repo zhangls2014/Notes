@@ -9,6 +9,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutNavigation
+import me.zhangls.about.api.OfficialWebsiteDestination
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.about.api.OnlineNoticesDestination
 import me.zhangls.about.api.OpenSourceNoticesDestination
@@ -77,6 +78,7 @@ class NavBackStackSerializationTest {
       SettingsDestination,
       AboutDestination,
       ReleaseHistoryDestination,
+      OfficialWebsiteDestination,
       OnlineNoticesDestination,
       OnlineNoticeDetailDestination("license-MIT"),
       OpenSourceNoticesDestination(),

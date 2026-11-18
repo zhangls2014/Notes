@@ -29,6 +29,7 @@ internal actual fun NoticesWebView(
   initialScroll: Double,
   bottomInset: Dp,
   modifier: Modifier,
+  allowSameOriginNavigation: Boolean,
 ) {
   val surface = MaterialTheme.colorScheme.surface
   val backgroundColor = surface.toArgb()
@@ -44,19 +45,26 @@ internal actual fun NoticesWebView(
         return@AndroidView View(context)
       }
       webView.apply {
+        val disk = AndroidWebAssetDisk(context)
         // Keep the themed container visible until Chromium can draw the new document.
         visibility = View.INVISIBLE
         setBackgroundColor(backgroundColor)
         settings.javaScriptEnabled = true
+        settings.domStorageEnabled = allowSameOriginNavigation
         settings.allowFileAccess = false
         settings.allowContentAccess = false
         settings.setSupportMultipleWindows(true)
         var restoreScroll = initialScroll
         var pageGeneration = 0L
         webViewClient = object : WebViewClient() {
+          override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+            if (projectPage || request.isForMainFrame || request.method != "GET") return null
+            return cachedWebAsset(url, request.url.toString())?.let(disk::response)
+          }
+
           override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val target = request.url.toString()
-            val link = noticesLink(target, url, projectPage)
+            val link = noticesLink(target, url, projectPage, allowSameOriginNavigation)
             if (link == NoticesLink.InPage) return false
             if (request.isForMainFrame) {
               when (link) {
@@ -74,10 +82,11 @@ internal actual fun NoticesWebView(
 
           override fun onPageStarted(view: WebView, target: String, favicon: Bitmap?) {
             pageGeneration++
-            if (noticesLink(target, url, projectPage) != NoticesLink.InPage) {
+            if (noticesLink(target, url, projectPage, allowSameOriginNavigation) != NoticesLink.InPage) {
               view.stopLoading()
               state.fail()
             } else {
+              state.currentUrl = target
               state.loading = true
             }
           }
@@ -116,7 +125,10 @@ internal actual fun NoticesWebView(
             return true
           }
         }
-        if (noticesLink(url, url, projectPage) == NoticesLink.InPage) loadUrl(url) else state.fail()
+        state.reload = ::reload
+        val startUrl = state.currentUrl
+        val initialLink = noticesLink(startUrl, url, projectPage, allowSameOriginNavigation)
+        if (initialLink == NoticesLink.InPage) loadUrl(startUrl) else state.fail()
       }
     },
     update = {
@@ -126,7 +138,10 @@ internal actual fun NoticesWebView(
         else it.applyNoticesInset(inset.value)
       }
     },
-    onRelease = { if (it is WebView) it.destroy() },
+    onRelease = {
+      state.reload = null
+      if (it is WebView) it.destroy()
+    },
   )
 }
 

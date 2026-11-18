@@ -24,7 +24,8 @@ class AboutModule {
   }
 
   @Single
-  fun aboutEntry(site: NotesWebsite): AboutEntry = AboutEntryImpl(site)
+  fun aboutEntry(site: NotesWebsite, @Named("publicUpdates") client: HttpClient): AboutEntry =
+    AboutEntryImpl(site, WebAssetCache(site, client)::refresh)
 
   @Single
   @Named("aboutNavigationContribution")

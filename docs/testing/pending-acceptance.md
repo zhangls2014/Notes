@@ -137,6 +137,8 @@
 
 ## 系统应用内浏览器
 
+- [ ] **官网版本化缓存上线与验收（2026-11-18）**：已在本地 Chrome 和独立 Android WebView 验证同版本刷新复用静态资源，以及新版只下载变化的文件。iOS 独立 WKWebView 已验证通过消息桥读取 8.65 MB 本地文件，仍待在 Notes 的 WKWebView 中验收首次后台下载、同版本刷新及跨版本切换。候选官网清单和生产 Nginx 缓存头待上线，按 [官网缓存策略](../notes-web-deployment.md#官网缓存策略) 做公网复核。
+
 2026-11-17：Kotlin/Wasm 声明已切换到 Compose Canvas 布局与绘制。网站构建通过，干净产物不含 `notice.css`。Chrome 已验两端的官网菜单直达、Android 英文桌面列表、分类跳转及 Android 许可证详情直接访问。通过列表打开详情后返回的滚动恢复仍须复测。浏览器历史保存的是 Compose 列表位置；已安装 App 只读取原生 WebView 滚动位置，尚未做 Canvas 版的端到端验收。未部署。
 
 2026-11-16（先前的 Wasm DOM 实验）：Chrome 通过两平台的列表和详情、官网直达、分类跳转、详情锚点、外观参数及浏览器返回；人为延迟 Wasm 请求 500ms 后复跑也通过。Android API 37 独立 WebView 和 iOS 27.2 独立 WKWebView 的冷启动回调均早于声明内容出现。iOS 内容出现后能拦截详情链接，但按既有 `didFinishNavigation` 时机恢复列表会回到顶部。该结果不代表 Canvas 版本通过。
