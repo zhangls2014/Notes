@@ -1,5 +1,6 @@
 package me.zhangls.about
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -11,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,6 +50,7 @@ import notes.feature.about.generated.resources.about_project_source
 import notes.feature.about.generated.resources.about_update_retry
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 private const val PROGRESS_DISPLAY_DELAY_MILLIS = 250L
 
@@ -123,9 +126,11 @@ internal fun OnlineNoticesPage(
             initialScroll = listScroll,
             bottomInset = padding.calculateBottomPadding(),
             modifier = Modifier.fillMaxSize(),
+            waitForNoticeFrame = project == null,
           )
         }
         if (state.loading) {
+          if (project == null) Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surface))
           var showProgress by remember(state) { mutableStateOf(false) }
           LaunchedEffect(state) {
             delay(PROGRESS_DISPLAY_DELAY_MILLIS)
@@ -213,6 +218,23 @@ private fun sameOriginNoticesLink(url: Url, initial: Url, target: String): Notic
   else -> NoticesLink.Project(target)
 }
 
+// Older Compose pages update their title when the declaration content enters composition.
+internal const val NOTICE_FRAME_SCRIPT = """
+  (() => {
+    const frame = document.getElementById('notes-app')?.getAttribute('data-notice-frame');
+    const ready = frame == null
+      ? !document.getElementById('notes-notice-data') || document.title !== 'Open-source notices · Notes'
+      : frame === 'ready';
+    return ready ? 'ready' : 'waiting';
+  })()
+"""
+
+internal suspend fun awaitNoticeFrame(isReady: suspend () -> Boolean): Boolean =
+  withTimeoutOrNull(45_000L) {
+    while (!isReady()) delay(100)
+    true
+  } ?: false
+
 @Composable
 internal expect fun NoticesWebView(
   url: String,
@@ -223,4 +245,5 @@ internal expect fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean = false,
+  waitForNoticeFrame: Boolean = false,
 )

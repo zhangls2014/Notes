@@ -225,7 +225,7 @@ test('notice routes publish a Compose host and JSON without server-rendered page
   for (const [path, html] of await buildNoticeFiles()) {
     const payload = html.match(/<script type="application\/json" id="notes-notice-data">(.*?)<\/script>/s)?.[1]
     assert.ok(payload, path + ' must provide Compose notice data')
-    assert.match(html, /<main id="notes-app" style="position:fixed;inset:0"><\/main>/)
+    assert.match(html, /<main id="notes-app" style="position:fixed;inset:0" data-notice-frame="pending"><\/main>/)
     assert.doesNotMatch(html, /notice\.css|rel="stylesheet"/)
     assert.match(html, /<script src="\/notes\.js" defer><\/script>/)
     assert.doesNotMatch(html, /<(article|header|template|pre|h1)\b/)

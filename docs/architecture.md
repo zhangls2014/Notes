@@ -198,6 +198,8 @@ Android 不绑定特定浏览器；未提供 Custom Tabs 时沿用其普通浏�
 
 About 将组合中解析的语言、系统与应用叠加字号、深浅色和 Material 配色附在启动 URL 上。站内链接保留这些参数。官网的 `:web` Compose 入口负责平台选择，并传递官网的外观参数。官网和应用的 WebView 共用 `:web` 的 Kotlin/Wasm Compose 声明列表和详情。声明由 Compose Canvas 布局和绘制，浏览器桥接负责链接激活和浏览器历史。网站构建保留固定地址及详情片段 ID，只嵌入声明数据与 Wasm 启动入口。已安装 App 读取原生 WebView 滚动位置，不能直接读取 Canvas 列表位置；上线前需要完成原生导航与滚动恢复验收。生成规则见[声明维护指南](../tools/open-source/README.md)，固定声明的发布流程见[网站部署](notes-web-deployment.md)。
 
+应用内声明列表和许可证详情在首屏绘制前由原生主题背景遮住 WebView，并沿用延迟出现的加载进度条。声明页通过 `data-notice-frame` 报告 Compose 首帧。旧版 Compose 声明通过标题更新判断内容已进入组合。主文档加载完成后，首帧就绪超时进入已有的重试界面。
+
 关于页面入口仅接收导航参数；`AboutAppInfo` 只描述版本号和构建号。
 
 新版本首次启动提示由 `composeApp/App.kt` 在登录状态及设置加载后协调，调用 `AboutEntry.ReleaseNotesDialog`；About 复用本地更新记录并只展示当前版本及平台内容，关闭后通过 `AppIntent` 写入 `SettingsRepository` 的已读版本号。首次安装同样提示，去重按版本名称而非构建号，规则见 [应用版本与更新记录](app-releases.md#新版本首次启动提示)。

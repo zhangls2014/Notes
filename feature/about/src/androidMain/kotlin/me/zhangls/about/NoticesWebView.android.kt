@@ -12,11 +12,16 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -30,11 +35,13 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean,
+  waitForNoticeFrame: Boolean,
 ) {
   val surface = MaterialTheme.colorScheme.surface
   val backgroundColor = surface.toArgb()
   val openDetail = rememberUpdatedState(onOpenDetail)
   val inset = rememberUpdatedState(bottomInset.value)
+  val scope = rememberCoroutineScope()
   AndroidView(
     modifier = modifier.background(surface),
     factory = { context ->
@@ -47,7 +54,7 @@ internal actual fun NoticesWebView(
       webView.apply {
         val disk = AndroidWebAssetDisk(context)
         // Keep the themed container visible until Chromium can draw the new document.
-        visibility = View.INVISIBLE
+        if (!waitForNoticeFrame) visibility = View.INVISIBLE
         setBackgroundColor(backgroundColor)
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = allowSameOriginNavigation
@@ -56,6 +63,7 @@ internal actual fun NoticesWebView(
         settings.setSupportMultipleWindows(true)
         var restoreScroll = initialScroll
         var pageGeneration = 0L
+        var frameWait: Job? = null
         webViewClient = object : WebViewClient() {
           override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
             if (projectPage || request.isForMainFrame || request.method != "GET") return null
@@ -81,6 +89,8 @@ internal actual fun NoticesWebView(
           }
 
           override fun onPageStarted(view: WebView, target: String, favicon: Bitmap?) {
+            frameWait?.cancel()
+            frameWait = null
             pageGeneration++
             if (noticesLink(target, url, projectPage, allowSameOriginNavigation) != NoticesLink.InPage) {
               view.stopLoading()
@@ -94,22 +104,36 @@ internal actual fun NoticesWebView(
           override fun onPageFinished(view: WebView, url: String) {
             if (!state.failed) {
               if (!projectPage) view.applyNoticesInset(inset.value)
-              if (view.visibility == View.INVISIBLE) {
-                view.postVisualStateCallback(pageGeneration, object : WebView.VisualStateCallback() {
-                  override fun onComplete(requestId: Long) {
-                    if (requestId != pageGeneration || !view.isAttachedToWindow || state.failed) return
-                    if (restoreScroll > 0) {
-                      view.scrollTo(0, restoreScroll.toInt())
-                      restoreScroll = 0.0
+              if (waitForNoticeFrame) {
+                if (frameWait != null) return
+                frameWait = scope.launch {
+                  val ready = awaitNoticeFrame {
+                    suspendCancellableCoroutine { continuation ->
+                      view.evaluateJavascript(NOTICE_FRAME_SCRIPT) { continuation.resume(it == "\"ready\"") }
                     }
-                    view.visibility = View.VISIBLE
-                    state.loading = false
                   }
-                })
+                  if (ready) revealWhenDrawable(view) else state.fail()
+                }
+              } else if (view.visibility == View.INVISIBLE) {
+                revealWhenDrawable(view)
               } else {
                 state.loading = false
               }
             }
+          }
+
+          private fun revealWhenDrawable(view: WebView) {
+            view.postVisualStateCallback(pageGeneration, object : WebView.VisualStateCallback() {
+              override fun onComplete(requestId: Long) {
+                if (requestId != pageGeneration || !view.isAttachedToWindow || state.failed) return
+                if (restoreScroll > 0) {
+                  view.scrollTo(0, restoreScroll.toInt())
+                  restoreScroll = 0.0
+                }
+                view.visibility = View.VISIBLE
+                state.loading = false
+              }
+            })
           }
 
           override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {

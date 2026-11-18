@@ -4,6 +4,22 @@
     "date": null,
     "changes": [
       {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Open-source notice category buttons match the tonal style of the license and notice buttons.",
+          "zh": "开源软件声明的分类入口与许可证和附加声明按钮使用一致的填充样式。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Open-source notices show a themed loading screen until the content is ready.",
+          "zh": "打开开源软件声明时，首屏就绪前会显示与应用主题一致的加载界面。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": ["android"],
         "text": {

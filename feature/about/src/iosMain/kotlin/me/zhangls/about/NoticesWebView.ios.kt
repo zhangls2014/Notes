@@ -3,6 +3,7 @@ package me.zhangls.about
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
@@ -12,6 +13,9 @@ import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.cinterop.ObjCSignatureOverride
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSHTTPURLResponse
@@ -32,6 +36,7 @@ import platform.WebKit.WKNavigationTypeLinkActivated
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
+import kotlin.coroutines.resume
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -44,6 +49,7 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean,
+  waitForNoticeFrame: Boolean,
 ) {
   val surface = MaterialTheme.colorScheme.surface.convert(ColorSpaces.Srgb)
   val surfaceColor = remember(surface) {
@@ -55,17 +61,43 @@ internal actual fun NoticesWebView(
     )
   }
   val openDetail = rememberUpdatedState(onOpenDetail)
+  val scope = rememberCoroutineScope()
   val delegate = remember(state) {
     object : NSObject(), WKNavigationDelegateProtocol {
-      @ObjCSignatureOverride
-      override fun webView(webView: WKWebView, didStartProvisionalNavigation: WKNavigation?) {
-        state.loading = true
-      }
-
+      private var frameWait: Job? = null
       private var restoreScroll = initialScroll
 
       @ObjCSignatureOverride
+      override fun webView(webView: WKWebView, didStartProvisionalNavigation: WKNavigation?) {
+        cancelFrameWait()
+        state.loading = true
+      }
+
+      @ObjCSignatureOverride
       override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+        if (state.failed) return
+        if (waitForNoticeFrame) {
+          frameWait = scope.launch {
+            val ready = awaitNoticeFrame {
+              suspendCancellableCoroutine { continuation ->
+                webView.evaluateJavaScript(NOTICE_FRAME_SCRIPT) { value, _ ->
+                  continuation.resume(value == "ready")
+                }
+              }
+            }
+            if (ready) finishLoading(webView) else state.fail()
+          }
+        } else {
+          finishLoading(webView)
+        }
+      }
+
+      fun cancelFrameWait() {
+        frameWait?.cancel()
+        frameWait = null
+      }
+
+      private fun finishLoading(webView: WKWebView) {
         if (restoreScroll > 0) {
           webView.scrollView.setContentOffset(CGPointMake(0.0, restoreScroll), animated = false)
           restoreScroll = 0.0
@@ -163,6 +195,7 @@ internal actual fun NoticesWebView(
     },
     onRelease = {
       state.reload = null
+      delegate.cancelFrameWait()
       assetBridge?.close(it.configuration.userContentController)
       it.navigationDelegate = null
       it.stopLoading()

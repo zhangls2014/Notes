@@ -259,7 +259,8 @@ export async function buildNoticeFiles() {
     for (const [filename, data] of [[platform, { categories }], [platform + '-licenses', { declarations }]]) {
       const payload = JSON.stringify(data).replaceAll('<', '\\u003c')
       files.set(`open-source/${filename}.html`, composeDocument('Open-source notices · Notes',
-        `<script type="application/json" id="notes-notice-data">${payload}</script>`))
+        `<script type="application/json" id="notes-notice-data">${payload}</script>`,
+        ' data-notice-frame="pending"'))
     }
   }
   return files

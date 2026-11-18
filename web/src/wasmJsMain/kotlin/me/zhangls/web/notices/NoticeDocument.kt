@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -95,10 +96,19 @@ internal fun NoticeDocument(copy: WebsiteStrings, platform: String) {
     document.title = "${copy[Res.string.app_name]} · $platformName $heading"
   }
 
-  if (detail) {
-    key(fragment) { Declaration(copy, fragment, data.declarations[fragment]) }
-  } else {
-    Catalogue(copy, platform, platformName, heading, data.categories, fragment)
+  val container = remember { document.getElementById("notes-app") }
+  Box(Modifier.fillMaxSize().drawWithContent {
+    drawContent()
+    if (container?.getAttribute("data-notice-frame") == "pending") {
+      container.setAttribute("data-notice-frame", "drawn")
+      window.requestAnimationFrame { container.setAttribute("data-notice-frame", "ready") }
+    }
+  }) {
+    if (detail) {
+      key(fragment) { Declaration(copy, fragment, data.declarations[fragment]) }
+    } else {
+      Catalogue(copy, platform, platformName, heading, data.categories, fragment)
+    }
   }
 }
 
@@ -152,7 +162,7 @@ private fun Catalogue(
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           categories.forEach { category ->
-            TextButton(onClick = { window.location.hash = category.id }) {
+            FilledTonalButton(onClick = { window.location.hash = category.id }) {
               Text(category.label(strings))
             }
           }
