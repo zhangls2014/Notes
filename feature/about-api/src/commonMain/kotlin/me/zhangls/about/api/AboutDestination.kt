@@ -11,6 +11,9 @@ data object AboutDestination : Destination
 data object OfficialWebsiteDestination : Destination
 
 @Serializable
+data object CacheManagementDestination : Destination
+
+@Serializable
 data object ReleaseHistoryDestination : Destination
 
 @Serializable

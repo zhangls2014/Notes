@@ -77,7 +77,7 @@ private val webAssetFetchScript = """
       }
       const url = new URL(request?.url ?? input, document.baseURI);
       const wasm = /^\/[a-f0-9]{20}\.wasm$/.test(url.pathname);
-      const font = /^\/web-assets\/misans-[a-f0-9]{64}\.otf$/.test(url.pathname);
+      const font = /^\/web-assets\/misans-[a-f0-9]{20}(?:[a-f0-9]{44})?\.otf$/.test(url.pathname);
       const signal = options?.signal ?? request?.signal;
       if (url.origin === location.origin && !url.search && !url.hash && !signal?.aborted && (wasm || font)) {
         try {

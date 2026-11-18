@@ -9,6 +9,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
 import me.zhangls.about.api.AboutDestination
 import me.zhangls.about.api.AboutNavigation
+import me.zhangls.about.api.CacheManagementDestination
 import me.zhangls.about.api.OfficialWebsiteDestination
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.about.api.OnlineNoticesDestination
@@ -69,6 +70,12 @@ class NavBackStackSerializationTest {
     val stack = NavBackStack<NavKey>(SettingsDestination, PasskeyManagementDestination)
     val encoded = json.encodeToString(serializer, stack)
     kotlin.test.assertTrue(encoded.contains("me.zhangls.main.api.PasskeyManagementDestination"))
+    assertEquals(stack.toList(), roundTrip(stack).toList())
+  }
+
+  @Test
+  fun cacheManagementRestoresAboveAbout() {
+    val stack = NavBackStack<NavKey>(SettingsDestination, AboutDestination, CacheManagementDestination)
     assertEquals(stack.toList(), roundTrip(stack).toList())
   }
 

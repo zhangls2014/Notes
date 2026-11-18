@@ -24,8 +24,12 @@ class AboutModule {
   }
 
   @Single
-  fun aboutEntry(site: NotesWebsite, @Named("publicUpdates") client: HttpClient): AboutEntry =
-    AboutEntryImpl(site, WebAssetCache(site, client)::refresh)
+  internal fun webAssetCache(site: NotesWebsite, @Named("publicUpdates") client: HttpClient): WebAssetCache =
+    WebAssetCache(site, client, platformWebAssetDownloader(client))
+
+  @Single
+  internal fun aboutEntry(site: NotesWebsite, cache: WebAssetCache): AboutEntry =
+    AboutEntryImpl(site) { scheduleWebAssetRefresh(cache) }
 
   @Single
   @Named("aboutNavigationContribution")

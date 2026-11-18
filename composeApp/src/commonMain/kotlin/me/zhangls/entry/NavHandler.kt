@@ -4,6 +4,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.about.api.AboutDestination
+import me.zhangls.about.api.CacheManagementDestination
 import me.zhangls.about.api.OfficialWebsiteDestination
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.about.api.OnlineNoticesDestination
@@ -120,8 +121,13 @@ private fun rootFor(destination: Destination): Destination = when (destination) 
     ProfileOrigin.Settings -> SettingsDestination
   }
 
-  AboutDestination, PasskeyManagementDestination, ReleaseHistoryDestination,
-  OfficialWebsiteDestination, OnlineNoticesDestination, is OnlineNoticeDetailDestination -> SettingsDestination
+  AboutDestination,
+  CacheManagementDestination,
+  PasskeyManagementDestination,
+  ReleaseHistoryDestination,
+  OfficialWebsiteDestination,
+  OnlineNoticesDestination,
+  is OnlineNoticeDetailDestination -> SettingsDestination
 
   else -> HomeDestination
 }

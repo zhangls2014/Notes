@@ -43,7 +43,7 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 Nginx 应将不存在的路径交给 `404.html`（例如 `error_page 404 /404.html;`），并保留 HTTP 404 状态。上线验收需用不存在的深层路径检查状态和页面渲染。
 
-官网构建生成 `/web-assets/manifest.json`，记录 Skiko Wasm 和版本化 MiSans 的路径、字节数和 SHA-256。部署时先上传清单引用的资源，再更新 HTML、启动脚本和清单。保持清单可重新验证，避免客户端持续读到旧版本。上线后按清单验证两项资源的大小、SHA-256 和响应类型。未命中本地文件的客户端直接使用相同的 HTTPS 资源。
+官网构建生成 `/web-assets/manifest-v2.json`，记录 Skiko Wasm 和 MiSans 的路径、字节数和完整 SHA-256。MiSans 正式文件名使用摘要的前 20 个十六进制字符。旧版 `/web-assets/manifest.json` 保留 64 字符字体路径及对应文件，供旧版客户端读取。部署时先上传清单引用的资源，再更新 HTML、启动脚本和清单。保持清单可重新验证，避免客户端持续读到旧版本。上线后按清单验证两项资源的大小、SHA-256 和响应类型，并以 `Range: bytes=0-0`、`Accept-Encoding: identity` 对公网地址发 GET，确认返回 `206 Partial Content`、`Content-Range: bytes 0-0/<清单大小>` 和恰好一个字节。返回 `200` 时客户端仍可校验并缓存完整文件，但该源站不能按分片续传。未命中本地文件的客户端直接使用相同的 HTTPS 资源。
 
 ### 官网缓存策略
 
@@ -54,7 +54,7 @@ Cloudflare Pages 和本地预览使用构建产物中的 `_headers`。曼谷 Ngi
 ```nginx
 map "$status:$uri" $notes_cache_control {
     default "no-cache";
-    "~^(200|206|304):/([a-f0-9]{20}\.wasm|notes-[a-f0-9]{64}\.js(\.map)?|web-assets/misans-[a-f0-9]{64}\.otf|assets/[a-f0-9]{64}/[^/]+)$" "public, max-age=31536000, immutable";
+    "~^(200|206|304):/([a-f0-9]{20}\.wasm|notes-[a-f0-9]{64}\.js(\.map)?|web-assets/misans-[a-f0-9]{20}([a-f0-9]{44})?\.otf|assets/[a-f0-9]{64}/[^/]+)$" "public, max-age=31536000, immutable";
 }
 ```
 

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-  <cache-path name="update-apk" path="app-updates/" />
+  <external-files-path name="update-download" path="Download/" />
 </paths>

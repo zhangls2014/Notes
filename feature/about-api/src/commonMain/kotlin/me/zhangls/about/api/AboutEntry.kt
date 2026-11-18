@@ -14,6 +14,7 @@ interface AboutEntry {
     onOpenReleaseHistory: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenWebsite: () -> Unit,
+    onOpenCacheManagement: () -> Unit,
   )
 
   @Composable
@@ -25,6 +26,9 @@ interface AboutEntry {
     onBack: () -> Unit,
     onOpenDetail: (OnlineNoticeDetailDestination) -> Unit,
   )
+
+  @Composable
+  fun CacheManagementScreen(onBack: () -> Unit)
 
   @Composable
   fun ReleaseHistoryScreen(onBack: () -> Unit)

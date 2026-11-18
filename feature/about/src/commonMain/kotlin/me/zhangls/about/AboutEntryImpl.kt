@@ -22,8 +22,9 @@ class AboutEntryImpl(
     onOpenReleaseHistory: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenWebsite: () -> Unit,
+    onOpenCacheManagement: () -> Unit,
   ) {
-    AboutScreen(onBack, onOpenNotices, onOpenReleaseHistory, onOpenWebsite)
+    AboutScreen(onBack, onOpenNotices, onOpenReleaseHistory, onOpenWebsite, onOpenCacheManagement)
   }
 
   @Composable
@@ -38,6 +39,11 @@ class AboutEntryImpl(
     onOpenDetail: (OnlineNoticeDetailDestination) -> Unit,
   ) {
     OnlineNoticesPage(site, detail, onBack, onOpenDetail)
+  }
+
+  @Composable
+  override fun CacheManagementScreen(onBack: () -> Unit) {
+    me.zhangls.about.CacheManagementScreen(onBack)
   }
 
   @Composable

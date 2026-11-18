@@ -9,6 +9,7 @@ kotlin {
     commonMain.dependencies {
       implementation(projects.core.theme)
       implementation(projects.core.network)
+      implementation(projects.core.download)
       implementation(kmp.jetbrains.kotlinx.serialization.json)
       implementation(kmp.androidx.navigationevent.compose)
       implementation(kmp.jetbrains.compose.material3.adaptive)
@@ -20,6 +21,7 @@ kotlin {
     }
     androidMain.dependencies {
       implementation(kmp.androidx.core)
+      implementation(kmp.androidx.work.runtime)
     }
     commonTest.dependencies {
       implementation(kmp.kotlin.test)

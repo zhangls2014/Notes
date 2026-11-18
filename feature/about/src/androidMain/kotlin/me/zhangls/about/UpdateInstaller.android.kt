@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
@@ -114,6 +113,7 @@ internal actual class UpdateInstaller(context: Context) {
 
   private fun downloadRecords(): List<Download> = downloads.query(DownloadManager.Query())?.use { cursor ->
     val uri = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_URI)
+    val localUri = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI)
     val id = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID)
     val status = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)
     buildList {
@@ -123,7 +123,14 @@ internal actual class UpdateInstaller(context: Context) {
           DownloadManager.STATUS_FAILED -> DownloadStatus.Failed
           else -> DownloadStatus.Downloading
         }
-        add(Download(cursor.getLong(id), cursor.getString(uri).orEmpty(), downloadStatus))
+        add(
+          Download(
+            cursor.getLong(id),
+            cursor.getString(uri).orEmpty(),
+            cursor.getString(localUri)?.let(Uri::parse),
+            downloadStatus,
+          ),
+        )
       }
     }
   }.orEmpty()
@@ -132,25 +139,35 @@ internal actual class UpdateInstaller(context: Context) {
     require(manifest.channel == MAINLAND_UPDATE_CHANNEL)
     val download = requireNotNull(findDownload(apkUrl))
     require(download.status == DownloadStatus.Ready)
-    val directory = File(app.cacheDir, "app-updates").apply { mkdirs() }
-    val apk = File(directory, "Notes-${manifest.build}.apk")
-    val descriptor = try {
-      downloads.openDownloadedFile(download.id)
+    val apk = requireNotNull(updateDownloadFile(download.localUri))
+    try {
+      if (!apk.isFile) throw FileNotFoundException("Downloaded update package is missing")
+      verifyApk(apk, manifest)
+      return apk
     } catch (missing: FileNotFoundException) {
       downloads.remove(download.id)
       throw missing
-    }
-    try {
-      ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { input ->
-        apk.outputStream().buffered().use { output -> input.copyTo(output) }
-      }
-      verifyApk(apk, manifest)
     } catch (invalid: IllegalArgumentException) {
       downloads.remove(download.id)
       throw invalid
     }
-    return apk
   }
+
+  private fun updateDownloadFile(localUri: Uri?): File? {
+    if (localUri?.scheme != "file" || !localUri.authority.isNullOrEmpty()) return null
+    val path = localUri.path ?: return null
+    val directory = app.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.canonicalFile ?: return null
+    val file = File(path).canonicalFile
+    return file.takeIf { it.parentFile == directory && it.extension == "apk" }
+  }
+
+  internal fun downloadedPackages(): List<CachedFile> = downloadRecords()
+    .filter { it.status == DownloadStatus.Ready }
+    .mapNotNull { record ->
+      val file = updateDownloadFile(record.localUri)?.takeIf { it.isFile } ?: return@mapNotNull null
+      val name = Uri.parse(record.url).lastPathSegment ?: return@mapNotNull null
+      CachedFile(name, file.length(), "${Environment.DIRECTORY_DOWNLOADS}/${file.name}")
+    }
 
   private fun verifyApk(apk: File, manifest: UpdateManifest) {
     val flags = PackageManager.GET_META_DATA or PackageManager.GET_SIGNING_CERTIFICATES
@@ -165,5 +182,5 @@ internal actual class UpdateInstaller(context: Context) {
     require(expectedSigners.isNotEmpty() && expectedSigners == actualSigners)
   }
 
-  private data class Download(val id: Long, val url: String, val status: DownloadStatus)
+  private data class Download(val id: Long, val url: String, val localUri: Uri?, val status: DownloadStatus)
 }

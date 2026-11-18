@@ -1,7 +1,9 @@
 package me.zhangls.entry
 
 import android.app.DownloadManager
+import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.RenderProcessGoneDetail
@@ -29,6 +31,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.computeWindowSizeClass
@@ -64,6 +67,7 @@ import org.junit.runner.RunWith
 import org.koin.compose.koinInject
 import org.koin.core.context.stopKoin
 import org.koin.core.qualifier.named
+import org.koin.dsl.module
 import org.koin.mp.KoinPlatform
 import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -96,7 +100,7 @@ class AboutUiTest(private val scenario: Scenario) {
   @get:Rule val compose = createComposeRule()
 
   @Before fun start() {
-    initKoin(null)
+    initKoin { modules(module { single<Context> { RuntimeEnvironment.getApplication() } }) }
     provideAboutAppInfo()
   }
 
@@ -118,8 +122,10 @@ class AboutUiTest(private val scenario: Scenario) {
           ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
             var historyVisible by remember { mutableStateOf(false) }
             var websiteVisible by remember { mutableStateOf(false) }
+            var cacheVisible by remember { mutableStateOf(false) }
             val entry = koinInject<AboutEntry>()
             when {
+              cacheVisible -> entry.CacheManagementScreen(onBack = { cacheVisible = false })
               historyVisible -> entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
               websiteVisible -> entry.OfficialWebsiteScreen(onBack = { websiteVisible = false })
               else -> entry.Screen(
@@ -127,6 +133,7 @@ class AboutUiTest(private val scenario: Scenario) {
                 onOpenReleaseHistory = { historyVisible = true },
                 onOpenNotices = {},
                 onOpenWebsite = { websiteVisible = true },
+                onOpenCacheManagement = { cacheVisible = true },
               )
             }
           }
@@ -312,6 +319,94 @@ class AboutUiTest(private val scenario: Scenario) {
     }
   }
 
+  @Test fun cacheManagementListsStoredFilesAndCountsOnlyKnownCacheBytes() {
+    val app = RuntimeEnvironment.getApplication()
+    val cache = app.cacheDir
+    fun store(path: String, bytes: Int) {
+      File(cache, path).apply {
+        parentFile?.mkdirs()
+        writeBytes(ByteArray(bytes))
+      }
+    }
+
+    val wasm = "0123456789abcdef0123.wasm"
+    store("notes-web-assets/website.example.test-443/$wasm", 1_000)
+    val font = "misans-${"a".repeat(64)}.otf"
+    store("notes-web-assets/website.example.test-443/$font", 80)
+    store("notes-web-assets/website.example.test-443/$wasm.new", 100)
+    store("app-updates/Notes-42.apk", 300)
+    store("other/private.txt", 80)
+    val originalApkName = "Notes-2.0.0-mainland.apk"
+    val downloadName = "download-$originalApkName"
+    val directory = checkNotNull(app.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS))
+    File(directory, downloadName).writeBytes(ByteArray(600))
+    val manager = app.getSystemService(DownloadManager::class.java)
+    val request = DownloadManager.Request(Uri.parse("https://downloads.example.test/$originalApkName"))
+      .setDestinationInExternalFilesDir(app, Environment.DIRECTORY_DOWNLOADS, downloadName)
+    val id = manager.enqueue(request)
+    val shadow = Shadow.extract<ShadowDownloadManager>(manager)
+    Shadow.extract<ShadowDownloadManager.ShadowRequest>(shadow.getRequest(id)).status = DownloadManager.STATUS_SUCCESSFUL
+
+    launch(AboutAppInfo("1.1.0", "2"))
+    for (heading in listOf("Version information", "Website and notices", "Storage")) {
+      compose.onNodeWithText(heading).performScrollTo().assertIsDisplayed()
+    }
+    compose.onNodeWithText("Cache management").performScrollTo().performClick()
+    compose.waitUntil(5_000) { compose.onAllNodes(hasText("2.0 KB")).fetchSemanticsNodes().isNotEmpty() }
+    compose.onNodeWithText("Known cache size").assertIsDisplayed()
+    compose.onNodeWithText("2.0 KB").assertIsDisplayed()
+    compose.onNodeWithTag("about-page").captureRoboImage("build/about-candidates/cache-management-${scenario.name}.png")
+    val list = compose.onNodeWithTag("cache-inventory")
+    val wasmPath = "notes-web-assets/website.example.test-443/$wasm"
+    list.performScrollToNode(hasText(wasmPath))
+    val wasmName = compose.onNodeWithText("Skiko WebAssembly")
+    wasmName.assertIsDisplayed()
+    compose.onNodeWithText(wasmPath).assertIsDisplayed()
+    val titleBounds = wasmName.getUnclippedBoundsInRoot()
+    val sizeBounds = compose.onNodeWithText("1.0 KB").getUnclippedBoundsInRoot()
+    if (scenario.width == 320) {
+      assertTrue(sizeBounds.top >= titleBounds.bottom)
+    } else {
+      assertTrue(sizeBounds.left > titleBounds.left && sizeBounds.top < titleBounds.bottom)
+    }
+    val fontPath = "notes-web-assets/website.example.test-443/$font"
+    list.performScrollToNode(hasText(fontPath))
+    compose.onNodeWithText("MiSans font").assertIsDisplayed()
+    compose.onNodeWithText(fontPath).assertIsDisplayed()
+    list.performScrollToNode(hasText("Notes-42.apk"))
+    val apkName = compose.onNodeWithText("Notes-42.apk").assertIsDisplayed()
+    val apkPath = compose.onNodeWithText("app-updates/Notes-42.apk").assertIsDisplayed()
+    if (scenario.width > 320) {
+      val name = apkName.getUnclippedBoundsInRoot()
+      val path = apkPath.getUnclippedBoundsInRoot()
+      val size = compose.onNodeWithText("300 B").getUnclippedBoundsInRoot()
+      val nameCenter = (name.top.value + path.bottom.value) / 2
+      val sizeCenter = (size.top.value + size.bottom.value) / 2
+      assertEquals(nameCenter, sizeCenter, 1f)
+    }
+    list.performScrollToNode(hasText(originalApkName))
+    compose.onNodeWithText(originalApkName).assertIsDisplayed()
+    compose.onNodeWithText("Download/$downloadName").assertIsDisplayed()
+    list.performScrollToNode(hasText("Built-in browser cache"))
+    compose.onNodeWithText("Built-in browser cache").assertIsDisplayed()
+  }
+
+  @Test fun cacheManagementShowsSavedProgressBeforeDownloadStarts() {
+    val root = RuntimeEnvironment.getApplication().cacheDir
+    val wasm = "0123456789abcdef0123.wasm"
+    val checkpoint = File(root, "notes-web-assets/website.example.test-443/.$wasm.1048576.${"a".repeat(64)}.part")
+    checkpoint.parentFile?.mkdirs()
+    checkpoint.writeBytes(ByteArray(262_144))
+
+    launch(AboutAppInfo("1.1.0", "2"))
+    compose.onNodeWithText("Cache management").performScrollTo().performClick()
+    compose.waitUntil(5_000) { compose.onAllNodes(hasText("0 B")).fetchSemanticsNodes().isNotEmpty() }
+    val list = compose.onNodeWithTag("cache-inventory")
+    list.performScrollToNode(hasText("Waiting to resume · 25%"))
+    compose.onNodeWithText("Waiting to resume · 25%").assertIsDisplayed()
+    compose.onNodeWithText("No cached files").assertDoesNotExist()
+  }
+
   @Test fun websiteServesAnExactCachedAssetAndLeavesOtherRequestsOnline() {
     launch(AboutAppInfo("1.1.0", "2"))
     compose.onNodeWithText("Official website").performScrollTo().performClick()
@@ -438,7 +533,7 @@ class AboutUiTest(private val scenario: Scenario) {
     val about: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
     compose.setContent {
       ComposeAppTheme {
-        about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = { opened = true }, onOpenWebsite = {})
+        about.Screen(onBack = {}, onOpenReleaseHistory = {}, onOpenNotices = { opened = true }, onOpenWebsite = {}, onOpenCacheManagement = {})
       }
     }
     compose.onNodeWithText("Open-source software notices").performScrollTo().assertIsEnabled().performClick()

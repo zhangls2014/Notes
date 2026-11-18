@@ -31,6 +31,7 @@ Gradle 中启用的模块：
 :core:theme
 :core:preference
 :core:network
+:core:download
 :core:framework
 :core:navigation
 
@@ -72,6 +73,7 @@ Gradle 中启用的模块：
 | `core:theme` | 主题、图标、通用 Compose 组件、内容宽度和窗口事实 |
 | `core:preference` | 设置项展示元数据、通用设置控件和渲染契约 |
 | `core:network` | 跨平台 Ktor 客户端工厂、HTTP 客户端绑定 |
+| `core:download` | 通用 HTTP 分片下载、磁盘断点恢复和完整文件校验 |
 | `core:framework` | MVI 基类、Navigation 3 契约、Deep Link 和全局 Effect |
 | `core:navigation` | 导航显示、预测返回转场、设备圆角和窗格安全区；不依赖 Feature，不拥有应用返回栈或业务导航策略 |
 
@@ -118,9 +120,11 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 
 「官方网站」进入 About 所属的全屏页面，从同一宿主配置加载官网首页，复用更新日志和在线声明的 WebView。官网导航保持可用，同一 HTTPS 来源的页面在应用内加载。
 
-应用冷启动时，组合根触发 About 在后台从同一官网来源检查 `/web-assets/manifest.json`。清单仅包含 Skiko Wasm 和 MiSans 字体，大小与 SHA-256 一致时复用缓存，下载通过校验后原子写入。WebView 只复用同一官网来源和精确版本的缓存文件，未命中时从 HTTPS 加载。网页、脚本、Notes Web Wasm 和业务数据继续通过 HTTPS 获取。iOS 仅接受官网主框架发出的这两类资源请求。
+应用冷启动时，组合根触发 About 在后台从同一官网来源优先检查 `/web-assets/manifest-v2.json`，不可用时读取旧版 `/web-assets/manifest.json`。清单仅包含 Skiko Wasm 和 MiSans 字体，大小与 SHA-256 一致时复用缓存，缺失资源交给 `core:download`。预缓存使用 256 KiB 分片，并行处理最多三个不同文件。同一目标文件串行写入，各文件独立重试。Android 在应用启动时直接尝试续传，并登记一个有联网约束的 WorkManager 工作负责后台重试。两者共用下载协调器和磁盘断点。iOS 通过一个后台 URLSession 批量排入缺失分片，系统接管传输，宿主将会话事件交还下载模块，校验并合并分片后才完成系统回调。下载器校验 `Content-Range`，断点按目标、大小和摘要隔离。设备强制停止应用后，下一次启动重新检查并恢复可用的断点。服务器忽略 Range 时回退为全量下载。只有完整文件通过大小和 SHA-256 校验后才原子提交，临时文件只用于显示已保存的断点进度。APK 更新仍走 Android 系统下载。WebView 只复用同一官网来源和精确版本的缓存文件，未命中时从 HTTPS 加载。网页、脚本、Notes Web Wasm 和业务数据继续通过 HTTPS 获取。iOS 仅接受官网主框架发出的这两类资源请求。
 
 WebView 使用平台的默认 HTTP 缓存。官网 HTML 和数据接口每次使用前重新验证，静态文件按内容生成地址并允许长期复用。原生刷新动作重新加载当前页面，仍按官网的 HTTP 缓存策略处理资源。配置及发布顺序见[官网缓存策略](notes-web-deployment.md#官网缓存策略)。
+
+「关于应用」按版本信息、网站与声明、存储分组。「缓存管理」属于 About 的全屏目的地，由导航条目作用域的 ViewModel 在进入页面和官网资源校验通过后读取本机缓存快照。网页资源的下载状态由应用级缓存服务按文件提供，进度包含当前分片已收到的字节，重试时回到已保留的断点。任务尚未恢复时，页面从本地断点显示已保存的进度。已统计占用只包含完成的官网资源、Android 应用专属目录中 DownloadManager 已完成的更新安装包，以及旧版本留下的安装副本。iOS WebKit 磁盘缓存按站点列出；系统网页引擎的缓存大小不纳入总占用。页面只读，不遍历应用数据目录或修改缓存。
 
 About 的版本号展开区和首次启动提示从包内 `releases.json` 读取匹配安装版本的摘要。「查看更新日志」进入独立导航页面，通过宿主配置的官网加载 `/releases/`，复用在线声明的 WebView 和外观参数。维护规则见 [应用版本与更新记录](app-releases.md)。
 

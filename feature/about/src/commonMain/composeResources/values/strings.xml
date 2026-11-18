@@ -48,4 +48,27 @@
   <string name="about_close_notice_detail">Close details</string>
   <string name="about_project_source">Project source</string>
   <string name="about_project_load_failed">Could not load the project page.</string>
+  <string name="about_web_and_notices">Website and notices</string>
+  <string name="about_storage">Storage</string>
+  <string name="about_cache_management">Cache management</string>
+  <string name="about_cache_description">View locally cached resources and their size</string>
+  <string name="about_cache_total">Known cache size</string>
+  <string name="about_cache_empty">No cached files</string>
+  <string name="about_cache_failed">Unable to read the cache list</string>
+  <string name="about_cache_web">Website resources</string>
+  <string name="about_cache_updates">Update packages</string>
+  <string name="about_cache_engine">Built-in browser cache</string>
+  <string name="about_cache_engine_unavailable">The browser does not expose cached files or their sizes. This cache is outside the size shown above.</string>
+  <string name="about_cache_engine_empty">No sites with disk cache were reported. Browser cache is outside the size shown above.</string>
+  <string name="about_cache_engine_note">The browser reports sites only. Its cache size is outside the size shown above.</string>
+  <string name="about_cache_total_detail">App-managed local cache files</string>
+  <string name="about_cache_empty_detail">App-managed cache files will appear here.</string>
+  <string name="about_cache_failed_detail">Go back and reopen Cache management to try again.</string>
+  <string name="about_cache_loading">Reading cache</string>
+  <string name="about_cache_loading_detail">Calculating local cache size.</string>
+  <string name="about_cache_skiko_name">Skiko WebAssembly</string>
+  <string name="about_cache_font_name">MiSans font</string>
+  <string name="about_cache_downloading">Downloading · %1$s</string>
+  <string name="about_cache_verifying">Verifying file…</string>
+  <string name="about_cache_waiting_to_resume">Waiting to resume · %1$s</string>
 </resources>

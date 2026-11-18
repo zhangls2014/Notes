@@ -8,6 +8,7 @@ import me.zhangls.framework.nav.registerDestination
 object AboutNavigation : NavigationContribution {
   override val navModule = SerializersModule {
     registerDestination(AboutDestination::class, AboutDestination.serializer())
+    registerDestination(CacheManagementDestination::class, CacheManagementDestination.serializer())
     registerDestination(OnlineNoticeDetailDestination::class, OnlineNoticeDetailDestination.serializer())
     registerDestination(OnlineNoticesDestination::class, OnlineNoticesDestination.serializer())
     registerDestination(OfficialWebsiteDestination::class, OfficialWebsiteDestination.serializer())

@@ -1,7 +1,6 @@
 package me.zhangls.about
 
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.timeout
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
@@ -13,6 +12,12 @@ import io.ktor.utils.io.readBuffer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -20,20 +25,24 @@ import kotlinx.io.readByteArray
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import me.zhangls.about.api.NotesWebsite
+import me.zhangls.download.DownloadRequest
+import me.zhangls.download.ResumableDownloader
 
 private const val MANIFEST_BYTES = 8 * 1024
-private const val MAX_ASSET_BYTES = 32 * 1024 * 1024
+internal const val MAX_ASSET_BYTES = 32 * 1024 * 1024
 private const val DOWNLOAD_TIMEOUT_MILLIS = 10 * 60 * 1000L
 private val assetJson = Json { ignoreUnknownKeys = true }
 private val skikoPath = Regex("/[a-f0-9]{20}\\.wasm")
-private val miSansPath = Regex("/web-assets/misans-([a-f0-9]{64})\\.otf")
+private val miSansPath = Regex("/web-assets/misans-([a-f0-9]{20}(?:[a-f0-9]{44})?)\\.otf")
 private val sha256Pattern = Regex("[a-f0-9]{64}")
 private val cacheHost = Regex("[a-z0-9.-]+")
 
 @Serializable
 internal data class WebAssetManifest(val skiko: WebAsset, val miSans: WebAsset) {
   fun valid(): Boolean = skikoPath.matches(skiko.path) && skiko.valid() &&
-    miSansPath.matchEntire(miSans.path)?.groupValues?.get(1) == miSans.sha256 && miSans.valid()
+    miSans.valid() && miSansPath.matchEntire(miSans.path)?.destructured?.let { (fingerprint) ->
+      miSans.sha256.startsWith(fingerprint)
+    } == true
 }
 
 @Serializable
@@ -42,6 +51,12 @@ internal data class WebAsset(val path: String, val size: Int, val sha256: String
 }
 
 internal data class CachedWebAsset(val directory: String, val filename: String, val mimeType: String)
+
+internal data class WebAssetTransfer(
+  val file: CachedFile,
+  val receivedBytes: Long,
+  val active: Boolean = true,
+)
 
 internal fun cachedWebAsset(siteOrigin: String, resource: String): CachedWebAsset? {
   val origin = runCatching { Url(siteOrigin) }.getOrNull() ?: return null
@@ -67,48 +82,82 @@ private fun Url.asCachedWebAsset(directory: String): CachedWebAsset? {
   return CachedWebAsset(directory, encodedPath.substringAfterLast('/'), mimeType)
 }
 
-internal interface WebAssetDisk {
-  fun read(asset: CachedWebAsset): ByteArray?
-  fun write(asset: CachedWebAsset, bytes: ByteArray)
+internal fun isWebAssetCacheFilename(name: String): Boolean =
+  skikoPath.matches("/$name") || miSansPath.matches("/web-assets/$name")
+
+internal expect fun webAssetDownloadPath(asset: CachedWebAsset): String?
+
+internal fun interface WebAssetDownloader {
+  suspend fun download(request: DownloadRequest, onProgress: (Long) -> Unit)
+  suspend fun prepare(requests: List<DownloadRequest>) = Unit
 }
 
-internal expect fun webAssetDisk(): WebAssetDisk?
-internal expect fun webAssetSha256(bytes: ByteArray): String
+internal expect fun platformWebAssetDownloader(client: HttpClient): WebAssetDownloader
+internal expect suspend fun scheduleWebAssetRefresh(cache: WebAssetCache)
+
+internal fun webAssetHttpDownloader(client: HttpClient): WebAssetDownloader {
+  val downloader = ResumableDownloader(client)
+  return WebAssetDownloader { request, progress ->
+    downloader.download(request.url, request.destination, request.size, request.sha256, DOWNLOAD_TIMEOUT_MILLIS, progress)
+  }
+}
 
 internal class WebAssetCache(
   site: NotesWebsite,
   private val client: HttpClient,
-  private val disk: () -> WebAssetDisk? = ::webAssetDisk,
+  private val downloader: WebAssetDownloader = webAssetHttpDownloader(client),
+  private val targetPath: (CachedWebAsset) -> String? = ::webAssetDownloadPath,
 ) {
   private val origin = site.origin.trimEnd('/')
   private val startupLock = Mutex()
   private var checked = false
+  private val activeTransfers = MutableStateFlow<Map<String, WebAssetTransfer>>(emptyMap())
+  val transfers = activeTransfers.asStateFlow()
+  private val publishedAssets = MutableStateFlow(0)
+  val publicationCount = publishedAssets.asStateFlow()
 
-  suspend fun refresh() = withContext(Dispatchers.IO) {
+  suspend fun refresh(): Boolean = withContext(Dispatchers.IO) {
     startupLock.withLock {
-      if (!checked) {
-        val storage = disk()
-        if (storage != null) updateFromServer(storage)
-        checked = true
-      }
+      if (checked) return@withLock true
+      updateFromServer().also { checked = it }
     }
   }
 
-  private suspend fun updateFromServer(disk: WebAssetDisk) {
-    val manifest = readManifest() ?: return
-    for (asset in listOf(manifest.skiko, manifest.miSans)) {
+  private suspend fun updateFromServer(): Boolean = coroutineScope {
+    val manifest = readManifest() ?: return@coroutineScope false
+    val downloads = listOf(manifest.skiko, manifest.miSans).mapNotNull(::resourceDownload)
+    var complete = true
+    for (batch in downloads.chunked(3)) {
       try {
-        updateAsset(disk, asset)
+        downloader.prepare(batch.map { it.second })
       } catch (cancelled: CancellationException) {
         throw cancelled
       } catch (_: Exception) {
-        // Keep the previously validated copy when a download or write fails.
+        // A standalone request can still pick up its own incomplete fragments.
       }
+      val results = batch.map { (file, request) ->
+        async {
+          try {
+            updateAsset(file, request)
+            true
+          } catch (cancelled: CancellationException) {
+            throw cancelled
+          } catch (_: Exception) {
+            // Keep the previously validated copy when a download or write fails.
+            false
+          }
+        }
+      }.awaitAll()
+      complete = results.all { it } && complete
     }
+    complete
   }
 
-  private suspend fun readManifest(): WebAssetManifest? = try {
-    download("$origin/web-assets/manifest.json", MANIFEST_BYTES)
+  private suspend fun readManifest(): WebAssetManifest? =
+    readManifest("manifest-v2.json") ?: readManifest("manifest.json")
+
+  private suspend fun readManifest(name: String): WebAssetManifest? = try {
+    downloadManifest(name)
       ?.let { assetJson.decodeFromString<WebAssetManifest>(it.decodeToString()) }
       ?.takeIf { it.valid() }
   } catch (cancelled: CancellationException) {
@@ -117,25 +166,38 @@ internal class WebAssetCache(
     null
   }
 
-  private suspend fun updateAsset(disk: WebAssetDisk, asset: WebAsset) {
+  private fun resourceDownload(asset: WebAsset): Pair<CachedFile, DownloadRequest>? {
     val url = origin + asset.path
-    val key = cachedWebAsset(origin, url) ?: return
-    val current = disk.read(key)
-    if (current != null && asset.matches(current)) return
-
-    download(url, asset.size, DOWNLOAD_TIMEOUT_MILLIS)
-      ?.takeIf { asset.matches(it) }
-      ?.let { disk.write(key, it) }
+    val key = cachedWebAsset(origin, url) ?: return null
+    val path = targetPath(key) ?: return null
+    val source = Url(origin)
+    val site = if (source.port == 443) source.host.lowercase() else "${source.host.lowercase()}:${source.port}"
+    val file = CachedFile(
+      key.filename,
+      asset.size.toLong(),
+      "$WEB_ASSET_CACHE_DIRECTORY/${key.directory}/${key.filename}",
+      site,
+    )
+    return file to DownloadRequest(url, path, file.bytes, asset.sha256)
   }
 
-  private suspend fun download(url: String, limit: Int, timeoutMillis: Long? = null): ByteArray? =
-    client.prepareGet(url) {
+  private suspend fun updateAsset(file: CachedFile, request: DownloadRequest) {
+    try {
+      downloader.download(request) { received ->
+        activeTransfers.update { it + (request.destination to WebAssetTransfer(file, received)) }
+      }
+      publishedAssets.update { it + 1 }
+    } finally {
+      activeTransfers.update { it - request.destination }
+    }
+  }
+
+  private suspend fun downloadManifest(name: String): ByteArray? =
+    client.prepareGet("$origin/web-assets/$name") {
       header(HttpHeaders.CacheControl, "no-cache")
-      if (timeoutMillis != null) timeout { requestTimeoutMillis = timeoutMillis }
     }.execute { response ->
       if (response.status != HttpStatusCode.OK) return@execute null
-      response.bodyAsChannel().readBuffer(limit.toLong() + 1).readByteArray().takeIf { it.size <= limit }
+      response.bodyAsChannel().readBuffer(MANIFEST_BYTES.toLong() + 1).readByteArray()
+        .takeIf { it.size <= MANIFEST_BYTES }
     }
-
-  private fun WebAsset.matches(bytes: ByteArray): Boolean = bytes.size == size && webAssetSha256(bytes) == sha256
 }

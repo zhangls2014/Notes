@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.zhangls.about.mvi.AboutIntent
@@ -33,9 +35,14 @@ import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.icon.Code
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Language
+import me.zhangls.theme.icon.Storage
 import me.zhangls.theme.layout.ContentWidth
 import notes.feature.about.generated.resources.Res
+import notes.feature.about.generated.resources.about_cache_description
+import notes.feature.about.generated.resources.about_cache_management
 import notes.feature.about.generated.resources.about_notices_description
+import notes.feature.about.generated.resources.about_storage
+import notes.feature.about.generated.resources.about_web_and_notices
 import notes.feature.about.generated.resources.about_open_source_notices
 import notes.feature.about.generated.resources.about_title
 import notes.feature.about.generated.resources.about_version_information
@@ -50,6 +57,7 @@ internal fun AboutScreen(
   onOpenSource: () -> Unit,
   onOpenReleaseHistory: () -> Unit,
   onOpenWebsite: () -> Unit,
+  onOpenCacheManagement: () -> Unit,
 ) {
   val viewModel = koinViewModel<AboutViewModel>()
   val state by viewModel.state.collectAsStateWithLifecycle()
@@ -82,12 +90,7 @@ internal fun AboutScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
         AboutBrandCard()
-        Text(
-          text = stringResource(Res.string.about_version_information),
-          style = MaterialTheme.typography.labelLarge,
-          color = MaterialTheme.colorScheme.primary,
-          modifier = Modifier.padding(start = 16.dp, top = 8.dp),
-        )
+        AboutSectionTitle(stringResource(Res.string.about_version_information))
         AboutVersionGroup(
           appInfo = state.appInfo,
           releases = releases,
@@ -98,29 +101,52 @@ internal fun AboutScreen(
           checking = checking,
           onCheckForUpdates = checkForUpdates,
         )
-        AboutLinks(onOpenWebsite, onOpenSource)
+        AboutSectionTitle(stringResource(Res.string.about_web_and_notices))
+        AboutWebsiteGroup(onOpenWebsite, onOpenSource)
+        AboutSectionTitle(stringResource(Res.string.about_storage))
+        val shape = MaterialTheme.shapes.extraLarge
+        AboutInfoRow(
+          title = stringResource(Res.string.about_cache_management),
+          detail = stringResource(Res.string.about_cache_description),
+          icon = Icons.Rounded.Storage,
+          shape = shape,
+          modifier = Modifier.clip(shape).clickable(role = Role.Button, onClick = onOpenCacheManagement),
+        )
       }
     }
   }
 }
 
 @Composable
-private fun AboutLinks(onOpenWebsite: () -> Unit, onOpenSource: () -> Unit) {
-  val linkShape = MaterialTheme.shapes.extraLarge
-  Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+private fun AboutSectionTitle(title: String) {
+  Text(
+    text = title,
+    style = MaterialTheme.typography.labelLarge,
+    color = MaterialTheme.colorScheme.primary,
+    modifier = Modifier.padding(start = 16.dp, top = 8.dp).semantics { heading() },
+  )
+}
+
+@Composable
+private fun AboutWebsiteGroup(onOpenWebsite: () -> Unit, onOpenSource: () -> Unit) {
+  val outer = MaterialTheme.shapes.extraLarge
+  val inner = MaterialTheme.shapes.extraSmall
+  val websiteShape = outer.copy(bottomStart = inner.bottomStart, bottomEnd = inner.bottomEnd)
+  val noticesShape = outer.copy(topStart = inner.topStart, topEnd = inner.topEnd)
+  Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
     AboutInfoRow(
       title = stringResource(Res.string.about_website),
       detail = stringResource(Res.string.about_website_description),
       icon = Icons.Rounded.Language,
-      shape = linkShape,
-      modifier = Modifier.clip(linkShape).clickable(role = Role.Button, onClick = onOpenWebsite),
+      shape = websiteShape,
+      modifier = Modifier.clip(websiteShape).clickable(role = Role.Button, onClick = onOpenWebsite),
     )
     AboutInfoRow(
       title = stringResource(Res.string.about_open_source_notices),
       detail = stringResource(Res.string.about_notices_description),
       icon = Icons.Rounded.Code,
-      shape = linkShape,
-      modifier = Modifier.clip(linkShape).clickable(role = Role.Button, onClick = onOpenSource),
+      shape = noticesShape,
+      modifier = Modifier.clip(noticesShape).clickable(role = Role.Button, onClick = onOpenSource),
     )
   }
 }

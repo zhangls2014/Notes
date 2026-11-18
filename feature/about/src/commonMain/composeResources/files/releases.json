@@ -5,6 +5,22 @@
     "changes": [
       {
         "type": "improved",
+        "platforms": ["android"],
+        "text": {
+          "en": "Android updates install from the original download to save storage. Finished downloads appear in Cache management.",
+          "zh": "Android 更新直接使用原始 APK 安装，节省存储空间。下载完成的安装包会出现在「缓存管理」。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "About app groups related features and includes Cache management, with total space, file paths, and sizes in decimal units (KB, MB, and GB).",
+          "zh": "「关于应用」按用途分区，并新增「缓存管理」，可查看总占用、文件相对路径和分类明细，大小按十进制显示为 KB、MB 或 GB。"
+        }
+      },
+      {
+        "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
           "en": "The Notes website reuses cached static resources when you reopen or refresh a page.",
@@ -15,8 +31,8 @@
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
-          "en": "The app downloads and reuses two large Notes website resources in the background to speed up subsequent visits.",
-          "zh": "应用启动时在后台更新并缓存摘星官网的绘图库和字体，加快之后打开网页的速度。"
+          "en": "Website resources download concurrently in smaller parts, can continue in the background, and show active and saved progress for each file in Cache management. MiSans uses a shorter filename. On Android, opening the app also retries unfinished website downloads.",
+          "zh": "官网资源使用较小分片并行下载，支持后台继续和断点续传，可在「缓存管理」查看各文件的实时进度和已保存的断点。MiSans 字体使用更短的文件名。Android 打开应用时会主动续传未完成的官网资源。"
         }
       },
       {
