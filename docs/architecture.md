@@ -200,6 +200,8 @@ About 将组合中解析的语言、系统与应用叠加字号、深浅色和 M
 
 自有网页的 HTML 在 Wasm 启动前同步读取 URL 的 `theme`、`bg`，按 URL 主题、网站保存的主题、系统偏好的优先级设置文档背景和 `color-scheme`。原生容器使用应用主题背景，WebView 在每次主文档加载时隐藏，不另加加载遮罩。所有自有页面通过 `data-page-frame` 报告根 Compose 内容的首次绘制，更新记录还须完成数据请求（成功或错误状态）；经过后续浏览器动画帧后标为 `ready`。App 在页面加载完成后轮询该标记，45 秒内未就绪进入重试界面；导航切换和页面释放取消旧等待，过期回调不得显示新页面。Android 收到就绪后等待 `postVisualStateCallback`，iOS 使用 `WKSnapshotConfiguration.afterScreenUpdates` 的快照完成回调再显示 WebView。第三方项目页不要求自有标记。声明页保留延迟出现的进度条。双端视觉及隐藏 WebView 下的实际绘制仍须设备验收。
 
+在线声明列表与详情的网页会话由各自导航条目作用域的 ViewModel 持有。离开组合只解绑原生视图；返回同一条目复用 WebView 和已加载文档，不重新调用加载入口。条目出栈时释放资源；主题等参数改变或失败重试时释放旧实例。Android 保留的 WebView 使用 Application Context，避免持有旧 Activity。此保留只覆盖条目存活期间，不保证进程重建后保留网页。
+
 关于页面入口仅接收导航参数；`AboutAppInfo` 只描述版本号和构建号。
 
 新版本首次启动提示由 `composeApp/App.kt` 在登录状态及设置加载后协调，调用 `AboutEntry.ReleaseNotesDialog`；About 复用本地更新记录并只展示当前版本及平台内容，关闭后通过 `AppIntent` 写入 `SettingsRepository` 的已读版本号。首次安装同样提示，去重按版本名称而非构建号，规则见 [应用版本与更新记录](app-releases.md#新版本首次启动提示)。

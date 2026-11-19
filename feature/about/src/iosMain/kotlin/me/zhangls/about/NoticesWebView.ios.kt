@@ -51,6 +51,7 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean,
+  resourceOwner: NoticesWebSession?,
 ) {
   val surface = MaterialTheme.colorScheme.surface.convert(ColorSpaces.Srgb)
   val surfaceColor = remember(surface) {
@@ -176,14 +177,15 @@ internal actual fun NoticesWebView(
       }
     }
   }
-  val assetBridge = remember(state) { if (projectPage) null else WebAssetBridge(url) }
+  val retained = resourceOwner?.resource as? IosNoticesWebResource
+  val assetBridge = remember(state) { retained?.bridge ?: if (projectPage) null else WebAssetBridge(url) }
   UIKitView(
     modifier = modifier.background(MaterialTheme.colorScheme.surface),
     factory = {
       val configuration = WKWebViewConfiguration()
-      assetBridge?.install(configuration.userContentController)
-      WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = configuration).apply {
-        hidden = true
+      if (retained == null) assetBridge?.install(configuration.userContentController)
+      (retained?.view ?: WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = configuration)).apply {
+        hidden = state.loading
         opaque = false
         applyNoticesBackground(surfaceColor)
         scrollView.contentInsetAdjustmentBehavior =
@@ -193,10 +195,13 @@ internal actual fun NoticesWebView(
         val startUrl = state.currentUrl
         val requestUrl = NSURL.URLWithString(startUrl)
         val initialLink = noticesLink(startUrl, url, projectPage, allowSameOriginNavigation)
-        if (requestUrl != null && initialLink == NoticesLink.InPage) {
-          loadRequest(NSURLRequest(uRL = requestUrl))
-        } else {
-          state.fail()
+        if (retained == null) {
+          resourceOwner?.resource = IosNoticesWebResource(this, assetBridge)
+          if (requestUrl != null && initialLink == NoticesLink.InPage) {
+            loadRequest(NSURLRequest(uRL = requestUrl))
+          } else {
+            state.fail()
+          }
         }
       }
     },
@@ -209,9 +214,11 @@ internal actual fun NoticesWebView(
     onRelease = {
       delegate.cancelFrameWait()
       state.reload = null
-      assetBridge?.close(it.configuration.userContentController)
       it.navigationDelegate = null
-      it.stopLoading()
+      if (resourceOwner == null) {
+        assetBridge?.close(it.configuration.userContentController)
+        it.stopLoading()
+      }
     },
   )
 }
@@ -220,4 +227,14 @@ private fun WKWebView.applyNoticesBackground(color: UIColor) {
   backgroundColor = color
   scrollView.backgroundColor = color
   underPageBackgroundColor = color
+}
+
+
+@OptIn(ExperimentalForeignApi::class)
+private class IosNoticesWebResource(val view: WKWebView, val bridge: WebAssetBridge?) : NoticesWebResource {
+  override fun release() {
+    view.navigationDelegate = null
+    view.stopLoading()
+    bridge?.close(view.configuration.userContentController)
+  }
 }

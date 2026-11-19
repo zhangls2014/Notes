@@ -637,6 +637,24 @@ class AboutUiTest(private val scenario: Scenario) {
     else -> null
   }
 
+  @Test fun noticesReuseTheWebViewAfterLeavingAndReturningToComposition() {
+    val about: AboutEntry = AboutEntryImpl(NotesWebsite("https://website.example.test"))
+    val visible = mutableStateOf(true)
+    compose.setContent {
+      rootView = LocalView.current.rootView
+      ComposeAppTheme {
+        if (visible.value) {
+          about.OnlineNoticesScreen(detail = null, onBack = {}, onOpenDetail = {})
+        }
+      }
+    }
+    val original = compose.runOnIdle { requireNotNull(findWebView(rootView)) }
+    compose.runOnIdle { visible.value = false }
+    compose.runOnIdle { assertEquals(null, findWebView(rootView)) }
+    compose.runOnIdle { visible.value = true }
+    compose.runOnIdle { assertTrue(original === findWebView(rootView)) }
+  }
+
   @Test fun noticesListAndBothDetailTypesHaveWorkingRefreshActions() {
     val origin = "https://website.example.test"
     val about: AboutEntry = AboutEntryImpl(NotesWebsite(origin))

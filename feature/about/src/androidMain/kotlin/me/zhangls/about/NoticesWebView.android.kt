@@ -36,6 +36,7 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean,
+  resourceOwner: NoticesWebSession?,
 ) {
   val scope = rememberCoroutineScope()
   val surface = MaterialTheme.colorScheme.surface
@@ -45,8 +46,9 @@ internal actual fun NoticesWebView(
   AndroidView(
     modifier = modifier.background(surface),
     factory = { context ->
-      val webView = try {
-        WebView(context)
+      val retained = resourceOwner?.resource as? AndroidNoticesWebResource
+      val webView = retained?.view ?: try {
+        WebView(if (resourceOwner == null) context else context.applicationContext)
       } catch (_: RuntimeException) {
         state.fail()
         return@AndroidView View(context)
@@ -54,7 +56,7 @@ internal actual fun NoticesWebView(
       webView.apply {
         val disk = AndroidWebAssetDisk(context)
         // Keep the themed container visible until Chromium can draw the new document.
-        visibility = View.INVISIBLE
+        visibility = if (state.loading) View.INVISIBLE else View.VISIBLE
         setBackgroundColor(backgroundColor)
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = allowSameOriginNavigation
@@ -149,7 +151,10 @@ internal actual fun NoticesWebView(
         state.reload = ::reload
         val startUrl = state.currentUrl
         val initialLink = noticesLink(startUrl, url, projectPage, allowSameOriginNavigation)
-        if (initialLink == NoticesLink.InPage) loadUrl(startUrl) else state.fail()
+        if (retained == null) {
+          resourceOwner?.resource = AndroidNoticesWebResource(this)
+          if (initialLink == NoticesLink.InPage) loadUrl(startUrl) else state.fail()
+        }
       }
     },
     update = {
@@ -162,7 +167,9 @@ internal actual fun NoticesWebView(
     onRelease = {
       scope.coroutineContext.cancelChildren()
       state.reload = null
-      if (it is WebView) it.destroy()
+      if (it is WebView) {
+        if (resourceOwner == null) it.destroy() else it.webViewClient = WebViewClient()
+      }
     },
   )
 }
@@ -184,4 +191,12 @@ private fun WebView.applyNoticesInset(bottom: Float) {
     """.trimIndent(),
     null,
   )
+}
+
+
+private class AndroidNoticesWebResource(val view: WebView) : NoticesWebResource {
+  override fun release() {
+    view.stopLoading()
+    view.destroy()
+  }
 }

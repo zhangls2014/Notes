@@ -7,6 +7,14 @@
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {
+          "en": "Returning from a license to open-source notices reuses the loaded page instead of loading it again.",
+          "zh": "从许可证返回开源软件声明时复用已加载的页面，不再重新加载。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
           "en": "Clickable version headings on the release history page align with dates and change text.",
           "zh": "更新日志页面中可点击的版本号与日期和正文左侧对齐。"
         }

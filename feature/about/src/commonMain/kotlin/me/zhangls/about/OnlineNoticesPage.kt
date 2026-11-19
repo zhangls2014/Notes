@@ -30,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import me.zhangls.about.mvi.NoticesWebViewModel
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
@@ -71,7 +73,8 @@ internal fun OnlineNoticesPage(
       appearance.noticesAppearanceParameters().forEach { (name, value) -> parameters.append(name, value) }
     }.buildString()
   }
-  val session = remember(url) { NoticesWebSession(url) }
+  val owner = viewModel { NoticesWebViewModel() }
+  val session = owner.session(url)
   val state = session.state
   var listScroll by rememberSaveable { mutableStateOf(0.0) }
   val listVisible = LocalListDetailSceneScope.current?.scaffoldTransitionScope?.scaffoldStateTransition
@@ -115,6 +118,7 @@ internal fun OnlineNoticesPage(
           NoticesWebView(
             url = url,
             state = state,
+            resourceOwner = session,
             projectPage = project != null,
             onOpenDetail = { selected, scroll ->
               if (detail == null) listScroll = scroll
@@ -138,12 +142,24 @@ internal fun OnlineNoticesPage(
   }
 }
 
+internal interface NoticesWebResource {
+  fun release()
+}
+
 internal class NoticesWebSession(url: String) {
+  var resource: NoticesWebResource? = null
+
+  fun release() {
+    resource?.release()
+    resource = null
+  }
+
   var state by mutableStateOf(NoticesWebState(url))
     private set
 
   fun refresh() {
     if (state.failed) {
+      release()
       state = NoticesWebState(state.currentUrl)
     } else {
       state.reload?.invoke()
@@ -175,6 +191,7 @@ internal fun noticesLink(
   initialUrl: String,
   projectPage: Boolean = false,
   allowSameOriginNavigation: Boolean = false,
+  resourceOwner: NoticesWebSession? = null,
 ): NoticesLink {
   val url = validatedWebUrl(target) ?: return NoticesLink.Blocked
   return if (projectPage) {
@@ -223,4 +240,5 @@ internal expect fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean = false,
+  resourceOwner: NoticesWebSession? = null,
 )
