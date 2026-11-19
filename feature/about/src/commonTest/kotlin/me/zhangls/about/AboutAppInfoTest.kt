@@ -20,26 +20,64 @@ class AboutAppInfoTest {
         primary = Color(0xFF0011EE),
         primaryContainer = Color(0xFF112233),
         onPrimaryContainer = Color(0xFFDDEEFF),
+        onPrimary = Color(0xFF000001),
+        secondary = Color(0xFF000002),
+        onSecondary = Color(0xFF000003),
+        secondaryContainer = Color(0xFF000004),
+        onSecondaryContainer = Color(0xFF000005),
+        tertiary = Color(0xFF000006),
+        onTertiary = Color(0xFF000007),
+        tertiaryContainer = Color(0xFF000008),
+        onTertiaryContainer = Color(0xFF000009),
+        surfaceContainerLowest = Color(0xFF00000A),
+        surfaceContainer = Color(0xFF00000B),
+        surfaceContainerHigh = Color(0xFF00000C),
+        surfaceContainerHighest = Color(0xFF00000D),
+        outline = Color(0xFF00000E),
+        inverseSurface = Color(0xFF00000F),
+        inverseOnSurface = Color(0xFF000010),
+        inversePrimary = Color(0xFF000011),
+        surfaceTint = Color(0xFF000012),
       )
     }
     for (scheme in schemes) {
       val colors = scheme.toNoticesColors()
       assertEquals(
-        NoticesColors(
-          background = "010203",
-          card = "102030",
-          foreground = "aabbcc",
-          muted = "405060",
-          outline = "708090",
-          accent = "0011ee",
-          primaryContainer = "112233",
-          onPrimaryContainer = "ddeeff",
-        ),
+        expectedResolvedColors(),
         colors,
       )
       assertEquals(colors, NoticesAppearance(pageColors = colors).pageColors)
     }
   }
+
+  private fun expectedResolvedColors() = NoticesColors(
+    background = "010203",
+    card = "102030",
+    foreground = "aabbcc",
+    muted = "405060",
+    outline = "708090",
+    accent = "0011ee",
+    primaryContainer = "112233",
+    onPrimaryContainer = "ddeeff",
+    onPrimary = "000001",
+    secondary = "000002",
+    onSecondary = "000003",
+    secondaryContainer = "000004",
+    onSecondaryContainer = "000005",
+    tertiary = "000006",
+    onTertiary = "000007",
+    tertiaryContainer = "000008",
+    onTertiaryContainer = "000009",
+    surfaceContainerLowest = "00000a",
+    surfaceContainer = "00000b",
+    surfaceContainerHigh = "00000c",
+    surfaceContainerHighest = "00000d",
+    border = "00000e",
+    inverseSurface = "00000f",
+    inverseOnSurface = "000010",
+    inversePrimary = "000011",
+    surfaceTint = "000012",
+  )
 
   @Test fun noticesKeepCurrentAppearanceWithoutAHostedUrl() {
     for (scale in listOf(1f, 1.5f, 2f)) {

@@ -35,8 +35,30 @@ internal fun NoticesAppearance.noticesAppearanceParameters(): Map<String, String
     put("muted", colors.muted)
     put("line", colors.outline)
     put("accent", colors.accent)
-    colors.primaryContainer?.let { put("container", it) }
-    colors.onPrimaryContainer?.let { put("on-container", it) }
+    putAll(
+      mapOf(
+        "container" to colors.primaryContainer,
+        "on-container" to colors.onPrimaryContainer,
+        "on-primary" to colors.onPrimary,
+        "secondary" to colors.secondary,
+        "on-secondary" to colors.onSecondary,
+        "secondary-container" to colors.secondaryContainer,
+        "on-secondary-container" to colors.onSecondaryContainer,
+        "tertiary" to colors.tertiary,
+        "on-tertiary" to colors.onTertiary,
+        "tertiary-container" to colors.tertiaryContainer,
+        "on-tertiary-container" to colors.onTertiaryContainer,
+        "surface-container-lowest" to colors.surfaceContainerLowest,
+        "surface-container" to colors.surfaceContainer,
+        "surface-container-high" to colors.surfaceContainerHigh,
+        "surface-container-highest" to colors.surfaceContainerHighest,
+        "inverse-surface" to colors.inverseSurface,
+        "inverse-on-surface" to colors.inverseOnSurface,
+        "inverse-primary" to colors.inversePrimary,
+        "surface-tint" to colors.surfaceTint,
+        "outline" to colors.border,
+      ).filterValues { it != null }.mapValues { checkNotNull(it.value) },
+    )
   }
 }
 
@@ -50,6 +72,24 @@ internal data class NoticesColors(
   val accent: String,
   val primaryContainer: String? = null,
   val onPrimaryContainer: String? = null,
+  val onPrimary: String? = null,
+  val secondary: String? = null,
+  val onSecondary: String? = null,
+  val secondaryContainer: String? = null,
+  val onSecondaryContainer: String? = null,
+  val tertiary: String? = null,
+  val onTertiary: String? = null,
+  val tertiaryContainer: String? = null,
+  val onTertiaryContainer: String? = null,
+  val surfaceContainerLowest: String? = null,
+  val surfaceContainer: String? = null,
+  val surfaceContainerHigh: String? = null,
+  val surfaceContainerHighest: String? = null,
+  val border: String? = null,
+  val inverseSurface: String? = null,
+  val inverseOnSurface: String? = null,
+  val inversePrimary: String? = null,
+  val surfaceTint: String? = null,
 )
 
 private const val RGB_MASK = 0xFFFFFF
@@ -65,6 +105,24 @@ internal fun ColorScheme.toNoticesColors(): NoticesColors = NoticesColors(
   accent = primary.toRgbHex(),
   primaryContainer = primaryContainer.toRgbHex(),
   onPrimaryContainer = onPrimaryContainer.toRgbHex(),
+  onPrimary = onPrimary.toRgbHex(),
+  secondary = secondary.toRgbHex(),
+  onSecondary = onSecondary.toRgbHex(),
+  secondaryContainer = secondaryContainer.toRgbHex(),
+  onSecondaryContainer = onSecondaryContainer.toRgbHex(),
+  tertiary = tertiary.toRgbHex(),
+  onTertiary = onTertiary.toRgbHex(),
+  tertiaryContainer = tertiaryContainer.toRgbHex(),
+  onTertiaryContainer = onTertiaryContainer.toRgbHex(),
+  surfaceContainerLowest = surfaceContainerLowest.toRgbHex(),
+  surfaceContainer = surfaceContainer.toRgbHex(),
+  surfaceContainerHigh = surfaceContainerHigh.toRgbHex(),
+  surfaceContainerHighest = surfaceContainerHighest.toRgbHex(),
+  border = outline.toRgbHex(),
+  inverseSurface = inverseSurface.toRgbHex(),
+  inverseOnSurface = inverseOnSurface.toRgbHex(),
+  inversePrimary = inversePrimary.toRgbHex(),
+  surfaceTint = surfaceTint.toRgbHex(),
 )
 
 private fun Color.toRgbHex(): String = (toArgb() and RGB_MASK).toString(HEX_RADIX).padStart(RGB_HEX_LENGTH, '0')

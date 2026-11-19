@@ -118,7 +118,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 
 共享模块的平台实现位于 `src/androidMain` 和 `src/iosMain`；共享资源位于拥有该 UI 的模块的 `src/commonMain/composeResources`，仅单个平台使用的资源放入该模块对应的 `src/androidMain/composeResources` 或 `src/iosMain/composeResources`。平台安装包契约 `AppInfo` 位于 `core:framework` 根包，只声明版本查询；Android/iOS 实现仍由宿主装配。关于应用页由 `AboutViewModel` 注入该契约获取安装包信息，版本更新摘要展开状态由同模块的 MVI 管理，保持默认 `savedKey = null`。
 
-「官方网站」进入 About 所属的全屏页面，从同一宿主配置加载官网首页，复用更新日志和在线声明的 WebView。官网导航保持可用，同一 HTTPS 来源的页面在应用内加载。
+「官方网站」进入 About 所属的全屏页面，从同一宿主配置加载官网首页，复用更新日志和在线声明的 WebView。官网导航保持可用，同一 HTTPS 来源的页面在应用内加载。 官网入口传入应用当前的深浅模式、解析后的主题配色、语言和字号；站内导航保留这些参数。网页同步按钮前景色、主辅色容器及表面层级，未收到颜色参数时沿用官网默认配色。官网入口不添加隐藏导航的 `embed=1`。 官网启动背景从 `core:theme` 的共享表面色生成，运行时同步文档根背景与深浅标记；界面使用主题颜色角色，彩色容器显式配对前景色。官网设置菜单的分类标题使用 `labelMedium` 与 `primary`，选项使用 `bodyLarge`，不另写固定颜色或字号。
 
 应用冷启动时，组合根触发 About 在后台从同一官网来源优先检查 `/web-assets/manifest-v2.json`，不可用时读取旧版 `/web-assets/manifest.json`。清单仅包含 Skiko Wasm 和 MiSans 字体，大小与 SHA-256 一致时复用缓存，缺失资源交给 `core:download`。预缓存使用 256 KiB 分片，并行处理最多三个不同文件。同一目标文件串行写入，各文件独立重试。Android 在应用启动时直接尝试续传，并登记一个有联网约束的 WorkManager 工作负责后台重试。两者共用下载协调器和磁盘断点。iOS 通过一个后台 URLSession 批量排入缺失分片，系统接管传输，宿主将会话事件交还下载模块，校验并合并分片后才完成系统回调。下载器校验 `Content-Range`，断点按目标、大小和摘要隔离。设备强制停止应用后，下一次启动重新检查并恢复可用的断点。服务器忽略 Range 时回退为全量下载。只有完整文件通过大小和 SHA-256 校验后才原子提交，临时文件只用于显示已保存的断点进度。APK 更新仍走 Android 系统下载。WebView 只复用同一官网来源和精确版本的缓存文件，未命中时从 HTTPS 加载。网页、脚本、Notes Web Wasm 和业务数据继续通过 HTTPS 获取。iOS 仅接受官网主框架发出的这两类资源请求。
 

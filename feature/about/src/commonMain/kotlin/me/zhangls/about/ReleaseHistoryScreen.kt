@@ -46,8 +46,14 @@ internal fun ReleaseHistoryScreen(onBack: () -> Unit, site: NotesWebsite) {
 
 @Composable
 internal fun OfficialWebsiteScreen(onBack: () -> Unit, site: NotesWebsite) {
+  val appearance = currentNoticesAppearance()
+  val url = remember(site, appearance) {
+    URLBuilder("${site.origin.trimEnd('/')}/").apply {
+      appearance.noticesAppearanceParameters().forEach { (name, value) -> parameters.append(name, value) }
+    }.buildString()
+  }
   AboutWebPage(
-    url = "${site.origin.trimEnd('/')}/",
+    url = url,
     title = stringResource(Res.string.about_website),
     errorMessage = stringResource(Res.string.about_website_load_failed),
     onBack = onBack,

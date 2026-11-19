@@ -84,3 +84,8 @@ internal fun reportPageDrawn(): Unit = js("""{
     }));
   }
 }""")
+
+internal fun updateDocumentTheme(dark: Boolean, background: String): Unit = js("""{
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  document.documentElement.style.backgroundColor = background;
+}""")

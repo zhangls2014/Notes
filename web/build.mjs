@@ -4,6 +4,15 @@ import { basename, dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadNoticeData } from './notice-data.mjs'
 
+// Resolve the pre-Wasm background from the same palette as ComposeAppTheme.
+const themePalette = await readFile(new URL('../core/theme/src/commonMain/kotlin/me/zhangls/theme/Color.kt', import.meta.url), 'utf8')
+const themeSurface = mode => {
+  const value = themePalette.match(new RegExp(`val surface${mode} = Color\\(0xFF([0-9A-Fa-f]{6})\\)`))?.[1]
+  if (!value) throw new Error(`Missing shared surface${mode} color`)
+  return '#' + value.toLowerCase()
+}
+const initialSurfaces = { light: themeSurface('Light'), dark: themeSurface('Dark') }
+
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 const defaultOrigins = {
   siteOrigin: 'https://notes.zhangls.me',
@@ -212,7 +221,7 @@ function composeDocument(title, content = '', marker = '') {
   const bg = params.get('bg');
   const style = document.documentElement.style;
   style.colorScheme = dark ? 'dark' : 'light';
-  style.backgroundColor = /^[0-9a-f]{6}$/i.test(bg ?? '') ? '#' + bg : dark ? '#12140e' : '#f9faef';
+  style.backgroundColor = /^[0-9a-f]{6}$/i.test(bg ?? '') ? '#' + bg : dark ? ${JSON.stringify(initialSurfaces.dark)} : ${JSON.stringify(initialSurfaces.light)};
 })();
 </script>
 <script src="/notes.js" defer></script></head>

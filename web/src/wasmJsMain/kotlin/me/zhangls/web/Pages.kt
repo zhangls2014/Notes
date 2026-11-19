@@ -81,7 +81,8 @@ internal fun HomePage(
   val cardShape = RoundedCornerShape(24.dp)
   val preview: @Composable (Modifier) -> Unit = { modifier ->
     Surface(modifier, shape = cardShape,
-      color = MaterialTheme.colorScheme.primaryContainer) {
+      color = MaterialTheme.colorScheme.primaryContainer,
+      contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
       Box(Modifier.fillMaxWidth().padding(20.dp)) {
         Icon(
           Icons.Rounded.StarFill,
@@ -111,14 +112,16 @@ internal fun HomePage(
     preview(Modifier.fillMaxWidth())
   }
   val features: @Composable (Modifier, Modifier) -> Unit = { first, second ->
-    Surface(first, color = MaterialTheme.colorScheme.secondaryContainer, shape = cardShape) {
+    Surface(first, color = MaterialTheme.colorScheme.secondaryContainer,
+      contentColor = MaterialTheme.colorScheme.onSecondaryContainer, shape = cardShape) {
       Feature(
         Icons.Rounded.StarFill,
         websiteString(Res.string.favorites_search),
         websiteString(Res.string.favorites_search_description),
       )
     }
-    Surface(second, color = MaterialTheme.colorScheme.tertiaryContainer, shape = cardShape) {
+    Surface(second, color = MaterialTheme.colorScheme.tertiaryContainer,
+      contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = cardShape) {
       Feature(
         Icons.Rounded.ViewColumn,
         websiteString(Res.string.adaptive_layout),

@@ -1,9 +1,29 @@
 package me.zhangls.about
 
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class NoticesAppearanceTest {
+  @Test fun resolvedThemeKeepsButtonAndCardContrastColors() {
+    val scheme = lightColorScheme(
+      primary = Color(0xFF123456),
+      onPrimary = Color(0xFFFEDCBA),
+      secondaryContainer = Color(0xFF654321),
+      onSecondaryContainer = Color(0xFFABCDEF),
+      tertiaryContainer = Color(0xFF234567),
+      onTertiaryContainer = Color(0xFFBCDEFA),
+    )
+    val parameters = NoticesAppearance(pageColors = scheme.toNoticesColors()).noticesAppearanceParameters()
+    assertEquals("123456", parameters["accent"])
+    assertEquals("fedcba", parameters["on-primary"])
+    assertEquals("654321", parameters["secondary-container"])
+    assertEquals("abcdef", parameters["on-secondary-container"])
+    assertEquals("234567", parameters["tertiary-container"])
+    assertEquals("bcdefa", parameters["on-tertiary-container"])
+  }
+
   @Test fun appLanguageIsPassedToBothPlatforms() {
     assertEquals("zh-CN", NoticesAppearance(language = "zh-CN").noticesAppearanceParameters()["lang"])
     assertEquals("en", NoticesAppearance(language = "en").noticesAppearanceParameters()["lang"])

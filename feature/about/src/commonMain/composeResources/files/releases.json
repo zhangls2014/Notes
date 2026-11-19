@@ -1,8 +1,24 @@
 [
   {
     "version": "1.1.5",
-    "date": null,
+    "date": "2026-11-19",
     "changes": [
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Website startup and page backgrounds share the app theme palette. Settings group headings use a smaller, emphasized theme style to distinguish them from options.",
+          "zh": "官网启动背景与页面背景使用统一主题配色；设置分类标题使用更小的字号和主题强调色，与选项区分。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The in-app website follows the app appearance and theme colors, including cards, buttons, and navigation selection.",
+          "zh": "应用内官网跟随应用的深浅模式与主题色，包括卡片、按钮和导航选中态。"
+        }
+      },
       {
         "type": "fixed",
         "platforms": ["android", "ios"],

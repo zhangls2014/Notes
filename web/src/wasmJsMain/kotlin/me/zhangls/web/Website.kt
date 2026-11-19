@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
@@ -212,6 +213,24 @@ private fun Website(data: SiteData) {
       accent = appearanceColor("accent"),
       container = appearanceColor("container"),
       onContainer = appearanceColor("on-container"),
+      onPrimary = appearanceColor("on-primary"),
+      secondary = appearanceColor("secondary"),
+      onSecondary = appearanceColor("on-secondary"),
+      secondaryContainer = appearanceColor("secondary-container"),
+      onSecondaryContainer = appearanceColor("on-secondary-container"),
+      tertiary = appearanceColor("tertiary"),
+      onTertiary = appearanceColor("on-tertiary"),
+      tertiaryContainer = appearanceColor("tertiary-container"),
+      onTertiaryContainer = appearanceColor("on-tertiary-container"),
+      surfaceContainerLowest = appearanceColor("surface-container-lowest"),
+      surfaceContainer = appearanceColor("surface-container"),
+      surfaceContainerHigh = appearanceColor("surface-container-high"),
+      surfaceContainerHighest = appearanceColor("surface-container-highest"),
+      border = appearanceColor("outline"),
+      inverseSurface = appearanceColor("inverse-surface"),
+      inverseOnSurface = appearanceColor("inverse-on-surface"),
+      inversePrimary = appearanceColor("inverse-primary"),
+      surfaceTint = appearanceColor("surface-tint"),
     )
   }
   val requestedChinese = when (language) {
@@ -263,12 +282,33 @@ private fun Website(data: SiteData) {
         primary = colors.accent ?: base.primary,
         primaryContainer = colors.container ?: base.primaryContainer,
         onPrimaryContainer = colors.onContainer ?: base.onPrimaryContainer,
+        onPrimary = colors.onPrimary ?: base.onPrimary,
+        secondary = colors.secondary ?: base.secondary,
+        onSecondary = colors.onSecondary ?: base.onSecondary,
+        secondaryContainer = colors.secondaryContainer ?: base.secondaryContainer,
+        onSecondaryContainer = colors.onSecondaryContainer ?: base.onSecondaryContainer,
+        tertiary = colors.tertiary ?: base.tertiary,
+        onTertiary = colors.onTertiary ?: base.onTertiary,
+        tertiaryContainer = colors.tertiaryContainer ?: base.tertiaryContainer,
+        onTertiaryContainer = colors.onTertiaryContainer ?: base.onTertiaryContainer,
+        surfaceContainerLowest = colors.surfaceContainerLowest ?: base.surfaceContainerLowest,
+        surfaceContainer = colors.surfaceContainer ?: base.surfaceContainer,
+        surfaceContainerHigh = colors.surfaceContainerHigh ?: base.surfaceContainerHigh,
+        surfaceContainerHighest = colors.surfaceContainerHighest ?: base.surfaceContainerHighest,
+        outline = colors.border ?: base.outline,
+        inverseSurface = colors.inverseSurface ?: base.inverseSurface,
+        inverseOnSurface = colors.inverseOnSurface ?: base.inverseOnSurface,
+        inversePrimary = colors.inversePrimary ?: base.inversePrimary,
+        surfaceTint = colors.surfaceTint ?: base.surfaceTint,
       )
+      SideEffect {
+        updateDocumentTheme(dark, "#" + (scheme.background.toArgb() and 0xFFFFFF).toString(16).padStart(6, '0'))
+      }
       MaterialTheme(colorScheme = scheme) {
         Surface(Modifier.fillMaxSize().drawWithContent {
           drawContent()
           if (route.page != Page.Releases || releaseResult != null) reportPageDrawn()
-        }, color = scheme.background) {
+        }, color = scheme.background, contentColor = scheme.onSurface) {
           BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             val wide = maxWidth >= 760.dp * scale
             val siteMaxWidth = ContentWidth.Prose + ContentWidth.Form
@@ -413,6 +453,24 @@ private fun Website(data: SiteData) {
 private data class EmbedColors(
   val background: Color?, val card: Color?, val foreground: Color?, val muted: Color?,
   val outline: Color?, val accent: Color?, val container: Color?, val onContainer: Color?,
+  val onPrimary: Color?,
+  val secondary: Color?,
+  val onSecondary: Color?,
+  val secondaryContainer: Color?,
+  val onSecondaryContainer: Color?,
+  val tertiary: Color?,
+  val onTertiary: Color?,
+  val tertiaryContainer: Color?,
+  val onTertiaryContainer: Color?,
+  val surfaceContainerLowest: Color?,
+  val surfaceContainer: Color?,
+  val surfaceContainerHigh: Color?,
+  val surfaceContainerHighest: Color?,
+  val border: Color?,
+  val inverseSurface: Color?,
+  val inverseOnSurface: Color?,
+  val inversePrimary: Color?,
+  val surfaceTint: Color?,
 )
 
 internal fun appearanceColor(key: String): Color? = parameter(key)?.takeIf {
@@ -649,10 +707,15 @@ private fun SettingsMenu(
 
 @Composable
 private fun <T> SettingOptions(title: String, selected: T, choices: List<Pair<T, String>>, onSelect: (T) -> Unit) {
-  Text(title, Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelLarge)
+  Text(
+    title,
+    Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+    color = MaterialTheme.colorScheme.primary,
+    style = MaterialTheme.typography.labelMedium,
+  )
   choices.forEach { (value, label) ->
     DropdownMenuItem(
-      text = { Text(label) },
+      text = { Text(label, style = MaterialTheme.typography.bodyLarge) },
       trailingIcon = if (selected == value) ({ Icon(Icons.Rounded.Check, null) }) else null,
       onClick = { onSelect(value) },
     )

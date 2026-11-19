@@ -11,6 +11,9 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -121,6 +124,7 @@ class AboutUiTest(private val scenario: Scenario) {
   }
 
   private lateinit var rootView: View
+  private lateinit var websiteColors: ColorScheme
 
   private var darkTheme by mutableStateOf(scenario.dark)
 
@@ -138,6 +142,7 @@ class AboutUiTest(private val scenario: Scenario) {
           Posture(),
         ) {
           ComposeAppTheme(darkTheme = darkTheme, fontScale = scenario.fontScale) {
+            websiteColors = MaterialTheme.colorScheme
             var historyVisible by rememberSaveable { mutableStateOf(false) }
             var websiteVisible by rememberSaveable { mutableStateOf(false) }
             var cacheVisible by rememberSaveable { mutableStateOf(false) }
@@ -305,6 +310,22 @@ class AboutUiTest(private val scenario: Scenario) {
       assertEquals(Uri.parse(BuildKonfig.SITE_BASE_URL).authority, url.authority)
       assertEquals("/", url.path)
       assertEquals(null, url.getQueryParameter("embed"))
+      assertEquals(if (scenario.dark) "dark" else "light", url.getQueryParameter("theme"))
+      assertEquals(scenario.fontScale.toString(), url.getQueryParameter("fontScale"))
+      mapOf(
+        "accent" to websiteColors.primary,
+        "on-primary" to websiteColors.onPrimary,
+        "secondary-container" to websiteColors.secondaryContainer,
+        "tertiary-container" to websiteColors.tertiaryContainer,
+      ).forEach { (name, color) ->
+        assertEquals(name, (color.toArgb() and 0xFFFFFF).toString(16).padStart(6, '0'), url.getQueryParameter(name))
+      }
+    }
+    compose.runOnIdle { darkTheme = !scenario.dark }
+    compose.runOnIdle {
+      val url = Uri.parse(shadowOf(requireNotNull(findWebView(rootView))).lastLoadedUrl)
+      assertEquals(if (scenario.dark) "light" else "dark", url.getQueryParameter("theme"))
+      assertEquals((websiteColors.primary.toArgb() and 0xFFFFFF).toString(16).padStart(6, '0'), url.getQueryParameter("accent"))
     }
     compose.onNodeWithContentDescription("Back").performClick()
     compose.onNodeWithText("About app").assertIsDisplayed()
