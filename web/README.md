@@ -17,8 +17,11 @@ fixed list and detail URLs use the same Kotlin/Wasm navigation, language, theme
 and text size as release notes; app embeds hide website navigation with
 `embed=1`. Compose owns their
 layout, Canvas drawing, scrolling and text selection. The notice bootstrap
-uses no page stylesheet. A small browser adapter handles link activation and
-stores the list position in browser history.
+uses no page stylesheet. An inline head script applies the URL theme and background
+before Wasm starts, falling back to the saved website theme and system preference.
+The Compose root reports its first drawn content through `data-page-frame`;
+embedded apps wait for this signal before revealing their WebView.
+A small browser adapter handles link activation and stores the list position in browser history.
 
 Localized UI strings are in Compose Resources under `wasmJsMain`.
 The build supplies the reviewed dependency and

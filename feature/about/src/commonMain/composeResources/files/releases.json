@@ -7,16 +7,24 @@
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {
-          "en": "Open-source notice category buttons match the tonal style of the license and notice buttons.",
-          "zh": "开源软件声明的分类入口与许可证和附加声明按钮使用一致的填充样式。"
+          "en": "Clickable version headings on the release history page align with dates and change text.",
+          "zh": "更新日志页面中可点击的版本号与日期和正文左侧对齐。"
         }
       },
       {
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {
-          "en": "Open-source notices show a themed loading screen until the content is ready.",
-          "zh": "打开开源软件声明时，首屏就绪前会显示与应用主题一致的加载界面。"
+          "en": "Open-source notice category and project source buttons match the tonal style of the license and notice buttons.",
+          "zh": "开源软件声明的分类入口、项目来源与许可证和附加声明按钮使用一致的填充样式。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Embedded website pages apply their theme before startup and remain hidden until their first content frame is ready.",
+          "zh": "应用内网页在启动前应用主题，并在首屏内容绘制就绪后显示。"
         }
       },
       {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -191,7 +193,13 @@ internal fun ReleaseCard(
       if (onOpenRelease == null) {
         Text(release.version, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
       } else {
-        TextButton(onClick = onOpenRelease) {
+        TextButton(
+          onClick = onOpenRelease,
+          contentPadding = PaddingValues(
+            top = ButtonDefaults.TextButtonContentPadding.calculateTopPadding(),
+            bottom = ButtonDefaults.TextButtonContentPadding.calculateBottomPadding(),
+          ),
+        ) {
           Text(release.version, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         }
       }

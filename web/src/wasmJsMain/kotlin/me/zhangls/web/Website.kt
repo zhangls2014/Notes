@@ -47,6 +47,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -264,7 +265,10 @@ private fun Website(data: SiteData) {
         onPrimaryContainer = colors.onContainer ?: base.onPrimaryContainer,
       )
       MaterialTheme(colorScheme = scheme) {
-        Surface(Modifier.fillMaxSize(), color = scheme.background) {
+        Surface(Modifier.fillMaxSize().drawWithContent {
+          drawContent()
+          if (route.page != Page.Releases || releaseResult != null) reportPageDrawn()
+        }, color = scheme.background) {
           BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             val wide = maxWidth >= 760.dp * scale
             val siteMaxWidth = ContentWidth.Prose + ContentWidth.Form

@@ -1,5 +1,6 @@
 package me.zhangls.about
 
+import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -8,21 +9,21 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.unit.Dp
-import me.zhangls.about.api.OnlineNoticeDetailDestination
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.useContents
 import kotlinx.cinterop.ObjCSignatureOverride
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import me.zhangls.about.api.OnlineNoticeDetailDestination
 import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
-import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSError
+import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSURL
-import platform.Foundation.NSURLRequest
 import platform.Foundation.NSURLErrorCancelled
+import platform.Foundation.NSURLRequest
 import platform.UIKit.UIColor
 import platform.UIKit.UIEdgeInsetsMake
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
@@ -33,6 +34,7 @@ import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKNavigationResponse
 import platform.WebKit.WKNavigationResponsePolicy
 import platform.WebKit.WKNavigationTypeLinkActivated
+import platform.WebKit.WKSnapshotConfiguration
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
@@ -49,7 +51,6 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean,
-  waitForNoticeFrame: Boolean,
 ) {
   val surface = MaterialTheme.colorScheme.surface.convert(ColorSpaces.Srgb)
   val surfaceColor = remember(surface) {
@@ -60,49 +61,60 @@ internal actual fun NoticesWebView(
       alpha = surface.alpha.toDouble(),
     )
   }
-  val openDetail = rememberUpdatedState(onOpenDetail)
   val scope = rememberCoroutineScope()
+  val openDetail = rememberUpdatedState(onOpenDetail)
   val delegate = remember(state) {
     object : NSObject(), WKNavigationDelegateProtocol {
-      private var frameWait: Job? = null
       private var restoreScroll = initialScroll
+      private var frameWait: Job? = null
+      private var pageGeneration = 0L
 
       @ObjCSignatureOverride
       override fun webView(webView: WKWebView, didStartProvisionalNavigation: WKNavigation?) {
         cancelFrameWait()
+        webView.hidden = true
         state.loading = true
       }
 
       @ObjCSignatureOverride
       override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
         if (state.failed) return
-        if (waitForNoticeFrame) {
-          frameWait = scope.launch {
-            val ready = awaitNoticeFrame {
-              suspendCancellableCoroutine { continuation ->
-                webView.evaluateJavaScript(NOTICE_FRAME_SCRIPT) { value, _ ->
-                  continuation.resume(value == "ready")
-                }
+        if (frameWait != null) return
+        val generation = pageGeneration
+        frameWait = scope.launch {
+          val ready = projectPage || awaitWebPageFrame {
+            suspendCancellableCoroutine { continuation ->
+              webView.evaluateJavaScript(WEB_PAGE_FRAME_SCRIPT) { value, _ ->
+                if (continuation.isActive) continuation.resume(value == "ready")
               }
             }
-            if (ready) finishLoading(webView) else state.fail()
           }
-        } else {
-          finishLoading(webView)
+          if (generation != pageGeneration || state.failed) return@launch
+          if (ready) finishLoading(webView, generation) else state.fail()
         }
       }
 
       fun cancelFrameWait() {
+        pageGeneration++
         frameWait?.cancel()
         frameWait = null
       }
 
-      private fun finishLoading(webView: WKWebView) {
+      private fun finishLoading(webView: WKWebView, generation: Long) {
         if (restoreScroll > 0) {
           webView.scrollView.setContentOffset(CGPointMake(0.0, restoreScroll), animated = false)
           restoreScroll = 0.0
         }
-        state.loading = false
+        val configuration = WKSnapshotConfiguration().apply { afterScreenUpdates = true }
+        webView.takeSnapshotWithConfiguration(configuration) { image, error ->
+          if (generation != pageGeneration || state.failed) return@takeSnapshotWithConfiguration
+          if (image == null || error != null) {
+            state.fail()
+          } else {
+            webView.hidden = false
+            state.loading = false
+          }
+        }
       }
 
       @ObjCSignatureOverride
@@ -166,11 +178,12 @@ internal actual fun NoticesWebView(
   }
   val assetBridge = remember(state) { if (projectPage) null else WebAssetBridge(url) }
   UIKitView(
-    modifier = modifier,
+    modifier = modifier.background(MaterialTheme.colorScheme.surface),
     factory = {
       val configuration = WKWebViewConfiguration()
       assetBridge?.install(configuration.userContentController)
       WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = configuration).apply {
+        hidden = true
         opaque = false
         applyNoticesBackground(surfaceColor)
         scrollView.contentInsetAdjustmentBehavior =
@@ -194,8 +207,8 @@ internal actual fun NoticesWebView(
       view.scrollView.scrollIndicatorInsets = inset
     },
     onRelease = {
-      state.reload = null
       delegate.cancelFrameWait()
+      state.reload = null
       assetBridge?.close(it.configuration.userContentController)
       it.navigationDelegate = null
       it.stopLoading()

@@ -201,8 +201,22 @@ function composeDocument(title, content = '', marker = '') {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark"><title>${title}</title>${favicon}
+<script id="notes-initial-theme">
+(() => {
+  const params = new URLSearchParams(location.search);
+  let saved;
+  try { saved = localStorage.getItem('notes.theme'); } catch {}
+  const theme = params.get('theme');
+  const preference = theme === 'dark' ? 'DARK' : theme === 'light' ? 'LIGHT' : saved;
+  const dark = preference === 'DARK' || preference !== 'LIGHT' && matchMedia('(prefers-color-scheme: dark)').matches;
+  const bg = params.get('bg');
+  const style = document.documentElement.style;
+  style.colorScheme = dark ? 'dark' : 'light';
+  style.backgroundColor = /^[0-9a-f]{6}$/i.test(bg ?? '') ? '#' + bg : dark ? '#12140e' : '#f9faef';
+})();
+</script>
 <script src="/notes.js" defer></script></head>
-<body><main id="notes-app" style="position:fixed;inset:0"${marker}></main>${content}</body></html>
+<body><main id="notes-app" style="position:fixed;inset:0" data-page-frame="pending"${marker}></main>${content}</body></html>
 `
 }
 
@@ -259,8 +273,7 @@ export async function buildNoticeFiles() {
     for (const [filename, data] of [[platform, { categories }], [platform + '-licenses', { declarations }]]) {
       const payload = JSON.stringify(data).replaceAll('<', '\\u003c')
       files.set(`open-source/${filename}.html`, composeDocument('Open-source notices · Notes',
-        `<script type="application/json" id="notes-notice-data">${payload}</script>`,
-        ' data-notice-frame="pending"'))
+        `<script type="application/json" id="notes-notice-data">${payload}</script>`))
     }
   }
   return files

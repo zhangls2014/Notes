@@ -19,7 +19,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -96,14 +94,7 @@ internal fun NoticeDocument(copy: WebsiteStrings, platform: String) {
     document.title = "${copy[Res.string.app_name]} · $platformName $heading"
   }
 
-  val container = remember { document.getElementById("notes-app") }
-  Box(Modifier.fillMaxSize().drawWithContent {
-    drawContent()
-    if (container?.getAttribute("data-notice-frame") == "pending") {
-      container.setAttribute("data-notice-frame", "drawn")
-      window.requestAnimationFrame { container.setAttribute("data-notice-frame", "ready") }
-    }
-  }) {
+  Box(Modifier.fillMaxSize()) {
     if (detail) {
       key(fragment) { Declaration(copy, fragment, data.declarations[fragment]) }
     } else {
@@ -208,7 +199,7 @@ private fun ProjectCard(strings: WebsiteStrings, platform: String, project: Noti
           val label = if (id.startsWith("license-")) id.removePrefix("license-") else strings[Res.string.notice_copyright]
           FilledTonalButton(onClick = { openNoticeLink(noticeDetailLink(platform, id)) }) { Text(label) }
         }
-        TextButton(onClick = { openNoticeLink(project.source) }) { Text(strings[Res.string.notice_project_source]) }
+        FilledTonalButton(onClick = { openNoticeLink(project.source) }) { Text(strings[Res.string.notice_project_source]) }
       }
     }
   }

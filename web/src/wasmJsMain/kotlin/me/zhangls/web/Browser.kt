@@ -73,3 +73,14 @@ private fun setResourceLanguage(language: String): () -> Unit = js("""{
     else delete navigator.language;
   };
 }""")
+
+
+internal fun reportPageDrawn(): Unit = js("""{
+  const container = document.getElementById('notes-app');
+  if (container?.getAttribute('data-page-frame') === 'pending') {
+    container.setAttribute('data-page-frame', 'drawn');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      container.setAttribute('data-page-frame', 'ready');
+    }));
+  }
+}""")

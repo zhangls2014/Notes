@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
+import { runInNewContext } from 'node:vm'
 import { buildNoticeFiles, buildSite, validatePublishedBuilds } from './build.mjs'
 import { buildNoticeData } from './notice-data.mjs'
 
@@ -67,7 +68,7 @@ test('public routes start Compose with site data and no static page UI', () => {
   const files = buildSite([], [])
   for (const path of ['index.html', 'downloads/index.html', 'releases/index.html', 'open-source/index.html']) {
     const html = files.get(path)
-    assert.match(html, /<body><main id="notes-app" style="position:fixed;inset:0"><\/main>/, path)
+    assert.match(html, /<body><main id="notes-app" style="position:fixed;inset:0" data-page-frame="pending"><\/main>/, path)
     assert.match(html, /<script src="\/notes\.js" defer><\/script>/, path)
     assert.match(html, /<script type="application\/json" id="notes-data">\{"builds":\[\]\}<\/script><\/body>/, path)
   }
@@ -225,7 +226,8 @@ test('notice routes publish a Compose host and JSON without server-rendered page
   for (const [path, html] of await buildNoticeFiles()) {
     const payload = html.match(/<script type="application\/json" id="notes-notice-data">(.*?)<\/script>/s)?.[1]
     assert.ok(payload, path + ' must provide Compose notice data')
-    assert.match(html, /<main id="notes-app" style="position:fixed;inset:0" data-notice-frame="pending"><\/main>/)
+    assert.match(html, /<main id="notes-app" style="position:fixed;inset:0" data-page-frame="pending"><\/main>/)
+    assert.doesNotMatch(html, /data-notice-frame/)
     assert.doesNotMatch(html, /notice\.css|rel="stylesheet"/)
     assert.match(html, /<script src="\/notes\.js" defer><\/script>/)
     assert.doesNotMatch(html, /<(article|header|template|pre|h1)\b/)
@@ -233,4 +235,60 @@ test('notice routes publish a Compose host and JSON without server-rendered page
     assert.ok(path.endsWith('-licenses.html') ? Object.keys(data.declarations).length : data.categories.length)
     assert.deepEqual(Object.keys(data), [path.endsWith('-licenses.html') ? 'declarations' : 'categories'])
   }
+})
+
+test('HTML initializes the app theme before the Wasm bootstrap', () => {
+  const files = buildSite([], [])
+  for (const [path, html] of files) {
+    if (!path.endsWith('.html')) continue
+    const script = html.match(/<script id="notes-initial-theme">([\s\S]*?)<\/script>/)?.[1]
+    assert.ok(script, path)
+    assert.ok(html.indexOf('id="notes-initial-theme"') < html.indexOf('src="/notes.js"'), path)
+    const resolve = (search, saved, systemDark, storageFails = false) => {
+      const style = {}
+      runInNewContext(script, {
+        URLSearchParams, location: { search }, document: { documentElement: { style } },
+        localStorage: { getItem: () => { if (storageFails) throw Error('disabled'); return saved } },
+        matchMedia: () => ({ matches: systemDark }),
+      })
+      return style
+    }
+    assert.deepEqual(resolve('?theme=dark&bg=182030', 'LIGHT', false), {
+      colorScheme: 'dark', backgroundColor: '#182030',
+    })
+    assert.equal(resolve('?theme=light', 'DARK', true).colorScheme, 'light')
+    assert.equal(resolve('', 'DARK', false).backgroundColor, '#12140e')
+    assert.equal(resolve('', 'FOLLOW_SYSTEM', true).colorScheme, 'dark')
+    assert.equal(resolve('', null, false, true).backgroundColor, '#f9faef')
+    assert.equal(resolve('?theme=dark&bg=invalid', null, false).backgroundColor, '#12140e')
+  }
+})
+
+
+test('all website launch documents start with a pending first frame', async () => {
+  const files = new Map([...buildSite([], []), ...await buildNoticeFiles()])
+  for (const [path, html] of files) {
+    if (path.endsWith('.html')) assert.match(html, /data-page-frame="pending"/, path)
+  }
+})
+
+test('the page reports ready only after drawing and subsequent animation frames', async () => {
+  const source = await readFile(new URL('./src/wasmJsMain/kotlin/me/zhangls/web/Browser.kt', import.meta.url), 'utf8')
+  const script = source.match(/internal fun reportPageDrawn\(\): Unit = js\("""([\s\S]*?)"""\)/)?.[1]
+  assert.ok(script)
+  let frame = 'pending'
+  const callbacks = []
+  const container = { getAttribute: () => frame, setAttribute: (_, value) => { frame = value } }
+  const context = {
+    document: { getElementById: () => container },
+    requestAnimationFrame: callback => callbacks.push(callback),
+  }
+  runInNewContext(script, context)
+  assert.equal(frame, 'drawn')
+  runInNewContext(script, context)
+  assert.equal(callbacks.length, 1)
+  callbacks.shift()()
+  assert.equal(frame, 'drawn')
+  callbacks.shift()()
+  assert.equal(frame, 'ready')
 })

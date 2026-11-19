@@ -19,10 +19,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 import me.zhangls.about.api.OnlineNoticeDetailDestination
+import kotlin.coroutines.resume
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -35,13 +36,12 @@ internal actual fun NoticesWebView(
   bottomInset: Dp,
   modifier: Modifier,
   allowSameOriginNavigation: Boolean,
-  waitForNoticeFrame: Boolean,
 ) {
+  val scope = rememberCoroutineScope()
   val surface = MaterialTheme.colorScheme.surface
   val backgroundColor = surface.toArgb()
   val openDetail = rememberUpdatedState(onOpenDetail)
   val inset = rememberUpdatedState(bottomInset.value)
-  val scope = rememberCoroutineScope()
   AndroidView(
     modifier = modifier.background(surface),
     factory = { context ->
@@ -54,7 +54,7 @@ internal actual fun NoticesWebView(
       webView.apply {
         val disk = AndroidWebAssetDisk(context)
         // Keep the themed container visible until Chromium can draw the new document.
-        if (!waitForNoticeFrame) visibility = View.INVISIBLE
+        visibility = View.INVISIBLE
         setBackgroundColor(backgroundColor)
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = allowSameOriginNavigation
@@ -91,6 +91,7 @@ internal actual fun NoticesWebView(
           override fun onPageStarted(view: WebView, target: String, favicon: Bitmap?) {
             frameWait?.cancel()
             frameWait = null
+            view.visibility = View.INVISIBLE
             pageGeneration++
             if (noticesLink(target, url, projectPage, allowSameOriginNavigation) != NoticesLink.InPage) {
               view.stopLoading()
@@ -102,23 +103,19 @@ internal actual fun NoticesWebView(
           }
 
           override fun onPageFinished(view: WebView, url: String) {
-            if (!state.failed) {
-              if (!projectPage) view.applyNoticesInset(inset.value)
-              if (waitForNoticeFrame) {
-                if (frameWait != null) return
-                frameWait = scope.launch {
-                  val ready = awaitNoticeFrame {
-                    suspendCancellableCoroutine { continuation ->
-                      view.evaluateJavascript(NOTICE_FRAME_SCRIPT) { continuation.resume(it == "\"ready\"") }
-                    }
+            if (state.failed || frameWait != null) return
+            if (!projectPage) view.applyNoticesInset(inset.value)
+            val generation = pageGeneration
+            frameWait = scope.launch {
+              val ready = projectPage || awaitWebPageFrame {
+                suspendCancellableCoroutine { continuation ->
+                  view.evaluateJavascript(WEB_PAGE_FRAME_SCRIPT) {
+                    if (continuation.isActive) continuation.resume(it == "\"ready\"")
                   }
-                  if (ready) revealWhenDrawable(view) else state.fail()
                 }
-              } else if (view.visibility == View.INVISIBLE) {
-                revealWhenDrawable(view)
-              } else {
-                state.loading = false
               }
+              if (generation != pageGeneration || state.failed) return@launch
+              if (ready) revealWhenDrawable(view) else state.fail()
             }
           }
 
@@ -163,6 +160,7 @@ internal actual fun NoticesWebView(
       }
     },
     onRelease = {
+      scope.coroutineContext.cancelChildren()
       state.reload = null
       if (it is WebView) it.destroy()
     },
