@@ -8,8 +8,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -23,9 +26,9 @@ import notes.feature.email.generated.resources.Res
 import notes.feature.email.generated.resources.email_msg_body_required
 import notes.feature.email.generated.resources.email_msg_email_save_failed
 import notes.feature.email.generated.resources.email_msg_recipient_required
-import notes.feature.email.generated.resources.email_time_just_now
-import org.jetbrains.compose.resources.getString
 import org.koin.core.annotation.KoinViewModel
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * @author zhangls
@@ -59,7 +62,12 @@ internal class EmailViewModel(
       .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED))
       .cachedIn(viewModelScope)
 
-  fun getEmail(emailId: Long): Flow<EmailModel?> = emailsRepository.getEmail(emailId)
+  private val detailRetry = MutableStateFlow(0)
+
+  @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+  fun getEmail(emailId: Long): Flow<EmailDetailState> = detailRetry.flatMapLatest {
+    emailsRepository.getEmail(emailId).asEmailDetailState()
+  }
     .flowOn(ioDispatcher)
     .shareIn(viewModelScope, SharingStarted.WhileSubscribed(DURATION_STOP_SUBSCRIBED), replay = 1)
 
@@ -100,6 +108,13 @@ internal class EmailViewModel(
 
       is EmailIntent.UpdateSelectedEmail -> dispatch(EmailAction.UpdateSelectedEmail(intent.emailId))
 
+      EmailIntent.RetryDetail -> detailRetry.value++
+
+      is EmailIntent.ComposeFrom -> {
+        startCollectAccounts()
+        dispatch(prepareEmailDraft(intent.email, intent.mode))
+      }
+
       EmailIntent.OpenDraft -> {
         startCollectAccounts()
         dispatch(EmailAction.SetDraftVisible(true))
@@ -111,6 +126,7 @@ internal class EmailViewModel(
       }
 
       EmailIntent.ClearDraft -> {
+        pendingDraft = null
         dispatch(EmailAction.ClearDraft)
         dispatch(EmailAction.SetDraftVisible(false))
         cancelCollectAccounts()
@@ -141,6 +157,9 @@ internal class EmailViewModel(
     }
   }
 
+  private var pendingDraft: EmailDraft? = null
+
+  @OptIn(ExperimentalUuidApi::class)
   private fun submitDraft() {
     withState {
       if (isSending) return@withState
@@ -148,7 +167,7 @@ internal class EmailViewModel(
         toastGlobalNotifier.showToast(Res.string.email_msg_recipient_required)
         return@withState
       }
-      if (draftBody.isEmpty()) {
+      if (draftBody.isBlank()) {
         toastGlobalNotifier.showToast(Res.string.email_msg_body_required)
         return@withState
       }
@@ -157,15 +176,19 @@ internal class EmailViewModel(
         dispatch(EmailAction.SetDraftVisible(false))
         dispatch(EmailAction.SetSending(true))
         try {
-          // 收件人 ID 的落盘编码与"默认发件账户"的选取都在数据层内部完成
-          emailsRepository.insertDraft(
-            EmailDraft(
-              recipientIds = draftRecipientIds,
-              subject = draftSubject,
-              body = draftBody,
-              createdAt = getString(Res.string.email_time_just_now),
-            ),
+          // 服务端决定发件身份；同一内容重试复用 operationId，防止响应丢失后重复发送。
+          val draft = EmailDraft(
+            recipientIds = draftRecipientIds,
+            subject = draftSubject,
+            body = draftBody,
+            createdAt = "",
+            mode = draftMode,
+            sourceId = draftSourceId,
           )
+          val pending = pendingDraft?.takeIf { it.copy(operationId = "") == draft }
+            ?: draft.copy(operationId = Uuid.random().toString()).also { pendingDraft = it }
+          emailsRepository.insertDraft(pending)
+          pendingDraft = null
           dispatch(EmailAction.ClearDraft)
         } catch (cancelled: CancellationException) {
           throw cancelled
@@ -180,14 +203,12 @@ internal class EmailViewModel(
   }
 
   private fun updateFavorite(intent: EmailIntent.UpdateFavorite) {
-    viewModelScope.launch {
-      emailsRepository.toggleFavorite(intent.emailId)
-    }
+    launchMailOperation { emailsRepository.toggleFavorite(intent.emailId) }
   }
 
   private fun updateMultiFavorite(isImportant: Boolean) {
     withState {
-      viewModelScope.launch {
+      launchMailOperation {
         emailsRepository.updateIsFavorite(selectedItems, isImportant)
         dispatch(EmailAction.ClearSelectedEmail)
       }
@@ -196,7 +217,7 @@ internal class EmailViewModel(
 
   private fun deleteMulti() {
     withState {
-      viewModelScope.launch {
+      launchMailOperation {
         emailsRepository.deleteEmails(selectedItems)
         dispatch(EmailAction.ClearSelectedEmail)
       }
@@ -204,9 +225,25 @@ internal class EmailViewModel(
   }
 
   private fun startCollectAccounts() {
+    allAccountsJob?.cancel()
     allAccountsJob = viewModelScope.launch {
-      emailsRepository.getAllAccounts().collectLatest { accounts ->
+      emailsRepository.getAllAccounts().catch { failure ->
+        if (failure is CancellationException) throw failure
+        toastGlobalNotifier.showToast(Res.string.email_msg_email_save_failed)
+      }.collectLatest { accounts ->
         dispatch(EmailAction.UpdateAllAccounts(accounts))
+      }
+    }
+  }
+
+  private fun launchMailOperation(block: suspend () -> Unit) {
+    viewModelScope.launch {
+      try {
+        block()
+      } catch (cancelled: CancellationException) {
+        throw cancelled
+      } catch (_: Exception) {
+        toastGlobalNotifier.showToast(Res.string.email_msg_email_save_failed)
       }
     }
   }

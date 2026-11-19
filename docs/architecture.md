@@ -243,7 +243,7 @@ Repository、数据库、DataStore、网络客户端和需要共享的服务按�
 
 `AppNavigationState` 使用 `rememberNavBackStack` 分别保存各 Tab 栈和当前根选择。各栈的 `rememberDecoratedNavEntries`、SaveableStateHolder 和 ViewModelStore 装饰器在内容切换区域外持续存在；非活动 Tab 不绘制，但保留 Entry 的可保存状态及 ViewModel。邮件首次加载指示在列表外绘制，避免单个占位条目把待恢复滚动索引重置为 0。滚动位置可随保存状态恢复；邮件多选等 ViewModel 状态仅在当前进程保留，不启用敏感/大型 MVI 状态的跨进程保存。退出登录清空全部栈并释放对应 Entry；登录成功释放登录 Entry。
 
-写信弹层仍由首页邮件列表及其 ViewModel 持有。Email Entry 通过 `onDraftVisibilityChange` 将可见状态通知组合根，组合根仅将这个布尔标记纳入可保存状态，以跨越折叠触发的 Activity 重建；窗口收窄到 directive 仅允许一个水平窗格且草稿展开时，组合根移除首页栈顶的邮件详情，使首页与写信弹层保持可见。草稿内容不搬到导航层，未打开草稿及其他场景的详情保持原导航行为。
+新建邮件弹层由首页邮件列表及其 ViewModel 持有；回复与转发复用同一编辑组件，由邮件详情条目的 ViewModel 持有。Email Entry 通过 `onDraftVisibilityChange` 将可见状态通知组合根，组合根仅将这个布尔标记纳入可保存状态，以跨越折叠触发的 Activity 重建；窗口收窄到 directive 仅允许一个水平窗格且草稿展开时，组合根移除首页栈顶的邮件详情，使首页与写信弹层保持可见。草稿内容不搬到导航层，未打开草稿及其他场景的详情保持原导航行为。
 
 `AppShell` 包裹邮件与设置的内容区；个人信息和关于应用由组合根放到外壳上方的全屏转场层，底层 Entry 保持组合，转场层不消费外壳的 Insets。页面自身负责预测返回时的轮廓裁剪。邮件导航期间侧栏和底部导航保持固定；当前 Tab 的装饰后 Entry 按底层内容与全屏页分配给两个 `NavDisplay`，两者以当前栈根作为组合 key；全屏层的透明根只作绘制锚点，不写入应用返回栈。切换 Tab 使用 300ms 的 Fade through：选中指示立即更新，旧内容先淡出 90ms，在不可见的中点切换活动返回栈、释放旧显示及其在途转场，再将新内容淡入 210ms。内容区仅调整透明度，侧栏和底部导航保持固定；同一时刻只有活动层处理输入与返回，外层保存的 Entry 状态继续保留。连续选择取消前一次动画，以最后目标为准；重选当前 Tab 不播放动画，登录页不参与 Tab 过渡。同一 Tab 内的详情导航保留页面动画和预测返回。深链与登录恢复依据详情的 `scene` 选择所属列表根。导航状态规则位于 `composeApp/NavHandler.kt`，由 `AppNavHost` 装配。
 
@@ -469,3 +469,17 @@ Android 宿主支持 Android 9 及以上动态主题色。Android 12 及以上�
 ## 官网、发布渠道与认证域
 
 官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据，分发清单来自各现行渠道登记的当前构建。各页面的 HTML 仅提供启动入口和所需的数据。首页、下载、更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌的更新日志和开源声明隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
+
+
+## 服务端模拟邮箱
+
+邮件业务归属 `feature:email`，沿用现有 `feature:email-api` Entry。发送、回复、回复全部、转发的编辑内容与状态由当前导航条目的 `EmailViewModel` 持有，列表和详情复用编辑浮层，不启用跨进程保存。
+
+`core:data` 的 `MailRemote` 是认证传输契约；组合根 `AppSessionServices` 复用认证客户端的 `AccountSession`，提供 origin 校验、token 刷新及账号校验。生产环境 `AccountDataRepository` 使用网络 Repository，每次打开捕获固定账号，关闭时取消旧请求。列表通过网络 PagingSource 分页，写操作成功后使同账号列表和详情失效。不实现离线缓存或离线发送；旧 Room 实现与数据库文件保留，但生产入口不再注入或读取本地示例邮件。
+
+现有服务通过 `POST /v1/auth/mail` 提供邮件操作。PostgreSQL 中 `mailboxes` 保存初始化标记，`simulated_mail` 保存邮件；用户级事务锁串行化初始化及写操作，所有查询均按会话用户隔离。初始化使用虚构联系人与模板，发送只写入当前用户的已发送，不调用 SMTP、不跨用户投递。回复沿用原会话，转发建立新会话并保存来源。删除移入废纸篓，不提供永久删除入口。发送使用 operationId 保证同内容重试幂等，标识复用但内容变化返回冲突。
+
+时间以 UTC 时间戳传输。联系人 ID 仅在当前用户邮箱中有意义，虚构地址使用 `example.invalid`。服务端初始 schema 和增量迁移脚本保持一致，现有数据库执行迁移与部署需单独授权。Android/iOS 设备操作与 PostgreSQL 集成验收状态见 [待验收事项](testing/pending-acceptance.md)。
+
+
+邮件错误状态由 `feature:email` 管理。无数据的首次失败在扣除页面内容 Insets 后的视口中居中显示标题、说明和填充色调重试按钮；窄小视口允许状态内容滚动。已有邮件刷新失败在列表顶部提示，追加失败在底部提示，均保留已加载内容。详情通过 `EmailDetailState` 区分 Loading、Loaded、Failed、NotFound，加载不显示重试，失败与不存在时仍保留返回或关闭入口。网络层透传 HTTP 状态，仅详情 404 映射为不存在，其余请求失败保留错误语义；取消请求不映射为错误。会话加载失败在会话区域内单独重试。

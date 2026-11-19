@@ -1,3 +1,4 @@
+import { mailOperation } from "./mail.ts";
 import { randomUUID } from "node:crypto";
 import {
   generateAuthenticationOptions,
@@ -167,6 +168,15 @@ export function createAuthService(config: {
   }
 
   return {
+    async mail(accessToken: string, input: Record<string, unknown>) {
+      const session = await requireSession(accessToken);
+      return transaction(async db => {
+        const valid = await db.query("SELECT id FROM auth_sessions WHERE id=$1 AND access_digest=$2 AND access_expires_at > now() FOR SHARE",
+          [session.session_id, tokenDigest(accessToken)]);
+        if (!valid.rowCount) throw new RequestError(401, "invalid_session");
+        return mailOperation(db, session.id, session.account, input);
+      });
+    },
     async sendSignupCode(email: string, ip: string) {
       if (!await withinLimit("signup-ip", ip, 20, 15) || !await withinLimit("signup-email", email, 5, 15)) {
         throw new RequestError(429, "try_later");

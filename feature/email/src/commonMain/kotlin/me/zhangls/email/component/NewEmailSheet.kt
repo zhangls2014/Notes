@@ -37,7 +37,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import me.zhangls.data.model.AccountModel
+import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.theme.layout.ImeHandoffFocusState
 import me.zhangls.theme.layout.LocalModalViewport
 import me.zhangls.theme.layout.imeGestureControl
@@ -193,4 +196,27 @@ internal fun NewEmailSheetContent(
       }
     }
   }
+}
+
+@Composable
+internal fun EmailDraftEditor(
+  state: me.zhangls.email.mvi.EmailState,
+  onIntent: (me.zhangls.email.mvi.EmailIntent) -> Unit,
+) {
+  NewEmailSheet(
+    recipients = state.accounts.toImmutableList(),
+    visible = state.isEmailDraftVisible,
+    selectedRecipientIds = state.draftRecipientIds.toImmutableSet(),
+    subject = state.draftSubject,
+    body = state.draftBody,
+    isSending = state.isSending,
+    onToggleRecipient = { id, selected ->
+      onIntent(EmailIntent.UpdateDraftRecipient(recipientId = id, selected = selected))
+    },
+    onSubjectChange = { onIntent(EmailIntent.UpdateDraftSubject(it)) },
+    onBodyChange = { onIntent(EmailIntent.UpdateDraftBody(it)) },
+    onDismiss = { onIntent(EmailIntent.CloseDraft) },
+    onCancel = { onIntent(EmailIntent.ClearDraft) },
+    onSave = { onIntent(EmailIntent.SubmitDraft) },
+  )
 }

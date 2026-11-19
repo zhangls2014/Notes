@@ -101,3 +101,10 @@ on the auth domain, directly as JSON over HTTPS. Generate them from the
 [Apple](association/apple-app-site-association.example.json) examples with the
 actual distribution identities. The website domain publishes its separate
 navigation association files through the [Pages build](../../docs/notes-web-deployment.md).
+
+
+## Simulated mail
+
+`POST /v1/auth/mail` reuses bearer authentication. The `action` selects `contacts`, `list`, `detail`, `send`, `favorite`, or `trash`; see OpenAPI for fields. A user's first successful request initializes fictional contacts and example conversations exactly once. Sending only creates mail in that user's mailbox; it does not use SMTP or deliver to other users. Replies share the source conversation; forwards start a new one. IDs are scoped to the authenticated owner. Send retries must reuse `operationId` and identical content; changed content with the same ID returns 409.
+
+New databases use `sql/schema.sql`. Existing databases require the separately authorized `sql/add-simulated-mail.sql` migration before clients enable server mail. This repository change does not run the migration or deploy the service. Old client Room files are retained and their sample content is not uploaded. `NOTES_AUTH_TEST_DATABASE_URL` enables database integration checks only against an explicitly authorized disposable test database with the updated schema.

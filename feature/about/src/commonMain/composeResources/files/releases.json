@@ -4,6 +4,22 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Mail loading failures show clear retry actions. Refresh and pagination errors keep existing messages visible, and mail details distinguish loading, failure and missing messages.",
+          "zh": "优化邮件加载失败提示与重试操作，刷新及分页失败时保留已有邮件，详情页区分加载、失败和邮件不存在。"
+        }
+      },
+      {
+        "type": "added",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Each signed-in user gets a persistent simulated mailbox with sending, replies, forwarding, search and favorites. No real email is delivered.",
+          "zh": "每位登录用户拥有服务端保存的模拟邮箱，支持发送、回复、转发、搜索与收藏，不向真实邮箱投递。"
+        }
+      },
+      {
         "type": "added",
         "platforms": ["android"],
         "text": {

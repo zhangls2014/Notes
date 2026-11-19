@@ -6,13 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import me.zhangls.data.impl.repository.RoomAccountDataRepository
+import me.zhangls.data.impl.repository.RemoteAccountDataRepository
 import me.zhangls.data.repository.AccountDataRepository
 import me.zhangls.data.repository.EmailsRepository
+import me.zhangls.data.repository.MailRemote
 import me.zhangls.data.util.AppFileManager
-import me.zhangls.database.AppDatabaseFactory
 import me.zhangls.database.DatabaseModule
-import me.zhangls.database.create
 import okio.Path.Companion.toPath
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
@@ -37,17 +36,11 @@ class DataModule(private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO)
 }
 
 @Singleton(binds = [AccountDataRepository::class])
-internal fun provideAccountDataRepository(
-  factory: AppDatabaseFactory,
-  manager: AppFileManager,
-  ioDispatcher: CoroutineDispatcher,
-): RoomAccountDataRepository = RoomAccountDataRepository { filename ->
-  factory.getDatabaseBuilder(manager.getDatabasePath(filename)).create(ioDispatcher)
-}
+internal fun provideAccountDataRepository(remote: MailRemote): RemoteAccountDataRepository =
+  RemoteAccountDataRepository(remote)
 
-/** A newly constructed feature ViewModel captures the current account, never a moving delegate. */
 @Factory
-internal fun provideEmailsRepository(accountData: RoomAccountDataRepository): EmailsRepository = accountData.emails()
+internal fun provideEmailsRepository(accountData: RemoteAccountDataRepository): EmailsRepository = accountData.emails()
 
 @Singleton
 internal fun provideDataStore(manager: AppFileManager): DataStore<Preferences> =

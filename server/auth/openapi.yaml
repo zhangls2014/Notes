@@ -3,6 +3,50 @@ info:
   title: Notes authentication
   version: 1.0.0
 paths:
+  /v1/auth/mail:
+    post:
+      operationId: simulatedMail
+      security: [{ bearer: [] }]
+      description: >-
+        Per-user simulated mailbox. No SMTP or cross-user delivery. Initializes once on first successful request.
+        list excludes trash, ordered by createdAt DESC then id DESC, with fixed pages of 20.
+        reply and replyAll share the owned source conversation; forward starts a new conversation.
+        Repeated send operationId with identical payload returns the original mail; changed payload returns 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [contacts, list, detail, send, favorite, trash] }
+                offset: { type: integer, minimum: 0, maximum: 100000, default: 0, description: list offset }
+                query: { type: string, maxLength: 500, description: list search in subject and body }
+                favorite: { type: boolean, description: list favorites only }
+                threadId: { type: integer, minimum: 1, description: list other messages in this owned message's conversation }
+                id: { type: integer, minimum: 1, description: required for detail }
+                ids: { type: array, minItems: 1, maxItems: 100, items: { type: integer, minimum: 1 }, description: required for favorite and trash }
+                important: { type: boolean, description: favorite target; omitted toggles current state }
+                operationId: { type: string, format: uuid, description: required for send; stable across retries }
+                recipientIds: { type: array, minItems: 1, maxItems: 5, items: { type: integer, minimum: 1, maximum: 5 }, description: required for send }
+                subject: { type: string, maxLength: 500, description: required for send; may be empty }
+                body: { type: string, minLength: 1, maxLength: 20000, description: required nonblank send content }
+                mode: { type: string, enum: [new, reply, replyAll, forward], description: required for send }
+                sourceId: { type: integer, minimum: 1, description: required for replies and forwards; omitted for new }
+      responses:
+        '200':
+          description: contacts or list returns an array; detail or send returns a mail; mutations return an empty object
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - { $ref: '#/components/schemas/SimulatedMail' }
+                  - { type: array, items: { $ref: '#/components/schemas/SimulatedMail' } }
+                  - { type: array, items: { $ref: '#/components/schemas/MailContact' } }
+                  - { type: object, maxProperties: 0 }
+        default:
+          $ref: '#/components/responses/Error'
   /v1/auth/signup/code:
     post:
       operationId: sendSignupCode
@@ -369,6 +413,31 @@ components:
           schema:
             $ref: '#/components/schemas/PasskeyResponse'
   schemas:
+    MailContact:
+      type: object
+      required: [id, firstName, lastName, email, altEmail, avatar, isDefault]
+      properties:
+        id: { type: integer }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        altEmail: { type: string }
+        avatar: { type: string, description: Bundled avatar resource key }
+        isDefault: { type: boolean }
+    SimulatedMail:
+      type: object
+      required: [id, sender, recipients, subject, body, mailbox, isImportant, isStarred, createdAt, threads]
+      properties:
+        id: { type: integer }
+        sender: { $ref: '#/components/schemas/MailContact' }
+        recipients: { type: array, items: { $ref: '#/components/schemas/MailContact' } }
+        subject: { type: string }
+        body: { type: string }
+        mailbox: { type: string, enum: [INBOX, SENT, TRASH] }
+        isImportant: { type: boolean }
+        isStarred: { type: boolean, const: false }
+        createdAt: { type: string, format: date-time }
+        threads: { type: array, maxItems: 0, items: {} }
     PasskeyResponse:
       type: object
       required: [requestId, credential]

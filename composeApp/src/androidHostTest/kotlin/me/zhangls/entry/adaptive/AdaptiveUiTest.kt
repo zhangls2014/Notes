@@ -628,7 +628,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     settle()
     val after = sheetScroll.fetchSemanticsNode().boundsInWindow
     org.junit.Assert.assertTrue("IME must reduce the draft viewport: $before -> $after", after.height < before.height)
-    compose.onNodeWithText("Save").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Send").performScrollTo().assertIsDisplayed()
   }
 
   @Test fun draftKeyboardHandoffKeepsViewportWithoutDelayingDismissal() {

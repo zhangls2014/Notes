@@ -17,5 +17,12 @@ sealed interface EmailAction : MviAction {
   data class UpdateDraftRecipients(val recipientId: Long, val selected: Boolean) : EmailAction
   data class UpdateDraftSubject(val subject: String) : EmailAction
   data class UpdateDraftBody(val body: String) : EmailAction
+  data class PrepareDraft(
+    val recipients: Set<Long>,
+    val subject: String,
+    val body: String,
+    val mode: String,
+    val sourceId: Long,
+  ) : EmailAction
   data object ClearDraft : EmailAction
 }

@@ -12,6 +12,7 @@ object EmailReducer {
       is EmailAction.UpdateDraftRecipients -> updateDraftRecipients(action)
       is EmailAction.UpdateDraftSubject -> copy(draftSubject = action.subject)
       is EmailAction.UpdateDraftBody -> copy(draftBody = action.body)
+      is EmailAction.PrepareDraft -> prepareDraft(action)
       EmailAction.ClearDraft -> clearDraft()
     }
   }
@@ -34,9 +35,20 @@ object EmailReducer {
     return copy(draftRecipientIds = ids)
   }
 
+  private fun EmailState.prepareDraft(action: EmailAction.PrepareDraft): EmailState = copy(
+    draftRecipientIds = action.recipients,
+    draftSubject = action.subject,
+    draftBody = action.body,
+    draftMode = action.mode,
+    draftSourceId = action.sourceId,
+    isEmailDraftVisible = true,
+  )
+
   private fun EmailState.clearDraft(): EmailState = copy(
     draftRecipientIds = emptySet(),
     draftSubject = "",
     draftBody = "",
+    draftMode = "new",
+    draftSourceId = null,
   )
 }

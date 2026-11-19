@@ -10,6 +10,8 @@ sealed interface EmailIntent : MviIntent {
   data class ShowToast(val res: StringResource) : EmailIntent
   data class UpdateFavorite(val emailId: Long) : EmailIntent
   data class UpdateSelectedEmail(val emailId: Long) : EmailIntent
+  data class ComposeFrom(val email: me.zhangls.data.model.EmailModel, val mode: String) : EmailIntent
+  data object RetryDetail : EmailIntent
   data object OpenDraft : EmailIntent
   data object CloseDraft : EmailIntent
   data object ClearDraft : EmailIntent

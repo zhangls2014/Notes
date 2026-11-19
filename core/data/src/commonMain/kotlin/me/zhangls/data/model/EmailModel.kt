@@ -1,13 +1,10 @@
 package me.zhangls.data.model
 
+import kotlinx.serialization.Serializable
 import me.zhangls.model.MailboxType
 
-/**
- * 邮件对外模型。
- *
- * 注意：[recipients] 与 [threads] 只在写入路径（`EmailsRepository.insertEmails`）被填充；
- * 读取路径（列表 / 详情 / 搜索）不会查询它们，取到的值为空。
- */
+/** 邮件读模型；服务端返回完整的发件人、收件人与 UTC 时间戳。 */
+@Serializable
 data class EmailModel(
   val id: Long,
   val sender: AccountModel,

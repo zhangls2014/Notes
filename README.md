@@ -203,7 +203,7 @@ KMP 约定插件通过 `withHostTest {}` 为共享模块启用 `testAndroidHostT
 
 ## Deep Link 调试
 
-演示构建支持 `https://notes.zhangls.me/email?id=<id>`。未登录时先进入登录页，成功后恢复目标。启用 [Notes 认证服务](server/auth/README.md) 的构建还要求链接携带 `accountId=<账号 UUID>`，并在目标账号的本地数据就绪后打开详情。
+演示构建支持 `https://notes.zhangls.me/email?id=<id>`。未登录时先进入登录页，成功后恢复目标。启用 [Notes 认证服务](server/auth/README.md) 的构建还要求链接携带 `accountId=<账号 UUID>`，并在目标账号的邮件仓库就绪后打开详情。
 
 演示构建调试命令如下。
 
@@ -220,7 +220,8 @@ adb shell am start \
 
 ## 数据与安全
 
-- Room 保存账户和邮件数据，并导出 schema 以支持 AutoMigration。
+- 模拟邮件由认证服务按用户生成并保存在 PostgreSQL，客户端通过网络分页查询；旧 Room 邮件实现与文件保留，正式入口不再读取本地示例数据。
+- 使用模拟邮箱前，需要经单独授权更新服务端与数据库；没有配置认证服务的本地登录演示不提供邮件数据。
 - DataStore 使用 Kotlinx Serialization 保存普通设置和用户资料；`UserModel` 不含 token，登录凭据由数据层内部的 `SecureTokenStore` 单独保存。
 - Android 使用 Keystore 管理的 AES/GCM 密钥和随机 IV 加密凭据，通过 `AtomicFile` 写入 `noBackupFilesDir`；iOS 使用不启用同步的 Keychain，访问策略为 `WhenUnlockedThisDeviceOnly`。这些保护针对登录凭据，不代表 Room 邮件数据或整个 DataStore 已加密。
 - 旧用户 JSON 在首次访问时迁移：安全写入并读回确认后，才移除明文 token。退出登录清除凭据和用户资料；资料与凭据的账号不匹配时，不公开登录态。

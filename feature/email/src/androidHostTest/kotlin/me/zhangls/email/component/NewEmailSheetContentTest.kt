@@ -51,7 +51,7 @@ class NewEmailSheetContentTest {
     }
     val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
     assertTrue("Form must fit its 260dp host: $viewport", viewport.height <= 260f)
-    compose.onNodeWithText("Save").performScrollTo().assertIsDisplayed().performClick()
+    compose.onNodeWithText("Send").performScrollTo().assertIsDisplayed().performClick()
     compose.runOnIdle { assertEquals(1, saves) }
   }
 
@@ -106,7 +106,7 @@ class NewEmailSheetContentTest {
         "Reopened form must use rotated host height $newHeight: $viewport",
         viewport.height <= newHeight.value,
       )
-      compose.onNodeWithText("Save").performScrollTo().assertIsDisplayed()
+      compose.onNodeWithText("Send").performScrollTo().assertIsDisplayed()
     }
   }
 

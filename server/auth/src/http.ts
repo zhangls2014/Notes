@@ -107,6 +107,11 @@ export function createAuthHttpServer(
     try {
       const ip = clientIp(request, trustLoopbackProxy);
       switch (request.method + " " + path) {
+        case "POST " + api + "/mail": {
+          const access = bearer(request);
+          send(response, 200, await service.mail(access, await body(request)));
+          return;
+        }
         case "POST " + api + "/signup/code": {
           const input = await body(request);
           await service.sendSignupCode(normalizeEmail(input.email), ip);

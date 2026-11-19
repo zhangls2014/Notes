@@ -1,20 +1,31 @@
 package me.zhangls.entry
 
 import io.ktor.client.HttpClient
-import me.zhangls.data.repository.AccountDataRepository
+import kotlinx.io.IOException
+import kotlinx.serialization.json.JsonObject
+import me.zhangls.data.repository.MailRemote
+import me.zhangls.data.repository.MailRequestException
 import me.zhangls.data.repository.UserRepository
 import me.zhangls.profile.api.AccountProfileRemote
 import org.koin.core.annotation.Singleton
 
-@Singleton(binds = [AccountProfileRemote::class])
+@Singleton(binds = [AccountProfileRemote::class, MailRemote::class])
 internal class AppSessionServices(
-  val accounts: AccountDataRepository,
   users: UserRepository,
   client: HttpClient,
   config: AuthenticationConfig,
-) : AccountProfileRemote {
+) : AccountProfileRemote, MailRemote {
   val auth = config.origin?.let { PasswordlessAuthClient(it, users, client) }
   val passkeysEnabled = auth != null && config.passkeysEnabled
+
+  override suspend fun request(accountId: String, input: JsonObject): String = try {
+    val authenticated = auth ?: throw MailRequestException(IllegalStateException("Mail service is not configured"))
+    authenticated.mail(accountId, input)
+  } catch (failure: AuthHttpException) {
+    throw MailRequestException(failure, failure.status)
+  } catch (failure: IOException) {
+    throw MailRequestException(failure)
+  }
 
   override suspend fun updateUsername(userId: String, username: String) = checkNotNull(auth).updateUsername(userId, username)
 

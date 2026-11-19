@@ -76,7 +76,7 @@ internal fun EmailHeader(
         style = MaterialTheme.typography.labelLarge,
       )
       Text(
-        text = createdAt,
+        text = mailTime(createdAt),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )

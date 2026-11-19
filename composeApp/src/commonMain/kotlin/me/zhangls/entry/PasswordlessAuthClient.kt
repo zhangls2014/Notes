@@ -228,6 +228,10 @@ internal class PasswordlessAuthClient(
     users.login(UserModel(id = reply.user.id, nickname = reply.user.account, authOrigin = endpoint), tokens)
   }
 
+  suspend fun mail(accountId: String, input: JsonObject): String = session.request(accountId) { access ->
+    post("mail", input, access).text
+  }
+
   private suspend fun post(path: String, body: JsonObject, accessToken: String? = null): AuthBody =
     request(HttpMethod.Post, path, body, accessToken)
 

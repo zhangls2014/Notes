@@ -33,6 +33,11 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
     sendEmail: unsupported,
   });
   const service: ReturnType<typeof createAuthService> = {
+    async mail(access, input) {
+      assert.equal(access, expired);
+      assert.deepEqual(input, { action: "list" });
+      return [];
+    },
     async signInWithPassword(account: string, password: string, ip: string) {
       accounts.push(account);
       clientIps.push(ip);
@@ -133,6 +138,8 @@ test("auth HTTP boundary validates input and never returns secrets on errors", a
   assert.equal((await fetch(base + "/me", { headers })).status, 401);
   assert.equal((await fetch(base + "/me/avatar", { method: "PUT", headers, body: jpeg })).status, 401);
   const authenticated = { ...headers, Authorization: "Bearer " + expired };
+  assert.equal((await fetch(base + "/mail", { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ action: "list" }) })).status, 401);
+  assert.deepEqual(await (await fetch(base + "/mail", { method: "POST", headers: { ...authenticated, "Content-Type": "application/json" }, body: JSON.stringify({ action: "list" }) })).json(), []);
   assert.equal((await post("/signup/code", { email: "notes@EXAMPLE.COM" })).status, 204);
   assert.deepEqual(await (await post("/signup/verify", { email: "notes@example.com", code: "123456" })).json(),
     { proof: expired });

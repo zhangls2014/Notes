@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import me.zhangls.email.component.EmailDetail
+import me.zhangls.email.mvi.EmailDetailState
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -33,16 +34,23 @@ internal fun EmailDetailScreen(
 ) {
   val emailFlow = remember(viewModel, emailId) { viewModel.getEmail(emailId) }
   val threadFlow = remember(viewModel, emailId) { viewModel.getThreadEmails(emailId) }
-  val model by emailFlow.collectAsStateWithLifecycle(null)
+  val detailState by emailFlow.collectAsStateWithLifecycle(EmailDetailState.Loading)
   val threads = threadFlow.collectAsLazyPagingItems()
+  val state by viewModel.state.collectAsStateWithLifecycle()
   val shownAlone = isDetailPaneShownAlone()
   EmailDetail(
-    model = model,
+    detailState = detailState,
+    onCompose = { email, mode -> viewModel.sendIntent(EmailIntent.ComposeFrom(email, mode)) },
+    onRetry = {
+      viewModel.sendIntent(EmailIntent.RetryDetail)
+      threads.retry()
+    },
     threads = threads,
     onFavoriteClick = { viewModel.sendIntent(EmailIntent.UpdateFavorite(it)) },
     onBack = onBack.takeIf { shownAlone },
     onClose = onClose.takeUnless { shownAlone },
   )
+  me.zhangls.email.component.EmailDraftEditor(state) { viewModel.sendIntent(it) }
 }
 
 /**

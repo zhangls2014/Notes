@@ -22,8 +22,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import me.zhangls.about.api.AboutEntry
-import me.zhangls.entry.data.sample.LocalEmailsDataProvider
 import me.zhangls.about.api.NotesWebsite
+import me.zhangls.data.repository.AccountDataRepository
 import me.zhangls.framework.AppInfo
 import me.zhangls.framework.toast.SystemToast
 import me.zhangls.login.api.LocalAccountRegistration
@@ -71,7 +71,7 @@ fun App(
   val scope = rememberCoroutineScope()
   val services: AppSessionServices = koinInject()
   val profile: AccountProfileRefresh = koinInject()
-  val accounts = services.accounts
+  val accounts: AccountDataRepository = koinInject()
   val auth = services.auth
   val enabledPasskeyProvider = passkeyProvider?.takeIf { services.passkeysEnabled && it.isSupported }
   val accountId = state.accountId
@@ -86,7 +86,7 @@ fun App(
       if (accessibleAccount == null) {
         accounts.close()
       } else {
-        accounts.open(accessibleAccount, LocalEmailsDataProvider.allEmails)
+        accounts.open(accessibleAccount, emptyList())
         readyAccountId = accessibleAccount
       }
     } catch (cancelled: CancellationException) {

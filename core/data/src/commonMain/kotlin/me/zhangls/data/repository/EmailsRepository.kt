@@ -15,7 +15,7 @@ import me.zhangls.data.model.EmailModel
 interface EmailsRepository {
   suspend fun insertEmails(emails: List<EmailModel>)
 
-  /** 创建一封草稿；默认发件账户不存在时不做任何事。 */
+  /** 发送模拟邮件；服务端是唯一持久化来源，失败时抛出异常。 */
   suspend fun insertDraft(draft: EmailDraft)
 
   fun getEmail(id: Long): Flow<EmailModel?>

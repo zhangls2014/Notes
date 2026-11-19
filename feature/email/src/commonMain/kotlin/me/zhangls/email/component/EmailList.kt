@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import me.zhangls.email.mvi.EmailIntent
 import me.zhangls.email.mvi.EmailViewModel
@@ -86,21 +85,6 @@ internal fun EmailList(
   }
 
   if (!isFavorite) {
-    NewEmailSheet(
-      recipients = state.accounts.toImmutableList(),
-      visible = state.isEmailDraftVisible,
-      selectedRecipientIds = state.draftRecipientIds.toImmutableSet(),
-      subject = state.draftSubject,
-      body = state.draftBody,
-      isSending = state.isSending,
-      onToggleRecipient = { id, selected ->
-        viewModel.sendIntent(EmailIntent.UpdateDraftRecipient(recipientId = id, selected = selected))
-      },
-      onSubjectChange = { viewModel.sendIntent(EmailIntent.UpdateDraftSubject(it)) },
-      onBodyChange = { viewModel.sendIntent(EmailIntent.UpdateDraftBody(it)) },
-      onDismiss = { viewModel.sendIntent(EmailIntent.CloseDraft) },
-      onCancel = { viewModel.sendIntent(EmailIntent.ClearDraft) },
-      onSave = { viewModel.sendIntent(EmailIntent.SubmitDraft) },
-    )
+    EmailDraftEditor(state) { viewModel.sendIntent(it) }
   }
 }
