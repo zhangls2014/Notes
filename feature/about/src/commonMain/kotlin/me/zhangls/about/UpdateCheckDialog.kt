@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +34,7 @@ import notes.feature.about.generated.resources.about_update_retry
 import notes.feature.about.generated.resources.about_update_unavailable
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun UpdateCheckDialog(
   status: UpdateStatus,
@@ -61,7 +65,9 @@ internal fun UpdateCheckDialog(
     },
     confirmButton = {
       when (status) {
-        is UpdateStatus.Failed -> TextButton(onClick = onRetry) { Text(stringResource(Res.string.about_update_retry)) }
+        is UpdateStatus.Failed -> Button(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
+          Text(stringResource(Res.string.about_update_retry))
+        }
 
         is UpdateStatus.Available -> {
           if (downloading) {
@@ -126,6 +132,7 @@ private fun UpdateDetails(status: UpdateStatus.Available) {
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun UpdateActionButton(status: UpdateStatus.Available, onUpdateAction: () -> Unit) {
   val downloadable = status.apkUrl != null
@@ -134,7 +141,7 @@ private fun UpdateActionButton(status: UpdateStatus.Available, onUpdateAction: (
     status.download == DownloadStatus.Ready -> Res.string.about_update_install
     else -> Res.string.about_update_download
   }
-  TextButton(onClick = onUpdateAction, enabled = downloadable && !status.working) {
+  Button(onClick = onUpdateAction, enabled = downloadable && !status.working, shapes = ButtonDefaults.shapes()) {
     Text(stringResource(label))
   }
 }

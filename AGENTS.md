@@ -79,6 +79,8 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 
 ### UI 与设置边界
 
+- 新增或修改弹窗遵循 [弹窗应用规则](docs/architecture.md#弹窗应用规则)，按内容与操作语义选择组件、按钮和关闭行为；基础视觉归 `core:theme`，业务内容与状态归 Feature。
+
 - 账号表单复用 `core:theme` 的共享描边输入框，成对底部操作遵循 [表单风格](docs/architecture.md#表单风格)。
 
 - 单栏滚动页的宽度上限只应用于内容。安全区内两侧留白属于滚动视口，应能像内容区一样发起滚动手势。

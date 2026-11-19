@@ -92,6 +92,8 @@ internal fun EmailTopBar(
       title = stringResource(Res.string.email_delete_confirm_title),
       content = stringResource(Res.string.email_delete_confirm_message, state.selectedItems.size),
       confirmText = stringResource(Res.string.email_action_delete),
+      onDismissRequest = { showDeleteConfirmation = false },
+      destructiveConfirm = true,
       confirm = {
         showDeleteConfirmation = false
         onIntent(EmailIntent.MultiDelete)

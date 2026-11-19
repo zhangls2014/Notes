@@ -5,6 +5,14 @@
     "changes": [
       {
         "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Dialogs use consistent action styles: text buttons for confirmations, red actions for destructive changes, and filled buttons for updates. Back and outside taps dismiss ordinary confirmations without performing the action.",
+          "zh": "统一弹窗操作层级：普通确认使用文字按钮，危险操作使用红色动作，更新任务使用实心主按钮；返回和点击外部可取消普通确认，不执行确认操作。"
+        }
+      },
+      {
+        "type": "improved",
         "platforms": ["android"],
         "text": {
           "en": "Dynamic theme colors follow an explicit system color preset, otherwise use wallpaper colors. Lock screen colors fall back to the home wallpaper when unavailable.",

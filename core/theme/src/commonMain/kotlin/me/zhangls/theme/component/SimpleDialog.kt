@@ -1,9 +1,6 @@
 package me.zhangls.theme.component
 
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +26,8 @@ fun SimpleDialog(
   title: String,
   content: String,
   confirmText: String,
+  onDismissRequest: () -> Unit,
+  destructiveConfirm: Boolean = false,
   confirm: (() -> Unit)? = null,
   dismissText: String? = null,
   dismiss: (() -> Unit)? = null,
@@ -37,6 +36,8 @@ fun SimpleDialog(
     title = title,
     content = AnnotatedString(content),
     confirmText = confirmText,
+    onDismissRequest = onDismissRequest,
+    destructiveConfirm = destructiveConfirm,
     confirm = confirm,
     dismissText = dismissText,
     dismiss = dismiss,
@@ -50,29 +51,34 @@ private fun SimpleDialogPreview() {
     title = "提示",
     content = "您确定要删除该文件吗？",
     confirmText = "确定",
+    onDismissRequest = {},
     dismissText = "取消",
     confirm = {},
     dismiss = {},
   )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SimpleDialog(
   title: String,
   content: AnnotatedString,
   confirmText: String,
+  onDismissRequest: () -> Unit,
+  destructiveConfirm: Boolean = false,
   confirm: (() -> Unit)? = null,
   dismissText: String? = null,
   dismiss: (() -> Unit)? = null,
 ) {
   AlertDialog(
-    onDismissRequest = {},
+    onDismissRequest = onDismissRequest,
     title = { Text(text = title) },
     text = { Text(text = content) },
     confirmButton = {
-      Button(onClick = { confirm?.invoke() }, shapes = ButtonDefaults.shapes()) {
-        Text(text = confirmText)
+      TextButton(onClick = { confirm?.invoke() }) {
+        Text(
+          text = confirmText,
+          color = if (destructiveConfirm) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        )
       }
     },
     dismissButton = dismissText?.let { label ->
@@ -104,6 +110,7 @@ private fun SimpleAnnotatedDialogPreview() {
       append("文件吗")
     },
     confirmText = "确定",
+    onDismissRequest = {},
     dismissText = "取消",
     confirm = {},
     dismiss = {},

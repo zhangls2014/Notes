@@ -136,6 +136,7 @@ private fun SettingsDialog(dialogState: DialogUiModel, onResult: (DialogResult) 
     title = stringResource(dialogState.title),
     content = stringResource(dialogState.message),
     confirmText = stringResource(dialogState.confirm),
+    onDismissRequest = { onResult(DialogResult.Dismiss(dialogState.dialogId)) },
     confirm = {
       val result = DialogResult.Confirm(dialogState.dialogId)
       onResult(result)

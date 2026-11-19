@@ -55,10 +55,72 @@ class AlertDialogWindowTest {
   @get:Rule val compose = createComposeRule()
 
   @Test fun platformDefaultStillConstrainsDialogToSystemBars() {
-    compose.setContent { SimpleDialog(title = "Title", content = "Content", confirmText = "OK") }
+    compose.setContent { SimpleDialog(title = "Title", content = "Content", confirmText = "OK", onDismissRequest = {}) }
     compose.runOnIdle {
       val window = checkNotNull(checkNotNull(ShadowDialog.getLatestDialog()).window)
       assertNotEquals("Control: the default dialog excludes system bars", 0, window.attributes.fitInsetsTypes)
+    }
+  }
+
+  @Test fun backDismissesConfirmationWithoutConfirming() {
+    var dismissed = 0
+    var confirmed = 0
+    launch {
+      SimpleDialog(
+        title = "Title",
+        content = "Content",
+        confirmText = "Confirm",
+        onDismissRequest = { dismissed++ },
+        confirm = { confirmed++ },
+        dismissText = "Cancel",
+        dismiss = { dismissed++ },
+      )
+    }
+    compose.runOnIdle {
+      (checkNotNull(ShadowDialog.getLatestDialog()) as androidx.activity.ComponentDialog)
+        .onBackPressedDispatcher.onBackPressed()
+      assertEquals(1, dismissed)
+      assertEquals(0, confirmed)
+    }
+  }
+
+  @Test fun outsideTapDismissesAnnotatedConfirmationWithoutConfirming() {
+    var dismissed = 0
+    var confirmed = 0
+    launch {
+      SimpleDialog(
+        title = "Title",
+        content = androidx.compose.ui.text.AnnotatedString("Content"),
+        confirmText = "Confirm",
+        onDismissRequest = { dismissed++ },
+        destructiveConfirm = true,
+        confirm = { confirmed++ },
+        dismissText = "Cancel",
+        dismiss = { dismissed++ },
+      )
+    }
+    compose.runOnIdle {
+      val dialog = checkNotNull(ShadowDialog.getLatestDialog())
+      for (action in listOf(android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_UP)) {
+        val event = android.view.MotionEvent.obtain(0, 0, action, -1f, -1f, 0)
+        try {
+          dialog.onTouchEvent(event)
+        } finally {
+          event.recycle()
+        }
+      }
+      assertEquals(1, dismissed)
+      assertEquals(0, confirmed)
+    }
+    compose.onNodeWithText("Cancel").performClick()
+    compose.runOnIdle {
+      assertEquals(2, dismissed)
+      assertEquals(0, confirmed)
+    }
+    compose.onNodeWithText("Confirm").performClick()
+    compose.runOnIdle {
+      assertEquals(2, dismissed)
+      assertEquals(1, confirmed)
     }
   }
 
@@ -69,7 +131,7 @@ class AlertDialogWindowTest {
   }
 
   @Test fun simpleDialogUsesFullWindowForCentering() {
-    launch { SimpleDialog(title = "Title", content = "Content", confirmText = "OK") }
+    launch { SimpleDialog(title = "Title", content = "Content", confirmText = "OK", onDismissRequest = {}) }
     assertFullWindow()
   }
 
