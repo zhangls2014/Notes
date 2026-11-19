@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.1.6",
+    "date": null,
+    "changes": [
+      {
+        "type": "improved",
+        "platforms": ["android"],
+        "text": {
+          "en": "Dynamic theme colors follow an explicit system color preset, otherwise use wallpaper colors. Lock screen colors fall back to the home wallpaper when unavailable.",
+          "zh": "动态主题色优先跟随系统明确设置的预设配色，否则从壁纸取色；锁屏壁纸颜色不可用时回退桌面壁纸。"
+        }
+      }
+    ]
+  },
+  {
     "version": "1.1.5",
     "date": "2026-11-19",
     "changes": [

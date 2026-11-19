@@ -425,7 +425,7 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 
 ### Android 壁纸主题
 
-Android 宿主通过 WallpaperManager 的桌面壁纸颜色生成 Material 3 配色，支持 Android 9 及以上。颜色读取在后台执行，前台期间监听颜色变化，每次返回前台重新读取；短暂读取失败保留当前颜色，首次不可用时使用内置主题。共享 UI 继续通过 App 的动态配色入口接收 ColorScheme。系统主题预设不参与壁纸主题生成。
+Android 宿主支持 Android 9 及以上动态主题色。Android 12 及以上仅在 Secure 设置 `theme_customization_overlay_packages` 的 `android.theme.customization.color_source` 为 `preset` 时使用系统 Material 3 调色板；其余情况通过 WallpaperManager 壁纸主色生成配色。`lock_wallpaper` 优先读取锁屏壁纸，失败后回退桌面壁纸；其他值、缺失、无效配置或配置读取失败均使用桌面壁纸。该字段是系统内部约定，不能保证识别厂商未记录的手动选色，不使用品牌名单或色值比较推断用户意图。颜色读取在后台执行，前台期间监听主题配置与桌面、锁屏壁纸颜色变化，每次返回前台重新读取。壁纸颜色短暂读取失败保留已有壁纸颜色，首次不可用时使用内置主题。共享 UI 继续通过 App 的动态配色入口接收 ColorScheme，设置关闭时使用内置主题。
 
 ## 官网、发布渠道与认证域
 

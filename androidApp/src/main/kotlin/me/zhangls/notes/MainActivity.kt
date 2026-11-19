@@ -1,14 +1,18 @@
 package me.zhangls.notes
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
 import com.materialkolor.material3.dynamicColorScheme
 import me.zhangls.entry.App
@@ -26,7 +30,8 @@ class MainActivity : AppCompatActivity() {
     val passkeyProvider = AndroidPasskeyProvider(this)
 
     setContent {
-      val wallpaperColor by rememberWallpaperColor()
+      val themeColorSource by rememberThemeColorSource()
+      val context = LocalContext.current
 
       App(
         deviceAuthenticator = deviceAuthenticator,
@@ -44,8 +49,12 @@ class MainActivity : AppCompatActivity() {
           AppCompatDelegate.setApplicationLocales(it.toLocales())
         },
         onDynamicColorChange = { darkTheme ->
-          wallpaperColor?.let { seed ->
-            dynamicColorScheme(seedColor = seed, isDark = darkTheme)
+          if (themeColorSource.source == "preset" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+          } else {
+            themeColorSource.wallpaperColor?.let { seed ->
+              dynamicColorScheme(seedColor = seed, isDark = darkTheme)
+            }
           }
         },
         deepLinkUrl = deepLinkUrl,

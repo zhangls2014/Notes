@@ -12,7 +12,7 @@
   <string name="language_chinese">Chinese (Simplified)</string>
   <!-- 动态主题色 -->
   <string name="settings_label_dynamic_color">Dynamic color</string>
-  <string name="settings_msg_dynamic_color_on">Theme follows wallpaper colors</string>
+  <string name="settings_msg_dynamic_color_on">Use system color selection, otherwise wallpaper colors</string>
   <string name="settings_msg_dynamic_color_off">Built-in theme colors</string>
   <!-- 字体大小 -->
   <string name="settings_label_font_size">Font size</string>
