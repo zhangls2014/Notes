@@ -3,6 +3,11 @@ package me.zhangls.about.api
 import androidx.compose.runtime.Composable
 
 interface AboutEntry {
+  fun onForegroundChanged(isForeground: Boolean)
+
+  @Composable
+  fun UpdateHandler(showDialog: Boolean, releaseNotesVersion: String?, onReleaseNotesDismiss: () -> Unit)
+
   suspend fun refreshWebAssets()
 
   @Composable

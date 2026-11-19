@@ -62,6 +62,7 @@ fun App(
   val viewModel: AppViewModel = koinViewModel()
   val aboutEntry: AboutEntry = koinInject()
   LaunchedEffect(aboutEntry) { aboutEntry.refreshWebAssets() }
+  AppForegroundEffect(aboutEntry::onForegroundChanged)
   val appInfo: AppInfo = koinInject()
   val version = remember(appInfo) { appInfo.getVersionName() }
   val systemToast = rememberSystemToast()
@@ -179,14 +180,11 @@ fun App(
         }
       }
 
-      if ((state.access == AppAccess.SignedOut || state.access == AppAccess.Ready) &&
-        state.settingsLoaded && state.lastReadReleaseVersion != version
-      ) {
-        aboutEntry.ReleaseNotesDialog(
-          version = version,
-          onDismiss = { viewModel.sendIntent(AppIntent.DismissReleaseNotes(version)) },
-        )
-      }
+      aboutEntry.UpdateHandler(
+        showDialog = (state.access == AppAccess.SignedOut || state.access == AppAccess.Ready) && state.settingsLoaded,
+        releaseNotesVersion = version.takeIf { state.lastReadReleaseVersion != it },
+        onReleaseNotesDismiss = { viewModel.sendIntent(AppIntent.DismissReleaseNotes(version)) },
+      )
 
       LaunchedEffect(viewModel, systemToast) {
         viewModel.toast.collect { effect ->

@@ -70,6 +70,7 @@ class EmailEntryDispatchTest {
     try {
       composition.setContent {
         about.ReleaseNotesDialog(version = "1.1.0", onDismiss = {})
+        about.UpdateHandler(showDialog = false, releaseNotesVersion = null, onReleaseNotesDismiss = {})
         dispatched = true
       }
       assertTrue(dispatched)

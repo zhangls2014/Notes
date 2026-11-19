@@ -93,6 +93,8 @@ import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowDownloadManager
 import java.io.File
 
+private const val DOWNLOAD_POLL_SETTLE_MILLIS = 1500L
+
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w1000dp-h1200dp-mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -147,6 +149,7 @@ class AboutUiTest(private val scenario: Scenario) {
             var websiteVisible by rememberSaveable { mutableStateOf(false) }
             var cacheVisible by rememberSaveable { mutableStateOf(false) }
             val entry = koinInject<AboutEntry>()
+            entry.UpdateHandler(showDialog = true, releaseNotesVersion = null, onReleaseNotesDismiss = {})
             when {
               cacheVisible -> entry.CacheManagementScreen(onBack = { cacheVisible = false })
               historyVisible -> entry.ReleaseHistoryScreen(onBack = { historyVisible = false })
@@ -288,6 +291,11 @@ class AboutUiTest(private val scenario: Scenario) {
             return
           }
           request.status = DownloadManager.STATUS_SUCCESSFUL
+          // The installer polls every second on IO; allow a completed poll to expose an unwanted prompt.
+          Thread.sleep(DOWNLOAD_POLL_SETTLE_MILLIS)
+          compose.waitForIdle()
+          compose.onNodeWithText("Notes 2.0.0 is ready to install.").assertDoesNotExist()
+          compose.onNodeWithText("Check").assertIsEnabled().performClick()
           compose.waitUntil(timeoutMillis = 5_000) {
             compose.onAllNodes(hasText("Install")).fetchSemanticsNodes().isNotEmpty()
           }

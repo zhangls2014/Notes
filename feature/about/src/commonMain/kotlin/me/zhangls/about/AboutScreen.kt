@@ -65,12 +65,6 @@ internal fun AboutScreen(
   val updateStatus by viewModel.updateStatus.collectAsStateWithLifecycle()
   val checkForUpdates = { viewModel.sendIntent(AboutIntent.CheckForUpdates) }
   val checking = updateStatus == UpdateStatus.Checking
-  UpdateCheckDialog(
-    updateStatus,
-    onDismiss = { viewModel.sendIntent(AboutIntent.DismissUpdateResult) },
-    onRetry = checkForUpdates,
-    onUpdateAction = { viewModel.sendIntent(AboutIntent.UpdateAction) },
-  )
   val layoutDirection = LocalLayoutDirection.current
   Scaffold(topBar = {
     CenteredTopAppBar(title = stringResource(Res.string.about_title), navigate = onBack)

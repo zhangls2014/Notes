@@ -4,6 +4,14 @@
     "date": null,
     "changes": [
       {
+        "type": "added",
+        "platforms": ["android"],
+        "text": {
+          "en": "The app checks for updates at startup and when returning to the foreground. Dismissed builds are not prompted again during the same session; manual checks remain available.",
+          "zh": "应用启动及从后台返回前台时自动检查更新；同次运行中关闭的新版不再重复提示，仍可手动检查。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
