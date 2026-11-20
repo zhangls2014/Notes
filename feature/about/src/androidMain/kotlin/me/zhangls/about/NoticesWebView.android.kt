@@ -1,8 +1,10 @@
 package me.zhangls.about
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.view.View
+import android.view.ViewTreeObserver
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -12,8 +14,13 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
@@ -39,20 +46,25 @@ internal actual fun NoticesWebView(
   resourceOwner: NoticesWebSession?,
 ) {
   val scope = rememberCoroutineScope()
+  val geometrySource = rememberDeviceViewportGeometrySource(enabled = !projectPage)
+  val retained = resourceOwner?.resource as? AndroidNoticesWebResource
+  val publisher = remember(state) { retained?.publisher ?: DeviceViewportPublisher(url) }
+  var bridgeView by remember { mutableStateOf<WebView?>(null) }
+  BindAndroidDeviceViewport(bridgeView, projectPage, state, publisher, geometrySource)
+
   val surface = MaterialTheme.colorScheme.surface
   val backgroundColor = surface.toArgb()
   val openDetail = rememberUpdatedState(onOpenDetail)
   val inset = rememberUpdatedState(bottomInset.value)
   AndroidView(
-    modifier = modifier.background(surface),
+    modifier = modifier.background(surface).deviceViewportGeometry(geometrySource),
     factory = { context ->
-      val retained = resourceOwner?.resource as? AndroidNoticesWebResource
-      val webView = retained?.view ?: try {
-        WebView(if (resourceOwner == null) context else context.applicationContext)
-      } catch (_: RuntimeException) {
+      val webView = retained?.view ?: createNoticesWebView(context, resourceOwner != null)
+      if (webView == null) {
         state.fail()
         return@AndroidView View(context)
       }
+      bridgeView = webView
       webView.apply {
         val disk = AndroidWebAssetDisk(context)
         // Keep the themed container visible until Chromium can draw the new document.
@@ -95,6 +107,7 @@ internal actual fun NoticesWebView(
             frameWait = null
             view.visibility = View.INVISIBLE
             pageGeneration++
+            publisher.unbind()
             if (noticesLink(target, url, projectPage, allowSameOriginNavigation) != NoticesLink.InPage) {
               view.stopLoading()
               state.fail()
@@ -108,6 +121,9 @@ internal actual fun NoticesWebView(
             if (state.failed || frameWait != null) return
             if (!projectPage) view.applyNoticesInset(inset.value)
             val generation = pageGeneration
+            if (!projectPage && publisher.trusted(state.currentUrl)) {
+              view.bindDeviceViewport(publisher, geometrySource) { generation == pageGeneration && !state.failed }
+            }
             frameWait = scope.launch {
               val ready = projectPage || awaitWebPageFrame {
                 suspendCancellableCoroutine { continuation ->
@@ -152,7 +168,7 @@ internal actual fun NoticesWebView(
         val startUrl = state.currentUrl
         val initialLink = noticesLink(startUrl, url, projectPage, allowSameOriginNavigation)
         if (retained == null) {
-          resourceOwner?.resource = AndroidNoticesWebResource(this)
+          resourceOwner?.resource = AndroidNoticesWebResource(this, publisher)
           if (initialLink == NoticesLink.InPage) loadUrl(startUrl) else state.fail()
         }
       }
@@ -194,9 +210,68 @@ private fun WebView.applyNoticesInset(bottom: Float) {
 }
 
 
-private class AndroidNoticesWebResource(val view: WebView) : NoticesWebResource {
+private class AndroidNoticesWebResource(
+  val view: WebView,
+  val publisher: DeviceViewportPublisher,
+) : NoticesWebResource {
   override fun release() {
     view.stopLoading()
     view.destroy()
   }
+}
+
+@Composable
+private fun BindAndroidDeviceViewport(
+  bridgeView: WebView?,
+  projectPage: Boolean,
+  state: NoticesWebState,
+  publisher: DeviceViewportPublisher,
+  geometrySource: DeviceViewportGeometrySource?,
+) {
+  DisposableEffect(bridgeView, projectPage) {
+    val view = bridgeView
+    val observer = view?.viewTreeObserver
+    val listener = ViewTreeObserver.OnPreDrawListener {
+      val ready = !state.loading && !state.failed
+      if (view != null && ready && geometrySource != null) {
+        val geometry = geometrySource.snapshot()
+        publisher.publish(state.currentUrl, geometry.features, geometry.availability, geometry.key)?.let {
+          view.evaluateJavascript(it, null)
+        }
+      }
+      true
+    }
+    if (!projectPage) observer?.addOnPreDrawListener(listener)
+    geometrySource?.onFactsChanged = { view?.postInvalidateOnAnimation() }
+    onDispose {
+      geometrySource?.onFactsChanged = null
+      if (observer?.isAlive == true) observer.removeOnPreDrawListener(listener)
+      if (!projectPage) publisher.detachScript()?.let { view?.evaluateJavascript(it, null) }
+      publisher.reset()
+    }
+  }
+}
+
+private fun WebView.bindDeviceViewport(
+  publisher: DeviceViewportPublisher,
+  source: DeviceViewportGeometrySource?,
+  isCurrent: () -> Boolean,
+) {
+  evaluateJavascript(publisher.documentScript()) { response ->
+    if (isCurrent()) {
+      viewportDocumentId(response)?.let { id ->
+        publisher.bindDocument(id)
+        val geometry = source?.snapshot() ?: DeviceViewportGeometry()
+        publisher.publish(url.orEmpty(), geometry.features, geometry.availability, geometry.key)?.let {
+          evaluateJavascript(it, null)
+        }
+      }
+    }
+  }
+}
+
+private fun createNoticesWebView(context: Context, retained: Boolean): WebView? = try {
+  WebView(if (retained) context.applicationContext else context)
+} catch (_: RuntimeException) {
+  null
 }

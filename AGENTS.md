@@ -88,9 +88,9 @@ iOS 应用使用 Xcode 打开 `iosApp/iosApp.xcodeproj` 运行。Android lint �
 
 - 应用内功能图标必须来自 Google Fonts 的 Material Symbols，统一使用 Rounded，默认未填充（`FILL=0`）；明确的填充变体（如 `StarFill`，`FILL=1`）允许保留并用于状态表达。共享图标由 `core:theme` 提供。转换去掉原始注释，使用原有缓存属性和 `path { ... }` 指令，不使用 `addPathNodes`，填充颜色统一为 `Color.Black`。品牌图标（登录页、关于应用页及桌面启动图标）保留现有设计，不受此功能图标约束限制。
 - Android 和 iOS 的 Release 使用蓝底黄星启动图标，Debug 使用无文字的紫底黄星图标。导出 PNG 或 WebP 时，逐档保留原图标的画布尺寸、留白、内容尺寸和位置。每个显式新增的 `applicationId` 或 Bundle ID 必须同时配置能与现有安装区分的中英文应用名称。命名、共享 SVG 和生成方案见 [Android 启动图标与应用名称](docs/android-app-identity.md) 与 [iOS 启动图标与应用名称](docs/ios-app-identity.md)。
-- 窗口事实只在 `composeApp` 调用 `rememberWindowAdaptiveInfo()` 读取，通过 `LocalWindowAdaptiveInfo` 下发。
+- 原生窗口事实只在 `composeApp` 调用 `rememberWindowAdaptiveInfo()` 读取，通过 `LocalWindowAdaptiveInfo` 下发。独立网页由 `web` 组合根统一读取浏览器窗口并合并受信视口快照，业务内容不重复观测。WebView 局部测量只用于坐标转换，不维护第二套断点或姿态。
 - `PaneScaffoldDirective` 只在组合根从同一窗口事实计算，通过 `LocalPaneScaffoldDirective` 下发，并统一使用 `HingePolicy.AlwaysAvoid`。Feature 不直接调用 `currentWindowAdaptiveInfo*()`，不维护第二套断点。
-- 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold`、邮件与在线声明的列表—详情 SceneStrategy，消费 `LocalPaneScaffoldDirective`。其他单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。已有详情时，同一铰链几何在半开和全开之间必须保持窗格稳定。首页与在线声明在未选详情时，半开姿态优先保持物理分栏，全开姿态按需展开。
+- 铰链避让只属于实际分栏的窗格布局：登录页 `SupportingPaneScaffold`、邮件与在线声明的列表—详情 SceneStrategy，消费 `LocalPaneScaffoldDirective`。自有网页的列表—详情布局同样只在实际双栏时消费铰链。通用 WebView 视口桥可转发组合根提供的窗口事实，但不得自行避让或建立第二个窗口观测源；协议见 `docs/web-device-viewport.md`。其他单栏页面、应用导航、搜索、设置和浮层不得读取铰链或增加安全区包装。已有详情时，同一铰链几何在半开和全开之间必须保持窗格稳定。首页与在线声明在未选详情时，仅竖向铰链半开姿态优先保持物理分栏，其他姿态按需展开。列表—详情不因水平铰链上下分栏；水平铰链下未选详情时列表占满可用窗口，已有详情时仅按宽度决定左右分栏。
 - 登录页保留左右分栏，不在窗格内避让横向铰链，不因横向折痕缩减内容高度。
 - Feature 不用导航方位、设备名称等派生值反推窗口宽度或姿态。
 - 内容宽度统一使用 `core:theme` 的 `ContentWidth` 和 `Modifier.contentWidth()`，不要在 Feature 中复制裸 `widthIn` 常量。

@@ -292,3 +292,15 @@ test('the page reports ready only after drawing and subsequent animation frames'
   callbacks.shift()()
   assert.equal(frame, 'ready')
 })
+
+test('all own launch documents load the standalone viewport bridge before Wasm', async () => {
+  const files = buildSite([], [])
+  const notices = await buildNoticeFiles()
+  const bridge = [...files.keys()].find(name => /^device-viewport-[a-f0-9]+\.js$/.test(name))
+  assert.ok(bridge, 'content-versioned viewport bridge must be distributed')
+  for (const [name, html] of [...files, ...notices]) {
+    if (!name.endsWith('.html')) continue
+    assert.ok(html.includes(`src="/${bridge}"`), name)
+    assert.ok(html.indexOf(`src="/${bridge}"`) < html.indexOf('src="/notes.js"'), name)
+  }
+})

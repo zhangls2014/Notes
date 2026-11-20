@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,13 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import me.zhangls.web.resources.release_latest
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -185,27 +186,20 @@ internal fun ReleaseCard(
   release: Release,
   platform: String,
   chinese: Boolean,
-  onOpenRelease: (() -> Unit)? = null,
+  compact: Boolean,
+  latest: Boolean,
+  modifier: Modifier,
+  onChangePosition: (Int, Float, Float) -> Unit,
 ) {
   Surface(
-    Modifier.fillMaxWidth(),
+    modifier.fillMaxWidth(),
     shape = MaterialTheme.shapes.extraLarge,
     color = MaterialTheme.colorScheme.surfaceContainerLow,
   ) {
-    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      if (onOpenRelease == null) {
-        Text(release.version, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-      } else {
-        TextButton(
-          onClick = onOpenRelease,
-          contentPadding = PaddingValues(
-            top = ButtonDefaults.TextButtonContentPadding.calculateTopPadding(),
-            bottom = ButtonDefaults.TextButtonContentPadding.calculateBottomPadding(),
-          ),
-        ) {
-          Text(release.version, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-        }
-      }
+    Column(Modifier.padding(if (compact) 16.dp else 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+      if (latest) Text(websiteString(Res.string.release_latest), style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary)
+      Text(release.version, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
       Text(release.date, color = MaterialTheme.colorScheme.onSurfaceVariant)
       val headings = listOf(
         websiteString(Res.string.release_added),
@@ -217,7 +211,13 @@ internal fun ReleaseCard(
         if (changes.isNotEmpty()) {
           ReleaseHeading(label)
           changes.forEach { change ->
-            Text("• " + change.text.getValue(if (chinese) "zh" else "en"), style = MaterialTheme.typography.bodyLarge)
+            Text(
+              "• " + change.text.getValue(if (chinese) "zh" else "en"),
+              modifier = Modifier.onGloballyPositioned { coordinates ->
+                onChangePosition(release.changes.indexOf(change), coordinates.positionInWindow().y, coordinates.size.height.toFloat())
+              },
+              style = MaterialTheme.typography.bodyLarge,
+            )
           }
         }
       }

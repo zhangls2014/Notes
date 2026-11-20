@@ -12,6 +12,8 @@ const themeSurface = mode => {
   return '#' + value.toLowerCase()
 }
 const initialSurfaces = { light: themeSurface('Light'), dark: themeSurface('Dark') }
+const viewportScript = await readFile(new URL('./device-viewport.js', import.meta.url), 'utf8')
+const viewportScriptPath = `device-viewport-${createHash('sha256').update(viewportScript).digest('hex').slice(0, 20)}.js`
 
 const webRoot = fileURLToPath(new URL('.', import.meta.url))
 const defaultOrigins = {
@@ -197,7 +199,7 @@ function siteHeaders() {
     '/notes.js', '/notes.js.map', '/composeResources/*', '/licenses/*',
     '/web-assets/manifest-v2.json', '/updates/v1/*',
   ]
-  const immutable = ['/assets/*', '/notes-*.js', '/notes-*.js.map', '/*.wasm', '/web-assets/misans-*.otf']
+  const immutable = ['/device-viewport-*.js', '/assets/*', '/notes-*.js', '/notes-*.js.map', '/*.wasm', '/web-assets/misans-*.otf']
   return [
     ...revalidate.map(path => `${path}\n  Cache-Control: no-cache`),
     ...immutable.map(path => `${path}\n  Cache-Control: public, max-age=31536000, immutable`),
@@ -224,6 +226,7 @@ function composeDocument(title, content = '', marker = '') {
   style.backgroundColor = /^[0-9a-f]{6}$/i.test(bg ?? '') ? '#' + bg : dark ? ${JSON.stringify(initialSurfaces.dark)} : ${JSON.stringify(initialSurfaces.light)};
 })();
 </script>
+<script src="/${viewportScriptPath}"></script>
 <script src="/notes.js" defer></script></head>
 <body><main id="notes-app" style="position:fixed;inset:0" data-page-frame="pending"${marker}></main>${content}</body></html>
 `
@@ -232,7 +235,7 @@ function composeDocument(title, content = '', marker = '') {
 export function buildSite(releases, builds, origins = defaultOrigins) {
   const origin = httpsOrigin(origins.siteOrigin)
   validatePublishedBuilds(releases, builds, origins.apkOrigin)
-  const files = new Map()
+  const files = new Map([[viewportScriptPath, viewportScript]])
   const current = new Map()
   for (const entry of builds) {
     const channel = entry.channel === 'android-prd-full' ? 'android-prd-global' : entry.channel

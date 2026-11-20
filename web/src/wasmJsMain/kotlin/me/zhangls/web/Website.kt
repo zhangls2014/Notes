@@ -34,9 +34,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
-import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
-import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.adaptive.HingeInfo
+import androidx.compose.material3.adaptive.Posture
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
@@ -77,6 +78,9 @@ import me.zhangls.theme.icon.Download
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Settings
 import me.zhangls.theme.icon.ViewAgenda
+import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
+import me.zhangls.theme.layout.LocalPaneScaffoldDirective
+import me.zhangls.theme.layout.calculateAppPaneScaffoldDirective
 import me.zhangls.theme.layout.ContentWidth
 import me.zhangls.theme.layout.contentWidth
 import me.zhangls.theme.layout.rememberWindowAdaptiveInfo
@@ -87,7 +91,6 @@ import me.zhangls.web.resources.android
 import me.zhangls.web.resources.app_name
 import me.zhangls.web.resources.appearance
 import me.zhangls.web.resources.back_to_home
-import me.zhangls.web.resources.back_to_versions
 import me.zhangls.web.resources.dark
 import me.zhangls.web.resources.downloads
 import me.zhangls.web.resources.ios
@@ -101,10 +104,6 @@ import me.zhangls.web.resources.notes_icon
 import me.zhangls.web.resources.open_source_notices
 import me.zhangls.web.resources.page_not_found
 import me.zhangls.web.resources.release_notes
-import me.zhangls.web.resources.releases_empty
-import me.zhangls.web.resources.releases_failure
-import me.zhangls.web.resources.releases_loading
-import me.zhangls.web.resources.retry
 import me.zhangls.web.resources.settings
 import me.zhangls.web.resources.system
 import me.zhangls.web.resources.text_large
@@ -143,7 +142,7 @@ private fun routeFromBrowser(): Route {
       else -> Page.entries.firstOrNull { !it.standalone && it.url.trimEnd('/') == path().trimEnd('/') }
         ?: Page.NotFound
     },
-    platform = documentPlatform ?: parameter("platform")?.takeIf { it == "android" || it == "ios" } ?: browserPlatform(),
+    platform = documentPlatform ?: resolveReleasePlatform(devicePlatform(), parameter("platform")),
     version = fragment().takeIf { it.startsWith("#v") }?.drop(2),
   )
 }
@@ -168,6 +167,29 @@ fun main() {
 @Composable
 private fun Website(data: SiteData) {
   var route by remember { mutableStateOf(routeFromBrowser()) }
+  val browserWindow = rememberWindowAdaptiveInfo()
+  val viewport = rememberDeviceViewport()
+  val density = LocalDensity.current.density
+  val windowInfo = remember(browserWindow, viewport, density) {
+    WindowAdaptiveInfo(browserWindow.windowSizeClass, Posture(hingeList = viewport.features.map { feature ->
+      HingeInfo(
+        feature.bounds.rect(density), feature.state == "flat", feature.orientation == "vertical",
+        feature.separating, feature.occlusion == "full",
+      )
+    }))
+  }
+  val paneDirective = remember(windowInfo) {
+    calculateAppPaneScaffoldDirective(WindowAdaptiveInfo(
+      windowInfo.windowSizeClass,
+      Posture(hingeList = windowInfo.windowPosture.hingeList.filter { it.isVertical }),
+    ))
+  }
+  // A host platform hint can arrive after the first browser frame.
+  LaunchedEffect(viewport.devicePlatform) {
+    devicePlatform()?.let { platform ->
+      if (route.page == Page.Releases && route.platform != platform) route = route.copy(platform = platform)
+    }
+  }
   var releaseResult by remember { mutableStateOf<Result<List<Release>>?>(null) }
   var releaseAttempt by remember { mutableStateOf(0) }
   LaunchedEffect(route.page, releaseAttempt) {
@@ -269,7 +291,11 @@ private fun Website(data: SiteData) {
     }
   }
 
-  CompositionLocalProvider(LocalWebsiteStrings provides resolvedStrings) {
+  CompositionLocalProvider(
+    LocalWebsiteStrings provides resolvedStrings,
+    LocalWindowAdaptiveInfo provides windowInfo,
+    LocalPaneScaffoldDirective provides paneDirective,
+  ) {
     ComposeAppTheme(darkTheme = dark, fontScale = scale, fontFamily = FontFamily(Font(Res.font.misans_regular))) {
       val base = MaterialTheme.colorScheme
       val scheme = base.copy(
@@ -354,33 +380,27 @@ private fun Website(data: SiteData) {
                   NoticeDocument(resolvedStrings, route.platform)
                   return@siteColumn
                 }
-                val details = releaseResult?.getOrNull().orEmpty().filter { release -> release.changes.any { route.platform in it.platforms } }
-                val selected = details.firstOrNull { it.version == route.version } ?: details.firstOrNull().takeIf { wide }
-                val detailRoute = selected?.let { route.copy(version = it.version) }
-                val backStack = if (route.page == Page.Releases && detailRoute != null) {
-                  listOf(route.copy(version = null), detailRoute)
-                } else {
-                  listOf(route.copy(version = null))
+                if (route.page == Page.Releases) {
+                  ReleasesPage(
+                    result = releaseResult,
+                    platform = route.platform,
+                    requestedVersion = route.version,
+                    chinese = chinese,
+                    embedded = embedded,
+                    onSelectVersion = { navigate(route.copy(version = it)) },
+                    onRetry = { releaseResult = null; releaseAttempt++ },
+                  )
+                  return@siteColumn
                 }
-                val directive = calculatePaneScaffoldDirective(rememberWindowAdaptiveInfo()).let {
-                  it.copy(maxHorizontalPartitions = if (wide) 2 else 1)
-                }
-                val strategy = rememberListDetailSceneStrategy<Route>(directive = directive)
+                val backStack = listOf(route.copy(version = null))
                 val paneIsWide by rememberUpdatedState(wide)
                 val useCompactHeading by rememberUpdatedState(compactHeading)
-                val useChinese by rememberUpdatedState(chinese)
                 NavDisplay(
                   backStack = backStack,
                   modifier = siteWidth.fillMaxSize(),
                   onBack = { if (route.page == Page.Releases) navigate(route.copy(version = null)) },
-                  sceneStrategies = listOf(strategy),
                   entryProvider = { entry ->
-                    val metadata = when {
-                      entry.page != Page.Releases -> emptyMap()
-                      entry.version == null -> ListDetailSceneStrategy.listPane()
-                      else -> ListDetailSceneStrategy.detailPane()
-                    }
-                    NavEntry(entry, metadata = metadata) {
+                    NavEntry(entry) {
                       Column(
                         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 20.dp, bottom = 48.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -398,44 +418,7 @@ private fun Website(data: SiteData) {
                               Text(websiteString(Res.string.back_to_home))
                             }
                           }
-                          Page.Releases -> {
-                            val result = releaseResult
-                            val releases = result?.getOrNull().orEmpty()
-                            val platformReleases = remember(releases, entry.platform) {
-                              releases.filter { release -> release.changes.any { entry.platform in it.platforms } }
-                            }
-                            when {
-                              result == null -> Text(websiteString(Res.string.releases_loading))
-                              result.isFailure -> {
-                                Text(websiteString(Res.string.releases_failure))
-                                TextButton(onClick = {
-                                  releaseResult = null
-                                  releaseAttempt++
-                                }) {
-                                  Text(websiteString(Res.string.retry))
-                                }
-                              }
-                              entry.version != null -> {
-                                if (!paneIsWide) TextButton(onClick = { navigate(route.copy(version = null)) }) {
-                                  Text(websiteString(Res.string.back_to_versions))
-                                }
-                                releases.firstOrNull { it.version == entry.version }?.let { release ->
-                                  ReleaseCard(release, entry.platform, useChinese)
-                                }
-                              }
-                              platformReleases.isEmpty() -> Text(websiteString(Res.string.releases_empty))
-                              paneIsWide -> platformReleases.forEach { release ->
-                                TextButton(onClick = { navigate(route.copy(version = release.version)) }) {
-                                  Text(release.version + "  ·  " + release.date)
-                                }
-                              }
-                              else -> platformReleases.forEach { release ->
-                                ReleaseCard(release, entry.platform, useChinese) {
-                                  navigate(route.copy(version = release.version))
-                                }
-                              }
-                            }
-                          }
+                          Page.Releases -> Unit // Rendered by ReleasesPage above.
                         }
                       }
                     }
@@ -497,7 +480,20 @@ private fun WebsiteNavigation(
   val goToDownloads = { navigate(Route(Page.Download, route.platform)) }
   val downloadLabel = websiteString(Res.string.downloads)
   val releaseMenu: @Composable () -> Unit = {
-    PlatformMenu(
+    val lockedPlatform = devicePlatform()
+    if (lockedPlatform != null) {
+      if (wide) {
+        TopNavigationButton(route.page == Page.Releases, { navigate(Route(Page.Releases, lockedPlatform)) }) {
+          Text(websiteString(Res.string.release_notes))
+        }
+      } else {
+        NavigationRailItem(
+          selected = route.page == Page.Releases,
+          onClick = { navigate(Route(Page.Releases, lockedPlatform)) },
+          icon = { Icon(Icons.Rounded.ViewAgenda, websiteString(Res.string.release_notes)) },
+        )
+      }
+    } else PlatformMenu(
       websiteString(Res.string.release_notes),
       route.platform.takeIf { route.page == Page.Releases },
       railIcon = if (wide) null else Icons.Rounded.ViewAgenda,

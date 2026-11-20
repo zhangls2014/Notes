@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Device Viewport Protocol v1",
+  "description": "Host wire snapshot. Runtime additionally validates ordered bounds, non-point geometry and document/sequence freshness. Unknown feature enum values are skipped by forward-compatible receivers.",
+  "type": "object",
+  "required": [
+    "protocol",
+    "version",
+    "documentId",
+    "sequence",
+    "type",
+    "coordinateSpace",
+    "availability",
+    "features"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "device-viewport"
+    },
+    "version": {
+      "const": 1
+    },
+    "documentId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "type": {
+      "const": "snapshot"
+    },
+    "coordinateSpace": {
+      "const": "webview-normalized"
+    },
+    "availability": {
+      "enum": [
+        "available",
+        "unavailable"
+      ]
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/feature"
+      },
+      "maxItems": 64
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "availability": {
+            "const": "unavailable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "features": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "bounds": {
+      "type": "object",
+      "required": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "properties": {
+        "left": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "top": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "right": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "bottom": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "required": [
+        "kind",
+        "bounds",
+        "orientation",
+        "state",
+        "separating",
+        "occlusion"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "fold",
+            "hinge",
+            "unknown"
+          ]
+        },
+        "bounds": {
+          "$ref": "#/$defs/bounds"
+        },
+        "orientation": {
+          "enum": [
+            "vertical",
+            "horizontal"
+          ]
+        },
+        "state": {
+          "enum": [
+            "flat",
+            "half-opened",
+            "unknown"
+          ]
+        },
+        "separating": {
+          "type": "boolean"
+        },
+        "occlusion": {
+          "enum": [
+            "none",
+            "full",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "cssBounds": {
+      "type": "object",
+      "required": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "properties": {
+        "left": {
+          "type": "number"
+        },
+        "top": {
+          "type": "number"
+        },
+        "right": {
+          "type": "number"
+        },
+        "bottom": {
+          "type": "number"
+        }
+      }
+    },
+    "cssFeature": {
+      "type": "object",
+      "required": [
+        "kind",
+        "bounds",
+        "orientation",
+        "state",
+        "separating",
+        "occlusion"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "fold",
+            "hinge",
+            "unknown"
+          ]
+        },
+        "bounds": {
+          "$ref": "#/$defs/cssBounds"
+        },
+        "orientation": {
+          "enum": [
+            "vertical",
+            "horizontal"
+          ]
+        },
+        "state": {
+          "enum": [
+            "flat",
+            "half-opened",
+            "unknown"
+          ]
+        },
+        "separating": {
+          "type": "boolean"
+        },
+        "occlusion": {
+          "enum": [
+            "none",
+            "full",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "cssSnapshot": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "version",
+        "documentId",
+        "sequence",
+        "coordinateSpace",
+        "availability",
+        "features",
+        "source",
+        "viewport"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "device-viewport"
+        },
+        "version": {
+          "const": 1
+        },
+        "documentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coordinateSpace": {
+          "const": "layout-viewport-css-px"
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cssFeature"
+          }
+        },
+        "source": {
+          "enum": [
+            "host",
+            "browser",
+            "fallback"
+          ]
+        },
+        "viewport": {
+          "type": "object",
+          "required": [
+            "width",
+            "height"
+          ],
+          "properties": {
+            "width": {
+              "type": "number",
+              "minimum": 0
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

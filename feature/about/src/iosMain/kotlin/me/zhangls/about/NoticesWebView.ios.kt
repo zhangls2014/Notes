@@ -3,14 +3,19 @@ package me.zhangls.about
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.Job
@@ -21,9 +26,13 @@ import platform.CoreGraphics.CGPointMake
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
+import platform.Foundation.NSRunLoop
+import platform.Foundation.NSRunLoopCommonModes
+import platform.Foundation.NSSelectorFromString
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLErrorCancelled
 import platform.Foundation.NSURLRequest
+import platform.QuartzCore.CADisplayLink
 import platform.UIKit.UIColor
 import platform.UIKit.UIEdgeInsetsMake
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
@@ -63,6 +72,12 @@ internal actual fun NoticesWebView(
     )
   }
   val scope = rememberCoroutineScope()
+  val geometrySource = rememberDeviceViewportGeometrySource(enabled = !projectPage)
+  val retained = resourceOwner?.resource as? IosNoticesWebResource
+  val publisher = remember(state) { retained?.publisher ?: DeviceViewportPublisher(url) }
+  var bridgeView by remember { mutableStateOf<WKWebView?>(null) }
+  BindIosDeviceViewport(bridgeView, projectPage, state, publisher, geometrySource)
+
   val openDetail = rememberUpdatedState(onOpenDetail)
   val delegate = remember(state) {
     object : NSObject(), WKNavigationDelegateProtocol {
@@ -73,6 +88,7 @@ internal actual fun NoticesWebView(
       @ObjCSignatureOverride
       override fun webView(webView: WKWebView, didStartProvisionalNavigation: WKNavigation?) {
         cancelFrameWait()
+        publisher.unbind()
         webView.hidden = true
         state.loading = true
       }
@@ -82,6 +98,9 @@ internal actual fun NoticesWebView(
         if (state.failed) return
         if (frameWait != null) return
         val generation = pageGeneration
+        if (!projectPage && publisher.trusted(state.currentUrl)) {
+          webView.bindDeviceViewport(publisher, geometrySource) { generation == pageGeneration && !state.failed }
+        }
         frameWait = scope.launch {
           val ready = projectPage || awaitWebPageFrame {
             suspendCancellableCoroutine { continuation ->
@@ -177,14 +196,14 @@ internal actual fun NoticesWebView(
       }
     }
   }
-  val retained = resourceOwner?.resource as? IosNoticesWebResource
   val assetBridge = remember(state) { retained?.bridge ?: if (projectPage) null else WebAssetBridge(url) }
   UIKitView(
-    modifier = modifier.background(MaterialTheme.colorScheme.surface),
+    modifier = modifier.background(MaterialTheme.colorScheme.surface).deviceViewportGeometry(geometrySource),
     factory = {
       val configuration = WKWebViewConfiguration()
       if (retained == null) assetBridge?.install(configuration.userContentController)
       (retained?.view ?: WKWebView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = configuration)).apply {
+        bridgeView = this
         hidden = state.loading
         opaque = false
         applyNoticesBackground(surfaceColor)
@@ -196,7 +215,7 @@ internal actual fun NoticesWebView(
         val requestUrl = NSURL.URLWithString(startUrl)
         val initialLink = noticesLink(startUrl, url, projectPage, allowSameOriginNavigation)
         if (retained == null) {
-          resourceOwner?.resource = IosNoticesWebResource(this, assetBridge)
+          resourceOwner?.resource = IosNoticesWebResource(this, assetBridge, publisher)
           if (requestUrl != null && initialLink == NoticesLink.InPage) {
             loadRequest(NSURLRequest(uRL = requestUrl))
           } else {
@@ -231,10 +250,75 @@ private fun WKWebView.applyNoticesBackground(color: UIColor) {
 
 
 @OptIn(ExperimentalForeignApi::class)
-private class IosNoticesWebResource(val view: WKWebView, val bridge: WebAssetBridge?) : NoticesWebResource {
+private class IosNoticesWebResource(
+  val view: WKWebView,
+  val bridge: WebAssetBridge?,
+  val publisher: DeviceViewportPublisher,
+) : NoticesWebResource {
   override fun release() {
     view.navigationDelegate = null
     view.stopLoading()
     bridge?.close(view.configuration.userContentController)
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
+private class DeviceViewportFrameTarget(private val onFrame: () -> Unit) : NSObject() {
+  @ObjCAction
+  fun frame() {
+    onFrame()
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+@Composable
+private fun BindIosDeviceViewport(
+  bridgeView: WKWebView?,
+  projectPage: Boolean,
+  state: NoticesWebState,
+  publisher: DeviceViewportPublisher,
+  geometrySource: DeviceViewportGeometrySource?,
+) {
+  DisposableEffect(bridgeView, projectPage) {
+    val view = bridgeView
+    val target = DeviceViewportFrameTarget {
+      val ready = !state.loading && !state.failed
+      if (view != null && ready && geometrySource != null) {
+        val geometry = geometrySource.snapshot()
+        publisher.publish(state.currentUrl, geometry.features, geometry.availability, geometry.key)?.let {
+          view.evaluateJavaScript(it, null)
+        }
+      }
+    }
+    val link = if (!projectPage && view != null) {
+      CADisplayLink.displayLinkWithTarget(target, NSSelectorFromString("frame"))
+        .apply { addToRunLoop(NSRunLoop.mainRunLoop, NSRunLoopCommonModes) }
+    } else {
+      null
+    }
+    onDispose {
+      link?.invalidate()
+      if (!projectPage) publisher.detachScript()?.let { view?.evaluateJavaScript(it, null) }
+      publisher.reset()
+    }
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun WKWebView.bindDeviceViewport(
+  publisher: DeviceViewportPublisher,
+  source: DeviceViewportGeometrySource?,
+  isCurrent: () -> Boolean,
+) {
+  evaluateJavaScript(publisher.documentScript()) { value, error ->
+    if (isCurrent() && error == null) {
+      (value as? String)?.let { id ->
+        publisher.bindDocument(id)
+        val geometry = source?.snapshot() ?: DeviceViewportGeometry()
+        publisher.publish(URL?.absoluteString.orEmpty(), geometry.features, geometry.availability, geometry.key)?.let {
+          evaluateJavaScript(it, null)
+        }
+      }
+    }
   }
 }

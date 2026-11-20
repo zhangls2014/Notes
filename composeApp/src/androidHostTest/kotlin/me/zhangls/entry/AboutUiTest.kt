@@ -671,9 +671,14 @@ class AboutUiTest(private val scenario: Scenario) {
     val visible = mutableStateOf(true)
     compose.setContent {
       rootView = LocalView.current.rootView
-      ComposeAppTheme {
-        if (visible.value) {
-          about.OnlineNoticesScreen(detail = null, onBack = {}, onOpenDetail = {})
+      ProvideWindowAdaptiveInfo(
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(scenario.width, scenario.height),
+        Posture(),
+      ) {
+        ComposeAppTheme {
+          if (visible.value) {
+            about.OnlineNoticesScreen(detail = null, onBack = {}, onOpenDetail = {})
+          }
         }
       }
     }
@@ -690,8 +695,13 @@ class AboutUiTest(private val scenario: Scenario) {
     val detail = mutableStateOf<OnlineNoticeDetailDestination?>(null)
     compose.setContent {
       rootView = LocalView.current.rootView
-      ComposeAppTheme {
-        about.OnlineNoticesScreen(detail = detail.value, onBack = {}, onOpenDetail = {})
+      ProvideWindowAdaptiveInfo(
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(scenario.width, scenario.height),
+        Posture(),
+      ) {
+        ComposeAppTheme {
+          about.OnlineNoticesScreen(detail = detail.value, onBack = {}, onOpenDetail = {})
+        }
       }
     }
     for (destination in listOf(

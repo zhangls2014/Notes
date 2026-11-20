@@ -9,6 +9,7 @@ plugins {
 kotlin {
   wasmJs {
     browser {
+      testTask { useKarma { useChromeHeadless() } }
       commonWebpackConfig {
         outputFileName = "notes.js"
       }
@@ -16,6 +17,7 @@ kotlin {
     binaries.executable()
   }
   sourceSets {
+    wasmJsTest.dependencies { implementation(kmp.kotlin.test) }
     wasmJsMain.dependencies {
       implementation(projects.core.model)
       implementation(projects.core.theme)

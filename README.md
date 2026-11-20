@@ -60,7 +60,7 @@ Notes/
 | Gradle | 9.7.0 |
 | JDK toolchain / JVM target | 25 / 25（分别维护） |
 | Android Gradle Plugin | 9.3.1 |
-| Android SDK | compile 37.0，target 37，min 28 |
+| Android SDK | compile 37.2，target 37，min 28 |
 | Compose Multiplatform | 1.12.2 |
 | Material 3 | 1.12.0-alpha03，Expressive 主题 |
 | Material 3 Adaptive | 1.3.0 |
@@ -83,7 +83,7 @@ Notes/
 
 - 支持当前 KMP/Compose 版本的 Android Studio
 - 可启动 Gradle 的 JDK（例如 Android Studio 的 JBR 21）；编译 toolchain JDK 25 由 Gradle 自动准备
-- Android SDK Platform 37.0 与 Build Tools 37.0.0
+- Android SDK Platform 37.2 与 Build Tools 37.0.0
 - Xcode 26.4（当前 Kotlin 官方兼容表所列版本；本机 Xcode 27 不作为该范围的验收环境）
 - Android 9（API 28）或更高版本的设备/模拟器
 

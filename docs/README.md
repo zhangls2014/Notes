@@ -23,6 +23,7 @@
 - [根 README.md](../README.md)：面向开发者的项目概览、环境要求和快速开始。
 - [依赖与工具链升级规范](dependency-upgrades.md)：官方范围上限、正式版优先、版本兼容选择、验证和授权边界。
 
+- [网页视口协议](web-device-viewport.md)：通用宿主几何快照、坐标、实时订阅及接入；机器约束放在同级 `web-device-viewport.schema.json`，不引入独立目录。
 - [应用版本与更新记录](app-releases.md)：版本递增、更新记录与发布维护流程。
 - [网站部署与应用发布](notes-web-deployment.md)：Pages、下载及声明归档的操作步骤。
 - [认证服务部署与配置清单](notes-auth-deployment.md)：PostgreSQL、SMTP、Nginx、Passkey 关联与上线验收。
@@ -36,6 +37,8 @@ docs/
 ├── README.md              # 文档入口与保留规则
 ├── android-app-identity.md # Android 启动图标、应用名称及资源生成
 ├── app-releases.md        # 应用版本与离线更新记录规则
+├── web-device-viewport.md # 通用网页视口协议与接入
+├── web-device-viewport.schema.json # 宿主载荷与网页快照机器约束
 ├── architecture.md        # 当前模块职责、依赖边界与运行时架构
 ├── dependency-upgrades.md # 长期依赖与工具链升级规范
 ├── ios-app-identity.md     # iOS 启动图标、应用名称及资源生成

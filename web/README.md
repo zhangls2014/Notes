@@ -31,7 +31,7 @@ Kotlin/Wasm browser support.
 From the repository root, run:
 
 ```sh
-node --test web/build.test.mjs
+node --test web/build.test.mjs web/device-viewport.test.mjs
 ./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite
 python3 web/preview.py --port 8842
 ```
@@ -51,3 +51,20 @@ MiSans download](https://hyperos.mi.com/font/details/sc). The Settings menu
 credits Xiaomi MiSans and links to the bundled [font license](src/wasmJsMain/resources/licenses/misans-license.pdf).
 Platform icons come from [Material Symbols Rounded](https://github.com/google/material-design-icons)
 and [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/apple.svg).
+
+Release content uses continuous reading in narrow content windows and a version list
+with detail on larger windows. Mobile platforms are fixed to the host platform or
+browser device platform, including iPadOS. The site navigation and settings keep
+their existing layout. The standalone `device-viewport.js` is published at a
+content-versioned URL before Wasm; other pages may use it without Compose. Wire
+format, coordinate conversion and live updates are defined in
+[Device Viewport Protocol](../docs/web-device-viewport.md).
+
+Browser policy tests run with `:web:wasmJsBrowserTest` (Chrome Headless; set
+`CHROME_BIN` when needed). They do not replace native WebView or device acceptance.
+
+After `buildSite`, start the local preview above and run
+`CHROME_BIN=<chrome-executable> node --test web/release-browser.test.mjs`.
+`NOTES_PREVIEW_URL` overrides the default local preview URL. This browser check
+records candidates in `web/build/release-candidates/` and verifies reading anchors,
+browser back, mobile platforms and live fold changes against the built website.

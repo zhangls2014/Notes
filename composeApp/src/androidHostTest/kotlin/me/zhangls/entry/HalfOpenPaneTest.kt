@@ -2,6 +2,7 @@ package me.zhangls.entry
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.HingeInfo
 import androidx.compose.material3.adaptive.Posture
@@ -14,6 +15,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.window.core.layout.WindowSizeClass
@@ -24,6 +26,8 @@ import me.zhangls.email.api.EmailListScene
 import me.zhangls.entry.panes.emailPaneMetadata
 import me.zhangls.entry.panes.favoritesEmailListMetadata
 import me.zhangls.entry.panes.homeEmailListMetadata
+import me.zhangls.entry.panes.noticesListMetadata
+import me.zhangls.entry.panes.noticesDetailMetadata
 import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
@@ -48,15 +52,50 @@ class HalfOpenPaneTest {
 
   @Test fun homeBookKeepsItsPhysicalPartitions() = assertSplit(vertical = true)
 
-  @Test fun homeTabletopKeepsItsSplit() = assertSplit(vertical = false)
+  @Test fun homeTabletopExpandsListUntilDetailSelected() = assertSplit(vertical = false)
 
   @Test fun favoritesBookKeepsItsPhysicalPartitions() =
     assertSplit(vertical = true, emailScene = EmailListScene.Favorites)
 
-  @Test fun favoritesTabletopKeepsItsSplit() =
+  @Test fun favoritesTabletopExpandsListUntilDetailSelected() =
     assertSplit(vertical = false, emailScene = EmailListScene.Favorites)
 
-  private fun assertSplit(vertical: Boolean, emailScene: EmailListScene = EmailListScene.Home) {
+  @Test fun noticesTabletopExpandsListUntilDetailSelected() = assertSplit(vertical = false, notices = true)
+
+  @Test fun narrowTabletopDetailUsesFullHeight() {
+    var detailBounds = Rect.Zero
+    compose.setContent {
+      ProvideWindowAdaptiveInfo(
+        WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(400, 1000),
+        Posture(true, listOf(HingeInfo(Rect(0f, 495f, 400f, 505f), false, false, true, false))),
+      ) {
+        ComposeAppTheme {
+          Box(Modifier.requiredSize(400.dp, 1000.dp)) {
+            DeviceCornerNavDisplay(
+              entries = listOf(
+                NavEntry<NavKey>(HomeDestination, metadata = noticesListMetadata) {},
+                NavEntry<NavKey>(EmailDetailDestination(1L), metadata = noticesDetailMetadata) {
+                  Box(Modifier.fillMaxSize().onGloballyPositioned { detailBounds = it.boundsInRoot() })
+                },
+              ).toImmutableList(),
+              sceneStrategies = rememberAppSceneStrategies<NavKey>().toImmutableList(),
+              onBack = {},
+            )
+          }
+        }
+      }
+    }
+    compose.runOnIdle {
+      assertEquals(400f, detailBounds.width)
+      assertEquals(1000f, detailBounds.height)
+    }
+  }
+
+  private fun assertSplit(
+    vertical: Boolean,
+    emailScene: EmailListScene = EmailListScene.Home,
+    notices: Boolean = false,
+  ) {
     val selected = mutableStateOf(false)
     val closing = mutableStateOf(false)
     val flat = mutableStateOf(false)
@@ -73,7 +112,7 @@ class HalfOpenPaneTest {
             emailScene == EmailListScene.Favorites -> FavoritesDestination
             else -> HomeDestination
           }
-          val detail = detailEntry(emailScene) { detailX = it }
+          val detail = detailEntry(emailScene, notices) { detailX = it }
           val metadata = when (list) {
             FavoritesDestination -> favoritesEmailListMetadata
             else -> homeEmailListMetadata
@@ -81,7 +120,7 @@ class HalfOpenPaneTest {
           DeviceCornerNavDisplay(
             entries = buildList {
               add(
-                NavEntry(list, metadata = metadata) {
+                NavEntry(list, metadata = if (notices) noticesListMetadata else metadata) {
                   Box(Modifier.fillMaxSize().onGloballyPositioned { listBounds = it.boundsInRoot() })
                 },
               )
@@ -95,21 +134,23 @@ class HalfOpenPaneTest {
     }
     compose.runOnIdle {
       assertTrue("Half-open list must occupy one physical partition: $listBounds", listBounds.width > 0f)
-      assertTrue("Half-open must retain a split: $listBounds", listBounds.width < 1000f || listBounds.height < 1000f)
+      assertEquals("Horizontal hinge must not split vertically", 1000f, listBounds.height)
+      if (vertical) assertTrue(listBounds.width < 1000f) else assertEquals(1000f, listBounds.width)
     }
-    compose.onAllNodesWithText("Select an email to read").assertCountEquals(1)
+    compose.onAllNodesWithText("Select an email to read").assertCountEquals(if (vertical) 1 else 0)
     val partition = listBounds
-    compose.runOnIdle { assertEquals(if (vertical) 410f else 360f, partition.width) }
+    compose.runOnIdle { assertEquals(if (vertical) 410f else 1000f, partition.width) }
     assertDetailMoves({ selected.value = true }) { detailX }
     compose.onAllNodesWithText("Select an email to read").assertCountEquals(0)
     compose.runOnIdle {
-      assertEquals(partition, listBounds)
+      assertEquals(if (vertical) partition else Rect(0f, 0f, 360f, 1000f), listBounds)
       assertEquals(if (vertical) 420f else 360f, detailX)
     }
+    val selectedPartition = listBounds
     compose.runOnIdle { flat.value = true }
-    compose.runOnIdle { assertEquals(partition, listBounds) }
+    compose.runOnIdle { assertEquals(selectedPartition, listBounds) }
     compose.runOnIdle { flat.value = false }
-    compose.runOnIdle { assertEquals(partition, listBounds) }
+    compose.runOnIdle { assertEquals(selectedPartition, listBounds) }
     assertDetailMoves({ closing.value = true }) { detailX }
     compose.runOnIdle { assertEquals(partition, listBounds) }
     compose.runOnIdle {
@@ -117,12 +158,12 @@ class HalfOpenPaneTest {
       closing.value = false
     }
     compose.runOnIdle { assertEquals(partition, listBounds) }
-    compose.onAllNodesWithText("Select an email to read").assertCountEquals(1)
+    compose.onAllNodesWithText("Select an email to read").assertCountEquals(if (vertical) 1 else 0)
   }
 
-  private fun detailEntry(emailScene: EmailListScene, onPosition: (Float) -> Unit): NavEntry<NavKey> {
+  private fun detailEntry(emailScene: EmailListScene, notices: Boolean, onPosition: (Float) -> Unit): NavEntry<NavKey> {
     val email = EmailDetailDestination(1L, emailScene)
-    return NavEntry(email, metadata = emailPaneMetadata(email)) {
+    return NavEntry(email, metadata = if (notices) noticesDetailMetadata else emailPaneMetadata(email)) {
       Box(Modifier.fillMaxSize().onGloballyPositioned { onPosition(it.positionInRoot().x) })
     }
   }

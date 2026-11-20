@@ -59,3 +59,10 @@ iOS 选择 `WhenUnlockedThisDeviceOnly` 并关闭同步；将来需要锁屏后�
 ## 原始证据追溯
 
 以上摘要来自清理前提交 `4c33e11d07ca9c233442608ad833382440aeb6cd` 的设计、计划和审计，不是本次重新运行的验证。原始文件清单和读取命令见 [历史追溯](README.md#历史追溯)。原文包含已经被取代的方案和状态，应结合后续记录阅读。
+
+
+## Android compile SDK 37.2（2026-11-20）
+
+用户明确指定使用本机已安装的正式 Android SDK 37.2。版本目录维护 API 主版本 37、minorApiLevel 2；target SDK 37、min SDK 28、Build Tools 37.0.0 与 AGP 9.3.1 保持原值。独立应用和 KMP 约定插件已共同读取这两个版本目录字段，不复制配置。
+
+[AGP 9.3 官方兼容表](https://developer.android.com/build/releases/agp-9-3-0-release-notes)按主 API 37 声明支持，未单独列出 37.2 的最高测试范围；[官方 DSL](https://developer.android.com/build)通过 minorApiLevel 指定次版本。本次不据此推导其他工具的升级上限。实际 APK 构建、相关 Android 宿主回归与模拟器覆盖安装通过，详见[验收记录](testing/pending-acceptance.md#更新日志自适应与视口协议2026-11-20)。

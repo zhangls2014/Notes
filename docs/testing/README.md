@@ -75,6 +75,14 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 运行 `python3 -m unittest discover -s tools/open-source -p 'test_*.py'` 和 `node --test web/build.test.mjs` 检查清单、Compose 启动文档及声明数据，再运行 `:web:buildSite`。在支持 Wasm 的浏览器检查官网平台切换、详情直达、参数保留和返回，并同条件对比宽屏与窄屏的列表和详情。双端仍需设备验收实际 WebView 展示、许可证和 NOTICE 锚点、项目链接、关闭返回及加载首帧，见[待验收清单](pending-acceptance.md#系统应用内浏览器)。
 
+### 更新日志与视口协议回归
+
+协议、坐标和来源切换运行 `node --test web/device-viewport.test.mjs web/build.test.mjs`。网页策略运行 `CHROME_BIN=<chrome-executable> ./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:wasmJsBrowserTest`，再运行 `:web:buildSite`。
+
+先以 `python3 web/preview.py --port 8842` 启动构建后的本机站点，再运行 `CHROME_BIN=<chrome-executable> node --test web/release-browser.test.mjs`。可用 `NOTES_PREVIEW_URL` 指定其他本机预览地址。该用例检查真实 Canvas 页面的 Android/iPadOS 平台锁定、窗口切换的段落锚点、目录选择与浏览器返回、动态折痕清除及运行时异常，并生成 `web/build/release-candidates/` 下的候选截图；临时 Chrome profile 放在系统临时目录，不修改日常浏览器配置。截图不自动更新正式基线。
+
+原生源集和共享几何分别运行 `:feature:about:iosSimulatorArm64Test`、`:core:theme:iosSimulatorArm64Test`；组合根的实际 Entry 回归运行 `:composeApp:iosSimulatorArm64Test`。Android 使用对应模块 `testAndroidHostTest`，不能以 iOS 编译替代 Android 验证。原生窗口到 WebView 的变换、连续折叠和首帧时序仍需真实设备验收。协议接入见[网页视口协议](../web-device-viewport.md)。
+
 ## 验证证据与交付记录
 
 - 记录本次实际执行的命令与结果，分别列出实际执行、通过、跳过、失败／错误数量和未完成的设备验收。参数化配置总数包含跳过项时，不把总数当作通过数；任务为 `UP-TO-DATE` 或使用缓存时注明，没有重新执行测试用例。

@@ -26,11 +26,12 @@ import me.zhangls.theme.layout.LocalWindowAdaptiveInfo
 
 /** Shared partition and sizing inputs for the root list–detail scenes. */
 internal class ListDetailPaneController(
-  val expandedDirective: PaneScaffoldDirective,
+  expandedDirective: PaneScaffoldDirective,
   val hasHinge: Boolean,
   val keepPhysicalSplit: Boolean,
   hasHorizontalHinge: Boolean,
 ) {
+  val expandedDirective = expandedDirective.copy(maxVerticalPartitions = 1)
   val canSplitHorizontally = expandedDirective.maxHorizontalPartitions > 1
 
   // A tall, narrow window alone should still use the whole-page back animation.
@@ -52,7 +53,7 @@ internal fun rememberListDetailPaneController(): ListDetailPaneController {
     ListDetailPaneController(
       expandedDirective = directive,
       hasHinge = hinges.isNotEmpty(),
-      keepPhysicalSplit = hinges.any { !it.isFlat },
+      keepPhysicalSplit = hinges.any { it.isVertical && !it.isFlat },
       hasHorizontalHinge = hinges.any { !it.isVertical },
     )
   }

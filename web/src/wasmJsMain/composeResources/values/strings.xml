@@ -41,4 +41,7 @@
   <string name="text_standard">Standard</string>
   <string name="view_open_source_notices">View open-source notices</string>
   <string name="view_release_notes">Release notes</string>
+  <string name="release_history">Version history</string>
+  <string name="release_latest">Latest release</string>
+  <string name="release_published_only">Published releases</string>
 </resources>

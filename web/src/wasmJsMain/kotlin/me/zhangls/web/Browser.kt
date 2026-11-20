@@ -22,8 +22,6 @@ internal fun fragment(): String = js("location.hash")
 internal fun parameter(name: String): String? = js("new URLSearchParams(location.search).get(name)")
 internal fun browserLanguage(): String = js("navigator.language")
 internal fun browserDark(): Boolean = js("matchMedia('(prefers-color-scheme: dark)').matches")
-internal fun browserPlatform(): String =
-  js("/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : 'android'")
 
 internal fun preference(name: String): String? =
   js("(() => { try { return localStorage.getItem('notes.' + name) } catch { return null } })()")
@@ -88,4 +86,10 @@ internal fun reportPageDrawn(): Unit = js("""{
 internal fun updateDocumentTheme(dark: Boolean, background: String): Unit = js("""{
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
   document.documentElement.style.backgroundColor = background;
+}""")
+
+internal fun readReleasePosition(): String? = js("history.state?.notesReleasePosition ?? null")
+
+internal fun saveReleasePosition(value: String): Unit = js("""{
+  history.replaceState({...history.state, notesReleasePosition: value}, '');
 }""")

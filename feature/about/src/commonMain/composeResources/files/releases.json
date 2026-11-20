@@ -4,6 +4,30 @@
     "date": null,
     "changes": [
       {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Release history buttons use the same shape for the selection background and press ripple.",
+          "zh": "修复更新日志版本历史按钮的按压水波纹与选中背景形状不一致。"
+        }
+      },
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Horizontal hinges no longer reserve an empty detail pane before selection. Mail and open-source notice layouts use the full window for lists and only split side by side when space allows.",
+          "zh": "水平铰链下未选择详情时，邮件与开源声明列表使用完整窗口，不再预留空白详情窗格；仅在空间足够时左右分栏，不进行上下分栏。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Release history adapts to the available window and fold geometry, keeps the reading position when layouts change, and only shows releases for the current mobile platform.",
+          "zh": "更新日志根据可用窗口与折痕几何调整布局，布局变化时保留阅读位置，移动端仅展示自身平台的已发布记录。"
+        }
+      },
+      {
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
