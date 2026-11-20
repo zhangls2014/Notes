@@ -9,6 +9,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -49,6 +52,29 @@ class EmailLoadStatusTest {
     body = "Already loaded",
     createdAt = "09:30",
   )
+
+  @Test
+  fun emptyLoadingShowsOnlyOneCenteredIndicator() {
+    launchList(emptyList(), LoadStates(LoadState.Loading, idle, idle))
+    val indicators = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+    indicators.assertCountEquals(1)
+    val indicator = indicators[0].fetchSemanticsNode().boundsInRoot
+    val viewport = compose.onNodeWithTag("viewport").fetchSemanticsNode().boundsInRoot
+    assertEquals(viewport.center.x, indicator.center.x, 1f)
+    assertEquals(viewport.center.y, indicator.center.y, 1f)
+  }
+
+  @Test
+  fun refreshingLoadedMailShowsOnlyOneTopIndicator() {
+    launchList(listOf(email), LoadStates(LoadState.Loading, idle, idle))
+    compose.onNodeWithText("Existing mail").assertIsDisplayed()
+    val indicators = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+    indicators.assertCountEquals(1)
+    val indicator = indicators[0].fetchSemanticsNode().boundsInRoot
+    val viewport = compose.onNodeWithTag("viewport").fetchSemanticsNode().boundsInRoot
+    assertEquals(viewport.center.x, indicator.center.x, 1f)
+    assertTrue(indicator.center.y < viewport.height / 3)
+  }
 
   @Test
   fun initialFailureIsCenteredInContentViewport() {

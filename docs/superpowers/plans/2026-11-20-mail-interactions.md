@@ -26,3 +26,17 @@
 验证入口：按序执行 ./gradlew :feature:email:testAndroidHostTest :core:data:testAndroidHostTest :core:theme:testAndroidHostTest :feature:about:testAndroidHostTest，组合根筛选 HalfOpenPaneTest 与邮件相关测试；构建执行 :androidApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64。构建使用命令级 JAVA_HOME，不改系统配置。
 
 未采集候选截图、未更新正式基线、未修改模拟器显示设置。双端设备、大字号与连续动画仍待验收，见[待验收清单](../../testing/pending-acceptance.md#邮件刷新与详情布局2026-11-20)。
+
+## 加载反馈调整（2026-11-20）
+
+维护者确认本次仅实施加载反馈优化，卡片收藏图标与功能暂缓调整。
+
+范围：复用 email Feature 的 Paging 状态。无数据加载只显示中央动画；已有邮件刷新保留内容，仅显示顶部刷新指示器；空列表仍可下拉刷新。保持列表尺寸、留白、卡片交互、安全区、分页与失败重试行为，不更新正式截图基线。
+
+实施与验证：
+
+1. 在 EmailLoadStatusTest 添加无数据加载单一中央指示器、有数据刷新单一顶部指示器的行为断言，先验证旧实现失败。
+2. 在 EmailPagedList 按有无邮件控制顶部指示器，保留原中央占位和下拉手势；更新未发布日志。
+3. 运行 email/About 宿主测试、Android 整包构建与 iOS 编译，记录实际结果；设备视觉验收单独报告。
+
+本次验证：新增的无数据单一指示器断言在旧实现下失败（预期 1 个，实际 2 个）；最终实现下 email 25 项、About 30 项宿主测试全部通过，无失败或跳过，包含空列表下拉重新加载回归。Android 整包构建与 iOS 模拟器 Kotlin 编译通过。git diff --check 与受影响文档本地链接检查通过。未执行本次 detekt、未采集候选截图或设备视觉验收，未修改模拟器显示设置；加载动画的双端实际过渡仍需设备验收。

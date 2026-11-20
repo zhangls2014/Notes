@@ -60,17 +60,20 @@ internal fun EmailPagedList(
 ) {
   val refreshState = rememberPullToRefreshState()
   val isRefreshing = emailItems.loadState.refresh is LoadState.Loading
+  val isInitialLoading = isRefreshing && emailItems.itemCount == 0
   PullToRefreshBox(
     isRefreshing = isRefreshing,
     onRefresh = { emailItems.refresh() },
     modifier = Modifier.fillMaxSize(),
     state = refreshState,
     indicator = {
-      PullToRefreshDefaults.Indicator(
-        state = refreshState,
-        isRefreshing = isRefreshing,
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = contentPadding.calculateTopPadding()),
-      )
+      if (!isInitialLoading) {
+        PullToRefreshDefaults.Indicator(
+          state = refreshState,
+          isRefreshing = isRefreshing,
+          modifier = Modifier.align(Alignment.TopCenter).padding(top = contentPadding.calculateTopPadding()),
+        )
+      }
     },
   ) {
     LazyColumn(
