@@ -34,6 +34,7 @@ test('release page keeps platform and paragraph through window and hinge changes
     await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }))
     let serial = 0
     const pending = new Map(), errors = []
+    let distributionRequests = 0
     socket.addEventListener('message', event => {
       const message = JSON.parse(event.data)
       if (message.id) {
@@ -42,6 +43,17 @@ test('release page keeps platform and paragraph through window and hinge changes
         if (message.error) request?.reject(new Error(JSON.stringify(message.error)))
         else request?.resolve(message.result)
       } else if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails)
+      else if (message.method === 'Fetch.requestPaused') {
+        distributionRequests++
+        send('Fetch.fulfillRequest', {
+          requestId: message.params.requestId, responseCode: 200,
+          responseHeaders: [{ name: 'Content-Type', value: 'application/json' }],
+          body: Buffer.from(JSON.stringify({ builds: [{ channel: 'android-prd-mainland',
+            version: '9.9.9', build: '999',
+            artifactUrl: 'https://downloads.example.com/android-prd-mainland/999/Notes-9.9.9-mainland.apk',
+          }] })).toString('base64'),
+        }, message.sessionId).catch(error => errors.push(String(error)))
+      }
     })
     const send = (method, params = {}, sessionId) => new Promise((resolve, reject) => {
       const id = ++serial
@@ -83,6 +95,12 @@ test('release page keeps platform and paragraph through window and hinge changes
       platform: 'Linux armv8l',
     })
     await resize(390, 844)
+    await page('Fetch.enable', { patterns: [{ urlPattern: '*/releases/site.json', requestStage: 'Request' }] })
+    await page('Page.navigate', { url: new URL('/downloads/?lang=en', preview).href })
+    await ready()
+    assert.equal(distributionRequests, 1, 'Downloads fetch current distribution data without rebuilding HTML')
+    await capture('downloads-runtime-data')
+    await page('Fetch.disable')
     await page('Page.navigate', { url: new URL('/releases/?embed=1&lang=zh&platform=ios', preview).href })
     await ready()
     await capture('phone-390')

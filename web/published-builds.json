@@ -1,13 +1,13 @@
 [
   {
-    "channel": "android-prd-mainland",
-    "version": "1.1.5",
-    "build": "8",
-    "artifactUrl": "https://downloads.zhangls.me/android-prd-mainland/8/Notes-1.1.5-mainland.apk"
-  },
-  {
     "channel": "android-prd-global",
     "version": "1.1.4",
     "build": "7"
+  },
+  {
+    "channel": "android-prd-mainland",
+    "version": "1.1.6",
+    "build": "9",
+    "artifactUrl": "https://downloads.zhangls.me/android-prd-mainland/9/Notes-1.1.6-mainland.apk"
   }
 ]

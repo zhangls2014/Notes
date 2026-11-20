@@ -6,6 +6,15 @@ import { runInNewContext } from 'node:vm'
 import { buildNoticeFiles, buildSite, validatePublishedBuilds } from './build.mjs'
 import { buildNoticeData } from './notice-data.mjs'
 
+test('runtime distribution data follows the same builds as client feeds', () => {
+  const releases = [{ version: '1.0.0', date: '2026-11-20', changes: [
+    { type: 'fixed', platforms: ['android'], text: { zh: '修复', en: 'Fix' } },
+  ] }]
+  const builds = [{ channel: 'android-prd-global', version: '1.0.0', build: '1' }]
+  const files = buildSite(releases, builds)
+  assert.deepEqual(JSON.parse(files.get('releases/site.json')), { builds })
+})
+
 test('the app cache manifest identifies only Skiko and the content-versioned MiSans', async () => {
   const { buildWebAssetManifest } = await import('./build.mjs')
   const skiko = Buffer.from('skiko')

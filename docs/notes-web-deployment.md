@@ -33,6 +33,10 @@ Xcode 构建使用 `NOTES_SITE_HOST` 和 `NOTES_PASSKEY_RP_ID` 生成签名关�
 
 ## 发布新构建
 
+日常移动端发布使用 [本地发布命令](../tools/release/README.md)：`prepare` 离线生成并校验发布包，`publish --bundle ... --confirm <摘要>` 在获得该版本发布授权后上传并切换静态数据。首次启用须单独部署包含 `/releases/site.json` 和运行时读取逻辑的官网，并配置私有发布目标及远端目录权限；之后不涉及网站功能或声明产物变化时，无须重建官网或重启认证服务。命令不会代替应用构建、商店发布和实机覆盖安装验收。
+
+发布完成后命令同步本地 `web/published-builds.json`，须与正式更新记录一起审查并提交。完整部署官网前核对线上渠道数据，避免使用旧提交恢复旧指针。以下步骤保留为构建准备与人工部署的检查依据；使用命令发布时由工具完成 APK 上传、数据生成、远端构建号检查及公网验证。
+
 当前生产环境由曼谷服务器的 Nginx 托管官网和 APK。官网目录为 `/var/www/notes-site`，APK 目录为 `/var/www/notes-downloads`，下载域名使用独立的 Let's Encrypt 证书。下文的 R2 和 Pages 是托管替代方案。现有生产环境先投放并从公网验证 APK，再更新官网页面与更新清单。若客户端变更依赖新的认证规则，须先部署并验证认证服务。
 
 1. 按 [版本规则](app-releases.md) 准备版本、构建号与发布日期，完成依赖清单和两端安装包构建。Android 用 `apksigner verify --print-certs` 核对签名和包的渠道，iOS 核对商店版本和签名标识。
@@ -50,6 +54,8 @@ Nginx 应将不存在的路径交给 `404.html`（例如 `error_page 404 /404.ht
 HTML、资源清单、公开更新记录以及其他固定地址用 `Cache-Control: no-cache`，允许客户端用 `ETag` 或 `Last-Modified` 校验后继续复用。构建按内容生成 JS、源映射、Wasm、MiSans 和 Compose 资源地址。同一个带指纹的地址始终提供同一份文件，响应使用 `public, max-age=31536000, immutable`。发布时先上传带指纹的文件，再切换 HTML 和清单。保留上一版 HTML 依赖的文件，供尚未刷新的页面完成加载。
 
 Cloudflare Pages 和本地预览使用构建产物中的 `_headers`。曼谷 Nginx 源站需要在 `http` 上下文定义以下规则，并在官网 HTTPS `server` 应用该响应头。若该站点的 `location` 已声明自己的 `add_header`，也须在该 `location` 添加相同的缓存头。404 响应使用 `no-cache`。
+
+`_headers` 是托管配置文件，不是页面资源；现有 Nginx 对 `/_headers` 返回 404。部署时可在服务器校验该文件，公网资源摘要验收不要求它返回 200。
 
 ```nginx
 map "$status:$uri" $notes_cache_control {

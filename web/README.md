@@ -10,6 +10,10 @@ The `:web` Gradle module owns the Compose website. Browser code lives in
 The HTML documents start Compose Wasm with an empty host. The release page
 fetches `/releases/published.json` on demand, which the generator derives from the
 mobile app’s `releases.json`.
+The website fetches current distribution records from `/releases/site.json` on
+startup, using HTML-embedded data as an offline/error fallback. The local
+[release tool](../tools/release/README.md) updates these records and client feeds
+without rebuilding the website. Existing open pages refresh on the next load.
 Compose uses a Material 3 top app bar when the viewport can fit the navigation
 labels and a compact navigation rail on the left at smaller widths. The
 navigation menu opens the corresponding notice list directly. The

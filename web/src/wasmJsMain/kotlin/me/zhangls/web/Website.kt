@@ -159,7 +159,12 @@ fun main() {
   val data = siteData()?.let { siteJson.decodeFromString<SiteData>(it) } ?: SiteData(emptyList())
   val container = checkNotNull(document.getElementById("notes-app"))
   ComposeViewport(container) {
-    Website(data)
+    var currentData by remember { mutableStateOf(data) }
+    LaunchedEffect(Unit) {
+      runCatching { siteJson.decodeFromString<SiteData>(siteJsonFromServer()) }
+        .onSuccess { currentData = it }
+    }
+    Website(currentData)
   }
 }
 

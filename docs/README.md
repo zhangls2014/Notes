@@ -76,6 +76,8 @@ docs/
 
 ## 当前需求记录
 
+- [本地应用发布命令](superpowers/plans/2026-11-20-local-release.md)：实施与验证状态；长期操作入口见 [发布工具](../tools/release/README.md)。
+
 - [邮件刷新与详情布局](superpowers/plans/2026-11-20-mail-interactions.md)：已确认方案、实施范围与本次验证记录。
 
 ## 操作指南

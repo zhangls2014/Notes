@@ -236,6 +236,7 @@ export function buildSite(releases, builds, origins = defaultOrigins) {
   const origin = httpsOrigin(origins.siteOrigin)
   validatePublishedBuilds(releases, builds, origins.apkOrigin)
   const files = new Map([[viewportScriptPath, viewportScript]])
+  files.set('releases/site.json', JSON.stringify({ builds }) + '\n')
   const current = new Map()
   for (const entry of builds) {
     const channel = entry.channel === 'android-prd-full' ? 'android-prd-global' : entry.channel

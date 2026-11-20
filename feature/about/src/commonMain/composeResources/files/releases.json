@@ -1,8 +1,16 @@
 [
   {
     "version": "1.1.6",
-    "date": null,
+    "date": "2026-11-20",
     "changes": [
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "The website's download information stays in sync with app releases.",
+          "zh": "官网下载安装信息随应用发布及时更新。"
+        }
+      },
       {
         "type": "improved",
         "platforms": ["android", "ios"],

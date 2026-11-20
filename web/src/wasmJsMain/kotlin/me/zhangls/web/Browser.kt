@@ -15,6 +15,12 @@ internal suspend fun releaseJson(): String =
   checkNotNull(fetchReleaseJson().await<JsString?>()) { "Could not fetch release history" }.toString()
 
 internal fun siteData(): String? = js("document.getElementById('notes-data')?.textContent ?? null")
+private fun fetchSiteJson(): Promise<JsString?> = js("""fetch('/releases/site.json', {cache: 'no-cache'})
+  .then(response => response.ok ? response.text() : null)
+  .catch(() => null)""")
+
+internal suspend fun siteJsonFromServer(): String =
+  checkNotNull(fetchSiteJson().await<JsString?>()) { "Could not fetch distribution data" }.toString()
 internal fun resourcePathsJson(): String =
   js("document.getElementById('notes-resource-paths')?.textContent ?? '{}'")
 internal fun path(): String = js("location.pathname")

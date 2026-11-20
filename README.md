@@ -138,6 +138,7 @@ worktree 单独准备需要的文件；目录权限为 `0700`，文件为 `0600`
 - `server.properties`：应用构建使用的三个 HTTPS 服务地址。
 - `signing.properties` 和 `signing.jks`：Debug 和 Release 共用的 Android 正式签名配置与签名库。
 - `production-access.local.md`：生产源站和访问记录，只供人工运维参考，构建不读取。
+- `release.json`：本地发布命令的目标目录、公开来源和可信 APK 身份；格式及操作见 [发布工具](tools/release/README.md)。
 
 `.local/server.properties` 示例（将示例域名替换为实际应用服务地址）：
 
