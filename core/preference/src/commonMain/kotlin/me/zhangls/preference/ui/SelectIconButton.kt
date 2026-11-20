@@ -1,7 +1,8 @@
 package me.zhangls.preference.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.CheckableDropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -36,6 +37,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param value 当前取值
  * @param onValueChange 取值变化回调，由消费方决定如何派发
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> SelectIconButton(
   spec: PreferenceSpec.Select<T>,
@@ -57,7 +59,7 @@ fun <T> SelectIconButton(
 
     GroupedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
       spec.options.forEach { option ->
-        DropdownMenuItem(
+        CheckableDropdownMenuItem(
           text = { Text(text = stringResource(option.label)) },
           shapes = MenuDefaults.itemShapes(),
           checked = option.value == value,

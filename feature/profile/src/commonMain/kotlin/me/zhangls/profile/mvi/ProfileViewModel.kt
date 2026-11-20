@@ -1,5 +1,7 @@
 package me.zhangls.profile.mvi
 
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
@@ -21,6 +23,7 @@ internal class ProfileViewModel(
   stateSerializer = ProfileState.serializer(),
   savedStateHandle = savedStateHandle,
 ) {
+  private var inputJob: Job? = null
   private var editJob: Job? = null
   private var resendCooldown: Job? = null
 
@@ -31,7 +34,7 @@ internal class ProfileViewModel(
         val previous = state.value.user
         if (user?.id != previous?.id || user?.authOrigin != previous?.authOrigin) {
           editJob?.cancel()
-          resendCooldown?.cancel()
+          closeEdit()
         }
         dispatch(ProfileAction.UpdateUser(user))
       }
@@ -80,21 +83,62 @@ internal class ProfileViewModel(
     if (current.edit?.busy == true || current.edit?.field == field) return
     closeEdit()
     val original = if (field == ProfileField.Username) user.nickname else user.email.orEmpty()
-    dispatch(ProfileAction.UpdateEdit(ProfileEdit(field, user.id, original, username = user.nickname)))
+    val edit = ProfileEdit(field, user.id, original, username = user.nickname)
+    dispatch(ProfileAction.UpdateEdit(edit))
+    inputJob = viewModelScope.launch {
+      snapshotFlow {
+        edit.copy(
+          username = edit.usernameInput.text.toString(),
+          password = edit.passwordInput.text.toString(),
+          email = edit.emailInput.text.toString(),
+          code = edit.codeInput.text.toString(),
+        )
+      }.collect { values ->
+        val current = state.value.edit
+        if (current != null && !current.busy) {
+          if (values.username != current.username) handleIntent(ProfileIntent.UpdateUsername(values.username))
+          if (values.password != current.password) handleIntent(ProfileIntent.UpdatePassword(values.password))
+          if (values.email != current.email) handleIntent(ProfileIntent.UpdateEmail(values.email))
+          if (values.code != current.code) handleIntent(ProfileIntent.UpdateCode(values.code))
+        }
+      }
+    }
   }
 
   private fun closeEdit() {
+    inputJob?.cancel()
+    state.value.edit?.let {
+      it.passwordInput.setTextAndPlaceCursorAtEnd("")
+      it.codeInput.setTextAndPlaceCursorAtEnd("")
+    }
     resendCooldown?.cancel()
     dispatch(ProfileAction.UpdateEdit(null))
   }
 
   private fun editDraft(transform: ProfileEdit.() -> ProfileEdit) {
     val edit = state.value.edit?.takeUnless { it.busy } ?: return
-    dispatch(ProfileAction.UpdateEdit(edit.transform()))
+    dispatch(ProfileAction.UpdateEdit(edit.transform().also { syncEditor(edit, it) }))
+  }
+
+  private fun syncEditor(previous: ProfileEdit, edit: ProfileEdit) {
+    listOf(
+      Triple(edit.usernameInput, previous.username, edit.username),
+      Triple(edit.passwordInput, previous.password, edit.password),
+      Triple(edit.emailInput, previous.email, edit.email),
+      Triple(edit.codeInput, previous.code, edit.code),
+    ).forEach { (input, old, value) ->
+      if (old != value && input.text.toString() != value) input.setTextAndPlaceCursorAtEnd(value)
+    }
   }
 
   private fun confirmEdit() {
-    val edit = state.value.edit ?: return
+    val current = state.value.edit ?: return
+    val edit = current.copy(
+      username = current.usernameInput.text.toString(),
+      password = current.passwordInput.text.toString(),
+      email = current.emailInput.text.toString(),
+      code = current.codeInput.text.toString(),
+    )
     val step = edit.nextStep ?: return
     dispatch(ProfileAction.UpdateEdit(edit.copy(busy = true, error = null)))
     editJob = viewModelScope.launch {
@@ -147,7 +191,7 @@ internal class ProfileViewModel(
 
   private fun updateCurrentEdit(transform: ProfileEdit.() -> ProfileEdit) {
     val edit = state.value.edit ?: return
-    dispatch(ProfileAction.UpdateEdit(edit.transform()))
+    dispatch(ProfileAction.UpdateEdit(edit.transform().also { syncEditor(edit, it) }))
   }
 
   private fun dispatch(action: ProfileAction) {

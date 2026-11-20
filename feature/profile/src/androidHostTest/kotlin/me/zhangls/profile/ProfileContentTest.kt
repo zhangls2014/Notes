@@ -1,11 +1,15 @@
 package me.zhangls.profile
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.autofill.FillableData
 import androidx.compose.ui.autofill.createFromText
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -15,10 +19,10 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -89,6 +93,13 @@ class ProfileContentTest {
     var edit by mutableStateOf(ProfileEdit(ProfileField.Email, "account"))
     compose.setContent {
       ComposeAppTheme {
+        androidx.compose.runtime.LaunchedEffect(edit.passwordInput) {
+          androidx.compose.runtime.snapshotFlow {
+            edit.passwordInput.text.toString() to edit.emailInput.text.toString()
+          }.collect { (password, email) ->
+            edit = edit.copy(password = password, email = email)
+          }
+        }
         ProfileIdentityEditor(edit) { intent ->
           when (intent) {
             is ProfileIntent.UpdatePassword -> edit = edit.copy(password = intent.value)
@@ -115,7 +126,10 @@ class ProfileContentTest {
     compose.onNodeWithText("Verify password").performClick()
     compose.onNodeWithText("Verify password").assertDoesNotExist()
     password.assertIsNotEnabled()
-    assertEquals(null, password.fetchSemanticsNode().config.getOrNull(SemanticsProperties.ContentType))
+    password.performSemanticsAction(SemanticsActions.OnFillData) {
+      assertEquals(false, it(checkNotNull(FillableData.createFromText("ignored"))))
+    }
+    compose.runOnIdle { assertEquals("example password", edit.password) }
     compose.onNodeWithText("Email verification code").assertDoesNotExist()
     val sendCode = compose.onNodeWithText("Send verification code").assertIsNotEnabled()
     compose.onNode(hasSetTextAction() and hasText("New email")).performTextInput("new@example.com")
@@ -131,24 +145,34 @@ class ProfileContentTest {
 
   @Test
   @Config(qualifiers = "en-rUS-w400dp-h800dp-mdpi")
+  @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
   fun closingEditorSlidesUpBeforeLeavingComposition() {
     var edit by mutableStateOf<ProfileEdit?>(ProfileEdit(ProfileField.Username, "account", "Ada"))
     compose.setContent {
       ComposeAppTheme {
-        AnimatedProfileIdentityEditor(edit) { intent ->
-          if (intent == ProfileIntent.CloseEdit) edit = null
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+          AnimatedProfileIdentityEditor(edit) { intent ->
+            if (intent == ProfileIntent.CloseEdit) edit = null
+          }
         }
       }
     }
     val title = compose.onNodeWithText("Change username")
-    val openedTop = title.fetchSemanticsNode().positionInRoot.y
+    compose.onRoot().captureToImage() // Record a real frame before requesting capture on exit.
     compose.mainClock.autoAdvance = false
     try {
       compose.onNodeWithText("Cancel").performClick()
-      compose.mainClock.advanceTimeBy(176)
-      assertTrue(title.fetchSemanticsNode().positionInRoot.y < openedTop)
+      compose.mainClock.advanceTimeBy(80)
+      title.assertDoesNotExist() // Captured exit removes live semantics immediately.
+      val exiting = compose.onRoot().captureToImage().toPixelMap()
       compose.mainClock.advanceTimeBy(250)
       title.assertDoesNotExist()
+      val closed = compose.onRoot().captureToImage().toPixelMap()
+      assertTrue(
+        (0 until exiting.height).any { y ->
+          (0 until exiting.width).any { x -> exiting[x, y] != closed[x, y] }
+        },
+      )
     } finally {
       compose.mainClock.autoAdvance = true
     }

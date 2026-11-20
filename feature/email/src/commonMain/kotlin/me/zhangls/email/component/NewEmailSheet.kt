@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -61,12 +65,10 @@ internal fun NewEmailSheet(
   recipients: ImmutableList<AccountModel>,
   visible: Boolean,
   selectedRecipientIds: ImmutableSet<Long>,
-  subject: String,
-  body: String,
+  subject: TextFieldState,
+  body: TextFieldState,
   isSending: Boolean,
   onToggleRecipient: (Long, Boolean) -> Unit,
-  onSubjectChange: (String) -> Unit,
-  onBodyChange: (String) -> Unit,
   onDismiss: () -> Unit,
   onCancel: () -> Unit,
   onSave: () -> Unit,
@@ -106,8 +108,6 @@ internal fun NewEmailSheet(
       isSending = isSending,
       inputFocus = inputFocus,
       onToggleRecipient = onToggleRecipient,
-      onSubjectChange = onSubjectChange,
-      onBodyChange = onBodyChange,
       onCancel = onCancel,
       onSave = onSave,
     )
@@ -120,13 +120,11 @@ internal fun NewEmailSheetContent(
   maxHeight: Dp,
   recipients: ImmutableList<AccountModel>,
   selectedRecipientIds: ImmutableSet<Long>,
-  subject: String,
-  body: String,
+  subject: TextFieldState,
+  body: TextFieldState,
   isSending: Boolean,
   inputFocus: ImeHandoffFocusState,
   onToggleRecipient: (Long, Boolean) -> Unit,
-  onSubjectChange: (String) -> Unit,
-  onBodyChange: (String) -> Unit,
   onCancel: () -> Unit,
   onSave: () -> Unit,
 ) {
@@ -143,7 +141,12 @@ internal fun NewEmailSheetContent(
       text = stringResource(Res.string.email_label_recipients),
       style = MaterialTheme.typography.titleMedium,
     )
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlexBox(
+      config = FlexBoxConfig {
+        wrap(FlexWrap.Wrap)
+        gap(8.dp)
+      },
+    ) {
       recipients.forEach { recipient ->
         FilterChip(
           selected = selectedRecipientIds.contains(recipient.id),
@@ -166,8 +169,7 @@ internal fun NewEmailSheetContent(
 
     OutlinedTextField(
       shape = MaterialTheme.shapes.large,
-      value = subject,
-      onValueChange = onSubjectChange,
+      state = subject,
       enabled = !isSending,
       label = { Text(text = stringResource(Res.string.email_label_subject)) },
       modifier = Modifier.fillMaxWidth().onFocusChanged { inputFocus.onFocusChanged("subject", it.isFocused) },
@@ -175,12 +177,11 @@ internal fun NewEmailSheetContent(
 
     OutlinedTextField(
       shape = MaterialTheme.shapes.large,
-      value = body,
-      onValueChange = onBodyChange,
+      state = body,
       enabled = !isSending,
       label = { Text(text = stringResource(Res.string.email_label_body)) },
       modifier = Modifier.fillMaxWidth().onFocusChanged { inputFocus.onFocusChanged("body", it.isFocused) },
-      minLines = 4,
+      lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 4),
     )
 
     Row(
@@ -201,20 +202,20 @@ internal fun NewEmailSheetContent(
 @Composable
 internal fun EmailDraftEditor(
   state: me.zhangls.email.mvi.EmailState,
+  subject: TextFieldState,
+  body: TextFieldState,
   onIntent: (me.zhangls.email.mvi.EmailIntent) -> Unit,
 ) {
   NewEmailSheet(
     recipients = state.accounts.toImmutableList(),
     visible = state.isEmailDraftVisible,
     selectedRecipientIds = state.draftRecipientIds.toImmutableSet(),
-    subject = state.draftSubject,
-    body = state.draftBody,
+    subject = subject,
+    body = body,
     isSending = state.isSending,
     onToggleRecipient = { id, selected ->
       onIntent(EmailIntent.UpdateDraftRecipient(recipientId = id, selected = selected))
     },
-    onSubjectChange = { onIntent(EmailIntent.UpdateDraftSubject(it)) },
-    onBodyChange = { onIntent(EmailIntent.UpdateDraftBody(it)) },
     onDismiss = { onIntent(EmailIntent.CloseDraft) },
     onCancel = { onIntent(EmailIntent.ClearDraft) },
     onSave = { onIntent(EmailIntent.SubmitDraft) },

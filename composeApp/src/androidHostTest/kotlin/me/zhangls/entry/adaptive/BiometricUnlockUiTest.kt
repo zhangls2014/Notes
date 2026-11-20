@@ -2,7 +2,6 @@ package me.zhangls.entry.adaptive
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import me.zhangls.about.api.AboutAppInfo
@@ -15,6 +14,7 @@ import me.zhangls.data.repository.UserRepository
 import me.zhangls.entry.App
 import me.zhangls.entry.DeviceAuthenticationResult
 import me.zhangls.entry.DeviceAuthenticator
+import me.zhangls.entry.configuredAuthEndpoint
 import me.zhangls.entry.drainMainLooperAfter
 import me.zhangls.entry.initKoin
 import me.zhangls.entry.provideAboutAppInfo
@@ -29,6 +29,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import me.zhangls.entry.createDiagnosedComposeRule as createComposeRule
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w400dp-h900dp-mdpi")
@@ -42,7 +43,16 @@ class BiometricUnlockUiTest {
 
   @Test fun lockHoldsDeepLinkAndReleaseNotesUntilSuccessfulAuthentication() {
     val users = AdaptiveUsers()
-    users.userFlow.value = UserModel("local", "Notes", biometricUnlockEnabled = true)
+    users.userFlow.value = UserModel(
+      "test",
+      "Notes",
+      biometricUnlockEnabled = true,
+      authOrigin = configuredAuthEndpoint(),
+    )
+    androidx.work.WorkManager.initialize(
+      RuntimeEnvironment.getApplication(),
+      androidx.work.Configuration.Builder().build(),
+    )
     initKoin {
       modules(
         module {

@@ -1,5 +1,7 @@
 package me.zhangls.login.mvi
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -24,10 +26,30 @@ private const val SECOND_MS = 1000L
 
 /** The navigation entry retains this draft in memory across configuration changes. */
 internal class RegistrationViewModel : ViewModel() {
-  var email by mutableStateOf("")
-  var code by mutableStateOf("")
-  var username by mutableStateOf("")
-  var password by mutableStateOf("")
+  val emailInput = TextFieldState()
+  var email: String
+    get() = emailInput.text.toString()
+    set(value) {
+      emailInput.setTextAndPlaceCursorAtEnd(value)
+    }
+  val codeInput = TextFieldState()
+  var code: String
+    get() = codeInput.text.toString()
+    set(value) {
+      codeInput.setTextAndPlaceCursorAtEnd(value)
+    }
+  val usernameInput = TextFieldState()
+  var username: String
+    get() = usernameInput.text.toString()
+    set(value) {
+      usernameInput.setTextAndPlaceCursorAtEnd(value)
+    }
+  val passwordInput = TextFieldState()
+  var password: String
+    get() = passwordInput.text.toString()
+    set(value) {
+      passwordInput.setTextAndPlaceCursorAtEnd(value)
+    }
   var passwordVisible by mutableStateOf(false)
 
   private var sentEmail by mutableStateOf<String?>(null)

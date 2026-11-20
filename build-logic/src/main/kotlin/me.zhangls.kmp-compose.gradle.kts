@@ -11,6 +11,11 @@ val kmp = extensions.getByType<VersionCatalogsExtension>().named("kmp")
 
 configure<KotlinMultiplatformExtension> {
   sourceSets {
+    matching { it.name == "androidMain" }.configureEach {
+      dependencies {
+        implementation(project.dependencies.platform(kmp.findLibrary("androidx-compose-bom").get()))
+      }
+    }
     commonMain {
       dependencies {
         implementation(kmp.findLibrary("jetbrains-compose-runtime").get())

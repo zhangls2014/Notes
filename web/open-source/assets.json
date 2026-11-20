@@ -34,9 +34,9 @@
       ]
     },
     {
-      "coordinate": "jetbrains:skia:m150-1f14f1166a",
-      "name": "Skia (bundled with Skiko 0.150.1)",
-      "url": "https://github.com/JetBrains/skia/releases/tag/m150-1f14f1166a",
+      "coordinate": "jetbrains:skia:m156-6416302ae5",
+      "name": "Skia (bundled with Skiko 0.156.1)",
+      "url": "https://github.com/JetBrains/skia/releases/tag/m156-6416302ae5",
       "licenses": [
         "BSD-3-Clause"
       ],

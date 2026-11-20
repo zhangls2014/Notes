@@ -1,6 +1,7 @@
 package me.zhangls.profile
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.CapturedAnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.EaseInExpo
 import androidx.compose.animation.core.EaseOutExpo
@@ -12,10 +13,14 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexJustifyContent
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -24,11 +29,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
@@ -37,12 +37,13 @@ import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import me.zhangls.profile.mvi.EMAIL_CODE_LENGTH
 import me.zhangls.profile.mvi.ProfileEdit
 import me.zhangls.profile.mvi.ProfileEditError
 import me.zhangls.profile.mvi.ProfileField
 import me.zhangls.profile.mvi.ProfileIntent
+import me.zhangls.theme.component.AccountSecureTextField
 import me.zhangls.theme.component.AccountTextField
 import me.zhangls.theme.component.RoundedAutofillHighlight
 import notes.feature.profile.generated.resources.Res
@@ -66,12 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AnimatedProfileIdentityEditor(edit: ProfileEdit?, sendIntent: (ProfileIntent) -> Unit) {
   SlidingProfileContent(visible = edit != null) {
-    // Keep the form's layout for the exit transition while releasing credentials immediately.
-    var closingEdit by remember { mutableStateOf<ProfileEdit?>(null) }
-    SideEffect {
-      if (edit != null) closingEdit = edit.copy(password = "", code = "", busy = true)
-    }
-    (edit ?: closingEdit)?.let { ProfileIdentityEditor(it, sendIntent) }
+    edit?.let { ProfileIdentityEditor(it, sendIntent) }
   }
 }
 
@@ -90,14 +86,13 @@ internal fun ProfileIdentityEditor(edit: ProfileEdit, sendIntent: (ProfileIntent
       )
       if (isUsername) {
         AccountTextField(
-          value = edit.username,
-          onValueChange = { sendIntent(ProfileIntent.UpdateUsername(it)) },
+          state = edit.usernameInput,
           label = { Text(stringResource(Res.string.profile_label_username)) },
           enabled = !edit.busy,
           modifier = Modifier.fillMaxWidth(),
         )
       } else {
-        EmailFields(edit, sendIntent)
+        EmailFields(edit)
       }
       EditFeedback(edit.error)
       EditActions(edit, sendIntent)
@@ -106,15 +101,14 @@ internal fun ProfileIdentityEditor(edit: ProfileEdit, sendIntent: (ProfileIntent
 }
 
 @Composable
-private fun EmailFields(edit: ProfileEdit, sendIntent: (ProfileIntent) -> Unit) {
+private fun EmailFields(edit: ProfileEdit) {
   val passwordEnabled = !edit.busy && !edit.passwordVerified
   RoundedAutofillHighlight(MaterialTheme.shapes.large) {
-    AccountTextField(
-      value = edit.password,
-      onValueChange = { sendIntent(ProfileIntent.UpdatePassword(it)) },
+    AccountSecureTextField(
+      state = edit.passwordInput,
       label = { Text(stringResource(Res.string.profile_current_password)) },
       keyboardOptions = if (passwordEnabled) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
-      visualTransformation = PasswordVisualTransformation(),
+      passwordVisible = false,
       isError = edit.error == ProfileEditError.IncorrectPassword,
       enabled = passwordEnabled,
       modifier = Modifier.fillMaxWidth().then(
@@ -124,8 +118,7 @@ private fun EmailFields(edit: ProfileEdit, sendIntent: (ProfileIntent) -> Unit) 
   }
   EmailFieldVisibility(visible = edit.passwordVerified) {
     AccountTextField(
-      value = edit.email,
-      onValueChange = { sendIntent(ProfileIntent.UpdateEmail(it)) },
+      state = edit.emailInput,
       label = { Text(stringResource(Res.string.profile_new_email)) },
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
       enabled = !edit.busy,
@@ -134,8 +127,11 @@ private fun EmailFields(edit: ProfileEdit, sendIntent: (ProfileIntent) -> Unit) 
   }
   EmailFieldVisibility(visible = edit.codeRequested) {
     AccountTextField(
-      value = edit.code,
-      onValueChange = { sendIntent(ProfileIntent.UpdateCode(it)) },
+      state = edit.codeInput,
+      inputTransformation = InputTransformation {
+        val digits = asCharSequence().toString().filter { it in '0'..'9' }.take(EMAIL_CODE_LENGTH)
+        if (digits != asCharSequence().toString()) replace(0, length, digits)
+      },
       label = { Text(stringResource(Res.string.profile_email_code)) },
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
       enabled = !edit.busy,
@@ -161,7 +157,7 @@ private const val SLIDE_EXIT_MILLIS = 200
 
 @Composable
 private fun SlidingProfileContent(visible: Boolean, content: @Composable () -> Unit) {
-  AnimatedVisibility(
+  CapturedAnimatedVisibility(
     visible = visible,
     enter = expandVertically(tween(SLIDE_ENTER_MILLIS, easing = EaseOutExpo), expandFrom = Alignment.Top) +
       slideInVertically(tween(SLIDE_ENTER_MILLIS, easing = EaseOutExpo)) { -it / 3 },
@@ -190,9 +186,13 @@ private fun EditFeedback(error: ProfileEditError?) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EditActions(edit: ProfileEdit, sendIntent: (ProfileIntent) -> Unit) {
-  FlowRow(
+  FlexBox(
     modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+    config = FlexBoxConfig {
+      wrap(FlexWrap.Wrap)
+      columnGap(8.dp)
+      justifyContent(FlexJustifyContent.End)
+    },
   ) {
     TextButton(
       onClick = { sendIntent(ProfileIntent.CloseEdit) },

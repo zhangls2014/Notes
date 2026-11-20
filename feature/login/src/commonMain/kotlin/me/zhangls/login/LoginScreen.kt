@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,8 +57,6 @@ import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -77,6 +75,7 @@ import me.zhangls.login.mvi.LoginViewModel
 import me.zhangls.preference.DarkThemePreference
 import me.zhangls.preference.LanguagePreference
 import me.zhangls.preference.ui.SelectIconButton
+import me.zhangls.theme.component.AccountSecureTextField
 import me.zhangls.theme.component.AccountTextField
 import me.zhangls.theme.component.ContainedLoadingIndicator
 import me.zhangls.theme.component.RoundedAutofillHighlight
@@ -180,6 +179,8 @@ fun LoginScreen(
       supportingPane = {
         AnimatedPane {
           FormPane(
+            accountInput = viewModel.accountInput,
+            passwordInput = viewModel.passwordInput,
             showLogo = !plan.isBrandPaneShown,
             state = state,
             onIntent = viewModel::sendIntent,
@@ -226,7 +227,14 @@ private fun rememberLoginPanePlan(): LoginPanePlan {
  * @param showLogo 品牌窗格不显示时（窄窗口）logo 留在这里，否则由 [BrandPane] 承担，避免重复出现。
  */
 @Composable
-private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginIntent) -> Unit, onLoginClick: () -> Unit) {
+private fun FormPane(
+  showLogo: Boolean,
+  state: LoginState,
+  accountInput: TextFieldState,
+  passwordInput: TextFieldState,
+  onIntent: (LoginIntent) -> Unit,
+  onLoginClick: () -> Unit,
+) {
   val inputFocus = remember { ImeHandoffFocusState() }
   val usesServerAuth = LocalPasswordlessAuth.current != null
   val supportsAutofill = usesServerAuth && LocalAutofillManager.current != null
@@ -278,11 +286,10 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
                 modifier = Modifier.padding(top = 40.dp)
                   .loginAutofill(supportsAutofill, ContentType.Username)
                   .onFocusChanged { inputFocus.onFocusChanged("account", it.isFocused) },
-                account = state.account,
+                account = accountInput,
                 usesEmail = usesServerAuth,
                 enabled = !state.isLoading,
                 accountError = state.accountError,
-                onAccountChange = { onIntent(LoginIntent.UpdateAccount(it)) },
                 onClearAccount = { onIntent(LoginIntent.ClearAccount) },
               )
 
@@ -290,11 +297,10 @@ private fun FormPane(showLogo: Boolean, state: LoginState, onIntent: (LoginInten
                 modifier = Modifier.padding(top = 16.dp)
                   .loginAutofill(supportsAutofill, ContentType.Password)
                   .onFocusChanged { inputFocus.onFocusChanged("password", it.isFocused) },
-                password = state.password,
+                password = passwordInput,
                 enabled = !state.isLoading,
                 passwordError = state.passwordError.takeUnless { usesServerAuth },
                 passwordVisible = state.passwordVisible,
-                onPasswordChange = { onIntent(LoginIntent.UpdatePassword(it)) },
                 onPasswordVisibleChange = { onIntent(LoginIntent.UpdatePasswordVisible(it)) },
                 onLogin = onLoginClick,
               )
@@ -390,11 +396,10 @@ private fun Modifier.loginAutofill(enabled: Boolean, type: ContentType): Modifie
 
 @Composable
 private fun AccountInput(
-  account: String,
+  account: TextFieldState,
   usesEmail: Boolean,
   enabled: Boolean,
   accountError: AccountError?,
-  onAccountChange: (String) -> Unit,
   onClearAccount: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -403,8 +408,7 @@ private fun AccountInput(
 
   AccountTextField(
     enabled = enabled,
-    value = account,
-    onValueChange = { onAccountChange(it) },
+    state = account,
     isError = inputError.isNotEmpty(),
     label = {
       Text(stringResource(if (usesEmail) Res.string.login_label_email else Res.string.login_label_account))
@@ -414,7 +418,7 @@ private fun AccountInput(
       .fillMaxWidth(),
     leadingIcon = { Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null) },
     trailingIcon = {
-      if (account.isNotEmpty()) {
+      if (account.text.isNotEmpty()) {
         IconButton(onClick = onClearAccount, enabled = enabled) {
           Icon(
             imageVector = Icons.Rounded.Clear,
@@ -432,27 +436,25 @@ private fun AccountInput(
       keyboardType = if (usesEmail) KeyboardType.Email else KeyboardType.Text,
       imeAction = ImeAction.Next,
     ),
-    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+    onKeyboardAction = { focusManager.moveFocus(FocusDirection.Down) },
   )
 }
 
 @Composable
 private fun PasswordInput(
-  password: String,
+  password: TextFieldState,
   enabled: Boolean,
   passwordError: PasswordError?,
   passwordVisible: Boolean,
-  onPasswordChange: (String) -> Unit,
   onPasswordVisibleChange: (Boolean) -> Unit,
   onLogin: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val inputError = passwordError.text()
 
-  AccountTextField(
+  AccountSecureTextField(
     enabled = enabled,
-    value = password,
-    onValueChange = { onPasswordChange(it) },
+    state = password,
     isError = inputError.isNotEmpty(),
     label = { Text(text = stringResource(Res.string.login_label_password)) },
     modifier = modifier
@@ -469,13 +471,13 @@ private fun PasswordInput(
         )
       }
     },
-    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+    passwordVisible = passwordVisible,
     supportingText = if (inputError.isNotEmpty()) {
       { Text(text = inputError) }
     } else {
       null
     },
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go, keyboardType = KeyboardType.Password),
-    keyboardActions = KeyboardActions(onGo = { onLogin() }),
+    onKeyboardAction = { onLogin() },
   )
 }

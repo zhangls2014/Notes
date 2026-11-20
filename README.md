@@ -56,15 +56,15 @@ Notes/
 
 | 类别 | 技术或版本 |
 |---|---|
-| Kotlin | 2.4.20 |
-| Gradle | 9.7.0 |
+| Kotlin | 2.4.21 |
+| Gradle | 9.9.1 |
 | JDK toolchain / JVM target | 25 / 25（分别维护） |
-| Android Gradle Plugin | 9.3.1 |
+| Android Gradle Plugin | 9.5.1 |
 | Android SDK | compile 37.2，target 37，min 28 |
-| Compose Multiplatform | 1.12.2 |
-| Material 3 | 1.12.0-alpha03，Expressive 主题 |
+| Compose Multiplatform | 1.13.0-rc01；Android Compose BOM 2026.11.01（Compose 1.13.0） |
+| Material 3 | JetBrains 1.13.0-rc01 / AndroidX 1.5.0，Expressive 主题 |
 | Material 3 Adaptive | 1.3.0 |
-| Navigation 3 | 1.2.0 |
+| Navigation 3 | JetBrains 1.2.0 / AndroidX 1.2.2 |
 | NavigationEvent | 1.2.0 |
 | Koin | 4.2.2，编译器插件 1.2.3 |
 | Room | 3.0.3，KSP 生成 |
@@ -72,10 +72,10 @@ Notes/
 | Ktor | 3.6.1 |
 | DataStore | 1.3.0 |
 | Kotlinx Serialization | 1.13.0 |
-| Roborazzi | 1.78.0 |
+| Roborazzi | 1.79.0 |
 | UI Automator | 2.4.1 |
 
-后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3 和 detekt 当前保留必要预览版。版本决策、官方兼容范围和验证结果见 [2026-11-12 升级记录](docs/audits/2026-11-12-dependency-upgrade.md)。
+后续升级遵循 [依赖与工具链升级规范](docs/dependency-upgrades.md)。Material 3 和 detekt 当前保留必要预览版。本次为维护者授权的一次性强制升级，允许超出官方兼容表，以实测记录为准；版本与验证状态见 [2026-11-20 升级记录](docs/audits/2026-11-20-dependency-upgrade.md)。
 
 ## 快速开始
 
@@ -84,7 +84,7 @@ Notes/
 - 支持当前 KMP/Compose 版本的 Android Studio
 - 可启动 Gradle 的 JDK（例如 Android Studio 的 JBR 21）；编译 toolchain JDK 25 由 Gradle 自动准备
 - Android SDK Platform 37.2 与 Build Tools 37.0.0
-- Xcode 26.4（当前 Kotlin 官方兼容表所列版本；本机 Xcode 27 不作为该范围的验收环境）
+- 本次强制升级使用本机 Xcode 27.2 验证；官方表仍列 Xcode 26.4，后续常规升级继续遵守官方范围
 - Android 9（API 28）或更高版本的设备/模拟器
 
 ### 本地配置

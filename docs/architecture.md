@@ -169,7 +169,7 @@ Repository 接口和对外模型不得出现 Room 类型。数据库模型与公
 | 插件 | 用途 |
 |---|---|
 | `me.zhangls.kmp-library` | KMP、JDK toolchain、Android/iOS target、Android 宿主测试、namespace、framework 和 detekt 配置 |
-| `me.zhangls.kmp-compose` | Compose runtime、foundation、UI、resources 和 Material 3 |
+| `me.zhangls.kmp-compose` | Compose runtime、foundation、UI、resources 和 Material 3；Android 源集统一消费 Compose BOM |
 | `me.zhangls.kmp-compose-api` | 仅为 Feature API 注入 Compose runtime 与编译器 |
 | `me.zhangls.kmp-koin` | Koin 注解、BOM、Koin 编译器插件，并应用 KSP 插件供 Room 使用 |
 | `me.zhangls.detekt` | 根配置、各模块 baseline、手写 KMP 源集扫描、平台 compilation 类型解析、Compose Rules 和报告 |
@@ -306,7 +306,7 @@ Android 宿主使用 `enableEdgeToEdge()`，MainActivity 显式保留 `android:w
 
 共享 UI 的主题入口是 `core:theme/ComposeAppTheme`，使用 `MaterialExpressiveTheme` 和 `MotionScheme.expressive()`。字体与形状分别由同模块的 `AppTypography`、`AppShapes` 提供；标题与操作标签使用强调字重，正文保留 Material 原有尺寸。Typography 显式使用带 fontFamily 的构造器，避免兼容无参构造器把强调样式映射回普通样式。
 
-Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog 窗口，以整个应用窗口为居中参照，避免隐藏手势提示线后上下系统栏占用不对称造成偏移；通过 `LocalBasicAlertDialogOverride` 控制容器测量，复用 Material 内容版式，保留本地化窗格语义与关闭行为，覆盖更新内容、通用提示和 Preference 选择框。Android/iOS 在主题入口以当前应用窗口宽度的 80% 设置最大宽度，内容按需展开；保留 Material 的 280dp 最小宽度（空间不足时缩小），替代默认 560dp 上限；关闭 `usePlatformDefaultWidth`，避免平台固定/首选宽度截断 80% 上限；Android 默认最小边距单独取自默认弹窗主题背景的左右 padding，取较大侧保持居中，iOS 默认无额外水平边距。两端叠加左右系统安全区的较大值，最大宽度为窗口 80% 与扣除两侧边距后可用宽度的较小值，短提示不得强制填满该上限。垂直方向以上下 `safeDrawing` 安全区的较大值作为对称边界，最大高度不超过窗口高度减去两倍边界；保留全窗口居中，长内容在弹窗内部滚动，不侵入状态栏或底部系统区域。窗口尺寸在弹窗外读取并随窗口变化更新，避免用弹窗自身宽度反复计算；不对弹窗添加铰链避让或固定位置补偿。
+标准 AlertDialog 与 Preference 选择弹窗采用当前 Material 3 和平台 Dialog 的默认宽度、居中与 Insets 策略；内容最大宽度遵循 Material 默认 560dp，并受平台窗口可用空间约束。2026-11-20 强制升级因上游移除 BasicAlertDialogOverride，经维护者确认撤销窗口 80% 最大宽度及全窗口对称安全区适配。保留业务内容、按钮语义、关闭行为和长内容滚动；不对弹窗添加铰链避让或固定位置补偿。正式截图基线调整仍须单独审阅授权。
 
 主题保留内置品牌配色、动态色、深浅色和用户字号设置。应用字号是相对系统字号的倍率：标准字号复用系统 Density，中／大字号将系统 fontScale 与应用倍率相乘，保留 density；窗口事实仍在主题之外读取。Feature 从 `MaterialTheme` 读取颜色、字体与形状；关键按钮和共享图标按钮显式采用形变重载，自定义头像空间动画使用主题 MotionScheme。邮件列表与详情卡片使用主题 large 圆角和容器色，打开、多选、收藏状态各有语义颜色。弹窗的组件选择、按钮层级与关闭约定见下方[弹窗应用规则](#弹窗应用规则)。
 
@@ -320,7 +320,7 @@ Android 的 Material 提示弹窗在主题层统一使用 edge-to-edge Dialog �
 
 `core:theme` 统一弹窗基础视觉、窗口尺寸、安全区处理和通用提示／确认组件；Feature 拥有业务文案、复杂正文、显示状态与操作回调。业务 ViewModel、下载状态、文件模型等不移入主题模块，主题模块不得依赖 Feature。
 
-不要求所有弹窗都经由一个通用组件。标准 Material `AlertDialog` 已复用应用主题与 `ProvideAlertDialogWindow`，Feature 可以用它组装复杂业务弹窗，但不得自行覆盖容器颜色、圆角、标题／正文字体、内边距、窗口宽度或安全区策略。新的公共视觉需求先在 `core:theme` 落实；多处出现相同正文结构或操作规则时再提炼共享组件，不仅为封装一次 `AlertDialog` 调用增加包装层。
+不要求所有弹窗都经由一个通用组件。标准 Material `AlertDialog` 已复用应用主题与上游默认窗口策略，Feature 可以用它组装复杂业务弹窗，但不得自行覆盖容器颜色、圆角、标题／正文字体、内边距、窗口宽度或安全区策略。新的公共视觉需求先在 `core:theme` 落实；多处出现相同正文结构或操作规则时再提炼共享组件，不仅为封装一次 `AlertDialog` 调用增加包装层。
 
 **组件选择**
 
@@ -354,6 +354,8 @@ Feature 不使用底层 `Dialog` 重做普通提示、确认或设置选择容�
 - 新增或变更弹窗按范围验证确认、取消、外部关闭、返回及任务继续执行；长文本、大字号、深浅色和窄窗口检查可达性。双端编译、行为测试、候选截图和设备验收分别报告，正式截图基线更新须单独确认，见[自适应 UI 回归](testing/adaptive-ui.md)。
 
 #### 表单风格
+
+字段编辑的权威状态为页面 ViewModel 持有的内存 TextFieldState，保留选区与输入法组合文本。MVI 中的字符串仅为业务快照，不能逐字反向覆盖编辑器；程序清空与重置显式编辑同一状态对象。密码、验证码和草稿不使用 TextFieldState.Saver、rememberSaveable 或 SavedStateHandle 持久化。共享输入组件只接收状态和渲染参数，不拥有业务生命周期。
 
 账号表单（登录、注册、个人信息）使用 `core:theme` 的共享描边输入框。字段统一采用
 `MaterialTheme.shapes.large`（20 dp）、`typography.bodyLarge` 和未聚焦时的

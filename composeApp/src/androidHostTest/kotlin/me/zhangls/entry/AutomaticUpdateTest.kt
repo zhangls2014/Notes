@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -41,6 +40,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.util.concurrent.atomic.AtomicInteger
+import me.zhangls.entry.createLegacyDiagnosedComposeRule as createComposeRule
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w400dp-h900dp-mdpi")

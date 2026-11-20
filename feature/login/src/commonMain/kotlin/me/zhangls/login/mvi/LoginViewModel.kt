@@ -1,5 +1,8 @@
 package me.zhangls.login.mvi
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
@@ -18,9 +21,9 @@ import me.zhangls.login.domain.LoginValidator
 import notes.feature.login.generated.resources.Res
 import notes.feature.login.generated.resources.login_msg_login_success
 import notes.feature.login.generated.resources.login_msg_storage_failed
-import notes.feature.login.generated.resources.login_passwordless_error
 import notes.feature.login.generated.resources.login_passkey_timeout
 import notes.feature.login.generated.resources.login_passkey_unavailable
+import notes.feature.login.generated.resources.login_passwordless_error
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -37,7 +40,20 @@ class LoginViewModel(
   stateSerializer = LoginState.serializer(),
   savedStateHandle = savedStateHandle,
 ) {
+  val accountInput = TextFieldState()
+  val passwordInput = TextFieldState()
+
+  private fun syncInputs() {
+    val account = accountInput.text.toString()
+    val password = passwordInput.text.toString()
+    if (account != state.value.account) dispatch(LoginAction.UpdateAccount(account))
+    if (password != state.value.password) dispatch(LoginAction.UpdatePassword(password))
+  }
+
   init {
+    viewModelScope.launch {
+      snapshotFlow { accountInput.text.toString() to passwordInput.text.toString() }.collect { syncInputs() }
+    }
     viewModelScope.launch {
       settingsRepository.settingsFlow.collectLatest {
         dispatch(LoginAction.UpdateLanguage(it.appLanguage))
@@ -51,6 +67,7 @@ class LoginViewModel(
     if (state.value.isLoading && intent !is LoginIntent.UpdateLanguage && intent !is LoginIntent.UpdateDarkTheme) {
       return
     }
+    syncInputs()
     when (intent) {
       is LoginIntent.PasswordLogin -> {
         val (account, password) = state.value
@@ -78,14 +95,17 @@ class LoginViewModel(
       }
 
       is LoginIntent.UpdateAccount -> {
+        accountInput.setTextAndPlaceCursorAtEnd(intent.account)
         dispatch(LoginAction.UpdateAccount(intent.account))
       }
 
       is LoginIntent.ClearAccount -> {
+        accountInput.setTextAndPlaceCursorAtEnd("")
         dispatch(LoginAction.ClearAccount)
       }
 
       is LoginIntent.UpdatePassword -> {
+        passwordInput.setTextAndPlaceCursorAtEnd(intent.password)
         dispatch(LoginAction.UpdatePassword(intent.password))
       }
 

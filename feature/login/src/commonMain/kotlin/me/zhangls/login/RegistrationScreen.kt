@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -30,8 +32,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,10 +39,11 @@ import me.zhangls.login.api.LocalAccountRegistration
 import me.zhangls.login.domain.LoginValidator
 import me.zhangls.login.domain.text
 import me.zhangls.login.mvi.RegistrationViewModel
+import me.zhangls.theme.component.AccountSecureTextField
+import me.zhangls.theme.component.AccountTextField
 import me.zhangls.theme.component.AdaptiveContent
 import me.zhangls.theme.component.CenteredTopAppBar
 import me.zhangls.theme.component.ContainedLoadingIndicator
-import me.zhangls.theme.component.AccountTextField
 import me.zhangls.theme.component.RoundedAutofillHighlight
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.Visibility
@@ -90,10 +91,8 @@ internal fun RegistrationScreen(
   }) {
     if (!registration.emailVerified) {
       VerifyEmailForm(
-        email = registration.email,
-        onEmailChange = { registration.email = it },
-        code = registration.code,
-        onCodeChange = { registration.code = it.filter { char -> char in '0'..'9' }.take(CODE_LENGTH) },
+        email = registration.emailInput,
+        code = registration.codeInput,
         codeSent = registration.codeSent,
         resendIn = registration.resendIn,
         enabled = !registration.busy,
@@ -102,10 +101,8 @@ internal fun RegistrationScreen(
       )
     } else {
       SignupCredentials(
-        username = registration.username,
-        onUsernameChange = { registration.username = it },
-        password = registration.password,
-        onPasswordChange = { registration.password = it },
+        username = registration.usernameInput,
+        password = registration.passwordInput,
         passwordVisible = registration.passwordVisible,
         onTogglePasswordVisibility = { registration.passwordVisible = !registration.passwordVisible },
         enabled = !registration.busy,
@@ -165,10 +162,8 @@ private fun ClearFocusWhileRegistering(busy: Boolean) {
 
 @Composable
 private fun VerifyEmailForm(
-  email: String,
-  onEmailChange: (String) -> Unit,
-  code: String,
-  onCodeChange: (String) -> Unit,
+  email: TextFieldState,
+  code: TextFieldState,
   codeSent: Boolean,
   resendIn: Int,
   enabled: Boolean,
@@ -182,8 +177,7 @@ private fun VerifyEmailForm(
   RoundedAutofillHighlight(MaterialTheme.shapes.large) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       AccountTextField(
-        value = email,
-        onValueChange = onEmailChange,
+        state = email,
         label = { Text(stringResource(Res.string.signup_email)) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         modifier = Modifier.weight(1f),
@@ -191,7 +185,7 @@ private fun VerifyEmailForm(
       )
       FilledTonalButton(
         onClick = onSend,
-        enabled = enabled && email.isNotBlank() && resendIn == 0,
+        enabled = enabled && email.text.isNotBlank() && resendIn == 0,
         modifier = Modifier.padding(top = labelInset),
       ) {
         Text(
@@ -204,8 +198,11 @@ private fun VerifyEmailForm(
       }
     }
     AccountTextField(
-      value = code,
-      onValueChange = onCodeChange,
+      state = code,
+      inputTransformation = InputTransformation {
+        val digits = asCharSequence().toString().filter { it in '0'..'9' }.take(CODE_LENGTH)
+        if (digits != asCharSequence().toString()) replace(0, length, digits)
+      },
       label = { Text(stringResource(Res.string.signup_code)) },
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
       modifier = Modifier.fillMaxWidth(),
@@ -214,7 +211,7 @@ private fun VerifyEmailForm(
   }
   Button(
     onClick = onVerify,
-    enabled = enabled && codeSent && code.length == CODE_LENGTH,
+    enabled = enabled && codeSent && code.text.length == CODE_LENGTH,
     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
   ) {
     Text(stringResource(Res.string.signup_continue))
@@ -223,40 +220,36 @@ private fun VerifyEmailForm(
 
 @Composable
 private fun SignupCredentials(
-  username: String,
-  onUsernameChange: (String) -> Unit,
-  password: String,
-  onPasswordChange: (String) -> Unit,
+  username: TextFieldState,
+  password: TextFieldState,
   passwordVisible: Boolean,
   onTogglePasswordVisibility: () -> Unit,
   enabled: Boolean,
   onBack: () -> Unit,
   onCreate: () -> Unit,
 ) {
-  val accountError = LoginValidator.validateNewAccount(username)
-  val passwordError = LoginValidator.validatePassword(password)
+  val accountError = LoginValidator.validateNewAccount(username.text.toString())
+  val passwordError = LoginValidator.validatePassword(password.text.toString())
   val usernameHint = stringResource(Res.string.signup_username_hint)
   val passwordHint = stringResource(Res.string.signup_password_hint)
-  val usernameMessage = if (username.isEmpty()) usernameHint else accountError.text().ifEmpty { usernameHint }
-  val passwordMessage = if (password.isEmpty()) passwordHint else passwordError.text().ifEmpty { passwordHint }
+  val usernameMessage = if (username.text.isEmpty()) usernameHint else accountError.text().ifEmpty { usernameHint }
+  val passwordMessage = if (password.text.isEmpty()) passwordHint else passwordError.text().ifEmpty { passwordHint }
   Text(stringResource(Res.string.signup_credentials), style = MaterialTheme.typography.titleLarge)
   AccountTextField(
-    value = username,
-    onValueChange = onUsernameChange,
+    state = username,
     label = { Text(stringResource(Res.string.signup_username)) },
-    isError = accountError != null && username.isNotEmpty(),
+    isError = accountError != null && username.text.isNotEmpty(),
     supportingText = { Text(usernameMessage) },
     modifier = Modifier.fillMaxWidth(),
     enabled = enabled,
   )
-  AccountTextField(
-    value = password,
-    onValueChange = onPasswordChange,
+  AccountSecureTextField(
+    state = password,
     label = { Text(stringResource(Res.string.login_label_password)) },
-    isError = passwordError != null && password.isNotEmpty(),
+    isError = passwordError != null && password.text.isNotEmpty(),
     supportingText = { Text(passwordMessage) },
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+    passwordVisible = passwordVisible,
     trailingIcon = {
       IconButton(onClick = onTogglePasswordVisibility) {
         Icon(

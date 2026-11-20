@@ -13,15 +13,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
@@ -37,7 +37,6 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -66,8 +65,8 @@ import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CompletableDeferred
 import me.zhangls.about.AboutEntryImpl
 import me.zhangls.about.api.AboutAppInfo
-import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.AboutEntry
+import me.zhangls.about.api.NotesWebsite
 import me.zhangls.about.api.OnlineNoticeDetailDestination
 import me.zhangls.theme.ComposeAppTheme
 import me.zhangls.theme.layout.ProvideWindowAdaptiveInfo
@@ -92,6 +91,7 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowDownloadManager
 import java.io.File
+import me.zhangls.entry.createLegacyDiagnosedComposeRule as createComposeRule
 
 private const val DOWNLOAD_POLL_SETTLE_MILLIS = 1500L
 

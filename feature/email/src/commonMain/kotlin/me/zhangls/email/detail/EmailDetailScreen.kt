@@ -50,7 +50,7 @@ internal fun EmailDetailScreen(
     onBack = onBack.takeIf { shownAlone },
     onClose = onClose.takeUnless { shownAlone },
   )
-  me.zhangls.email.component.EmailDraftEditor(state) { viewModel.sendIntent(it) }
+  me.zhangls.email.component.EmailDraftEditor(state, viewModel.draftSubjectInput, viewModel.draftBodyInput) { viewModel.sendIntent(it) }
 }
 
 /**

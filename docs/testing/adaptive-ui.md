@@ -335,3 +335,11 @@ Android 保持 Material 默认弹层配置。
 新增 `dockedSearchTracksAnchorAcrossSuccessiveWindowWidths` 在 900×500dp 展开后依次调整至 610、650、720、900dp，期间不输入或重开，检查每次稳定后的浮层与锚点宽度一致。该测试修复前失败、修复后通过。相关 Android 宿主筛选共 24 通过、107 条件跳过；iOS 自动测试 29 通过，Android 与 Xcode Debug 整包构建通过。
 
 iPhone 18 Pro / iOS 27.0 模拟器通过两种横屏方向、连续旋转、长查询保留和关闭重开；实际布局回调确认最终锚点与浮层均为 933px、位置一致。移除诊断日志后重新构建安装并复验。该结果不代表每个过渡帧同步，也不替代真机、iPad、其他 iOS 版本、软键盘与 Android 设备旋转验收。正式截图基线未更新，详见 [旋转审计](../audits/2026-10-07-ios-overlay-scene-rotation.md#后续展开输入框宽度不同步)。
+
+## Compose 1.13 迁移回归（2026-11-20）
+
+组合根宿主测试使用 ComposeTestDiagnostics 的规则工厂，旧规则继续使用 UnconfinedTestDispatcher，原 v2 规则保持 StandardTestDispatcher。Robolectric 不提供实际设备 UiAutomation 截图管线，因此在测试主体退出、Compose 根释放前用 captureToImage 保存 PNG 和语义树；TestFailurePolicy handler 追加原始异常。产物位于 composeApp/build/compose-test-failures/<class-method>/，参数用例名称包含在目录名中。采集异常仅作为原始失败的 suppressed 异常，不覆盖测试结果；成功与 Assume 跳过不采集。诊断测试使用保留示例数据。
+
+状态式输入框自身也提供滚动语义。测试表单视口时排除具有 SetText 操作的字段，继续检查外层视口尺寸和滚动可达性。自动填充测试提供受控高亮颜色，检查填充后出现、编辑后消失和圆角外不着色，不依赖某个字段的固定文字像素位置。
+
+CapturedAnimatedVisibility 在退出时立即移除内容语义，画面保留至原 200ms 退出动画完成。资料编辑回归分别检查不可操作性与 Native 渲染退出帧；不再通过退出期间仍存在的输入节点测量动画。输入状态由页面 ViewModel 持有，密码/验证码不保存到 SavedStateHandle，切换账号和关闭编辑会话时清空。

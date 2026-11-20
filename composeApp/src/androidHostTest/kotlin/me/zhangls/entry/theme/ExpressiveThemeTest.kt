@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import me.zhangls.theme.ComposeAppTheme
 import org.junit.Assert.assertEquals
@@ -24,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import me.zhangls.entry.createLegacyDiagnosedComposeRule as createComposeRule
 
 /** Settings changes must survive the shared theme's Expressive migration. */
 @RunWith(RobolectricTestRunner::class)

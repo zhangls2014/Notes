@@ -1,6 +1,7 @@
 package me.zhangls.profile
 
 import android.net.Uri
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import com.mohamedrejeb.calf.io.KmpFile
@@ -56,6 +57,21 @@ class ProfileViewModelTest {
   @After fun stop() {
     viewModelStore.clear()
     Dispatchers.resetMain()
+  }
+
+  @Test fun editorInputsAreAuthoritativeAndClearedWhenAccountChanges() {
+    users.userFlow.value = UserModel("remote", "Ada", authOrigin = "https://example.test")
+    viewModel.sendIntent(ProfileIntent.OpenEdit(ProfileField.Email))
+    val edit = checkNotNull(viewModel.state.value.edit)
+    edit.passwordInput.setTextAndPlaceCursorAtEnd("sample password")
+    androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+    assertEquals("sample password", viewModel.state.value.edit?.password)
+    edit.codeInput.setTextAndPlaceCursorAtEnd("123456")
+    users.userFlow.value = UserModel("other", "Other", authOrigin = "https://example.test")
+    assertEquals(null, viewModel.state.value.edit)
+    assertEquals("", edit.passwordInput.text.toString())
+    assertEquals("", edit.codeInput.text.toString())
+    assertTrue(savedState.keys().isEmpty())
   }
 
   @Test fun cancellingSelectionKeepsAvatarAndDoesNotPersistSensitiveState() {

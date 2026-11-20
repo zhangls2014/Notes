@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.Scene
@@ -34,6 +33,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import me.zhangls.entry.createDiagnosedComposeRule as createComposeRule
 
 /** Generic keys exercise the root policy without any Feature destination or implementation. */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)

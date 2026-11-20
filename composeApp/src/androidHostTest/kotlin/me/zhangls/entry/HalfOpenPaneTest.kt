@@ -13,7 +13,6 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
@@ -41,6 +40,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import me.zhangls.entry.createDiagnosedComposeRule as createComposeRule
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @RunWith(RobolectricTestRunner::class)

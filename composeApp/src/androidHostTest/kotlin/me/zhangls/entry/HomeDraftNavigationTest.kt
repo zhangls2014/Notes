@@ -3,7 +3,6 @@ package me.zhangls.entry
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import me.zhangls.email.api.EmailDetailDestination
@@ -15,6 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import me.zhangls.entry.createDiagnosedComposeRule as createComposeRule
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37])

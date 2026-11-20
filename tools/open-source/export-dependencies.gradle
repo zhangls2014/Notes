@@ -1,28 +1,46 @@
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
 // Run with -I; deliberately separate from application compilation and CI.
 gradle.projectsEvaluated {
     def root = gradle.rootProject
-    root.tasks.register('exportNoticeDependencies') {
-        doLast {
-            def inventories = [:]
-            [android: [':androidApp', 'prdGlobalReleaseRuntimeClasspath'],
-             ios: [':composeApp', 'iosArm64CompileKlibraries']].each { platform, source ->
-                def configuration = root.project(source[0]).configurations.getByName(source[1])
+    if (root.findProject(':androidApp') == null || root.findProject(':composeApp') == null) return
+    def exports = [:]
+    [android: [':androidApp', 'prdGlobalReleaseRuntimeClasspath'],
+     ios: [':composeApp', 'iosArm64CompileKlibraries']].each { platform, source ->
+        def owner = root.project(source[0])
+        def configuration = owner.configurations.getByName(source[1])
+        def output = owner.layout.buildDirectory.file("open-source/artifacts-${platform}.json")
+        exports[platform] = owner.tasks.register('exportPlatformNoticeDependencies') {
+            outputs.file(output)
+            // Always inspect the current resolved graph, including changed versions.
+            outputs.upToDateWhen { false }
+            doLast {
                 def components = configuration.incoming.resolutionResult.allComponents
                 // Filter project outputs before variant selection: their Android secondary
                 // variants are ambiguous without an AGP artifact type and are not third-party code.
                 def artifacts = configuration.incoming.artifactView {
                     componentFilter { it instanceof ModuleComponentIdentifier }
                 }.artifacts.artifacts
-                inventories[platform] = components.findAll {
+                def inventory = components.findAll {
                     it.id instanceof ModuleComponentIdentifier
                 }.collect {
                     def id = it.id
                     [group: id.group, name: id.module, version: id.version,
                      artifacts: artifacts.findAll { it.id.componentIdentifier == id }.collect { it.file.absolutePath }.sort()]
                 }.unique { "${it.group}:${it.name}:${it.version}" }.sort { "${it.group}:${it.name}" }
+                def file = output.get().asFile
+                file.parentFile.mkdirs()
+                file.text = JsonOutput.prettyPrint(JsonOutput.toJson(inventory)) + '\n'
+            }
+        }
+    }
+    root.tasks.register('exportNoticeDependencies') {
+        dependsOn(exports.values())
+        doLast {
+            def inventories = exports.collectEntries { platform, task ->
+                [(platform): new JsonSlurper().parse(task.get().outputs.files.singleFile)]
             }
             def output = new File(root.layout.buildDirectory.get().asFile, 'open-source/artifacts.json')
             output.parentFile.mkdirs()

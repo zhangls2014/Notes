@@ -1,7 +1,6 @@
 package me.zhangls.entry
 
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.constrainHeight
@@ -13,6 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import me.zhangls.entry.createDiagnosedComposeRule as createComposeRule
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "w400dp-h800dp-mdpi")

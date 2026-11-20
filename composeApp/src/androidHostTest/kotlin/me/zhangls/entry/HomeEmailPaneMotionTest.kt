@@ -12,7 +12,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -41,6 +40,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import me.zhangls.entry.createDiagnosedComposeRule as createComposeRule
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @RunWith(RobolectricTestRunner::class)

@@ -1,5 +1,6 @@
 package me.zhangls.email.component
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
@@ -30,6 +31,7 @@ internal fun EmailActionBar(
 
 data class ActionItem(val icon: ImageVector, val text: StringResource, val onAction: () -> Unit = {})
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionItem(item: ActionItem, onClick: (ActionItem) -> Unit) {
   TooltipIconButton(

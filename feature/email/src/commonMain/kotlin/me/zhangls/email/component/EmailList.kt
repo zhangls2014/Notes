@@ -85,6 +85,6 @@ internal fun EmailList(
   }
 
   if (!isFavorite) {
-    EmailDraftEditor(state) { viewModel.sendIntent(it) }
+    EmailDraftEditor(state, viewModel.draftSubjectInput, viewModel.draftBodyInput) { viewModel.sendIntent(it) }
   }
 }

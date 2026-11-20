@@ -26,6 +26,7 @@ kotlin {
       implementation(kmp.androidx.test.espresso)
       implementation(kmp.androidx.test.ext.junit)
       implementation(kmp.androidx.paging.common)
+      implementation(kmp.androidx.work.runtime)
       implementation(kmp.robolectric)
       implementation(kmp.roborazzi)
       implementation(kmp.jetbrains.compose.ui.test.junit4)
@@ -79,6 +80,7 @@ kotlin {
     }
 
     androidMain.dependencies {
+      implementation(kmp.androidx.navigation3.ui)
       // Core
       implementation(kmp.androidx.browser)
       implementation(kmp.androidx.core)

@@ -23,6 +23,10 @@ node --test web/build.test.mjs
 ./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite
 ```
 
+Each platform configuration is resolved by a task in its owning project, then the
+root task merges their JSON outputs. This preserves Gradle project isolation and
+avoids cross-project configuration resolution during task execution.
+
 Export uses the resolved component graph (including BOM/metadata modules), not an
 APK size or native link audit. Android sources are `:androidApp`'s
 `prdGlobalReleaseRuntimeClasspath`; iOS sources are `:composeApp`'s

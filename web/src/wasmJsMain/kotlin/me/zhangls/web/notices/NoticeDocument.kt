@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -151,7 +153,12 @@ private fun Catalogue(
             Text(strings[Res.string.notice_scope].replace("%1\$s", platformName))
           }
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlexBox(
+      config = FlexBoxConfig {
+        wrap(FlexWrap.Wrap)
+        columnGap(8.dp)
+      },
+    ) {
           categories.forEach { category ->
             FilledTonalButton(onClick = { window.location.hash = category.id }) {
               Text(category.label(strings))
@@ -194,7 +201,12 @@ private fun ProjectCard(strings: WebsiteStrings, platform: String, project: Noti
           }
         }
       }
-      FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      FlexBox(
+      config = FlexBoxConfig {
+        wrap(FlexWrap.Wrap)
+        columnGap(8.dp)
+      },
+    ) {
         project.declarations.forEach { id ->
           val label = if (id.startsWith("license-")) id.removePrefix("license-") else strings[Res.string.notice_copyright]
           FilledTonalButton(onClick = { openNoticeLink(noticeDetailLink(platform, id)) }) { Text(label) }

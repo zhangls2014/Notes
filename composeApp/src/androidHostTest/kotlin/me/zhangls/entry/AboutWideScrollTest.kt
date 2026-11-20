@@ -6,10 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.test.hasScrollAction
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
@@ -30,6 +28,7 @@ import org.koin.core.context.stopKoin
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import me.zhangls.entry.createLegacyDiagnosedComposeRule as createComposeRule
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w1000dp-h400dp-mdpi")
@@ -62,9 +61,9 @@ class AboutWideScrollTest {
       androidx.core.view.ViewCompat.dispatchApplyWindowInsets(view, insets)
     }
     compose.waitForIdle()
-    val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
+    val viewport = compose.onNode(viewportScrollMatcher()).fetchSemanticsNode().boundsInRoot
     assertEquals("Scroll viewport reaches the window bottom", view.height.toFloat(), viewport.bottom, 0.5f)
-    compose.onNode(hasScrollAction()).performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, 10_000f) }
+    compose.onNode(viewportScrollMatcher()).performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, 10_000f) }
     val lastText = compose.onNodeWithText("Third-party libraries and licenses").fetchSemanticsNode().boundsInRoot
     assertTrue("Last item remains above the gesture area at rest", lastText.bottom <= view.height - 40f)
   }
@@ -85,7 +84,7 @@ class AboutWideScrollTest {
         }
       }
     }
-    val range = compose.onNode(hasScrollAction()).fetchSemanticsNode()
+    val range = compose.onNode(viewportScrollMatcher()).fetchSemanticsNode()
       .config[SemanticsProperties.VerticalScrollAxisRange]
     assertTrue("The short wide viewport must have overflow", range.maxValue() > 0f)
     val versionBefore = compose.onNodeWithText("Version").fetchSemanticsNode().boundsInRoot

@@ -3,7 +3,9 @@ package me.zhangls.email.search
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -311,12 +313,14 @@ private fun SearchHistory(
     return
   }
 
-  FlowRow(
+  FlexBox(
     modifier = Modifier
       .fillMaxWidth()
       .padding(horizontal = 16.dp, vertical = 12.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
+    config = FlexBoxConfig {
+      wrap(FlexWrap.Wrap)
+      gap(8.dp)
+    },
   ) {
     searchHistory.forEach { keyword ->
       AssistChip(

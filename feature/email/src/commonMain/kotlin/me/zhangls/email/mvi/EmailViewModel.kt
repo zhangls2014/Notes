@@ -1,5 +1,8 @@
 package me.zhangls.email.mvi
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -45,6 +48,9 @@ internal class EmailViewModel(
   stateSerializer = EmailState.serializer(),
   savedStateHandle = savedStateHandle,
 ) {
+  val draftSubjectInput = TextFieldState()
+  val draftBodyInput = TextFieldState()
+
   // 首页邮件列表，缓存分页数据
   val emailPaging = emailsRepository.getEmailPaging()
     .flowOn(ioDispatcher)
@@ -92,6 +98,14 @@ internal class EmailViewModel(
 
   init {
     viewModelScope.launch {
+      snapshotFlow { draftSubjectInput.text.toString() to draftBodyInput.text.toString() }.collect { (subject, body) ->
+        if (!state.value.isSending) {
+          dispatch(EmailAction.UpdateDraftSubject(subject))
+          dispatch(EmailAction.UpdateDraftBody(body))
+        }
+      }
+    }
+    viewModelScope.launch {
       userRepository.userFlow.collectLatest {
         dispatch(EmailAction.UpdateUser(it))
       }
@@ -100,6 +114,19 @@ internal class EmailViewModel(
 
   private fun dispatch(action: EmailAction) {
     updateState { EmailReducer.reduce(this, action) }
+    if (action is EmailAction.UpdateDraftSubject && draftSubjectInput.text.toString() != state.value.draftSubject) {
+      draftSubjectInput.setTextAndPlaceCursorAtEnd(state.value.draftSubject)
+    }
+    if (action is EmailAction.UpdateDraftBody && draftBodyInput.text.toString() != state.value.draftBody) {
+      draftBodyInput.setTextAndPlaceCursorAtEnd(state.value.draftBody)
+    }
+    if (action == EmailAction.ClearDraft || action is EmailAction.UpdateUser || action is EmailAction.PrepareDraft) {
+      val draft = state.value
+      androidx.compose.runtime.snapshots.Snapshot.withMutableSnapshot {
+        draftSubjectInput.setTextAndPlaceCursorAtEnd(draft.draftSubject)
+        draftBodyInput.setTextAndPlaceCursorAtEnd(draft.draftBody)
+      }
+    }
   }
 
   override fun handleIntent(intent: EmailIntent) {
@@ -161,6 +188,10 @@ internal class EmailViewModel(
 
   @OptIn(ExperimentalUuidApi::class)
   private fun submitDraft() {
+    if (!state.value.isSending) {
+      dispatch(EmailAction.UpdateDraftSubject(draftSubjectInput.text.toString()))
+      dispatch(EmailAction.UpdateDraftBody(draftBodyInput.text.toString()))
+    }
     withState {
       if (isSending) return@withState
       if (draftRecipientIds.isEmpty()) {

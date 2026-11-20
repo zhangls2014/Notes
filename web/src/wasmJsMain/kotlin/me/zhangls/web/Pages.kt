@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,9 +24,9 @@ import androidx.compose.ui.layout.positionInWindow
 import me.zhangls.web.resources.release_latest
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import me.zhangls.theme.icon.Icons
 import me.zhangls.theme.icon.StarFill
@@ -73,7 +75,12 @@ internal fun HomePage(
         websiteString(Res.string.home_description),
         style = MaterialTheme.typography.bodyLarge,
       )
-      FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      FlexBox(
+      config = FlexBoxConfig {
+        wrap(FlexWrap.Wrap)
+        columnGap(8.dp)
+      },
+    ) {
         Button(onClick = onDownload) { Text(websiteString(Res.string.download_android)) }
         TextButton(onClick = onReleases) { Text(websiteString(Res.string.view_release_notes)) }
       }

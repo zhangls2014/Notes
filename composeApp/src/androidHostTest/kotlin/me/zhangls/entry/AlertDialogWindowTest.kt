@@ -1,7 +1,6 @@
 package me.zhangls.entry
 
 import android.view.View
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +17,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -48,6 +46,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import me.zhangls.entry.createLegacyDiagnosedComposeRule as createComposeRule
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37], qualifiers = "en-rUS-w400dp-h900dp-mdpi")
@@ -124,60 +123,60 @@ class AlertDialogWindowTest {
     }
   }
 
-  @Test fun releaseNotesUseFullWindowForCentering() {
+  @Test fun releaseNotesUsePlatformWindowInsets() {
     launch { AboutEntryImpl(NotesWebsite("https://website.example.test")).ReleaseNotesDialog(version = "1.1.0", onDismiss = {}) }
     compose.waitUntil(10_000) { ShadowDialog.getLatestDialog()?.isShowing == true }
-    assertFullWindow()
+    assertPlatformWindowInsets()
   }
 
-  @Test fun simpleDialogUsesFullWindowForCentering() {
+  @Test fun simpleDialogUsesPlatformWindowInsets() {
     launch { SimpleDialog(title = "Title", content = "Content", confirmText = "OK", onDismissRequest = {}) }
-    assertFullWindow()
+    assertPlatformWindowInsets()
   }
 
-  @Test fun darkThemeUsesFullWindowForCentering() {
+  @Test fun darkThemeUsesPlatformWindowInsets() {
     launchPreference(PreferenceUiModel.Select(DarkThemePreference.spec, DarkThemeConfig.FOLLOW_SYSTEM) {})
     compose.onNodeWithText("Dark mode").performClick()
-    assertFullWindow()
+    assertPlatformWindowInsets()
   }
 
-  @Test fun fontSizeUsesFullWindowForCentering() {
+  @Test fun fontSizeUsesPlatformWindowInsets() {
     launchPreference(PreferenceUiModel.Select(FontSizePreference.spec, FontSizeConfig.STANDARD) {})
     compose.onNodeWithText("Font size").performClick()
-    assertFullWindow()
+    assertPlatformWindowInsets()
   }
 
-  @Test fun languageUsesFullWindowForCentering() {
+  @Test fun languageUsesPlatformWindowInsets() {
     launchPreference(PreferenceUiModel.Select(LanguagePreference.spec, AppLanguage.FOLLOW_SYSTEM) {})
     compose.onNodeWithText("Language").performClick()
-    assertFullWindow()
+    assertPlatformWindowInsets()
   }
 
-  @Test fun portraitWidthUsesEightyPercentWithinPlatformBounds() {
+  @Test fun portraitWidthUsesMaterialAndPlatformBounds() {
     assertDialogWidth()
   }
 
   @Test
   @Config(qualifiers = "en-rUS-w1200dp-h900dp-land-mdpi")
-  fun landscapeWidthCanExceedMaterialMaximumWithinPlatformBounds() {
+  fun landscapeWidthRespectsMaterialMaximum() {
     assertDialogWidth()
   }
 
   @Test
   @Config(qualifiers = "en-rUS-w240dp-h400dp-mdpi")
-  fun narrowWindowKeepsPlatformMarginsEvenBelowMaterialMinimum() {
+  fun narrowWindowRespectsPlatformBounds() {
     assertDialogWidth()
   }
 
   @Test
   @Config(qualifiers = "en-rUS-w800dp-h360dp-land-mdpi")
-  fun longDialogAvoidsStatusBarWhenBottomBarIsHidden() {
+  fun longDialogFitsPlatformWindowWhenBottomBarIsHidden() {
     assertVerticalSafety(top = 48, bottom = 0)
   }
 
   @Test
   @Config(qualifiers = "en-rUS-w800dp-h360dp-land-mdpi")
-  fun longDialogAvoidsLargerBottomBar() {
+  fun longDialogFitsPlatformWindowWithLargerBottomBar() {
     assertVerticalSafety(top = 24, bottom = 48)
   }
 
@@ -237,13 +236,13 @@ class AlertDialogWindowTest {
     assertEquals(bottom, observedBottom)
     val bounds = compose.onNodeWithTag("safe-alert").fetchSemanticsNode().boundsInRoot
     assertTrue(
-      "Long dialog must fit between symmetric system-safe edges: $bounds",
-      bounds.height <= windowHeight - 2 * maxOf(top, bottom) + 1,
+      "Long dialog must fit inside the platform window: $bounds",
+      bounds.height <= windowHeight + 1,
     )
     compose.onNodeWithText("Line 59").performScrollTo().assertIsDisplayed()
     compose.onNodeWithText("Confirm").assertIsDisplayed().performClick()
     compose.runOnIdle { assertTrue(confirmed) }
-    assertFullWindow()
+    assertPlatformWindowInsets()
   }
 
   private fun assertDialogWidth() {
@@ -262,10 +261,12 @@ class AlertDialogWindowTest {
     }
     compose.waitForIdle()
     val actualWidth = compose.onNodeWithTag("alert-width").fetchSemanticsNode().boundsInRoot.width
-    assertEquals(windowWidth * 0.8f, actualWidth, 1f)
+    assertTrue("Dialog must fit the application window", actualWidth <= windowWidth + 1f)
+    assertTrue("Material maximum width is 560dp", actualWidth <= 561f)
+    if (windowWidth >= 1200) assertEquals(560f, actualWidth, 1f)
     compose.runOnIdle {
       val window = checkNotNull(checkNotNull(ShadowDialog.getLatestDialog()).window)
-      assertEquals("The platform must not cap the alert at its preferred width", MATCH_PARENT, window.attributes.width)
+      assertNotEquals("The platform owns the dialog positioning frame", 0, window.attributes.fitInsetsTypes)
     }
   }
 
@@ -278,10 +279,10 @@ class AlertDialogWindowTest {
     compose.waitForIdle()
   }
 
-  private fun assertFullWindow() {
+  private fun assertPlatformWindowInsets() {
     compose.runOnIdle {
       val window = checkNotNull(checkNotNull(ShadowDialog.getLatestDialog()).window)
-      assertEquals("System bars must not shrink the alert dialog positioning frame", 0, window.attributes.fitInsetsTypes)
+      assertNotEquals("Platform dialog insets must remain enabled", 0, window.attributes.fitInsetsTypes)
     }
   }
 }

@@ -16,6 +16,8 @@ import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.autofill.FillableData
 import androidx.compose.ui.autofill.createFromText
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.InputModeManager
@@ -23,6 +25,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -33,13 +36,11 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -73,6 +74,7 @@ import me.zhangls.entry.AppNavHost
 import me.zhangls.entry.AppViewModel
 import me.zhangls.entry.configuredAuthEndpoint
 import me.zhangls.entry.initKoin
+import me.zhangls.entry.viewportScrollMatcher
 import me.zhangls.login.api.LocalPasskeyProvider
 import me.zhangls.login.api.LocalPasswordlessAuth
 import me.zhangls.login.api.PasskeyProvider
@@ -91,6 +93,7 @@ import org.koin.dsl.module
 import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import me.zhangls.entry.createLegacyDiagnosedComposeRule as createComposeRule
 
 /** Real navigation and feature implementations, with deterministic repositories and no device services. */
 @RunWith(ParameterizedRobolectricTestRunner::class)
@@ -174,6 +177,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   private fun launch(
     restoration: StateRestorationTester? = null,
     auth: PasswordlessAuth? = null,
+    autofillBrush: androidx.compose.ui.graphics.Brush? = null,
     passkeyProvider: PasskeyProvider? = null,
   ) {
     val content: @androidx.compose.runtime.Composable () -> Unit = {
@@ -187,7 +191,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
             posture(),
           ) {
             ComposeAppTheme(darkTheme = scenario.dark, fontScale = scenario.fontScale) {
-              CompositionLocalProvider(LocalPasswordlessAuth provides auth, LocalPasskeyProvider provides passkeyProvider) {
+              CompositionLocalProvider(
+                androidx.compose.foundation.text.LocalAutofillHighlightBrush provides
+                  (autofillBrush ?: androidx.compose.foundation.text.LocalAutofillHighlightBrush.current),
+                LocalPasswordlessAuth provides auth,
+                LocalPasskeyProvider provides passkeyProvider,
+              ) {
                 AppNavHost(viewModel = org.koin.compose.viewmodel.koinViewModel<AppViewModel>())
               }
             }
@@ -305,24 +314,45 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       override suspend fun signInWithPassword(email: String, password: String, onPasswordVerified: (() -> Unit)?) = Unit
       override suspend fun signInWithPasskey(email: String, provider: PasskeyProvider) = false
     }
-    launch(auth = auth)
+    launch(
+      auth = auth,
+      autofillBrush = androidx.compose.ui.graphics.SolidColor(androidx.compose.ui.graphics.Color.Magenta),
+    )
     waitFor("Log in")
 
     for ((label, value) in listOf("Email" to "notes@example.com", "Password" to "Test1234")) {
       val field = compose.onNodeWithText(label)
-      val before = field.captureToImage().toPixelMap()
-      field.performSemanticsAction(SemanticsActions.OnFillData) {
-        it(checkNotNull(FillableData.createFromText(value)))
+      fun captureField(): androidx.compose.ui.graphics.PixelMap {
+        val bounds = field.fetchSemanticsNode().boundsInRoot
+        val bitmap = compose.onAllNodes(isRoot()).onFirst().captureToImage().asAndroidBitmap()
+        return android.graphics.Bitmap.createBitmap(
+          bitmap,
+          bounds.left.toInt(),
+          bounds.top.toInt(),
+          bounds.width.toInt(),
+          bounds.height.toInt(),
+        ).asImageBitmap().toPixelMap()
       }
-      val filled = field.captureToImage().toPixelMap()
+      val before = captureField()
+      field.performSemanticsAction(SemanticsActions.OnFillData) {
+        org.junit.Assert.assertTrue(it(checkNotNull(FillableData.createFromText(value))))
+      }
+      compose.mainClock.advanceTimeByFrame()
+      compose.waitForIdle()
+      val filled = captureField()
       org.junit.Assert.assertEquals(before[1, filled.height - 2], filled[1, filled.height - 2])
-      val x = filled.width / 2
-      val y = filled.height - 10
-      org.junit.Assert.assertNotEquals(before[x, y], filled[x, y])
-
+      fun highlightPixels(pixels: androidx.compose.ui.graphics.PixelMap): Int = (0 until pixels.height).sumOf { y ->
+        (0 until pixels.width).count { x ->
+          pixels[x, y].let { it.red > 0.95f && it.blue > 0.95f && it.green < 0.05f }
+        }
+      }
+      org.junit.Assert.assertEquals(0, highlightPixels(before))
+      org.junit.Assert.assertTrue(highlightPixels(filled) > 0)
       field.performTextReplacement("${value}x")
-      val edited = field.captureToImage().toPixelMap()
-      org.junit.Assert.assertEquals(before[x, y], edited[x, y])
+      compose.mainClock.advanceTimeByFrame()
+      compose.waitForIdle()
+      val edited = captureField()
+      org.junit.Assert.assertEquals(0, highlightPixels(edited))
     }
   }
 
@@ -381,7 +411,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
     launch()
     compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
-    val scroll = compose.onNode(hasScrollAction())
+    val scroll = compose.onNode(viewportScrollMatcher())
     val before = scroll.fetchSemanticsNode().boundsInWindow
     compose.runOnIdle {
       val insets = androidx.core.view.WindowInsetsCompat.Builder()
@@ -405,7 +435,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
     launch()
     compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
-    val scroll = compose.onNode(hasScrollAction())
+    val scroll = compose.onNode(viewportScrollMatcher())
     val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
     fun ime(height: Int) = dispatchLoginIme(height)
     compose.onAllNodes(hasSetTextAction())[0].performClick()
@@ -449,7 +479,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     launch()
     compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
     fun ime(height: Int) = dispatchLoginIme(height, navigationBarHeight = 24)
-    val scroll = compose.onNode(hasScrollAction())
+    val scroll = compose.onNode(viewportScrollMatcher())
     ime(0)
     val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
     compose.onAllNodes(hasSetTextAction())[1].performSemanticsAction(SemanticsActions.RequestFocus)
@@ -514,7 +544,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     launch()
     compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
     dispatchLoginIme(0, navigationBarHeight = 24)
-    val scroll = compose.onNode(hasScrollAction())
+    val scroll = compose.onNode(viewportScrollMatcher())
     val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
     compose.onAllNodes(hasSetTextAction())[0].performSemanticsAction(SemanticsActions.RequestFocus)
     compose.mainClock.autoAdvance = false
@@ -537,7 +567,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
     launch()
     compose.waitUntil(10_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2 }
-    val scroll = compose.onNode(hasScrollAction())
+    val scroll = compose.onNode(viewportScrollMatcher())
     val withoutIme = scroll.fetchSemanticsNode().boundsInWindow.height
     compose.onAllNodes(hasSetTextAction())[0].performSemanticsAction(SemanticsActions.RequestFocus)
     compose.mainClock.autoAdvance = false
@@ -583,7 +613,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun foldingWithOpenDraftKeepsHomeAndDraftContent() {
     org.junit.Assume.assumeTrue(scenario.name == "900x1000")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -609,13 +639,13 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun draftActionsRemainReachableAboveIme() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("New email").performClick()
     waitFor("Recipients")
     settle()
-    val sheetScroll = compose.onAllNodes(hasScrollAction()).onLast()
+    val sheetScroll = compose.onAllNodes(viewportScrollMatcher()).onLast()
     val before = sheetScroll.fetchSemanticsNode().boundsInWindow
     compose.runOnIdle {
       val dialog = checkNotNull(org.robolectric.shadows.ShadowDialog.getLatestDialog())
@@ -633,13 +663,13 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun draftKeyboardHandoffKeepsViewportWithoutDelayingDismissal() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("New email").performClick()
     waitFor("Recipients")
     settle()
-    val sheetScroll = compose.onAllNodes(hasScrollAction()).onLast()
+    val sheetScroll = compose.onAllNodes(viewportScrollMatcher()).onLast()
     val withoutIme = sheetScroll.fetchSemanticsNode().boundsInWindow.height
     val dialog = checkNotNull(org.robolectric.shadows.ShadowDialog.getLatestDialog())
     fun ime(height: Int) {
@@ -695,7 +725,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun homeListUsesAvailableWidthBeforeDetailOpens() {
     org.junit.Assume.assumeTrue(scenario.name == "900x400")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -714,7 +744,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Adaptive review").performClick()
     waitFor("Reply all")
     settle()
-    fun paneBounds() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes()
+    fun paneBounds() = compose.onAllNodes(viewportScrollMatcher()).fetchSemanticsNodes()
       .filter { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange) }
       .map { it.boundsInRoot }.sortedBy { it.left }
     val withoutCutout = paneBounds()
@@ -738,7 +768,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun singlePaneStillAvoidsDisplayCutout() {
     org.junit.Assume.assumeTrue(scenario.name == "400x400")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -758,7 +788,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("Adaptive review").performClick()
     waitFor("Reply all")
     settle()
-    fun paneBounds() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes()
+    fun paneBounds() = compose.onAllNodes(viewportScrollMatcher()).fetchSemanticsNodes()
       .filter { it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange) }
       .map { it.boundsInRoot }.sortedBy { it.left }
     val before = paneBounds()
@@ -792,7 +822,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun returningFromDetailKeepsSearchCollapsed() {
     org.junit.Assume.assumeTrue(scenario.name == "400x1000")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -819,7 +849,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun searchResultNavigationKeepsSearchClosedAfterReturnAndRotation() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "610x400"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     val restoration = StateRestorationTester(compose)
     launch(restoration)
     waitFor("Adaptive review")
@@ -864,7 +894,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   @Config(sdk = [30, 37])
   fun fullScreenSearchResultsTrackImeFramesAndKeepLastResultReachable() {
     org.junit.Assume.assumeTrue(scenario.name == "400x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("Search").performTouchInput { click() }
@@ -873,7 +903,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     input.performTextReplacement("Window")
     settle()
     val dialog = checkNotNull(org.robolectric.shadows.ShadowDialog.getLatestDialog())
-    val results = compose.onAllNodes(hasScrollAction()).onLast()
+    val results = compose.onAllNodes(viewportScrollMatcher()).onLast()
     fun ime(height: Int) {
       compose.runOnIdle {
         val insets = androidx.core.view.WindowInsetsCompat.Builder()
@@ -923,7 +953,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun landscapeSearchExpansionDoesNotJumpToFinalHeight() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -948,7 +978,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun longSearchQueryKeepsMeasuredWidth() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "610x1000", "900x1000", "desktop"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -980,7 +1010,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun restoredSearchUsesEmptyQueryMeasuredWidth() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("610x1000", "desktop"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     val restoration = StateRestorationTester(compose)
     launch(restoration)
     waitFor("Adaptive review")
@@ -1004,7 +1034,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun measuredSearchWidthShrinksAndRecoversWithWindow() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1038,7 +1068,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun dockedSearchTracksAnchorAcrossSuccessiveWindowWidths() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1058,7 +1088,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun expandedSearchKeepsQueryWhenWindowWidthChanges() {
     org.junit.Assume.assumeTrue(scenario.name == "900x500")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithContentDescription("Search").performTouchInput { click() }
@@ -1078,7 +1108,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun searchCanReopenAfterCancellation() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     repeat(3) {
@@ -1094,7 +1124,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun collapsedSearchRemainsKeyboardAccessible() {
     org.junit.Assume.assumeTrue(scenario.name == "900x1000")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.runOnIdle { inputModeManager.requestInputMode(InputMode.Keyboard) }
@@ -1109,7 +1139,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun compactHeightNavigationIsVerticalAndAllDestinationsRemainReachable() {
     org.junit.Assume.assumeTrue(scenario.width >= 600 && scenario.height < 480)
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1137,7 +1167,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun detailPredictiveBackIncludesStatusBarSafeArea() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x500", "400x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.runOnIdle {
@@ -1218,7 +1248,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1331,7 +1361,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1389,11 +1419,11 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabStateRestoresInactiveStacksAndScrollAfterRecreation() {
     org.junit.Assume.assumeTrue(scenario.name == "400x1000")
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     val restoration = StateRestorationTester(compose)
     launch(restoration)
     waitFor("Adaptive review")
-    compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(5)
+    compose.onAllNodes(viewportScrollMatcher()).onFirst().performScrollToIndex(5)
     settle()
     val homeBounds = compose.onNodeWithText("Window layout 6").fetchSemanticsNode().boundsInRoot
     compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
@@ -1418,10 +1448,10 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabStateRestoresScrollAndSelectionIndependently() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
-    compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(5)
+    compose.onAllNodes(viewportScrollMatcher()).onFirst().performScrollToIndex(5)
     compose.onNodeWithText("Window layout 6").performTouchInput { longClick() }
     settle()
     compose.onNodeWithText("Window layout 6").assertIsSelected()
@@ -1430,7 +1460,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNode(hasText("Favorites") and hasClickAction()).performClick()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").assertIsNotSelected()
-    compose.onAllNodes(hasScrollAction()).onFirst().performScrollToIndex(2)
+    compose.onAllNodes(viewportScrollMatcher()).onFirst().performScrollToIndex(2)
     settle()
     val favoriteBounds = compose.onNodeWithText("Window layout 5").fetchSemanticsNode().boundsInRoot
     compose.onNodeWithText("Settings").performClick()
@@ -1453,17 +1483,22 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun aboutPageOpensFromSettingsAndReturnsToItsTab() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000", "large-font", "dark"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNode(hasText("Settings") and hasClickAction()).performClick()
     waitFor("Font size")
-    compose.onNode(hasScrollAction()).performScrollToNode(hasText("About app"))
+    compose.onNode(viewportScrollMatcher()).performScrollToNode(hasText("About app"))
     compose.onNodeWithText("About app").performScrollTo().performClick()
     waitFor("Version information")
     compose.onNodeWithText("Version").performScrollTo().performClick()
     settle()
-    compose.onNodeWithText("Build number").performScrollTo().assertIsDisplayed()
+    compose.onNodeWithText("Version").assert(
+      androidx.compose.ui.test.SemanticsMatcher.expectValue(
+        SemanticsProperties.StateDescription,
+        "Version information expanded",
+      ),
+    )
     compose.onNodeWithText("Check for updates").performScrollTo().assertIsDisplayed()
     org.junit.Assert.assertFalse(
       "Update checking is not available yet",
@@ -1475,7 +1510,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     compose.onNode(hasText("Settings") and hasClickAction()).assertIsSelected()
     compose.onNodeWithText("About app").performClick()
     waitFor("Version information")
-    compose.onNodeWithText("Build number").assertDoesNotExist()
+    compose.onNodeWithText("Version").assert(
+      androidx.compose.ui.test.SemanticsMatcher.expectValue(
+        SemanticsProperties.StateDescription,
+        "Version information collapsed",
+      ),
+    )
     compose.runOnIdle {
       checkNotNull(composeView.findViewTreeOnBackPressedDispatcherOwner()).onBackPressedDispatcher.onBackPressed()
     }
@@ -1490,13 +1530,13 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     val restoration = StateRestorationTester(compose)
     launch(restoration)
     waitFor("Adaptive review")
     val fab = compose.onNodeWithContentDescription("New email")
     val expandedWidth = fab.fetchSemanticsNode().boundsInRoot.width
-    compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput { swipeUp() }
+    compose.onAllNodes(viewportScrollMatcher()).onFirst().performTouchInput { swipeUp() }
     settle()
     val collapsedWidth = fab.fetchSemanticsNode().boundsInRoot.width
     org.junit.Assert.assertTrue("Scrolling down collapses the FAB", collapsedWidth < expandedWidth)
@@ -1530,7 +1570,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
     }
 
     switchAwayAndBack(collapsedWidth)
-    compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput {
+    compose.onAllNodes(viewportScrollMatcher()).onFirst().performTouchInput {
       swipeDown(startY = centerY, endY = centerY + 120f)
     }
     settle()
@@ -1549,7 +1589,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       fab.fetchSemanticsNode().boundsInRoot.width,
       0.5f,
     )
-    compose.onAllNodes(hasScrollAction()).onFirst().performTouchInput { swipeUp() }
+    compose.onAllNodes(viewportScrollMatcher()).onFirst().performTouchInput { swipeUp() }
     settle()
     org.junit.Assert.assertEquals(
       "Restored FAB still responds to scrolling",
@@ -1561,7 +1601,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun tabStateRestoresEachOpenedDetail() {
     org.junit.Assume.assumeTrue(scenario.name in listOf("400x1000", "900x1000"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
@@ -1584,13 +1624,13 @@ class AdaptiveUiTest(private val scenario: Scenario) {
 
   @Test fun fullscreenProfileReturnPreservesMailPanesAcrossPostureChanges() {
     org.junit.Assume.assumeTrue(scenario.name == "900x1000" || scenario.fold != null)
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     compose.onNodeWithText("Adaptive review").performClick()
     waitFor("Reply all")
     settle()
-    fun panes() = compose.onAllNodes(hasScrollAction()).fetchSemanticsNodes().map { it.boundsInRoot }
+    fun panes() = compose.onAllNodes(viewportScrollMatcher()).fetchSemanticsNodes().map { it.boundsInRoot }
     val before = panes()
     compose.onNodeWithContentDescription("Profile").performClick()
     waitFor("Change avatar")
@@ -1646,7 +1686,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1690,7 +1730,7 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
       1f,
     )
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     waitFor("Adaptive review")
     settle()
@@ -1709,21 +1749,22 @@ class AdaptiveUiTest(private val scenario: Scenario) {
       compose.mainClock.advanceTimeByFrame()
       compose.onNodeWithText("Home").performClick()
       compose.mainClock.advanceTimeBy(1000)
-      compose.onNodeWithText("Reply all").assertExists()
       compose.onNodeWithText("Font size").assertDoesNotExist()
     } finally {
       compose.mainClock.autoAdvance = true
     }
+    // Detail now loads asynchronously; await it after restoring the test clock.
     waitFor("Reply all")
+    compose.onNodeWithText("Reply all").assertExists()
   }
 
   @Test fun settingsLogoutDialogKeepsCancelAndConfirmReachable() {
     org.junit.Assume.assumeTrue(scenario.name in setOf("400x500", "large-font", "dark"))
-    users.userFlow.value = UserModel("test", "Reviewer")
+    users.userFlow.value = UserModel("test", "Reviewer", authOrigin = configuredAuthEndpoint())
     launch()
     compose.onAllNodesWithText("Settings").onFirst().performClick()
     waitFor("Font size")
-    compose.onNode(hasScrollAction()).performScrollToNode(hasText("Log out"))
+    compose.onNode(viewportScrollMatcher()).performScrollToNode(hasText("Log out"))
     compose.onNodeWithText("Log out").performScrollTo().assertIsDisplayed().performClick()
     waitFor("Confirm")
     compose.onNodeWithText("Cancel").assertIsDisplayed()
@@ -1739,7 +1780,12 @@ class AdaptiveUiTest(private val scenario: Scenario) {
   }
 
   @Test fun mainDestinationsAndOverlays() {
-    users.userFlow.value = UserModel("test", "Reviewer", emailSearchHistory = listOf("Adaptive", "Window"))
+    users.userFlow.value = UserModel(
+      "test",
+      "Reviewer",
+      authOrigin = configuredAuthEndpoint(),
+      emailSearchHistory = listOf("Adaptive", "Window"),
+    )
     launch()
     waitFor("Adaptive review")
     capture("home")

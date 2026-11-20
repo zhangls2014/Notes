@@ -2,6 +2,7 @@ package me.zhangls.entry.panes
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateBounds
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneScaffoldValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.semantics.isTraversalGroup
@@ -52,12 +54,14 @@ internal class ListDetailPaneBounds(
       }
     } else if (scope.paneRole == ListDetailPaneScaffoldRole.Detail && detailVisible != null) {
       // Keep a measurable for the empty detail role so the scaffold retains both partitions.
+      val visibility = remember { MutableTransitionState(detailVisible) }
+      visibility.targetState = detailVisible
       Box(modifier) {
-        if (showPlaceholder) {
+        if (showPlaceholder && !visibility.currentState && !visibility.targetState) {
           with(delegate) { pane.AnimatedPane() }
         }
         AnimatedVisibility(
-          visible = detailVisible,
+          visibleState = visibility,
           enter = enterTransition,
           exit = exitTransition,
         ) {

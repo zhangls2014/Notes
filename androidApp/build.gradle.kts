@@ -36,6 +36,7 @@ kotlin {
     implementation(projects.feature.loginApi)
 
     // libraries
+    implementation(platform(kmp.androidx.compose.bom))
     implementation(kmp.androidx.activity.compose)
     implementation(kmp.androidx.biometric)
     implementation(kmp.androidx.credentials)

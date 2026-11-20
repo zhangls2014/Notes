@@ -18,7 +18,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuite
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.computedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -95,7 +95,7 @@ fun AppShell(
     val adaptiveInfo = LocalWindowAdaptiveInfo.current
     remember(adaptiveInfo) { adaptiveInfo.navigationSuiteType() }
   }
-  val navigationVisible by remember(navigationProgress) { derivedStateOf { navigationProgress() > 0f } }
+  val navigationVisible by remember(navigationProgress) { computedStateOf { navigationProgress() > 0f } }
   val visible = layoutType != null && navigationVisible
   val measurePolicy = remember(layoutType, navigationProgress) {
     navigationMeasurePolicy(layoutType, navigationProgress)

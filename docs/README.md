@@ -86,6 +86,8 @@ docs/
 
 ## 决策与调查证据
 
+- [2026-11-20 依赖升级检查](audits/2026-11-20-dependency-upgrade.md)：79 个初始显式坐标与一次性强制升级授权、最新组合、Material 默认弹窗迁移及双端验证状态。
+
 - [2026-11-14 KMP 应用内网页浏览](audits/2026-11-14-kmp-browser.md)：平台 WebView、第三方组件对比和双端原型验收范围。
 
 - [2026-11-12 应用依赖升级](audits/2026-11-12-dependency-upgrade.md)：四组正式版升级、Kotlin 与 KSP 保留依据、双端开源声明及回归结果。

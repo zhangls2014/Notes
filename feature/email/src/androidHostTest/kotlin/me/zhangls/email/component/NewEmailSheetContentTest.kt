@@ -3,6 +3,7 @@ package me.zhangls.email.component
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
@@ -49,7 +50,7 @@ class NewEmailSheetContentTest {
         }
       }
     }
-    val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
+    val viewport = compose.onNode(viewportScrollMatcher()).fetchSemanticsNode().boundsInRoot
     assertTrue("Form must fit its 260dp host: $viewport", viewport.height <= 260f)
     compose.onNodeWithText("Send").performScrollTo().assertIsDisplayed().performClick()
     compose.runOnIdle { assertEquals(1, saves) }
@@ -61,7 +62,7 @@ class NewEmailSheetContentTest {
         MeasureWithHeight(160) { Form() }
       }
     }
-    val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
+    val viewport = compose.onNode(viewportScrollMatcher()).fetchSemanticsNode().boundsInRoot
     assertTrue("Form must respect tighter keyboard constraints: $viewport", viewport.height <= 160f)
     compose.onNodeWithText("Cancel").performScrollTo().assertIsDisplayed()
   }
@@ -78,12 +79,11 @@ class NewEmailSheetContentTest {
               recipients = persistentListOf(),
               visible = visible,
               selectedRecipientIds = persistentSetOf(),
-              subject = "",
-              body = "",
+              subject = TextFieldState(),
+              body = TextFieldState(),
               isSending = false,
               onToggleRecipient = { _, _ -> },
-              onSubjectChange = {},
-              onBodyChange = {},
+
               onDismiss = { visible = false },
               onCancel = { visible = false },
               onSave = {},
@@ -101,7 +101,7 @@ class NewEmailSheetContentTest {
       }
       compose.runOnIdle { visible = true }
       compose.onNodeWithText("Recipients").assertIsDisplayed()
-      val viewport = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
+      val viewport = compose.onNode(viewportScrollMatcher()).fetchSemanticsNode().boundsInRoot
       assertTrue(
         "Reopened form must use rotated host height $newHeight: $viewport",
         viewport.height <= newHeight.value,
@@ -138,7 +138,7 @@ class NewEmailSheetContentTest {
     for (size in listOf(DpSize(280.dp, 400.dp), DpSize(400.dp, 220.dp), DpSize(280.dp, 400.dp))) {
       compose.runOnIdle { viewport = size }
       compose.waitForIdle()
-      val bounds = compose.onNode(hasScrollAction()).fetchSemanticsNode().boundsInRoot
+      val bounds = compose.onNode(viewportScrollMatcher()).fetchSemanticsNode().boundsInRoot
       assertTrue(
         "Sheet must remain within $size after preferred-size measurement: $bounds",
         bounds.left >= 0f && bounds.top >= 0f && bounds.right <= size.width.value &&
@@ -152,13 +152,12 @@ class NewEmailSheetContentTest {
       maxHeight = maxHeight,
       recipients = persistentListOf(),
       selectedRecipientIds = persistentSetOf(),
-      subject = "",
-      body = "",
+      subject = TextFieldState(),
+      body = TextFieldState(),
       isSending = false,
       inputFocus = ImeHandoffFocusState(),
       onToggleRecipient = { _, _ -> },
-      onSubjectChange = {},
-      onBodyChange = {},
+
       onCancel = {},
       onSave = onSave,
     )
@@ -174,3 +173,5 @@ class NewEmailSheetContentTest {
     }
   }
 }
+
+private fun viewportScrollMatcher() = hasScrollAction() and androidx.compose.ui.test.hasSetTextAction().not()

@@ -4,6 +4,22 @@
     "date": null,
     "changes": [
       {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Updated form editing to preserve text selection and input method composition. Refined wrapping layouts and profile editor exit animations.",
+          "zh": "升级表单编辑状态，保留文本选区与输入法组合输入；调整换行布局及个人信息编辑的退出动画。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Updated the shared UI framework and application dependencies. Dialogs now use the default Material sizing and platform window behavior. Fixed a duplicate pane state key when closing details on a folded device.",
+          "zh": "升级共享界面框架与应用依赖；弹窗采用 Material 默认尺寸和平台窗口行为；修复折叠状态关闭详情时的窗格状态键冲突。"
+        }
+      },
+      {
         "type": "fixed",
         "platforms": ["android", "ios"],
         "text": {

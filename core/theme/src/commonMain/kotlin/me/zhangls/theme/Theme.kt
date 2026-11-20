@@ -47,7 +47,7 @@ fun ComposeAppTheme(
       motionScheme = MotionScheme.expressive(),
       typography = if (fontFamily == null) AppTypography else appTypography(fontFamily),
       shapes = AppShapes,
-      content = { ProvideAlertDialogWindow(content) },
+      content = content,
     )
   }
 }

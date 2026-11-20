@@ -1,5 +1,7 @@
 package me.zhangls.profile.mvi
 
+import androidx.compose.foundation.text.input.TextFieldState
+
 internal enum class ProfileField { Username, Email }
 
 internal enum class ProfileEditError { Save, VerifyPassword, IncorrectPassword, SendCode }
@@ -21,6 +23,10 @@ internal data class ProfileEdit(
   val code: String = "",
   val busy: Boolean = false,
   val error: ProfileEditError? = null,
+  val usernameInput: TextFieldState = TextFieldState(username),
+  val passwordInput: TextFieldState = TextFieldState(password),
+  val emailInput: TextFieldState = TextFieldState(email),
+  val codeInput: TextFieldState = TextFieldState(code),
 ) {
   val recipient: String get() = email.trim().let { address ->
     val domainStart = address.lastIndexOf('@') + 1
