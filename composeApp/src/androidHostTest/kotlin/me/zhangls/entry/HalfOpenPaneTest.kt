@@ -2,6 +2,7 @@ package me.zhangls.entry
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.HingeInfo
@@ -14,6 +15,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -25,8 +27,8 @@ import me.zhangls.email.api.EmailListScene
 import me.zhangls.entry.panes.emailPaneMetadata
 import me.zhangls.entry.panes.favoritesEmailListMetadata
 import me.zhangls.entry.panes.homeEmailListMetadata
-import me.zhangls.entry.panes.noticesListMetadata
 import me.zhangls.entry.panes.noticesDetailMetadata
+import me.zhangls.entry.panes.noticesListMetadata
 import me.zhangls.entry.panes.rememberAppSceneStrategies
 import me.zhangls.main.api.FavoritesDestination
 import me.zhangls.main.api.HomeDestination
@@ -49,6 +51,27 @@ class HalfOpenPaneTest {
   private val compose = createComposeRule()
 
   @get:Rule val rules = drainMainLooperAfter(compose)
+
+  @Test fun emptyDetailHintAlignsWithListContentBelowToolbar() {
+    compose.setContent {
+      ComposeAppTheme {
+        androidx.compose.foundation.layout.Row(Modifier.requiredSize(1000.dp, 800.dp)) {
+          androidx.compose.material3.Scaffold(
+            modifier = Modifier.weight(1f),
+            topBar = { me.zhangls.theme.component.CenteredTopAppBar(title = "Favorites") },
+          ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = androidx.compose.ui.Alignment.Center) {
+              androidx.compose.material3.Text("No emails")
+            }
+          }
+          me.zhangls.main.EmailDetailPlaceholder(Modifier.weight(1f))
+        }
+      }
+    }
+    val listHint = compose.onNodeWithText("No emails").fetchSemanticsNode().boundsInRoot
+    val detailHint = compose.onNodeWithText("Select an email to read").fetchSemanticsNode().boundsInRoot
+    assertEquals(listHint.center.y, detailHint.center.y, 1f)
+  }
 
   @Test fun homeBookKeepsItsPhysicalPartitions() = assertSplit(vertical = true)
 

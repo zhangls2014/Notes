@@ -43,4 +43,5 @@
     <string name="email_not_found_description">这封邮件可能已被删除或无法访问。</string>
     <string name="email_detail_title">邮件</string>
     <string name="email_thread_failed">会话加载失败。</string>
+    <string name="email_all_shown">已显示全部邮件</string>
 </resources>

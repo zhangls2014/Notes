@@ -43,4 +43,5 @@
     <string name="email_not_found_description">This message may have been deleted or is no longer available.</string>
     <string name="email_detail_title">Mail</string>
     <string name="email_thread_failed">Conversation could not be loaded.</string>
+    <string name="email_all_shown">All emails shown</string>
 </resources>

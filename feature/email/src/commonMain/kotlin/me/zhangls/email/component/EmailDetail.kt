@@ -3,8 +3,8 @@ package me.zhangls.email.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,7 +44,6 @@ import notes.feature.email.generated.resources.email_action_close_detail
 import notes.feature.email.generated.resources.email_action_email_reply
 import notes.feature.email.generated.resources.email_action_email_reply_all
 import notes.feature.email.generated.resources.email_action_forward
-import notes.feature.email.generated.resources.email_detail_title
 import notes.feature.email.generated.resources.email_load_failed
 import notes.feature.email.generated.resources.email_load_failed_description
 import notes.feature.email.generated.resources.email_not_found
@@ -75,7 +74,8 @@ internal fun EmailDetail(
     contentWindowInsets = WindowInsets.safeDrawing,
     topBar = {
       CenteredTopAppBar(
-        title = model?.subject?.toDisplaySubject() ?: stringResource(Res.string.email_detail_title),
+        title = model?.subject?.toDisplaySubject().orEmpty(),
+        titleMaxLines = 1,
         navigate = onBack,
         actions = {
           onClose?.let { close ->
@@ -195,20 +195,21 @@ fun EmailDetailItem(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
 
-      Row(
+      FlowRow(
         modifier = Modifier
           .fillMaxWidth()
           .padding(top = 20.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
-        ReplyButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply) {
+        ReplyButton(textRes = Res.string.email_action_email_reply) {
           onCompose(model, "reply")
         }
-        ReplyButton(modifier = Modifier.weight(1F), textRes = Res.string.email_action_email_reply_all) {
+        ReplyButton(textRes = Res.string.email_action_email_reply_all) {
           onCompose(model, "replyAll")
         }
+        ReplyButton(textRes = Res.string.email_action_forward) { onCompose(model, "forward") }
       }
-      ReplyButton(textRes = Res.string.email_action_forward) { onCompose(model, "forward") }
     }
   }
 }

@@ -7,6 +7,14 @@
         "type": "improved",
         "platforms": ["android", "ios"],
         "text": {
+          "en": "Pull to refresh mail and favorites. A compact end-of-list message with subtle dot accents appears after all mail is loaded without extra space reserved for the compose button. Reply and forward actions wrap to fit the available space; detail titles remain stable and empty pane hints align with list content and use matching text styles.",
+          "zh": "邮件与收藏列表支持下拉刷新，全部加载后显示小字号与圆点装饰的紧凑末尾提示，不再为新建邮件按钮预留额外底部空间；回复与转发按钮按可用空间排列，详情顶部直接显示邮件主题，双栏空态提示与列表内容区域对齐，并统一文字样式。"
+        }
+      },
+      {
+        "type": "improved",
+        "platforms": ["android", "ios"],
+        "text": {
           "en": "Updated form editing to preserve text selection and input method composition. Refined wrapping layouts and profile editor exit animations.",
           "zh": "升级表单编辑状态，保留文本选区与输入法组合输入；调整换行布局及个人信息编辑的退出动画。"
         }

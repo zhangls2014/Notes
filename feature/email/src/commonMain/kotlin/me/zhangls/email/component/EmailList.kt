@@ -1,5 +1,6 @@
 package me.zhangls.email.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -8,8 +9,14 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.collections.immutable.toImmutableSet
@@ -44,6 +51,8 @@ internal fun EmailList(
   } else {
     viewModel.emailPaging.collectAsLazyPagingItems()
   }
+  var fabHeight by remember { mutableStateOf(0.dp) }
+  val density = LocalDensity.current
   val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
   Scaffold(
@@ -63,11 +72,13 @@ internal fun EmailList(
     },
     floatingActionButton = {
       if (isFavorite) return@Scaffold
-      NewEmailFab(
-        isSending = state.isSending,
-        listState = emailListState,
-        onOpenDraft = { viewModel.sendIntent(EmailIntent.OpenDraft) },
-      )
+      Box(Modifier.onSizeChanged { fabHeight = with(density) { it.height.toDp() } }) {
+        NewEmailFab(
+          isSending = state.isSending,
+          listState = emailListState,
+          onOpenDraft = { viewModel.sendIntent(EmailIntent.OpenDraft) },
+        )
+      }
     },
   ) { padding ->
     EmailPagedList(
@@ -76,6 +87,7 @@ internal fun EmailList(
       // 直接用 Scaffold 给的 padding：导航套件占用的那部分系统内边距已由外壳消费掉
       // （`AppShell`），这里读到的是"内容区真正可用"的内边距，不需要再换算。
       contentPadding = padding,
+      bottomActionHeight = if (isFavorite) 0.dp else fabHeight,
       isFavorite = isFavorite,
       selectedItems = state.selectedItems.toImmutableSet(),
       openedEmailId = openedEmailId,

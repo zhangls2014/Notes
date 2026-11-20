@@ -1,8 +1,12 @@
 package me.zhangls.main
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
@@ -24,6 +28,7 @@ import me.zhangls.main.api.SettingsDestination
 import me.zhangls.profile.api.ProfileOrigin
 import me.zhangls.settings.api.SettingsEntry
 import me.zhangls.settings.api.SettingsResult
+import me.zhangls.theme.component.CenteredTopAppBar
 import notes.feature.main.generated.resources.Res
 import notes.feature.main.generated.resources.main_msg_select_email
 import org.jetbrains.compose.resources.stringResource
@@ -120,11 +125,17 @@ private fun EmailDetailDestination.emailIdIn(scene: EmailListScene): Long? = ema
  */
 @Composable
 fun EmailDetailPlaceholder(modifier: Modifier = Modifier) {
-  Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Text(
-      text = stringResource(Res.string.main_msg_select_email),
-      style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.outline,
-    )
+  Scaffold(
+    modifier = modifier.fillMaxSize(),
+    contentWindowInsets = WindowInsets.safeDrawing,
+    topBar = { CenteredTopAppBar(title = "") },
+  ) { padding ->
+    Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+      Text(
+        text = stringResource(Res.string.main_msg_select_email),
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.outline,
+      )
+    }
   }
 }

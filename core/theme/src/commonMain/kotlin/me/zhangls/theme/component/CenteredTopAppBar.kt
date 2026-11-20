@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import me.zhangls.theme.icon.ArrowBackIosNew
 import me.zhangls.theme.icon.Icons
@@ -25,6 +26,7 @@ import org.jetbrains.compose.resources.stringResource
  * @param modifier 修饰符
  * @param navigate 返回按钮点击事件，如果为 null，则不显示返回按钮
  * @param actions 标题栏右侧的操作内容
+ * @param titleMaxLines 标题最大行数，超出时显示省略号
  *
  * @author zhangls
  */
@@ -35,9 +37,10 @@ fun CenteredTopAppBar(
   modifier: Modifier = Modifier,
   navigate: (() -> Unit)? = null,
   actions: (@Composable RowScope.() -> Unit) = {},
+  titleMaxLines: Int = Int.MAX_VALUE,
 ) {
   CenterAlignedTopAppBar(
-    title = { Text(text = title) },
+    title = { Text(text = title, maxLines = titleMaxLines, overflow = TextOverflow.Ellipsis) },
     modifier = modifier,
     colors = TopAppBarDefaults.topAppBarColors(),
     navigationIcon = {
