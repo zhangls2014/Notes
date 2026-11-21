@@ -1,18 +1,23 @@
 # 摘星（Notes）
 
-Notes 是一个使用 Kotlin Multiplatform 与 Compose Multiplatform 构建的邮件管理示例应用。Android 与 iOS 共享业务逻辑和 UI，项目重点展示模块边界、Navigation 3、MVI、分页数据、自适应布局和多平台数据层。
+Notes 是使用 Kotlin Multiplatform 与 Compose Multiplatform 构建的 Android / iOS 应用，共享业务逻辑和 UI。仓库同时维护 Kotlin/Wasm 官网、账号认证与模拟邮箱服务，以及开源声明和应用发布工具。
 
-## 功能
+邮件功能使用服务端按账号隔离的模拟邮箱，支持完整的邮件操作流程，但不向真实邮箱投递。注册和修改账号邮箱使用 SMTP 发送验证邮件，二者与模拟邮件业务分开。
 
-- 登录与受保护页面拦截
-- 首页、收藏、邮件详情和搜索
-- 邮件分页、批量操作与写邮件
-- 语言、主题、动态取色、字号和退出登录设置
-- 个人信息展示与头像修改
-- 关于应用、版本信息与构建号展示
-- Deep Link 打开邮件详情
-- 手机、平板、桌面窗口与折叠设备自适应布局
-- Android 与 iOS 共享 Compose UI
+## 当前功能
+
+| 范围 | 已实现能力 | 边界 |
+|---|---|---|
+| 账号与安全 | 邮箱验证注册、邮箱密码登录、通行密钥登录与管理、会话刷新与退出、生物识别解锁 | Passkey 需要受支持设备及签名、域名关联；凭据使用平台安全存储 |
+| 邮件 | 收件列表、收藏、搜索、详情与会话、写信、回复、回复全部、转发、批量操作、移入废纸篓 | 服务端保存模拟邮件；不跨用户投递，不提供离线发送或永久删除入口 |
+| 列表交互 | 分页、下拉刷新、加载失败重试、已加载内容保留和末页提示 | 账号切换后不继续使用上一账号的请求与数据 |
+| 个人信息 | 查看资料、修改用户名与邮箱、上传和同步头像 | 邮箱修改需验证当前密码和新邮箱验证码 |
+| 外观与布局 | 语言、深浅模式、字号、Android 动态取色、手机与宽窗布局、折叠设备列表—详情 | Android 与 iOS 共享 Compose UI；真实设备覆盖范围见待验收清单 |
+| 关于与网页 | 版本与本地更新摘要、官网、在线更新日志、双平台开源声明、网页刷新 | 应用内网页同步应用外观；官网与认证、APK 下载来源由构建配置注入 |
+| 缓存 | 官网资源预缓存、分片下载与续传、缓存分类与占用、逐项清理、过期资源清理 | 预缓存仅覆盖 Skiko 与 MiSans；WebView 引擎缓存只读展示 |
+| 应用更新 | Android 手动检查、启动及返回前台自动检查、同次运行提示去重 | mainland 支持后台下载安装；global 暂不支持应用内安装；iOS 暂无更新渠道 |
+
+功能实现与设备验收分开记录。当前缺口及关闭条件见[待验收清单](docs/testing/pending-acceptance.md)，版本变更规则见[应用版本与更新记录](docs/app-releases.md)。
 
 ## 项目结构
 
@@ -34,14 +39,16 @@ Notes/
 │   └── navigation              # 导航显示、预测返回转场、圆角和窗格安全区
 ├── feature/
 │   ├── main / main-api         # 应用外壳和顶层 Tab
-│   ├── login / login-api       # 登录
+│   ├── login / login-api       # 登录与注册
 │   ├── email / email-api       # 邮件列表、收藏、详情、搜索和写信
 │   ├── settings / settings-api # 设置清单、行为与入口结果
-│   ├── profile / profile-api   # 个人信息与头像修改
-│   └── about / about-api       # 关于应用与版本信息
+│   ├── profile / profile-api   # 个人信息、头像与通行密钥管理
+│   └── about / about-api       # 版本、更新、应用内网页与缓存管理
 ├── android/
 │   ├── baselineprofile         # Android 基线配置文件
 │   └── output/login            # 实验性 Fused Library
+├── server/auth                 # Node.js 认证、账号资料与服务端模拟邮箱
+├── tools                       # 开源声明、发布与图标生成工具
 ├── build-logic                 # KMP、Compose、Koin、detekt 约定插件
 └── docs                        # 架构、操作指南和历史审计
 ```
@@ -204,14 +211,14 @@ KMP 约定插件通过 `withHostTest {}` 为共享模块启用 `testAndroidHostT
 
 ## Deep Link 调试
 
-演示构建支持 `https://notes.zhangls.me/email?id=<id>`。未登录时先进入登录页，成功后恢复目标。启用 [Notes 认证服务](server/auth/README.md) 的构建还要求链接携带 `accountId=<账号 UUID>`，并在目标账号的邮件仓库就绪后打开详情。
+邮件链接使用构建配置的官网 HTTPS 来源，路径为 `/email`，查询参数为 `id` 和 `accountId`。真实账号链接必须携带匹配的账号 UUID；未登录时先登录，账号仓库就绪后恢复目标。平台关联文件和构建域名须匹配，见[服务地址配置](docs/notes-web-deployment.md#服务地址配置)。
 
-演示构建调试命令如下。
+以下使用保留示例域；执行前替换为当前构建配置的官网来源、邮件 ID、账号 UUID 和应用包名：
 
 ```bash
 adb shell am start \
   -a android.intent.action.VIEW \
-  -d "https://notes.zhangls.me/email?id=1" \
+  -d "https://notes.example.com/email?id=1&accountId=<account-uuid>" \
   me.zhangls.notes
 ```
 
@@ -227,7 +234,7 @@ adb shell am start \
 - Android 使用 Keystore 管理的 AES/GCM 密钥和随机 IV 加密凭据，通过 `AtomicFile` 写入 `noBackupFilesDir`；iOS 使用不启用同步的 Keychain，访问策略为 `WhenUnlockedThisDeviceOnly`。这些保护针对登录凭据，不代表 Room 邮件数据或整个 DataStore 已加密。
 - 旧用户 JSON 在首次访问时迁移：安全写入并读回确认后，才移除明文 token。退出登录清除凭据和用户资料；资料与凭据的账号不匹配时，不公开登录态。
 - Android 排除旧偏好文件的云备份和设备迁移，iOS 排除 DataStore 目录备份。普通设置也不会随该文件备份迁移，已存在的旧系统备份无法由此次升级追溯删除。
-- Ktor 的网络调用统一映射为 `NetworkResult`。
+- 认证传输由组合根的 `AccountSession` 协调会话刷新和账号校验，邮件通过 `MailRemote` 接入数据层；HTTP 错误和取消保留各自语义。
 - `MviViewModel` 默认不持久化 State，敏感信息不会因为开发者忘记关闭恢复而落入 instance state。
 
 测试覆盖范围和平台人工验收步骤见 [登录凭据存储验证](docs/testing/secure-token-storage.md)。真实 iOS Keychain 集成测试因当前独立测试环境不可用而标记 `@Ignore`，需要在应用宿主中验证，不能以编译通过替代。
@@ -242,8 +249,21 @@ adb shell am start \
 
 本地 Maven 发布与独立消费验证见 [Android 输出说明](android/output/README.md)。单独复制 AAR 不会自动传递第三方依赖。
 
-## 当前实现边界
+## 官网、服务端与发布工具
 
-- 登录仍是本地模拟，尚未接入真实认证和 token 刷新端点。安全凭据存储不等同于完整的服务端会话管理。
-- 网络客户端当前固定输出请求头日志，并隐藏 Authorization；尚未按 Debug/Release 区分日志策略。
-- Android 17 与多形态适配尚未覆盖的验证范围见 [待验收清单](docs/testing/pending-acceptance.md)，原始记录按 [文档历史追溯](docs/README.md#历史追溯) 查询。
+| 工作内容 | 入口 |
+|---|---|
+| 官网开发、预览与浏览器回归 | [web/README.md](web/README.md) |
+| 认证、资料与模拟邮箱接口及服务端测试 | [server/auth/README.md](server/auth/README.md) |
+| 网站部署、更新清单与关联文件 | [网站部署指南](docs/notes-web-deployment.md) |
+| PostgreSQL、SMTP、Passkey 与服务上线 | [认证服务部署指南](docs/notes-auth-deployment.md) |
+| 本地准备发布包、上传与恢复 | [发布工具](tools/release/README.md) |
+| 随应用分发的第三方声明维护 | [开源声明工具](tools/open-source/README.md) |
+
+发布、生产部署、数据库迁移和本机凭据修改均须单独授权；开发与文档更新不代表已执行这些操作。
+
+## 当前实现与验收边界
+
+- 真实认证、会话轮换、账号资料同步和服务端模拟邮箱已接入。未配置认证端点的本地演示登录不提供服务端邮件数据。
+- Room 实现与历史数据库保留，生产邮件入口使用网络 Repository，不提供邮件离线缓存。
+- 自动测试与编译结果不替代设备行为、截图或生产环境验收。Android 多形态、iOS WebView、Passkey 和平台安全存储等未完成事项统一见[待验收清单](docs/testing/pending-acceptance.md)。

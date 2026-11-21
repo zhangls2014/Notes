@@ -86,11 +86,11 @@ Gradle 中启用的模块：
 | API / 实现 | 职责 |
 |---|---|
 | `feature:main-api` / `feature:main` | 顶层 Tab 和应用外壳 |
-| `feature:login-api` / `feature:login` | 登录目的地、入口契约和登录 UI |
+| `feature:login-api` / `feature:login` | 登录与注册目的地、入口契约和表单 UI |
 | `feature:email-api` / `feature:email` | 邮件详情目的地、列表场景、邮件列表/详情/搜索/写信 UI |
 | `feature:settings-api` / `feature:settings` | 设置入口/结果契约和设置行为/UI |
 | `feature:profile-api` / `feature:profile` | 个人信息与通行密钥管理的入口、导航契约、页面与状态 |
-| `feature:about-api` / `feature:about` | 关于应用目的地/入口契约、品牌信息、安装包版本展示、版本更新摘要展开与离线更新列表 |
+| `feature:about-api` / `feature:about` | 关于与缓存管理目的地、版本摘要、更新控制、官网/日志/声明 WebView 与网页资源缓存 |
 
 新增页面时先确定其业务职责、状态所有者、入口和依赖方向，并在设计或实施计划中记录模块归属与理由。现有 Feature 能承担完整职责时复用该 Feature；独立职责需要独立依赖边界时，可新增 API/实现模块对。设置列表、工具栏等访问入口可以属于其他 Feature，由宿主装配导航。
 
@@ -100,7 +100,7 @@ API 模块只包含其他模块有理由知道的稳定契约，例如 `Destinat
 
 ### 服务地址配置
 
-应用构建从 Gradle 属性、环境变量、集中默认值依次解析认证和官网地址。组合根把官网来源注入 About Feature，更新清单请求、Android 下载页校验、发布历史和在线声明链接共用该来源。Android App Links 使用相同构建参数生成 host；iOS 的关联域名通过 Xcode 构建设置提供，并为框架构建派生对应地址。测试环境及网站发布参数见 [部署配置](notes-web-deployment.md#服务地址配置)。
+应用构建按 Gradle 属性、环境变量、仓库根 `.local/server.properties` 的顺序解析认证、官网和 APK 下载地址，缺少必需配置时构建失败。配置格式见[本地配置](../README.md#本地配置)。组合根把官网来源注入 About Feature，更新清单请求、Android 下载页校验、发布历史和在线声明链接共用该来源。Android App Links 使用相同构建参数生成 host；iOS 的关联域名通过 Xcode 构建设置提供，并为框架构建派生对应地址。测试环境及网站发布参数见 [部署配置](notes-web-deployment.md#服务地址配置)。
 
 ### 源码定位
 
@@ -399,9 +399,9 @@ Feature 不使用底层 `Dialog` 重做普通提示、确认或设置选择容�
 - 应用组合根直接注册 `NetworkModule`，并把构建提供的官网、APK 下载和认证 origin 分别注入 `NotesWebsite` 和 `AuthenticationConfig`。根导航用官网配置校验深链来源，账号会话和认证请求共用认证配置。「关于应用」使用独立的匿名客户端检查更新。
 - `composeApp` 的 `AccountSession` 管理账号会话与按需刷新。`core:data` 继续负责平台安全存储和凭据的条件更新。普通请求可并行执行。服务端返回 `401 invalid_session` 时，暂停新请求并等待在途请求完成，再轮换凭据，避免旧 Token 在写入提交前失效。同一批旧 Token 请求共享刷新结果，只在同一会话内重发一次。轮换前将操作 ID 与原凭据一起原子写入安全存储。断线后沿用该 ID，在五分钟内可向服务端取回同一次结果。`403` 保留业务流程自己的处理，超时和连接失败不自动重发。认证失败诊断保留 HTTP 状态、业务码和 `X-Request-Id`，不记录请求正文或凭据。
 - 生物识别解锁设置随本机会话资料保存，旧资料和新登录默认关闭。设置入口通过 `SettingsResult` 请求根层验证；Android 与 iOS 宿主发起系统设备验证，支持设备锁屏凭据回退。启动时组合根等待本进程首次确认会话；有锁定会话时仅显示解锁页，导航、待处理深链和更新提示等验证成功再恢复。授权只保留在进程内，退出会话时清除。保护范围是应用内访问，Room 和 Token 存储沿用现有机制。
-- 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。所有 Android 和 iOS 构建默认连接 `https://auth.notes.zhangls.me`，提供注册并启用 Passkey，认证配置独立于应用更新渠道。Passkey 入口还要求平台支持，实际使用需要签名应用与认证域名建立关联。注册发码时拒绝已注册邮箱。用户使用已验证邮箱和密码或 Passkey 登录。Passkey 登录挑战绑定当前邮箱和账户 UUID，凭据及本地数据仍以稳定的账户 UUID 标识，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
+- 认证在组合根装配，登录 Feature 通过宿主提供的认证契约发起账号密码或 Passkey 登录。Android 和 iOS 构建从本机或构建环境注入认证来源，提供注册及 Passkey 能力，认证配置独立于应用更新渠道。Passkey 入口还要求平台支持，实际使用需要签名应用与认证域名建立关联。注册发码时拒绝已注册邮箱。用户使用已验证邮箱和密码或 Passkey 登录。Passkey 登录挑战绑定当前邮箱和账户 UUID，凭据及本地数据仍以稳定的账户 UUID 标识，独立 HTTPS 客户端负责验证、轮换与撤销会话，刷新仅更新安全凭据。协议和测试域名配置见 [认证服务](../server/auth/README.md)。
 - Android 真实账号登录使用 Compose Autofill，账号和密码由系统自动填充服务管理。登录输入框使用 [RoundedAutofillHighlight](../core/theme/src/commonMain/kotlin/me/zhangls/theme/component/RoundedAutofillHighlight.kt) 将高亮绘制为与输入框一致的形状。认证客户端确认服务端响应有效后、发布会话前通知登录表单提交自动填充会话。演示登录和 Passkey 流程不主动提交密码保存。
-- 真实账号在 `notes-<uuid>.db` 使用独立 Room 文件，表结构沿用现有 schema。组合根在账号数据库就绪后才挂载受保护导航；切换账号时退役旧数据库和查询。原 `notes.db` 保留给本地演示会话。真实会话的邮件深链须同时携带匹配的 `accountId`，避免数字邮件 ID 在不同数据库间碰撞。
+- 生产入口由 `RemoteAccountDataRepository` 按固定账号创建网络邮件仓库，账号仓库就绪后才挂载受保护导航；切换账号时关闭旧仓库并取消请求。旧 Room 实现的 `notes-<uuid>.db` 与演示 `notes.db` 保留，不再由生产邮件入口读取。真实会话的邮件深链须同时携带匹配的 `accountId`，避免数字邮件 ID 在不同账号间碰撞。
 - Android 排除旧 `notes.preferences_pb` 的云备份及设备迁移，iOS 排除 DataStore 目录备份，避免未完成迁移的旧明文被备份。这也意味着普通设置不会随该文件备份迁移；旧有备份中的数据无法由本次升级追溯删除。
 - Compose Resources 的格式化占位符必须带位置，例如 `%1$s`；无位置的 `%s` 不会被正确替换。
 - 同一段通用 Compose 渲染在两个或更多位置出现时，评估下沉到 `core:theme` 或 `core:preference`，但单一 Feature 的业务组件仍留在 Feature。
@@ -470,14 +470,14 @@ Feature 不使用底层 `Dialog` 重做普通提示、确认或设置选择容�
 
 Android 宿主支持 Android 9 及以上动态主题色。Android 12 及以上仅在 Secure 设置 `theme_customization_overlay_packages` 的 `android.theme.customization.color_source` 为 `preset` 时使用系统 Material 3 调色板；其余情况通过 WallpaperManager 壁纸主色生成配色。`lock_wallpaper` 优先读取锁屏壁纸，失败后回退桌面壁纸；其他值、缺失、无效配置或配置读取失败均使用桌面壁纸。该字段是系统内部约定，不能保证识别厂商未记录的手动选色，不使用品牌名单或色值比较推断用户意图。颜色读取在后台执行，前台期间监听主题配置与桌面、锁屏壁纸颜色变化，每次返回前台重新读取。壁纸颜色短暂读取失败保留已有壁纸颜色，首次不可用时使用内置主题。共享 UI 继续通过 App 的动态配色入口接收 ColorScheme，设置关闭时使用内置主题。
 
-## 官网、发布渠道与认证域
+## 8. 官网、发布渠道与认证域
 
 官网启动时从 `/releases/site.json` 读取现行渠道构建，HTML 内嵌数据只作为请求或解析失败时的回退。`tools/release/` 的本地命令离线准备发布包，经明确授权后通过 SSH 上传与校验静态文件，先验证公网 APK，再切换更新记录、官网渠道数据和客户端清单；认证服务不参与发布。各 JSON 文件独立原子替换，客户端清单最后更新；中断不自动回滚，私有进度记录只允许原摘要的发布包续完未完成的写入。发布成功后同步仓库渠道记录，完整官网部署前仍须核对线上记录，避免旧检出覆盖新版本。命令和恢复边界见 [发布工具](../tools/release/README.md)。
 
 官网从 `web/` 构建，在运行时读取 `/releases/published.json`。网站生成器从包内 `releases.json` 生成接口数据，分发清单来自各现行渠道登记的当前构建。各页面的 HTML 仅提供启动入口和所需的数据。首页、下载、更新日志、开源声明和 404 复用同一 Kotlin/Wasm 页面框架，按可用宽度和字号在 Material 3 顶部导航与左侧导航栏间切换。App 内嵌的更新日志和开源声明隐藏官网导航。About 通过 `AppInfo` 读取当前渠道，用独立匿名 Ktor 客户端检查宿主配置的官网更新清单。安装版本的更新摘要随包分发，完整更新日志和开源声明由网站提供。认证会话按服务来源隔离。部署及验收见 [网站部署与应用发布](notes-web-deployment.md)。
 
 
-## 服务端模拟邮箱
+## 9. 服务端模拟邮箱
 
 邮件业务归属 `feature:email`，沿用现有 `feature:email-api` Entry。发送、回复、回复全部、转发的编辑内容与状态由当前导航条目的 `EmailViewModel` 持有，列表和详情复用编辑浮层，不启用跨进程保存。
 
@@ -489,3 +489,5 @@ Android 宿主支持 Android 9 及以上动态主题色。Android 12 及以上�
 
 
 邮件错误状态由 `feature:email` 管理。无数据的首次失败在扣除页面内容 Insets 后的视口中居中显示标题、说明和填充色调重试按钮；窄小视口允许状态内容滚动。已有邮件刷新失败在列表顶部提示，追加失败在底部提示，均保留已加载内容。详情通过 `EmailDetailState` 区分 Loading、Loaded、Failed、NotFound，加载不显示重试，失败与不存在时仍保留返回或关闭入口。网络层透传 HTTP 状态，仅详情 404 映射为不存在，其余请求失败保留错误语义；取消请求不映射为错误。会话加载失败在会话区域内单独重试。
+
+首页和收藏共用 Paging 下拉刷新，包括空列表。无数据加载只显示中央动画，已有内容刷新只显示顶部指示器；刷新和追加失败保留已有邮件并提供重试。非空列表在刷新成功且追加结束后显示末页提示。详情标题直接展示邮件主题，回复、回复全部与转发动作使用 FlowRow 按可用空间换行。具体设备验收状态见[待验收清单](testing/pending-acceptance.md)。

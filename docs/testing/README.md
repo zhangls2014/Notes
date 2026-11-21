@@ -8,17 +8,18 @@
 
 | 模块 | 当前测试归属 | 重点 |
 |---|---|---|
-| `composeApp` | `commonTest`、`androidHostTest`、`iosTest` | 返回栈序列化、Tab/页面导航、场景策略、主题、自适应布局、个人信息导航、关于页面、跨模块 Entry 调用与网页打开 |
-| `core:data` | `commonTest`、`iosTest` | 用户资料/登录凭据协调、明文迁移与真实 Keychain 集成边界 |
+| `composeApp` | `commonTest`、`androidHostTest`、`iosTest` | 返回栈、场景策略、自适应布局、账号注册与会话、设备解锁、自动更新、跨模块 Entry 调用与网页打开 |
+| `core:data` | `commonTest`、`iosTest` | 用户资料/登录凭据协调、网络邮件分页与账号隔离、明文迁移与真实 Keychain 集成边界 |
 | `core:database` | `commonTest`、`iosTest` | 收件人编码与历史 schema 迁移 |
 | `core:theme` | `commonTest` | 铰链几何 |
+| `core:download` | `commonTest`、`iosTest` | 分片下载、断点续传、文件校验、后台分片与取消 |
 | `core:navigation` | `androidHostTest`、`androidDeviceTest` | 页面几何、设备圆角、预测返回与遮罩逐帧回归 |
 | `core:framework` | `commonTest`、`iosTest` | Deep Link 字符串解析；原生 Toast 布局、Dynamic Type 与播报调度 |
 | `feature:main` | `commonTest` | 导航套件尺寸策略 |
 | `feature:login` | `commonTest` | 登录输入校验、窗格与表单布局策略；登录业务/UI 回归另在组合根宿主测试中 |
-| `feature:email` | `androidHostTest` | 邮件列表无障碍操作与新建邮件表单 |
+| `feature:email` | `androidHostTest` | 邮件分页、下拉刷新、加载/失败反馈、末页提示、无障碍操作与写信表单 |
 | `feature:profile` | `androidHostTest` | 头像复制/清理、原子更新、ViewModel 与页面交互、通行密钥管理和旋转恢复 |
-| `feature:about` | `commonTest`；页面由组合根宿主测试覆盖 | 包信息映射、网页外观与路由；`AboutUiTest` 与自适应导航回归 |
+| `feature:about` | `commonTest`、`iosTest`；页面由组合根宿主测试覆盖 | 版本与更新、网页外观/路由/就绪、资源清单与缓存清理、视口投递；`AboutUiTest` 与自适应导航回归 |
 
 导航显示机制的测试位于 `core/navigation/src/androidHostTest/kotlin/me/zhangls/navigation/`，只依赖本模块与测试库；`LayeredNavDisplayTest`、`AppSceneStrategiesTest`、Tab 和序列化测试继续在组合根验证。Native 像素用例分批命令见 [自适应 UI 回归](adaptive-ui.md)。
 
@@ -82,6 +83,21 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 先以 `python3 web/preview.py --port 8842` 启动构建后的本机站点，再运行 `CHROME_BIN=<chrome-executable> node --test web/release-browser.test.mjs`。可用 `NOTES_PREVIEW_URL` 指定其他本机预览地址。该用例检查真实 Canvas 页面的 Android/iPadOS 平台锁定、窗口切换的段落锚点、目录选择与浏览器返回、动态折痕清除及运行时异常，并生成 `web/build/release-candidates/` 下的候选截图；临时 Chrome profile 放在系统临时目录，不修改日常浏览器配置。截图不自动更新正式基线。
 
 原生源集和共享几何分别运行 `:feature:about:iosSimulatorArm64Test`、`:core:theme:iosSimulatorArm64Test`；组合根的实际 Entry 回归运行 `:composeApp:iosSimulatorArm64Test`。Android 使用对应模块 `testAndroidHostTest`，不能以 iOS 编译替代 Android 验证。原生窗口到 WebView 的变换、连续折叠和首帧时序仍需真实设备验收。协议接入见[网页视口协议](../web-device-viewport.md)。
+
+## 官网、服务端与工具验证
+
+这些入口独立于移动端 Gradle 回归；按改动选择，不把单一平台通过当作整个仓库通过。
+
+| 范围 | 命令或操作指南 |
+|---|---|
+| 官网生成器与视口协议 | `node --test web/build.test.mjs web/device-viewport.test.mjs` |
+| 官网构建与 Wasm 布局 | `./gradlew -Pkotlin.js.yarn=false :web:buildSite :web:wasmJsBrowserTest` |
+| 真实浏览器阅读与布局 | 按[网站开发指南](../../web/README.md)启动预览，再运行 `web/release-browser.test.mjs` |
+| 认证、资料与模拟邮箱 | 在 `server/auth` 执行 `npm run check` 与 `npm test`；数据库集成条件见[服务端说明](../../server/auth/README.md) |
+| 开源声明导出与生成器 | [工具指南](../../tools/open-source/README.md) |
+| 发布包准备与发布工具测试 | [发布工具指南](../../tools/release/README.md) |
+
+Gradle 任务在同一仓库内顺序执行。服务端测试使用隔离的测试配置；数据库 schema 变更、迁移与生产发布仍须单独授权。浏览器候选截图不等同于原生 WebView、折叠设备或 iOS 设备验收。
 
 ## 验证证据与交付记录
 
