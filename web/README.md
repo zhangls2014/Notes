@@ -36,18 +36,25 @@ From the repository root, run:
 
 ```sh
 node --test web/build.test.mjs web/device-viewport.test.mjs
-./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite
+./gradlew -Pkotlin.js.yarn=false :web:buildSite
 python3 web/preview.py --port 8842
 ```
 
 The Gradle build combines the Wasm website, update feeds and association files.
+`buildSite` tracks generator sources, Wasm artifacts, release and notice data,
+shared theme colors, and the environment settings read by the generator. Unchanged
+inputs and outputs allow Gradle to skip generation. `NOTES_PUBLISHED_BUILDS_FILE`
+and `NOTES_WEB_OUTPUT_DIR` overrides are resolved from the repository root, as in
+the Node command. Environment changes must invalidate generation; this task does
+not opt into the shared build cache.
 The downloads page links directly to the APK or App Store. Use a fresh output
 directory to avoid serving obsolete files from an earlier build.
 The notice launch documents contain an empty Compose host,
 platform data, and a reference to the shared Wasm bootstrap. The `404.html`
 document also starts Compose; open an unknown path in the preview to check the
 custom error page and its HTTP 404 response.
-Kotlin may warn about configuration on demand.
+Do not enable Configuration on Demand for the Wasm target; use the configured
+Gradle configuration cache for repeated builds.
 See [deployment](../docs/notes-web-deployment.md).
 
 The Compose website uses the unmodified MiSans Regular OTF from the [official

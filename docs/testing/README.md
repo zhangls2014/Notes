@@ -77,7 +77,7 @@ iOS 平台代码、Native 跨模块契约或数据迁移变更：
 
 ### 更新日志与视口协议回归
 
-协议、坐标和来源切换运行 `node --test web/device-viewport.test.mjs web/build.test.mjs`。网页策略运行 `CHROME_BIN=<chrome-executable> ./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:wasmJsBrowserTest`，再运行 `:web:buildSite`。
+协议、坐标和来源切换运行 `node --test web/device-viewport.test.mjs web/build.test.mjs`。网页策略运行 `CHROME_BIN=<chrome-executable> ./gradlew -Pkotlin.js.yarn=false :web:wasmJsBrowserTest`，再运行 `:web:buildSite`。
 
 先以 `python3 web/preview.py --port 8842` 启动构建后的本机站点，再运行 `CHROME_BIN=<chrome-executable> node --test web/release-browser.test.mjs`。可用 `NOTES_PREVIEW_URL` 指定其他本机预览地址。该用例检查真实 Canvas 页面的 Android/iPadOS 平台锁定、窗口切换的段落锚点、目录选择与浏览器返回、动态折痕清除及运行时异常，并生成 `web/build/release-candidates/` 下的候选截图；临时 Chrome profile 放在系统临时目录，不修改日常浏览器配置。截图不自动更新正式基线。
 

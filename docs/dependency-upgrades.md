@@ -13,6 +13,7 @@ Notes 是功能验证项目，升级目标是采用满足现有功能、平台�
 ## 范围与配置
 
 - 依赖版本统一在 `gradle/kmp.versions.toml` 维护；同时检查内联插件/库版本、BOM、Gradle Wrapper、构建约定插件和 Xcode 工程。
+- 更新 Gradle Wrapper 时显式传入目标镜像的 `--gradle-distribution-url`，并通过 `--gradle-distribution-sha256-sum` 配置经官方核对的目标发行包校验值。Gradle 9.9 起保留网络与存储等已有配置，但不会保留自定义分发 URL 的镜像域名；生成后检查镜像、版本、`bin/all` 类型、SHA-256、URL 验证及网络参数的差异。规则依据见 [Gradle Wrapper 配置保留说明](https://docs.gradle.org/9.9.0/release-notes.html#the-wrapper-task-preserves-customized-properties)。
 - Gradle 运行 JDK、编译 toolchain JDK、Kotlin `jvmTarget` 与 Java source/target compatibility 分别评估。JDK 与字节码目标可以不同；相关 Kotlin/Java 任务的字节码级别必须一致。
 - 本机工具高于官方支持上限时，先使用已有的受支持安装；没有可用安装则记录环境缺口，不修改全局工具或用超范围版本替代验收。
 - Android `compileSdk`、`targetSdk` 和 Build Tools 选择工具链支持的最新正式版本；`minSdk`、iOS deployment target 是支持范围，不因追新自动提高。

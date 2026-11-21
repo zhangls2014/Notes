@@ -20,7 +20,7 @@ processes against the same checkout concurrently.
 python3 tools/open-source/generate.py --refresh
 python3 -m unittest discover -s tools/open-source -p 'test_*.py'
 node --test web/build.test.mjs
-./gradlew --configure-on-demand -Pkotlin.js.yarn=false :web:buildSite
+./gradlew -Pkotlin.js.yarn=false :web:buildSite
 ```
 
 Each platform configuration is resolved by a task in its owning project, then the

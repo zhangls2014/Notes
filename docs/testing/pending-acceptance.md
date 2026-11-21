@@ -4,6 +4,12 @@
 
 本页维护事项状态及关闭条件，具体命令与操作步骤留在对应指南。完成后补充日期、版本、环境、实际执行结果和证据，再更新状态；编译、行为断言、截图候选、视觉基线和设备验收分别记录。
 
+## detekt 的 Gradle API 弃用（2026-11-21）
+
+- 状态：待上游修复。当前 `dev.detekt:detekt-gradle-plugin:2.0.0-alpha.6` 的 `DetektBasePlugin` 与 `DetektPlugin.configurePluginDependencies` 均调用 `Configuration.setVisible(false)`；完整弃用堆栈已确认来源。该属性已无效果，Gradle 11 将移除，见 [Gradle 迁移说明](https://docs.gradle.org/9.9.1/userguide/upgrading_version_9.html#deprecate-visible-property)。
+- 2026-11-21 核对 [Maven Central 元数据](https://repo.maven.apache.org/maven2/dev/detekt/detekt-gradle-plugin/maven-metadata.xml)，最新发布仍为 alpha.6；本次保留版本与警告，不修改缓存 JAR、不屏蔽诊断。
+- [ ] 在上游发布兼容修复版后，按 [升级规范](../dependency-upgrades.md) 核对支持范围及 Compose Rules 兼容性，验证普通 detekt、Android 类型解析任务和配置缓存，并以 `--warning-mode all --no-configuration-cache` 确认不再触发该 API。Gradle 11 升级前必须解决。
+
 ## 网页缓存过期清理
 
 - 已实现：按有效清单取消同站点过期后台任务，确认停止写入并抑制迟到回调重试后删除旧分片；当前 Skiko/MiSans 完整校验成功后保存清单并清理旧文件。新下载失败保留已完成旧缓存，取消失败不删分片。其他站点、目录、无关文件、WebView 引擎与 APK 不参与清理。
