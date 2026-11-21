@@ -10,7 +10,13 @@ internal const val WEB_ASSET_CACHE_DIRECTORY = "notes-web-assets"
 internal const val APP_UPDATE_CACHE_DIRECTORY = "app-updates"
 
 internal data class CacheDiskEntry(val name: String, val bytes: Long?)
-internal data class CachedFile(val name: String, val bytes: Long, val relativePath: String, val site: String? = null)
+internal data class CachedFile(
+  val name: String,
+  val bytes: Long,
+  val relativePath: String,
+  val site: String? = null,
+  val kind: WebAssetKind? = null,
+)
 
 internal data class CacheInventory(
   val webFiles: List<CachedFile>,
@@ -33,16 +39,25 @@ internal suspend fun readCacheInventory(): CacheInventory {
       if (entry.bytes != null) continue
       val site = if (port == "443") host else "$host:$port"
       val directory = "$WEB_ASSET_CACHE_DIRECTORY/${entry.name}"
+      val manifest = webAssetManifestDisk(entry.name)?.read()
       val sizes = listCacheDirectory(directory)
         .mapNotNull { file -> file.bytes?.let { file.name to it } }.toMap()
       val completed = sizes.keys.filter(::isWebAssetCacheFilename)
-      completed.mapTo(web) { name -> CachedFile(name, sizes.getValue(name), "$directory/$name", site) }
+      completed.mapTo(web) { name ->
+        CachedFile(name, sizes.getValue(name), "$directory/$name", site, manifest?.kind(name))
+      }
       downloadCheckpoints(sizes).filter {
         it.expectedBytes <= MAX_ASSET_BYTES && it.filename !in completed && isWebAssetCacheFilename(it.filename)
       }.groupBy { it.filename }.values.mapTo(checkpoints) { versions ->
         val checkpoint = versions.maxBy { it.savedBytes }
         WebAssetTransfer(
-          CachedFile(checkpoint.filename, checkpoint.expectedBytes, "$directory/${checkpoint.filename}", site),
+          CachedFile(
+            checkpoint.filename,
+            checkpoint.expectedBytes,
+            "$directory/${checkpoint.filename}",
+            site,
+            manifest?.kind(checkpoint.filename),
+          ),
           checkpoint.savedBytes,
           active = false,
         )

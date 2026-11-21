@@ -105,8 +105,8 @@ android {
     manifestPlaceholders["notesSiteHost"] = notesSiteHost
     minSdk = kmp.versions.android.minSdk.get().toInt()
     targetSdk = kmp.versions.android.targetSdk.get().toInt()
-    versionCode = 9
-    versionName = "1.1.6"
+    versionCode = 10
+    versionName = "1.1.7"
 
     ndk {
       abiFilters.add("arm64-v8a")

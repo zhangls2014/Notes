@@ -74,6 +74,8 @@
   <string name="about_cache_loading">正在读取缓存</string>
   <string name="about_cache_loading_detail">正在统计本地文件占用。</string>
   <string name="about_cache_skiko_name">Skiko WebAssembly</string>
+  <string name="about_cache_wasm_name">WebAssembly 资源</string>
+  <string name="about_cache_unknown_font_name">字体资源</string>
   <string name="about_cache_font_name">MiSans 字体</string>
   <string name="about_cache_downloading">正在下载 · %1$s</string>
   <string name="about_cache_verifying">正在校验文件…</string>

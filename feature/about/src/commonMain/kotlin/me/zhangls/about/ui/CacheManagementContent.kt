@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import me.zhangls.about.cacheFileAbsolutePath
 import me.zhangls.about.CachedFile
 import me.zhangls.about.WebAssetTransfer
+import me.zhangls.about.WebAssetKind
 import me.zhangls.theme.icon.Code
 import me.zhangls.theme.icon.Download
 import me.zhangls.theme.icon.FormatSize
@@ -47,6 +48,8 @@ import notes.feature.about.generated.resources.about_cache_engine_note
 import notes.feature.about.generated.resources.about_cache_engine_unavailable
 import notes.feature.about.generated.resources.about_cache_font_name
 import notes.feature.about.generated.resources.about_cache_skiko_name
+import notes.feature.about.generated.resources.about_cache_wasm_name
+import notes.feature.about.generated.resources.about_cache_unknown_font_name
 import notes.feature.about.generated.resources.about_cache_total
 import notes.feature.about.generated.resources.about_cache_total_detail
 import org.jetbrains.compose.resources.stringResource
@@ -120,8 +123,10 @@ private fun CacheFileDetails(file: CachedFile, transfer: WebAssetTransfer?) {
   val colors = MaterialTheme.colorScheme
   val (name, icon) = when {
     file.site == null -> file.name to Icons.Rounded.Download
-    file.name.endsWith(".wasm") -> stringResource(Res.string.about_cache_skiko_name) to Icons.Rounded.Code
-    else -> stringResource(Res.string.about_cache_font_name) to Icons.Rounded.FormatSize
+    file.kind == WebAssetKind.Skiko -> stringResource(Res.string.about_cache_skiko_name) to Icons.Rounded.Code
+    file.kind == WebAssetKind.MiSans -> stringResource(Res.string.about_cache_font_name) to Icons.Rounded.FormatSize
+    file.name.endsWith(".wasm") -> stringResource(Res.string.about_cache_wasm_name) to Icons.Rounded.Code
+    else -> stringResource(Res.string.about_cache_unknown_font_name) to Icons.Rounded.FormatSize
   }
   Row(
     horizontalArrangement = Arrangement.spacedBy(12.dp),

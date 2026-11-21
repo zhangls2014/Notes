@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.1.7",
+    "date": "2026-11-21",
+    "changes": [
+      {
+        "type": "fixed",
+        "platforms": ["android", "ios"],
+        "text": {
+          "en": "Stop outdated website resource downloads and remove their fragments, then clean up old caches after current resources are verified. Cache management distinguishes Skiko, MiSans and unidentified resources instead of labeling every WebAssembly file as Skiko.",
+          "zh": "停止过期网页资源下载并清理其分片，当前资源校验成功后自动清理旧缓存；缓存管理准确区分 Skiko、MiSans 和身份未确认的资源，不再将所有 WebAssembly 文件都标为 Skiko。"
+        }
+      }
+    ]
+  },
+  {
     "version": "1.1.6",
     "date": "2026-11-20",
     "changes": [

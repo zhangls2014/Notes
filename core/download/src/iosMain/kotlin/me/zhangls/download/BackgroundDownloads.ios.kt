@@ -7,8 +7,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
@@ -33,6 +35,9 @@ import kotlin.coroutines.suspendCoroutine
 
 private val sessionId = "${NSBundle.mainBundle.bundleIdentifier}.download.ranges.v1"
 private val backgroundDownloads by lazy { BackgroundDownloads() }
+private const val CANCELLATION_TIMEOUT_MILLIS = 30_000L
+private const val CANCELLATION_POLL_MILLIS = 50L
+private const val MAX_BACKGROUND_DOWNLOADS = 3
 
 /** Schedules the remaining ranges in one system-owned background URLSession. */
 suspend fun downloadInBackground(request: DownloadRequest, onProgress: (Long) -> Unit) {
@@ -43,12 +48,18 @@ suspend fun downloadInBackground(request: DownloadRequest, onProgress: (Long) ->
 
 /** Interleaves the missing fragments of independently progressing files in the system queue. */
 suspend fun prepareBackgroundDownloads(requests: List<DownloadRequest>) {
-  require(requests.size <= 3)
+  require(requests.size <= MAX_BACKGROUND_DOWNLOADS)
   withContext(Dispatchers.Main) { backgroundDownloads.prepare(requests) }
 }
 
 suspend fun hasActiveBackgroundDownload(relativePath: String): Boolean =
   withContext(Dispatchers.Main) { backgroundDownloads.hasActiveDownload(relativePath) }
+
+/** Stops obsolete tasks only in the destination directories owned by the retained requests. */
+suspend fun cancelObsoleteBackgroundDownloads(requests: List<DownloadRequest>): Boolean {
+  require(requests.size in 1..MAX_BACKGROUND_DOWNLOADS)
+  return withContext(Dispatchers.Main) { backgroundDownloads.cancelObsolete(requests) }
+}
 
 /** Pass the UIKit background URLSession callback to the transfer owner. */
 fun handleDownloadSessionEvents(identifier: String, completion: () -> Unit) {
@@ -100,12 +111,13 @@ internal class DownloadFiles(val request: DownloadRequest) {
   }
 }
 
-private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProtocol {
+internal class BackgroundDownloads(private val configuration: NSURLSessionConfiguration? = null) :
+  NSObject(), NSURLSessionDownloadDelegateProtocol {
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-  private val session by lazy {
-    val configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(sessionId)
-    configuration.sessionSendsLaunchEvents = true
-    NSURLSession.sessionWithConfiguration(configuration, this, NSOperationQueue.mainQueue)
+  val session by lazy {
+    val settings = configuration ?: NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(sessionId)
+    settings.sessionSendsLaunchEvents = true
+    NSURLSession.sessionWithConfiguration(settings, this, NSOperationQueue.mainQueue)
   }
   private data class Observer(val completed: CompletableDeferred<Unit>, val progress: (Long) -> Unit)
   private val observers = mutableMapOf<DownloadRequest, Observer>()
@@ -113,6 +125,7 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
   private val enqueued = mutableSetOf<Pair<DownloadRequest, Long>>()
   private val publishing = mutableSetOf<DownloadRequest>()
   private val published = mutableSetOf<DownloadRequest>()
+  private val discarded = mutableSetOf<DownloadRequest>()
   private var completionHandler: (() -> Unit)? = null
   private var eventsFinished = false
 
@@ -124,6 +137,7 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
   }
 
   suspend fun prepare(requests: List<DownloadRequest>) {
+    discarded.removeAll(requests.toSet())
     val pending = currentTasks().mapNotNull { it.rangeTask() }.mapTo(mutableSetOf()) { it.request to it.start }
     val missing = withContext(Dispatchers.IO) {
       requests.mapNotNull { request ->
@@ -145,6 +159,7 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
   suspend fun download(request: DownloadRequest, progress: (Long) -> Unit) {
     require(Path(request.destination).isAbsolute && request.url.startsWith("https://") &&
       request.size > 0 && request.sha256.matches(Regex("[a-f0-9]{64}")))
+    discarded -= request
     observers[request]?.let { existing -> return existing.completed.await() }
     val files = DownloadFiles(request)
     if (withContext(Dispatchers.IO) { files.verified(files.target) }) return
@@ -182,7 +197,27 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
       publishing.any { it.destination.endsWith(suffix) }
   }
 
+  suspend fun cancelObsolete(requests: List<DownloadRequest>): Boolean {
+    val tasks = currentTasks()
+    val directories = requests.map { Path(it.destination).parent }.toSet()
+    val known = tasks.mapNotNull { it.rangeTask()?.request } + enqueued.map { it.first } + publishing + observers.keys
+    val obsolete = known.filter { Path(it.destination).parent in directories && it !in requests }.toSet()
+    discarded += obsolete
+    obsolete.forEach { observers[it]?.completed?.completeExceptionally(IOException("Obsolete download cancelled")) }
+    tasks.filter { it.rangeTask()?.request in obsolete }.forEach { it.cancel() }
+    // cancel() is asynchronous. Keep fragments until callbacks and any publication finish.
+    return withTimeoutOrNull(CANCELLATION_TIMEOUT_MILLIS) {
+      while (currentTasks().any { it.rangeTask()?.request in obsolete } ||
+        enqueued.any { it.first in obsolete } || publishing.any { it in obsolete }
+      ) {
+        delay(CANCELLATION_POLL_MILLIS)
+      }
+      true
+    } == true
+  }
+
   private fun enqueue(part: RangeTask) {
+    if (part.request in discarded) return
     if (!enqueued.add(part.request to part.start)) return
     val url = checkNotNull(NSURL.URLWithString(part.request.url))
     val request = NSMutableURLRequest.requestWithURL(url)
@@ -212,7 +247,7 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
     didFinishDownloadingToURL: NSURL,
   ) {
     val part = downloadTask.rangeTask() ?: return
-    if (part.request in publishing || part.request in published) return
+    if (part.request in discarded || part.request in publishing || part.request in published) return
     val files = DownloadFiles(part.request)
     received.remove(part.request to part.start)
     try {
@@ -248,6 +283,10 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
   override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
     val part = task.rangeTask() ?: return
     enqueued.remove(part.request to part.start)
+    if (part.request in discarded) {
+      received.remove(part.request to part.start)
+      return
+    }
     val status = (task.response as? NSHTTPURLResponse)?.statusCode?.toInt()
     if (didCompleteWithError == null && status != 408 && status != 429 && status !in 500..599) return
     received.remove(part.request to part.start)
@@ -256,7 +295,7 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
 
   private fun retry(part: RangeTask) {
     val files = DownloadFiles(part.request)
-    if (part.request in published || files.contains(part, files.prefixSize())) return
+    if (part.request in discarded || part.request in published || files.contains(part, files.prefixSize())) return
     if (part.attempt < 2) enqueue(part.copy(attempt = part.attempt + 1))
     else observers[part.request]?.completed?.completeExceptionally(IOException("Background fragment interrupted"))
   }
@@ -272,6 +311,7 @@ private class BackgroundDownloads : NSObject(), NSURLSessionDownloadDelegateProt
 
   private fun publishIfReady(files: DownloadFiles): Boolean {
     val request = files.request
+    if (request in discarded) return false
     if (request in publishing) return true
     val full = SystemFileSystem.metadataOrNull(files.full)?.size == request.size
     val prefix = files.prefixSize()

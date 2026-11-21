@@ -83,6 +83,7 @@ class WebAssetCacheTest {
                 bytes.size.toLong(),
                 "notes-web-assets/website.example.test-443$SKIKO",
                 "website.example.test",
+                WebAssetKind.Skiko,
               ),
               0,
             ),
@@ -96,7 +97,7 @@ class WebAssetCacheTest {
         }
         refresh.join()
         assertEquals(emptyMap(), cache.transfers.value)
-        assertEquals(2, cache.publicationCount.value)
+        assertEquals(4, cache.publicationCount.value)
         assertContentEquals(bytes, disk[SKIKO])
       }
     }
@@ -125,9 +126,16 @@ class WebAssetCacheTest {
         assertEquals(4, transport.requests.size)
 
         transport.manifest = update
+        val oldCheckpoint = ".${SKIKO.removePrefix("/")}.5.$SKIKO_SHA.part"
+        disk.writeName(oldCheckpoint, byteArrayOf(1))
+        disk.writeName("unrelated.txt", byteArrayOf(2))
         WebAssetCache(NotesWebsite(ORIGIN), client) { disk.path(it) }.refresh()
         assertEquals(listOf(MANIFEST, SKIKO_UPDATE), transport.requests.takeLast(2))
         assertContentEquals(skiko, disk[SKIKO_UPDATE])
+        assertNull(disk[SKIKO])
+        assertNull(disk.readName(oldCheckpoint))
+        assertContentEquals(byteArrayOf(2), disk.readName("unrelated.txt"))
+        assertEquals(update, webAssetManifestDisk("website.example.test-443", disk::path)?.read())
       }
     }
   }
@@ -179,6 +187,108 @@ class WebAssetCacheTest {
   }
 
   @Test
+  fun failedReplacementOrInvalidManifestKeepsTheVerifiedManifestAndOldFiles() = runTest {
+    withDisk { disk ->
+      val skiko = "skiko".encodeToByteArray()
+      val font = "font".encodeToByteArray()
+      val fontPath = "/web-assets/misans-${FONT_SHA.take(20)}.otf"
+      val initial = WebAssetManifest(describe(SKIKO, skiko), describe(fontPath, font))
+      val replacement = initial.copy(
+        skiko = describe(SKIKO_UPDATE, skiko),
+        miSans = describe("/web-assets/misans-${NEW_SHA.take(20)}.otf", "new".encodeToByteArray()),
+      )
+      val server = WebAssetTestEngine(initial, mapOf(SKIKO to skiko, SKIKO_UPDATE to skiko, fontPath to font))
+      HttpClient(server) { install(HttpTimeout) }.use { client ->
+        assertTrue(WebAssetCache(NotesWebsite(ORIGIN), client, targetPath = disk::path).refresh())
+        server.manifest = replacement
+        assertFalse(WebAssetCache(NotesWebsite(ORIGIN), client, targetPath = disk::path).refresh())
+        assertContentEquals(skiko, disk[SKIKO])
+        assertContentEquals(font, disk[fontPath])
+        assertEquals(initial, webAssetManifestDisk("website.example.test-443", disk::path)?.read())
+        server.manifest = replacement.copy(skiko = replacement.skiko.copy(path = "/invalid.wasm"))
+        assertFalse(WebAssetCache(NotesWebsite(ORIGIN), client, targetPath = disk::path).refresh())
+        assertContentEquals(skiko, disk[SKIKO])
+        assertEquals(initial, webAssetManifestDisk("website.example.test-443", disk::path)?.read())
+      }
+    }
+  }
+
+  @Test
+  fun cancelsObsoleteDownloadsAndDeletesTheirFragmentsBeforeNewTransfersStart() = runTest {
+    withDisk { disk ->
+      val skiko = "skiko".encodeToByteArray()
+      val font = "font".encodeToByteArray()
+      val fontPath = "/web-assets/misans-${FONT_SHA.take(20)}.otf"
+      val manifest = WebAssetManifest(describe(SKIKO_UPDATE, skiko), describe(fontPath, font))
+      disk.write(checkNotNull(cachedWebAsset(ORIGIN, ORIGIN + SKIKO)), skiko)
+      val checkpoint = ".${SKIKO.removePrefix("/")}.5.$SKIKO_SHA.part.0"
+      disk.writeName(checkpoint, byteArrayOf(1))
+      val server = WebAssetTestEngine(manifest, mapOf(SKIKO_UPDATE to skiko, fontPath to font))
+      HttpClient(server) { install(HttpTimeout) }.use { client ->
+        val delegate = webAssetHttpDownloader(client)
+        var cancelled = false
+        val downloader = object : WebAssetDownloader {
+          override suspend fun download(request: me.zhangls.download.DownloadRequest, onProgress: (Long) -> Unit) {
+            assertTrue(cancelled)
+            assertNull(disk.readName(checkpoint))
+            assertContentEquals(skiko, disk[SKIKO])
+            delegate.download(request, onProgress)
+          }
+
+          override suspend fun hasActiveDownload(relativePath: String): Boolean =
+            !cancelled && relativePath.endsWith(SKIKO)
+
+          override suspend fun cancelObsolete(requests: List<me.zhangls.download.DownloadRequest>): Boolean {
+            assertEquals(setOf(ORIGIN + SKIKO_UPDATE, ORIGIN + fontPath), requests.map { it.url }.toSet())
+            cancelled = true
+            return true
+          }
+        }
+        val cache = WebAssetCache(NotesWebsite(ORIGIN), client, downloader, disk::path)
+        assertTrue(cache.refresh())
+        assertNull(disk[SKIKO])
+        assertNull(disk.readName(checkpoint))
+      }
+    }
+  }
+
+  @Test
+  fun failedCancellationKeepsOldFragmentsAndDoesNotStartCurrentDownloads() = runTest {
+    withDisk { disk ->
+      val skiko = "skiko".encodeToByteArray()
+      val font = "font".encodeToByteArray()
+      val fontPath = "/web-assets/misans-${FONT_SHA.take(20)}.otf"
+      val manifest = WebAssetManifest(describe(SKIKO_UPDATE, skiko), describe(fontPath, font))
+      val checkpoint = ".${SKIKO.removePrefix("/")}.5.$SKIKO_SHA.part"
+      disk.writeName(checkpoint, byteArrayOf(1))
+      val server = WebAssetTestEngine(manifest, emptyMap())
+      HttpClient(server) { install(HttpTimeout) }.use { client ->
+        val downloader = object : WebAssetDownloader {
+          override suspend fun download(request: me.zhangls.download.DownloadRequest, onProgress: (Long) -> Unit) {
+            error("Current download must not start before obsolete tasks stop")
+          }
+
+          override suspend fun cancelObsolete(requests: List<me.zhangls.download.DownloadRequest>): Boolean = false
+        }
+        assertFalse(WebAssetCache(NotesWebsite(ORIGIN), client, downloader, disk::path).refresh())
+        assertEquals(listOf(MANIFEST), server.requests)
+        assertContentEquals(byteArrayOf(1), disk.readName(checkpoint))
+      }
+    }
+  }
+
+  @Test
+  fun unavailableTargetPathDoesNotReportSuccessfulRefresh() = runTest {
+    val skiko = "skiko".encodeToByteArray()
+    val font = "font".encodeToByteArray()
+    val fontPath = "/web-assets/misans-${FONT_SHA.take(20)}.otf"
+    val server = WebAssetTestEngine(WebAssetManifest(describe(SKIKO, skiko), describe(fontPath, font)), emptyMap())
+    HttpClient(server) { install(HttpTimeout) }.use { client ->
+      assertFalse(WebAssetCache(NotesWebsite(ORIGIN), client, targetPath = { null }).refresh())
+    }
+  }
+
+  @Test
   fun cacheNamesRejectOtherOriginsAndResources() {
     assertEquals("application/wasm", cachedWebAsset(ORIGIN, ORIGIN + SKIKO)?.mimeType)
     assertNull(cachedWebAsset(ORIGIN, "https://foreign.example.test" + SKIKO))
@@ -223,6 +333,14 @@ private class TestWebAssetDisk(private val folder: Path) {
 
   fun write(asset: CachedWebAsset, bytes: ByteArray) {
     SystemFileSystem.sink(Path(path(asset))).buffered().use { it.write(bytes) }
+  }
+
+  fun writeName(name: String, bytes: ByteArray) {
+    SystemFileSystem.sink(Path(folder, name)).buffered().use { it.write(bytes) }
+  }
+
+  fun readName(name: String): ByteArray? = Path(folder, name).let { path ->
+    if (SystemFileSystem.exists(path)) SystemFileSystem.source(path).buffered().use { it.readByteArray() } else null
   }
 }
 

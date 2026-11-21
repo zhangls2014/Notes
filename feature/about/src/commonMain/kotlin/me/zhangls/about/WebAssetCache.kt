@@ -91,6 +91,9 @@ internal fun interface WebAssetDownloader {
   suspend fun download(request: DownloadRequest, onProgress: (Long) -> Unit)
   suspend fun prepare(requests: List<DownloadRequest>) = Unit
   suspend fun hasActiveDownload(relativePath: String): Boolean = false
+
+  // HTTP transfers share the serialized refresh; iOS also owns tasks surviving the process.
+  suspend fun cancelObsolete(requests: List<DownloadRequest>): Boolean = true
 }
 
 internal expect fun platformWebAssetDownloader(client: HttpClient): WebAssetDownloader
@@ -138,12 +141,15 @@ internal class WebAssetCache(
 
   private suspend fun updateFromServer(): Boolean = coroutineScope {
     val manifest = readManifest() ?: return@coroutineScope false
+    val resources = listOf(manifest.skiko, manifest.miSans).mapNotNull { resourceDownload(it, manifest) }
+    if (resources.size != 2) return@coroutineScope false
     val downloads = assetLock.withLock {
-      listOf(manifest.skiko, manifest.miSans).mapNotNull(::resourceDownload)
+      resources
         .filterNot { (file, _) -> file.relativePath in clearedPaths }
         .also { assets -> refreshingPaths.value = assets.map { it.first.relativePath }.toSet() }
     }
     try {
+      if (!cancelObsoleteDownloads(manifest, resources)) return@coroutineScope false
       prepareDownloads(downloads.map { it.second })
       val results = downloads.map { (file, request) ->
         async {
@@ -160,10 +166,54 @@ internal class WebAssetCache(
           }
         }
       }.awaitAll()
-      results.all { it }
+      val downloaded = results.all { it }
+      if (downloaded && resources.size == 2 && downloads.size == resources.size) {
+        assetLock.withLock {
+          if (resources.any { it.first.relativePath in clearedPaths }) return@withLock true
+          try {
+            val directory = downloads.first().first.relativePath.substringBeforeLast('/')
+              .removePrefix("$WEB_ASSET_CACHE_DIRECTORY/")
+            val disk = webAssetManifestDisk(directory, targetPath) ?: return@withLock false
+            disk.write(manifest)
+            disk.prune(manifest) { name -> downloader.hasActiveDownload("$WEB_ASSET_CACHE_DIRECTORY/$directory/$name") }
+          } catch (cancelled: CancellationException) {
+            throw cancelled
+          } catch (_: Exception) {
+            false
+          } finally {
+            // Manifest identity and pruning change the inventory even when downloads were cache hits.
+            publishedAssets.update { it + 1 }
+          }
+        }
+      } else {
+        downloaded
+      }
     } finally {
       refreshingPaths.value = emptySet()
     }
+  }
+
+  private suspend fun cancelObsoleteDownloads(
+    manifest: WebAssetManifest,
+    resources: List<Pair<CachedFile, DownloadRequest>>,
+  ): Boolean = try {
+    if (downloader.cancelObsolete(resources.map { it.second })) {
+      assetLock.withLock {
+        val directory = resources.first().first.relativePath.substringBeforeLast('/')
+          .removePrefix("$WEB_ASSET_CACHE_DIRECTORY/")
+        webAssetManifestDisk(directory, targetPath)?.prune(manifest, checkpointsOnly = true) { name ->
+          downloader.hasActiveDownload("$WEB_ASSET_CACHE_DIRECTORY/$directory/$name")
+        } == true
+      }
+    } else {
+      false
+    }
+  } catch (cancelled: CancellationException) {
+    throw cancelled
+  } catch (_: Exception) {
+    false
+  } finally {
+    publishedAssets.update { it + 1 }
   }
 
   private suspend fun prepareDownloads(requests: List<DownloadRequest>) {
@@ -189,7 +239,7 @@ internal class WebAssetCache(
     null
   }
 
-  private fun resourceDownload(asset: WebAsset): Pair<CachedFile, DownloadRequest>? {
+  private fun resourceDownload(asset: WebAsset, manifest: WebAssetManifest): Pair<CachedFile, DownloadRequest>? {
     val url = origin + asset.path
     val key = cachedWebAsset(origin, url) ?: return null
     val path = targetPath(key) ?: return null
@@ -200,6 +250,7 @@ internal class WebAssetCache(
       asset.size.toLong(),
       "$WEB_ASSET_CACHE_DIRECTORY/${key.directory}/${key.filename}",
       site,
+      manifest.kind(key.filename),
     )
     return file to DownloadRequest(url, path, file.bytes, asset.sha256)
   }

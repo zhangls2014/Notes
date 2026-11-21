@@ -381,6 +381,16 @@ class AboutUiTest(private val scenario: Scenario) {
     store("notes-web-assets/website.example.test-443/$wasm", 1_000)
     val font = "misans-${"a".repeat(64)}.otf"
     store("notes-web-assets/website.example.test-443/$font", 80)
+    store("notes-web-assets/website.example.test-443/fedcba9876543210fedc.wasm", 40)
+    store("notes-web-assets/website.example.test-443/misans-${"b".repeat(20)}.otf", 1)
+    File(cache, "notes-web-assets/website.example.test-443/.manifest-v2.json").writeText(
+      """
+      {
+        "skiko":{"path":"/$wasm","size":1000,"sha256":"${"c".repeat(64)}"},
+        "miSans":{"path":"/web-assets/$font","size":80,"sha256":"${"a".repeat(64)}"}
+      }
+      """.trimIndent(),
+    )
     store("notes-web-assets/website.example.test-443/$wasm.new", 100)
     store("app-updates/Notes-42.apk", 300)
     store("other/private.txt", 80)
@@ -412,6 +422,10 @@ class AboutUiTest(private val scenario: Scenario) {
     compose.onNodeWithText("2.0 KB").assertIsDisplayed()
     compose.onNodeWithTag("about-page").captureRoboImage("build/about-candidates/cache-management-${scenario.name}.png")
     val list = compose.onNodeWithTag("cache-inventory")
+    list.performScrollToNode(hasText("WebAssembly resource"))
+    compose.onNodeWithText("WebAssembly resource").assertIsDisplayed()
+    list.performScrollToNode(hasText("Font resource"))
+    compose.onNodeWithText("Font resource").assertIsDisplayed()
     val wasmPath = "notes-web-assets/website.example.test-443/$wasm"
     list.performScrollToNode(hasText("Skiko WebAssembly"))
     val wasmName = compose.onNodeWithText("Skiko WebAssembly")

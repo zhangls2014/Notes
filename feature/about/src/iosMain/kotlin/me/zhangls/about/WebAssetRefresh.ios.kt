@@ -2,6 +2,7 @@ package me.zhangls.about
 
 import io.ktor.client.HttpClient
 import me.zhangls.download.DownloadRequest
+import me.zhangls.download.cancelObsoleteBackgroundDownloads
 import me.zhangls.download.downloadInBackground
 import me.zhangls.download.handleDownloadSessionEvents
 import me.zhangls.download.hasActiveBackgroundDownload
@@ -12,6 +13,9 @@ internal actual fun platformWebAssetDownloader(client: HttpClient): WebAssetDown
     override suspend fun prepare(requests: List<DownloadRequest>) = prepareBackgroundDownloads(requests)
 
     override suspend fun hasActiveDownload(relativePath: String): Boolean = hasActiveBackgroundDownload(relativePath)
+
+    override suspend fun cancelObsolete(requests: List<DownloadRequest>): Boolean =
+      cancelObsoleteBackgroundDownloads(requests)
 
     override suspend fun download(request: DownloadRequest, onProgress: (Long) -> Unit) =
       downloadInBackground(request, onProgress)
